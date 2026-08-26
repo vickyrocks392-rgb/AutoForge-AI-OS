@@ -18,6 +18,7 @@ dependencies = [
     "autoforge-runtime",
     "autoforge-kernel",
     "autoforge-event-platform",
+    "autoforge-ai-infrastructure",
 ]
 
 [project.optional-dependencies]

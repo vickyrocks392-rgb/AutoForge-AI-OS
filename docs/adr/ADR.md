@@ -57,3 +57,4 @@ Use the following template when recording a new architecture decision.
 | ADR-003 | Context Engineering Contract (Architecture Only) | Accepted | 2026-08-26 |
 | ADR-004 | Engineering Experience Contract (Read Model) | Accepted | 2026-08-26 |
 | ADR-005 | Memory ≠ Learning Boundary (Specification Amendment) | Accepted | 2026-08-26 |
+| ADR-006 | AI Infrastructure Platform Boundary (Capability Registry, Model Router, Execution Continuity Manager) | Accepted | 2026-08-26 |
