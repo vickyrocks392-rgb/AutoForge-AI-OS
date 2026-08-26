@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoforge-connectors"
+version = "0.1.0"
+description = "Connector Platform for the AutoForge AI OS - standardised access to external systems (filesystem, git, github) behind uniform, replaceable boundaries"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "AutoForge AI"},
+]
+# Phase 8 constraint: no third-party runtime dependencies. Filesystem uses
+# pathlib/shutil, Git uses controlled subprocess execution, GitHub uses an
+# injectable transport boundary (stdlib urllib default).
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
