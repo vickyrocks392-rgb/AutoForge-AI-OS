@@ -1,5 +1,7 @@
 # Memory Engine
 
+> **⚠️ LEGACY / SUPERSEDED-IN-PART (2026-08-26):** This short-form document predates the frozen **Memory Platform Specification v1.0** (`docs/subsystems/MEMORY_PLATFORM_SPECIFICATION.md`), which is authoritative for Memory. The Memory ≠ Learning boundary is fixed in **`docs/adr/ADR-005`**. Where this document disagrees, the frozen specification and the ADR win.
+
 > **Note:** This document is consistent with Architecture v1.0 (`architecture/ARCHITECTURE.md`). The Memory Engine is a Shared Platform Service that provides contextual storage capturing the state and history of specific executions and sessions. It manages working memory, project memory, long-term memory, reflection memory, and semantic memory.
 
 ## Purpose

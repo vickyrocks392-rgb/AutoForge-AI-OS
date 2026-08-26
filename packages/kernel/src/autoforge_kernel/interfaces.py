@@ -257,6 +257,19 @@ class RuntimeStateManager(ABC):
         """Get the latest checkpoint for a project."""
         pass
 
+    @abstractmethod
+    async def health_check(self) -> dict[str, Any]:
+        """Verify that the runtime state manager is reachable and healthy.
+
+        Called by the Kernel during initialization to validate its dependency
+        on the Runtime State Manager before accepting requests.
+
+        Returns:
+            Dictionary with at least a boolean ``healthy`` flag plus
+            implementation-specific health details.
+        """
+        raise NotImplementedError
+
 
 class EventBus(ABC):
     """Interface for the Event Bus service."""

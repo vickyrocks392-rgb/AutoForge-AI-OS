@@ -698,3 +698,36 @@ Activities
 Outcome
 
 🚀 AutoForge AI OS v1.0
+
+------------------------------------------------------------
+
+============================================================
+ADDENDUM — PHASE 0 RECORD (2026-08-26)
+============================================================
+
+Foundation Stabilization & Integration (Phase 0 of the foundation
+programme recorded in docs/PHASE_0_FOUNDATION_STABILIZATION_REPORT.md)
+was executed between the frozen subsystem phases and Autonomous Worker
+work. This addendum records governance constraints only; the roadmap
+structure above is unchanged.
+
+Phase 0 established:
+
+• Canonical event vocabulary (`autoforge_events`) with the Event
+  Platform bound to transport-only responsibilities (ADR-001).
+• The foundational composition root wiring Kernel, Runtime, canonical
+  events and transport in a real process (ADR-002).
+• Restored green test substrate and cross-package checkpoint round-trip.
+• Contracts (architecture only, no implementation): Context Engineering
+  (ADR-003), Engineering Experience read model (ADR-004), Memory ≠
+  Learning boundary (ADR-005).
+
+Standing constraints for ALL future phases:
+
+• Context Engineering remains a first-class capability; it composes
+  Knowledge/Memory capabilities and never duplicates them (ADR-003).
+• Engineering Experience stays a provenance-aware, correlation-aware
+  READ model composed from authoritative sources (ADR-004).
+• Any benchmark harness and self-improvement work MUST follow the gated
+  pipeline: candidate → evaluation → benchmark → regression →
+  accept/reject → version → rollback.

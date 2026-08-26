@@ -52,6 +52,8 @@ Use the following template when recording a new architecture decision.
 
 | ADR | Title | Status | Date |
 |---|---|---|---|
-| ADR-001 | {Title} | {Status} | {Date} |
-| ADR-002 | {Title} | {Status} | {Date} |
-| ADR-003 | {Title} | {Status} | {Date} |
+| ADR-001 | Canonical Event Vocabulary and Event Platform Boundary | Accepted | 2026-08-26 |
+| ADR-002 | Composition Root and Kernel-Runtime Boundary | Accepted | 2026-08-26 |
+| ADR-003 | Context Engineering Contract (Architecture Only) | Accepted | 2026-08-26 |
+| ADR-004 | Engineering Experience Contract (Read Model) | Accepted | 2026-08-26 |
+| ADR-005 | Memory ≠ Learning Boundary (Specification Amendment) | Accepted | 2026-08-26 |

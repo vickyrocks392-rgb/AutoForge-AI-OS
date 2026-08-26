@@ -22,6 +22,14 @@ class Event(AutoForgeBaseModel):
     """
     A domain event emitted during execution.
 
+    .. deprecated::
+        This model is a legacy, weaker event vocabulary retained only for
+        backwards compatibility with early domain-model consumers. The
+        CANONICAL event contract for AutoForge is ``autoforge_events``
+        (``BaseEvent`` + ``EventType``/``EventCategory``). New code MUST
+        publish and consume canonical events; the Event Platform transports
+        them via its adapter boundary (see ADR-001).
+
     Events capture something that happened in the platform. They are
     immutable records that can be published to an event bus, stored
     in an event log, or used to trigger side effects.

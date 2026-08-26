@@ -1,5 +1,12 @@
 # AutoForge AI Project Dashboard
 
+> **⚠️ STALE / HISTORICAL (2026-08-26):** This dashboard reflects the early
+> TypeScript-era planning phase and no longer tracks reality. The canonical
+> implementation roadmap is **`architecture/ROADMAP.md`**; the authoritative
+> current-state audit is **`docs/AUTONOMOUS_WORKER_ARCHITECTURE_RECONCILIATION.md`**;
+> the foundation-stabilization record is **`docs/PHASE_0_FOUNDATION_STABILIZATION_REPORT.md`**.
+> This file is preserved as history and is NOT updated by current work.
+
 ## Project Vision
 
 AutoForge AI is an autonomous software engineering platform that transforms a user request into a completed, production-grade software project through specialised AI agents. It orchestrates the full SDLC — planning, research, architecture, implementation, testing, deployment, and documentation — with fault-tolerant, long-running execution and human-in-the-loop oversight.

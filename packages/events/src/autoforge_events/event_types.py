@@ -51,6 +51,9 @@ class EventCategory(str, Enum):
     SERVICE = "service"
     """Events related to infrastructure services."""
 
+    CHECKPOINT = "checkpoint"
+    """Events related to checkpoint creation and restoration."""
+
 
 class EventType(str, Enum):
     """
@@ -335,6 +338,17 @@ class EventType(str, Enum):
 
     KERNEL_STOPPED = "kernel.stopped"
     """Kernel has stopped."""
+
+    # ------------------------------------------------------------------
+    # Checkpoint events
+    # ------------------------------------------------------------------
+    CHECKPOINT_CREATED = "checkpoint.created"
+    """A checkpoint of execution state was created."""
+
+    # NOTE: CHECKPOINT_RESTORED ("checkpoint.restored") is defined with the
+    # execution lifecycle events above; no duplicate is added here.
+    CHECKPOINT_DELETED = "checkpoint.deleted"
+    """A checkpoint was deleted."""
 
     # ------------------------------------------------------------------
     # System events (for backward compatibility)

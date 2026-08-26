@@ -17,6 +17,7 @@ from autoforge_runtime.exceptions import (
     InvalidEntityTypeError,
     InvalidTransitionError,
     PersistenceError,
+    SnapshotError,
     ValidationError,
     VersionConflictError,
 )
@@ -49,6 +50,12 @@ from autoforge_runtime.models import (
 from autoforge_runtime.persistence import PersistenceLayer
 from autoforge_runtime.query_engine import QueryEngine
 from autoforge_runtime.recovery_manager import RecoveryManager
+from autoforge_runtime.snapshots import (
+    SNAPSHOT_STORES,
+    RuntimeSnapshot,
+    create_snapshot as build_snapshot,
+    restore_snapshot as expand_snapshot,
+)
 from autoforge_runtime.transition_engine import StateTransitionEngine
 from autoforge_runtime.validation import (
     ValidationErrorCode,
@@ -286,6 +293,87 @@ class RuntimeStateManager:
         )
         return result
 
+    # ── Snapshot Operations ──────────────────────────────────────────────
+
+    def create_snapshot(self) -> RuntimeSnapshot:
+        """Capture an immutable snapshot of the entire runtime state.
+
+        Returns:
+            RuntimeSnapshot: Immutable point-in-time capture of all
+            registered state entities.
+
+        Raises:
+            SnapshotError: If the snapshot cannot be created.
+        """
+        try:
+            stores = {
+                field: self._persistence.snapshot_store(entity_type)
+                for field, entity_type, _ in SNAPSHOT_STORES
+            }
+            snapshot = build_snapshot(stores)
+        except Exception as exc:
+            raise SnapshotError(
+                f"Failed to create runtime snapshot: {exc}",
+                details={"error": str(exc)},
+            ) from exc
+        self._publish_event(
+            "snapshot.created",
+            {
+                "snapshot_id": str(snapshot.snapshot_id),
+                "entity_count": len(snapshot),
+            },
+        )
+        return snapshot
+
+    def restore_snapshot(self, snapshot: RuntimeSnapshot) -> int:
+        """Restore runtime state from an immutable snapshot.
+
+        Writes every entity contained in the snapshot back into the
+        persistence layer, replacing existing state for those IDs.
+
+        Args:
+            snapshot: The snapshot to restore from.
+
+        Returns:
+            int: Number of entities restored.
+        """
+        restored = expand_snapshot(snapshot)
+        count = 0
+        for field, entity_type, _ in SNAPSHOT_STORES:
+            for entity_id, entity in restored[field].items():
+                self._persistence.write_state(entity_type, entity_id, entity)
+                count += 1
+        self._publish_event(
+            "snapshot.restored",
+            {
+                "snapshot_id": str(snapshot.snapshot_id),
+                "entity_count": count,
+            },
+        )
+        return count
+
+    def health_check(self) -> dict[str, Any]:
+        """Report runtime health for dependency verification.
+
+        Used by dependents (e.g. the Kernel during initialization) to verify
+        that this runtime state manager instance is alive and operational.
+
+        Returns:
+            dict[str, Any]: Health information including runtime ID, lifecycle
+            status and persistence availability.
+        """
+        persistence_ok = True
+        try:
+            self._persistence.read_all(EntityType.PROJECT)
+        except Exception:
+            persistence_ok = False
+        return {
+            "healthy": persistence_ok,
+            "runtime_id": str(self._lifecycle.runtime_id),
+            "status": self._lifecycle.status.value,
+            "persistence_available": persistence_ok,
+        }
+
     # ── State Read API (Section 6.2) ─────────────────────────────────────
 
     def get_project_state(self, project_id: uuid.UUID) -> ProjectState:
@@ -416,7 +504,7 @@ class RuntimeStateManager:
                 details={"entity_type": str(entity_type)},
             )
         event_type = f"{entity_type.value}."
-        return self._event_publisher.router.subscribe(event_type, callback)
+        return self._event_publisher.router.subscribe(event_type, callback, prefix_match=True)
 
     def unsubscribe(self, subscription_id: uuid.UUID) -> bool:
         """Unsubscribe from state changes.

@@ -80,6 +80,11 @@ from autoforge_runtime.query_engine import (
     QueryParser,
 )
 from autoforge_runtime.recovery_manager import RecoveryManager
+from autoforge_runtime.snapshots import (
+    RuntimeSnapshot,
+    create_snapshot,
+    restore_snapshot,
+)
 from autoforge_runtime.state_manager import RuntimeStateManager
 from autoforge_runtime.transition_engine import StateTransitionEngine
 from autoforge_runtime.validation import (
@@ -130,6 +135,7 @@ __all__ = [
     "QueryEngine", "QueryParser", "FilterEngine", "AggregationEngine",
     "EventPublisher", "EventFormatter", "EventRouter",
     "RuntimeLifecycle", "RecoveryManager",
+    "RuntimeSnapshot", "create_snapshot", "restore_snapshot",
     "StateWriteInterface", "StateReadInterface", "QueryInterface", "EventSubscriptionInterface",
     "RuntimeError", "StateError", "InvalidTransitionError", "SnapshotError",
     "EntityNotFoundError", "DuplicateEntityError", "VersionConflictError",

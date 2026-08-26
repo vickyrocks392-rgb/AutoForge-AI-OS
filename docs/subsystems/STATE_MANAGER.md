@@ -1,5 +1,7 @@
 # State Manager
 
+> **⚠️ LEGACY / SUPERSEDED (2026-08-26):** This short-form document is superseded by the frozen **Runtime State Manager Specification v1.0** (`docs/subsystems/RUNTIME_STATE_MANAGER_SPECIFICATION.md`), implemented by `packages/runtime` (`autoforge_runtime`). Composition with the Kernel is defined in **`docs/adr/ADR-002`**. Retained for history only.
+
 ## Purpose
 
 This document defines the state manager — the component responsible for maintaining the authoritative, consistent state of all execution entities within the AutoForge AI platform. The state manager ensures that every component has access to the current state of tasks, projects, workflows, and agents, and that state transitions are atomic, consistent, and auditable.

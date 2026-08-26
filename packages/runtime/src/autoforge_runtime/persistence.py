@@ -100,6 +100,10 @@ class PersistentStore:
         store = self._get_store(entity_type)
         store.pop(entity_id, None)
 
+    def snapshot_store(self, entity_type: EntityType) -> dict[uuid.UUID, StateModel]:
+        """Return a shallow copy of one entity store, keyed by entity ID."""
+        return dict(self._get_store(entity_type))
+
     def _get_store(self, entity_type: EntityType) -> dict[uuid.UUID, StateModel]:
         """Get the store for an entity type."""
         if entity_type == EntityType.PROJECT:
@@ -190,6 +194,10 @@ class PersistenceLayer:
         """Write a checkpoint to the persistent store."""
         self.store.write(EntityType.CHECKPOINT, checkpoint.checkpoint_id, checkpoint)
         self.cache.set(EntityType.CHECKPOINT, checkpoint.checkpoint_id, checkpoint)
+
+    def snapshot_store(self, entity_type: EntityType) -> dict[uuid.UUID, StateModel]:
+        """Return a shallow copy of one persistent store, keyed by entity ID."""
+        return self.store.snapshot_store(entity_type)
 
     def clear(self) -> None:
         """Clear all persistence data."""

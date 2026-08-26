@@ -72,32 +72,71 @@ class EventFormatter:
 
 
 class EventRouter:
-    """Routes events to appropriate topics."""
+    """Routes events to appropriate subscribers."""
 
     def __init__(self) -> None:
         """Initialize the event router."""
+        # Exact event-type subscribers, e.g. "project.created".
         self._subscribers: dict[str, list[Callable[[dict[str, Any]], None]]] = {}
+        # Prefix-pattern subscribers, e.g. "task." matches all task events.
+        self._prefix_subscribers: dict[str, list[Callable[[dict[str, Any]], None]]] = {}
+        # Subscription registry enabling precise unsubscribe.
+        self._subscriptions: dict[uuid.UUID, tuple[str, bool, Callable[[dict[str, Any]], None]]] = {}
 
-    def subscribe(self, event_type: str, callback: Callable[[dict[str, Any]], None]) -> uuid.UUID:
-        """Subscribe to an event type."""
+    def subscribe(
+        self,
+        event_type: str,
+        callback: Callable[[dict[str, Any]], None],
+        *,
+        prefix_match: bool = False,
+    ) -> uuid.UUID:
+        """Subscribe to an event type.
+
+        Args:
+            event_type: Exact event type name, or a prefix ending with ``.``
+                when ``prefix_match`` is true (e.g. ``"task."``).
+            callback: Callback invoked with the event payload.
+            prefix_match: Treat ``event_type`` as a prefix pattern.
+
+        Returns:
+            Subscription identifier usable with :meth:`unsubscribe`.
+        """
         sub_id = uuid.uuid4()
-        if event_type not in self._subscribers:
-            self._subscribers[event_type] = []
-        self._subscribers[event_type].append(callback)
+        target = self._prefix_subscribers if prefix_match else self._subscribers
+        target.setdefault(event_type, []).append(callback)
+        self._subscriptions[sub_id] = (event_type, prefix_match, callback)
         return sub_id
 
     def unsubscribe(self, subscription_id: uuid.UUID) -> bool:
-        """Unsubscribe from events."""
-        for event_type, callbacks in self._subscribers.items():
-            # We can't easily remove by ID since we don't track IDs
-            pass
+        """Unsubscribe from events.
+
+        Args:
+            subscription_id: Identifier returned by :meth:`subscribe`.
+
+        Returns:
+            True if the subscription existed and was removed.
+        """
+        entry = self._subscriptions.pop(subscription_id, None)
+        if entry is None:
+            return False
+        event_type, prefix_match, callback = entry
+        target = self._prefix_subscribers if prefix_match else self._subscribers
+        callbacks = target.get(event_type, [])
+        if callback in callbacks:
+            callbacks.remove(callback)
+        if not callbacks:
+            target.pop(event_type, None)
         return True
 
     def route(self, event: dict[str, Any]) -> None:
-        """Route an event to subscribers."""
+        """Route an event to matching subscribers."""
         event_type = event.get("event_type", "")
         for callback in self._subscribers.get(event_type, []):
             callback(event)
+        for pattern, callbacks in self._prefix_subscribers.items():
+            if event_type.startswith(pattern):
+                for callback in callbacks:
+                    callback(event)
 
 
 class EventPublisher:

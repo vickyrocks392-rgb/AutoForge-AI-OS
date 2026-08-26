@@ -635,8 +635,9 @@ class Kernel:
 
         # Connect to infrastructure services
         if self.runtime_state_manager:
-            # Verify connection to Runtime State Manager
-            await self.runtime_state_manager.verify_connection()
+            # Verify connection to Runtime State Manager via the standard
+            # health check contract defined on the Kernel's service ABC.
+            await self.runtime_state_manager.health_check()
 
         if self.event_bus:
             # Subscribe to events

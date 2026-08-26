@@ -1,5 +1,7 @@
 # Event Bus
 
+> **⚠️ LEGACY / SUPERSEDED-IN-PART (2026-08-26):** This short-form document predates the frozen subsystem specifications and is retained for history. For the authoritative event architecture see **`docs/subsystems/EVENT_PLATFORM_SPECIFICATION.md`** (Event Platform v1.0 — transport) and **`packages/events`** (`autoforge_events` — canonical vocabulary), unified per **`docs/adr/ADR-001`**. Where this document disagrees with those, they win.
+
 > **Note:** This document is consistent with Architecture v1.0 (`architecture/ARCHITECTURE.md`). The Event Bus is a Shared Platform Service that provides the publish-subscribe infrastructure routing events from producers to consumers. It decouples subsystems by enabling asynchronous communication without direct references. The Canonical Event Model defines the schema-enforced, versioned structure that every event must conform to.
 
 ## Purpose
