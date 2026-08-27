@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoforge-review"
+version = "0.1.0"
+description = "Review Platform for AutoForge AI OS - Review Engine, Review Policies, Specialized Reviewers (Architecture, Code, Security, Performance, Documentation), Quality Gates, and Deterministic-First Review Loop"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "AutoForge AI"},
+]
+# Phase 11 constraint: stdlib + existing AutoForge packages only.
+# No new frameworks. No LangChain/LangGraph/CrewAI/Temporal/Celery/Kafka/Redis/etc.
+dependencies = [
+    "autoforge-models",
+    "autoforge-events",
+    "autoforge-runtime",
+    "autoforge-ai-infrastructure",
+    "autoforge-connectors",
+    "autoforge-workflows",
+    "autoforge-execution",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
