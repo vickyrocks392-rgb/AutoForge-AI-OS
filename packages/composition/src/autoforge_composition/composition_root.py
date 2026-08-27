@@ -41,6 +41,9 @@ from autoforge_runtime import RuntimeStateManager
 
 from autoforge_composition.event_bus_adapter import CanonicalKernelEventBus
 from autoforge_composition.runtime_facade import KernelRuntimeFacade
+from autoforge_composition.workflow_wiring import build_workflow_engine
+
+from autoforge_workflows.engine import WorkflowEngine
 
 __all__ = ["AutoForgeSystem", "build_autoforge_system"]
 
@@ -125,6 +128,7 @@ class AutoForgeSystem:
     events: CanonicalEventBus
     event_platform: EventPlatform
     event_bus: CanonicalKernelEventBus
+    workflow_engine: WorkflowEngine
 
     #: Raw runtime diagnostics that had no canonical counterpart during lift.
     skipped_runtime_events: list[dict[str, Any]]
@@ -194,6 +198,14 @@ def build_autoforge_system(
         identifier_generator=DefaultIdentifierGenerator(),
     )
 
+    # 6. Workflow Engine — wired with event bus and runtime for state projection.
+    workflow_engine = build_workflow_engine(
+        canonical_bus=canonical_bus,
+        runtime=runtime,
+        max_concurrent_tasks=(config or {}).get("max_concurrent_tasks", 4),
+        auto_checkpoint=True,
+    )
+
     return AutoForgeSystem(
         kernel=kernel,
         runtime=runtime,
@@ -201,5 +213,6 @@ def build_autoforge_system(
         events=canonical_bus,
         event_platform=platform,
         event_bus=kernel_bus,
+        workflow_engine=workflow_engine,
         skipped_runtime_events=skipped,
     )
