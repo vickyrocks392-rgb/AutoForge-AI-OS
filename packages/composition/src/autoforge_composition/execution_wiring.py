@@ -120,7 +120,7 @@ def build_execution_engine(
         max_concurrent_workers=max_concurrent_workers,
     )
 
-    return ExecutionEngine(
+    engine = ExecutionEngine(
         environment=env,
         ai_provider=ai_adapter,
         workflow_engine=workflow_engine,
@@ -130,3 +130,16 @@ def build_execution_engine(
         event_sink=event_sink,
         runtime_facade=runtime_facade,
     )
+
+    from autoforge_workforce.dispatch import WorkforceDispatcher
+    engine._dispatcher = WorkforceDispatcher(
+        environment=env,
+        ai_provider=ai_adapter,
+        max_concurrent_workers=max_concurrent_workers,
+        artifact_pipeline=artifacts,
+        governance=governance,
+        loop_config=config.default_loop_config,
+        event_sink=event_sink,
+    )
+
+    return engine

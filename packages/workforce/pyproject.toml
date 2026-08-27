@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoforge-workforce"
+version = "0.1.0"
+description = "AutoForge AI OS - AI Workforce + Legacy Modernization Workforce package"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "AutoForge AI"},
+]
+dependencies = [
+    "autoforge-models",
+    "autoforge-events",
+    "autoforge-connectors",
+    "autoforge-workflows",
+    "autoforge-execution",
+    "autoforge-review",
+    "autoforge-artifacts",
+    "autoforge-ai-infrastructure",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
