@@ -20,6 +20,8 @@ dependencies = [
     "autoforge-event-platform",
     "autoforge-ai-infrastructure",
     "autoforge-connectors",
+    "autoforge-workflows",
+    "autoforge-execution",
 ]
 
 [project.optional-dependencies]

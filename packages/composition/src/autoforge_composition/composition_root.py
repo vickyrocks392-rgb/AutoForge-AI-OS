@@ -40,9 +40,11 @@ from autoforge_kernel.request_intake import (
 from autoforge_runtime import RuntimeStateManager
 
 from autoforge_composition.event_bus_adapter import CanonicalKernelEventBus
+from autoforge_composition.execution_wiring import build_execution_engine
 from autoforge_composition.runtime_facade import KernelRuntimeFacade
 from autoforge_composition.workflow_wiring import build_workflow_engine
 
+from autoforge_execution.engine import ExecutionEngine
 from autoforge_workflows.engine import WorkflowEngine
 
 __all__ = ["AutoForgeSystem", "build_autoforge_system"]
@@ -56,6 +58,8 @@ _CATEGORY_BY_PREFIX: dict[str, EventCategory] = {
     "loop": EventCategory.LOOP,
     "workflow": EventCategory.SYSTEM_EVENT,
     "worker": EventCategory.SYSTEM_EVENT,
+    "execution": EventCategory.EXECUTION,
+    "artifact": EventCategory.ARTIFACT,
     "recovery": EventCategory.FAILURE,
     "runtime": EventCategory.SERVICE,
 }
@@ -68,6 +72,8 @@ _AGGREGATE_BY_PREFIX = {
     "workflow": "Workflow",
     "loop": "EngineeringLoop",
     "worker": "Worker",
+    "execution": "ExecutionSession",
+    "artifact": "Artifact",
     "recovery": "Recovery",
 }
 
@@ -129,6 +135,7 @@ class AutoForgeSystem:
     event_platform: EventPlatform
     event_bus: CanonicalKernelEventBus
     workflow_engine: WorkflowEngine
+    execution_engine: ExecutionEngine
 
     #: Raw runtime diagnostics that had no canonical counterpart during lift.
     skipped_runtime_events: list[dict[str, Any]]
@@ -149,6 +156,7 @@ def build_autoforge_system(
     *,
     kernel_version: str = "1.0.0",
     config: dict[str, Any] | None = None,
+    workspace_root: str | None = None,
 ) -> AutoForgeSystem:
     """Construct and wire the AutoForge foundation stack.
 
@@ -182,13 +190,6 @@ def build_autoforge_system(
     kernel_bus = CanonicalKernelEventBus(canonical_bus)
 
     # 5. The orchestrator, injected with everything above.
-    #
-    # The Kernel is wired with its own DEFAULT intake implementations and
-    # the composed services. Platform engines (Strategic/Workflow/
-    # Execution) are later-roadmap subsystems: they are NOT stubbed or
-    # faked here — with them absent the Kernel performs intake, state
-    # creation and lifecycle coordination, which is exactly the Phase 0
-    # spine. They slot into this same injection point when implemented.
     kernel = Kernel(
         event_bus=kernel_bus,
         runtime_state_manager=facade,
@@ -206,6 +207,15 @@ def build_autoforge_system(
         auto_checkpoint=True,
     )
 
+    # 7. Execution Engine — wired with environment, workflow engine, events, and runtime.
+    execution_engine = build_execution_engine(
+        workspace_root=workspace_root,
+        canonical_bus=canonical_bus,
+        runtime=runtime,
+        workflow_engine=workflow_engine,
+        max_concurrent_workers=(config or {}).get("max_concurrent_workers", 4),
+    )
+
     return AutoForgeSystem(
         kernel=kernel,
         runtime=runtime,
@@ -214,5 +224,6 @@ def build_autoforge_system(
         event_platform=platform,
         event_bus=kernel_bus,
         workflow_engine=workflow_engine,
+        execution_engine=execution_engine,
         skipped_runtime_events=skipped,
     )

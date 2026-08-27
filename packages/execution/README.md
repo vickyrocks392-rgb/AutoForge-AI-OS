@@ -1,42 +1,77 @@
-# Execution Engine
+# AutoForge AI — Execution Platform (Phase 10)
 
-## Purpose
+The **Execution Platform** is the autonomous engineering execution substrate of AutoForge AI OS. It executes actual engineering work dispatched by the Workflow Platform (Phase 9), running workers in sandboxed workspace environments through bounded autonomous engineering loops.
 
-The Execution Engine is the operational heart of AutoForge AI. It is the runtime that receives plans from the workflow engine, dispatches work to AI agent services, monitors execution, manages state, and ensures completion. While the workflow engine defines *what* to do and *when*, the Execution Engine determines *how* it actually happens — managing resources, retries, timeouts, and the physical act of running agent tasks.
+---
 
-## Responsibility
+## 1. Architectural Role
 
-- **Work Dispatch** — Receive executable units from the workflow engine and dispatch them to the appropriate AI agent services.
-- **Resource Management** — Allocate and manage computational resources (LLM calls, tool executions, context windows) for each agent task.
-- **Execution Monitoring** — Track the lifecycle of every dispatched task from submission through completion or failure.
-- **Error Recovery** — Implement retry logic, fallback strategies, and graceful degradation when agent tasks fail.
-- **State Coordination** — Maintain execution state across distributed agent runs, ensuring consistency and auditability.
-- **Lifecycle Management** — Handle agent startup, shutdown, health checks, and resource cleanup.
+The Execution Platform transforms abstract tasks into verified code and artifacts:
 
-## Relationship with AI Employees
+```
+Workflow Engine (Phase 9)
+    │
+    │ (Dispatches eligible tasks)
+    ▼
+Worker Dispatcher (Phase 10)
+    │
+    ▼
+Engineering Worker (CREATED → READY → RUNNING → COMPLETED / FAILED / WAITING_APPROVAL)
+    │
+    ▼
+Engineering Loop
+    │
+    ├── 1. UNDERSTAND & PLAN (AI Infrastructure)
+    ├── 2. IMPLEMENT (WorkspaceFilesystem & Git connectors)
+    ├── 3. EXECUTE & TEST (Controlled subprocess runner)
+    ├── 4. EVALUATE (Deterministic-First verification)
+    └── 5. DIAGNOSE & REPAIR (Informed recovery if failed)
+            │
+            └── (Retest until PASS or bounded limit)
+    │
+    ▼
+Artifact Pipeline (Provenance, Diffs, Test Reports, Execution Logs)
+    │
+    ▼
+Outcome Report -> Workflow Platform & Runtime State Manager
+```
 
-The Execution Engine is the employer and operator of the AI agent workforce. Each service (planner, researcher, architect, etc.) is an "AI employee" that the Execution Engine manages:
+---
 
-- **Hiring** — The engine instantiates and configures agent services with the appropriate context and tools.
-- **Tasking** — The engine assigns work units to agents, providing clear inputs and expected outputs.
-- **Supervision** — The engine monitors agent progress, collects results, and intervenes on failure.
-- **Compensation** — The engine manages token budgets, rate limits, and resource allocation for each agent.
-- **Termination** — The engine cleans up agent contexts and releases resources when work is complete.
+## 2. Key Modules & Subsystems
 
-## Why the Execution Engine is the Heart of AutoForge AI
+| Module | Responsibility |
+|---|---|
+| `engine.py` | `ExecutionEngine` — Central facade coordinating dispatcher, workers, loops, workflow engine, runtime, and events. |
+| `worker.py` | `EngineeringWorker` — Manages worker lifecycle (`CREATED`, `READY`, `RUNNING`, `COMPLETED`, `FAILED`, `CANCELLED`, `WAITING_APPROVAL`). |
+| `dispatcher.py` | `WorkerDispatcher` — Enforces concurrency limits and dispatches workflow `QueueEntry` tasks. |
+| `environment.py` | `WorkspaceEnvironment` — Confined workspace path resolution, explicit `argv` execution, timeout enforcement, process group cleanup (`SIGTERM`/`SIGKILL`). |
+| `context.py` | `ExecutionContext` — Context assembly integrating task inputs, project files, and attempt history (ADR-003). |
+| `ai_adapter.py` | `AIEngineeringProvider` & `AIInfrastructureAdapter` — Provider-neutral AI reasoning using ModelRouter / ExecutionContinuityService. |
+| `evaluation.py` | `EvaluationEngine` — Deterministic-first verification of exit codes, test outputs (pytest/unittest), and check rules. |
+| `diagnosis.py` | `FailureDiagnoser` — Assembly of failure evidence and AI-assisted root-cause diagnosis. |
+| `loop.py` | `EngineeringLoop` — Bounded autonomous engineering loop with repair and reimplementation cycles. |
+| `artifacts.py` | `ArtifactPipeline` — Captures diffs, execution logs, reports, and rich provenance metadata. |
+| `governance.py` | `ExecutionGovernance` — HITL gating for consequential actions (tech stack finalization, git push, deployment). |
+| `events.py` | `ExecutionEvents` — Canonical event emission (`execution.*`, `loop.*`, `artifact.*`). |
+| `recovery.py` | `ExecutionRecovery` — Checkpoint snapshot and restore for worker states. |
+| `errors.py` | Machine-readable error taxonomy rooted at `ExecutionError`. |
+| `models.py` | Pydantic and dataclass value objects and execution state models. |
 
-1. **It is the only component that touches every agent task.** Every piece of work flows through the Execution Engine.
-2. **It defines reliability.** The engine's retry policies, timeout handling, and error recovery determine whether the platform is robust or fragile.
-3. **It controls resource economics.** Token usage, LLM call costs, and execution time are all governed by the engine.
-4. **It enables observability.** Without the engine, there is no single source of truth for what happened, when, and why.
-5. **It is the platform's backbone for scaling.** Adding more agents, more tools, or more concurrent work all depend on the engine's architecture.
+---
 
-## Future Components
+## 3. Core Principles
 
-- **Task Dispatcher** — Routes executable units to the correct agent service with proper context.
-- **Execution Context Manager** — Maintains per-task context including conversation history, tool state, and intermediate results.
-- **Retry & Circuit Breaker** — Configurable retry policies with exponential backoff, circuit breaker patterns, and dead-letter handling.
-- **Resource Governor** — Manages token budgets, rate limits, and concurrent execution slots.
-- **Execution Log** — Immutable log of every execution event for audit, debugging, and replay.
-- **Agent Lifecycle Manager** — Handles agent instantiation, health checking, and graceful shutdown.
-- **Result Collector** — Aggregates outputs from parallel agent executions and resolves dependencies.
+1. **Real Execution** — Subprocess commands run inside a real workspace environment with full output capture and timeout protection.
+2. **Deterministic-First** — Exit codes and test runner results strictly determine evaluation outcomes; AI confidence never overrides deterministic failures.
+3. **Informed Autonomous Repair** — When a test fails, `FailureDiagnoser` analyzes exact stdout/stderr/stack traces so attempt $N$ is informed by attempt $N-1$, rather than blindly retrying.
+4. **HITL Governance at Consequential Boundaries** — Routine loop iterations proceed autonomously, while consequential actions (e.g. tech stack finalization, git push, deployment) pause at approval gates.
+5. **No Distributed Infrastructure** — In-process, lightweight, and dependency-inverted.
+
+---
+
+## 4. Verification
+
+* **37 Phase 10 tests** covering models, environment, worker lifecycle, dispatcher, evaluation, diagnosis, artifacts, governance, recovery, and engine coordination.
+* **Real E2E Engineering Loop Acceptance Test** (`test_real_autonomous_engineering_loop_e2e`) verifying real file creation, initial failing test execution, root-cause diagnosis, repair generation, and passing retest.
+* **100% Green Test Suite** across all repository packages with zero regressions.

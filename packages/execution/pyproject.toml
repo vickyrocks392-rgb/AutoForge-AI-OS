@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoforge-execution"
+version = "0.1.0"
+description = "Execution Platform for AutoForge AI OS - Execution Engine, Worker Lifecycle, Worker Dispatcher, Engineering Loop, and Artifact Pipeline"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "AutoForge AI"},
+]
+# Phase 10 dependencies: stdlib + existing AutoForge packages only.
+# No Celery, Redis, Kafka, Temporal, Kubernetes, or similar.
+dependencies = [
+    "autoforge-models",
+    "autoforge-events",
+    "autoforge-runtime",
+    "autoforge-ai-infrastructure",
+    "autoforge-connectors",
+    "autoforge-workflows",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
