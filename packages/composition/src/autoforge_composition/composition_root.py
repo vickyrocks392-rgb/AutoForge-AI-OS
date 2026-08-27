@@ -39,12 +39,14 @@ from autoforge_kernel.request_intake import (
 
 from autoforge_runtime import RuntimeStateManager
 
+from autoforge_composition.artifact_wiring import build_artifact_platform_from_bus
 from autoforge_composition.event_bus_adapter import CanonicalKernelEventBus
 from autoforge_composition.execution_wiring import build_execution_engine
 from autoforge_composition.runtime_facade import KernelRuntimeFacade
 from autoforge_composition.workflow_wiring import build_workflow_engine
 
 from autoforge_execution.engine import ExecutionEngine
+from autoforge_artifacts.engine import ArtifactPlatformServices
 from autoforge_workflows.engine import WorkflowEngine
 
 __all__ = ["AutoForgeSystem", "build_autoforge_system"]
@@ -136,6 +138,7 @@ class AutoForgeSystem:
     event_bus: CanonicalKernelEventBus
     workflow_engine: WorkflowEngine
     execution_engine: ExecutionEngine
+    artifact_platform: ArtifactPlatformServices
 
     #: Raw runtime diagnostics that had no canonical counterpart during lift.
     skipped_runtime_events: list[dict[str, Any]]
@@ -216,6 +219,11 @@ def build_autoforge_system(
         max_concurrent_workers=(config or {}).get("max_concurrent_workers", 4),
     )
 
+    # 8. Artifact Platform — wired with event bus and governance policy.
+    artifact_platform = build_artifact_platform_from_bus(
+        canonical_bus=canonical_bus,
+    )
+
     return AutoForgeSystem(
         kernel=kernel,
         runtime=runtime,
@@ -225,5 +233,6 @@ def build_autoforge_system(
         event_bus=kernel_bus,
         workflow_engine=workflow_engine,
         execution_engine=execution_engine,
+        artifact_platform=artifact_platform,
         skipped_runtime_events=skipped,
     )

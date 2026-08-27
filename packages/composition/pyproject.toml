@@ -22,6 +22,7 @@ dependencies = [
     "autoforge-connectors",
     "autoforge-workflows",
     "autoforge-execution",
+    "autoforge-artifacts",
 ]
 
 [project.optional-dependencies]
