@@ -128,12 +128,18 @@ class WorkforceDispatcher(WorkerDispatcher):
         # Create worker
         worker = self.create_specialized_worker(specialized_type=target_type)
 
+        # Resolve effective model requirements from worker profile + task requirements
+        from autoforge_workforce.capabilities import resolve_effective_requirements
+        task_model_reqs = task_def.input_data.get("model_requirements") or task_def.metadata.get("model_requirements")
+        effective_reqs = resolve_effective_requirements(worker.model_profile, task_model_reqs)
+
         context = ExecutionContext.from_task_definition(
             task_def=task_def,
             workspace_root=self._env.root,
             workflow_id=workflow_id,
             correlation_id=correlation_id,
             attempt_number=attempt_number,
+            effective_model_requirements=effective_reqs.to_dict(),
         )
 
         passed, artifacts, eval_res = await worker.execute_task(context)

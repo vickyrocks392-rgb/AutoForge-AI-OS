@@ -101,6 +101,7 @@ def register_workforce_models(registry: CapabilityRegistryPort) -> None:
                 CapabilityIds.TEXT_GENERATION,
                 CapabilityIds.CODE_GENERATION,
                 CapabilityIds.STRUCTURED_OUTPUT,
+                CapabilityIds.TOOL_USE,
             }),
             input_modalities=frozenset({Modality.TEXT}),
             output_modalities=frozenset({Modality.TEXT}),
@@ -126,6 +127,7 @@ def register_workforce_models(registry: CapabilityRegistryPort) -> None:
             capabilities=frozenset({
                 CapabilityIds.TEXT_GENERATION,
                 CapabilityIds.REASONING,
+                CapabilityIds.STRUCTURED_OUTPUT,
             }),
             input_modalities=frozenset({Modality.TEXT}),
             output_modalities=frozenset({Modality.TEXT}),
@@ -286,16 +288,46 @@ class CapacityAwareRouter:
         self,
         task_requirements: dict[str, Any],
         *,
-        privacy_policy: str = "local_only"
+        privacy_policy: str | None = None,
     ) -> tuple[ModelMetadata, CandidateScore]:
         """
         Perform deterministic filtering, routing prioritization, and return selected model.
         """
         # Extract requirements
-        required_caps = task_requirements.get("capabilities", [])
-        min_context = task_requirements.get("min_context", 1024)
-        structured_output = task_requirements.get("structured_output", False)
-        reasoning = task_requirements.get("reasoning", False)
+        required_caps = (
+            task_requirements.get("required_capabilities")
+            or task_requirements.get("capabilities")
+            or []
+        )
+        min_context = (
+            task_requirements.get("min_context_window_tokens")
+            or task_requirements.get("min_context")
+            or 1024
+        )
+        structured_output = (
+            task_requirements.get("structured_output")
+            or task_requirements.get("structured_output_required")
+            or False
+        )
+        reasoning = (
+            task_requirements.get("reasoning")
+            or task_requirements.get("reasoning_required")
+            or False
+        )
+        coding = (
+            task_requirements.get("coding")
+            or task_requirements.get("coding_required")
+            or False
+        )
+        tool_use = (
+            task_requirements.get("tool_use")
+            or task_requirements.get("tool_use_required")
+            or False
+        )
+        quality_tier = (
+            task_requirements.get("quality_priority")
+            or task_requirements.get("quality_tier")
+        )
 
         # 1. Deterministic filtering from registry
         query_caps = set(required_caps)
@@ -303,11 +335,24 @@ class CapacityAwareRouter:
             query_caps.add(CapabilityIds.STRUCTURED_OUTPUT)
         if reasoning:
             query_caps.add(CapabilityIds.REASONING)
+        if coding:
+            query_caps.add(CapabilityIds.CODE_GENERATION)
+        if tool_use:
+            query_caps.add(CapabilityIds.TOOL_USE)
+        if not query_caps:
+            query_caps.add(CapabilityIds.TEXT_GENERATION)
+
+        effective_privacy = privacy_policy or task_requirements.get("privacy_policy", "local_only")
+        allowed_modes = (
+            frozenset({DeploymentMode.LOCAL})
+            if effective_privacy in {"local_only", "local_preferred"}
+            else None
+        )
 
         req = RoutingRequest(
             required_capabilities=frozenset(query_caps),
             min_context_window_tokens=min_context,
-            allowed_deployment_modes=frozenset({DeploymentMode.LOCAL}) if privacy_policy == "local_only" else None,
+            allowed_deployment_modes=allowed_modes,
         )
 
         decision = self._router_service.route(req)

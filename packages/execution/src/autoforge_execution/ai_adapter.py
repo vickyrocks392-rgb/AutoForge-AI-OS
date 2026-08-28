@@ -18,6 +18,7 @@ from autoforge_ai_infrastructure.execution import (
 )
 from autoforge_ai_infrastructure.metadata import (
     CapabilityIds,
+    DeploymentMode,
     ModelQuery,
     RoutingRequest,
 )
@@ -40,7 +41,7 @@ class AIEngineeringProvider(Protocol):
         context: ExecutionContext,
         plan: str,
     ) -> list[dict[str, Any]]:
-        """Generate file modifications: list of {'path': str, 'content': str}."""
+        """Produce concrete file edits/actions to satisfy the plan."""
         ...
 
     async def diagnose_failure(
@@ -48,7 +49,7 @@ class AIEngineeringProvider(Protocol):
         context: ExecutionContext,
         failure_evidence: dict[str, Any],
     ) -> DiagnosisReport:
-        """Diagnose why an execution/test attempt failed."""
+        """Analyze a test or verification failure and propose a root cause + remedy."""
         ...
 
     async def generate_repair(
@@ -56,13 +57,14 @@ class AIEngineeringProvider(Protocol):
         context: ExecutionContext,
         diagnosis: DiagnosisReport,
     ) -> list[dict[str, Any]]:
-        """Generate repair modifications based on diagnosis."""
+        """Generate targeted fix actions based on a diagnosed failure."""
         ...
 
 
 class AIInfrastructureAdapter:
     """
     Standard AI provider implementation using autoforge_ai_infrastructure.
+    Dynamically maps task context and worker effective model requirements to RoutingRequest.
     """
 
     def __init__(
@@ -73,6 +75,35 @@ class AIInfrastructureAdapter:
         self._router = router
         self._executor = model_executor
 
+    def _build_routing_request(
+        self,
+        context: ExecutionContext,
+        default_capability: str | None = None,
+    ) -> RoutingRequest:
+        reqs = context.effective_model_requirements or {}
+
+        # 1. Required capabilities from effective requirements
+        caps = set(reqs.get("required_capabilities") or reqs.get("capabilities") or [])
+        if not caps and default_capability:
+            caps.add(default_capability)
+        elif not caps:
+            caps.add(CapabilityIds.TEXT_GENERATION)
+
+        # 2. Min context window
+        min_context = reqs.get("min_context_window_tokens") or reqs.get("min_context") or 1024
+
+        # 3. Allowed deployment modes (Privacy)
+        privacy = reqs.get("privacy_policy", "local_only")
+        allowed_deployments = (
+            frozenset({DeploymentMode.LOCAL}) if privacy == "local_only" else None
+        )
+
+        return RoutingRequest(
+            required_capabilities=frozenset(caps),
+            min_context_window_tokens=min_context,
+            allowed_deployment_modes=allowed_deployments,
+        )
+
     async def generate_plan(self, context: ExecutionContext) -> str:
         if self._executor and self._router:
             req = ExecutionRequest(
@@ -81,8 +112,8 @@ class AIInfrastructureAdapter:
                     "context": context.format_reasoning_prompt(1),
                 }
             )
-            routing = RoutingRequest(
-                required_capabilities=frozenset({CapabilityIds.CODE_COMPLETION}),
+            routing = self._build_routing_request(
+                context, default_capability=CapabilityIds.REASONING
             )
             try:
                 res: ExecutionResult = await self._executor.execute(req, routing)
@@ -104,8 +135,8 @@ class AIInfrastructureAdapter:
                     "context": context.format_reasoning_prompt(1),
                 }
             )
-            routing = RoutingRequest(
-                required_capabilities=frozenset({CapabilityIds.CODE_COMPLETION}),
+            routing = self._build_routing_request(
+                context, default_capability=CapabilityIds.CODE_GENERATION
             )
             try:
                 res: ExecutionResult = await self._executor.execute(req, routing)
@@ -137,8 +168,8 @@ class AIInfrastructureAdapter:
                     "context": context.format_reasoning_prompt(len(context.prior_iterations) + 1),
                 }
             )
-            routing = RoutingRequest(
-                required_capabilities=frozenset({CapabilityIds.CODE_COMPLETION}),
+            routing = self._build_routing_request(
+                context, default_capability=CapabilityIds.REASONING
             )
             try:
                 res: ExecutionResult = await self._executor.execute(req, routing)
@@ -180,8 +211,8 @@ class AIInfrastructureAdapter:
                     "context": context.format_reasoning_prompt(len(context.prior_iterations) + 1),
                 }
             )
-            routing = RoutingRequest(
-                required_capabilities=frozenset({CapabilityIds.CODE_COMPLETION}),
+            routing = self._build_routing_request(
+                context, default_capability=CapabilityIds.CODE_GENERATION
             )
             try:
                 res: ExecutionResult = await self._executor.execute(req, routing)

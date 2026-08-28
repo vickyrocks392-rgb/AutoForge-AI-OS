@@ -46,6 +46,7 @@ class ExecutionContext:
     last_diagnosis: DiagnosisReport | None = None
 
     metadata: dict[str, Any] = field(default_factory=dict)
+    effective_model_requirements: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_task_definition(
@@ -57,7 +58,13 @@ class ExecutionContext:
         project_id: uuid.UUID | None = None,
         correlation_id: uuid.UUID | None = None,
         attempt_number: int = 1,
+        effective_model_requirements: dict[str, Any] | None = None,
     ) -> ExecutionContext:
+        reqs = effective_model_requirements
+        if reqs is None:
+            # Fallback to model_requirements in task_def input_data or metadata if present
+            reqs = task_def.input_data.get("model_requirements") or task_def.metadata.get("model_requirements") or {}
+
         return cls(
             task_id=task_def.task_id,
             task_name=task_def.name,
@@ -70,6 +77,7 @@ class ExecutionContext:
             correlation_id=correlation_id,
             attempt_number=attempt_number,
             metadata=dict(task_def.metadata),
+            effective_model_requirements=reqs,
         )
 
     def format_reasoning_prompt(self, current_iteration: int) -> dict[str, Any]:

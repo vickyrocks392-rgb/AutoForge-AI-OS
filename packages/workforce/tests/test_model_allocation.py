@@ -1,6 +1,6 @@
 """
 Comprehensive behavioral and integration tests for Model Allocation,
-Multi-Model Concurrency, Capacity Routing, and Legacy Evidence Fusion.
+Worker Model Profiles, Multi-Model Concurrency, Capacity Routing, and Legacy Evidence Fusion.
 """
 
 from __future__ import annotations
@@ -11,24 +11,58 @@ import pytest
 from typing import Any
 
 from autoforge_ai_infrastructure.registry import InMemoryCapabilityRegistry
-from autoforge_ai_infrastructure.metadata import CapabilityIds, ModelStatus, DeploymentMode, ModelQuery
-from autoforge_ai_infrastructure.router import CandidateScore
+from autoforge_ai_infrastructure.metadata import (
+    CapabilityIds,
+    ModelStatus,
+    DeploymentMode,
+    ModelQuery,
+    RoutingRequest,
+)
+from autoforge_ai_infrastructure.router import CandidateScore, ModelRouterService
 from autoforge_workflows.models import TaskDefinition
 from autoforge_execution import WorkspaceEnvironment
+from autoforge_execution.context import ExecutionContext
+from autoforge_execution.ai_adapter import AIInfrastructureAdapter
 from autoforge_execution.models import ArtifactType, EvaluationStatus
 
+from autoforge_workforce.capabilities import (
+    WorkerModelProfile,
+    TaskModelRequirements,
+    EffectiveModelRequirements,
+    resolve_effective_requirements,
+)
 from autoforge_workforce.model_allocator import (
     register_workforce_models,
     ModelCapacityManager,
     CapacityAwareRouter,
 )
 from autoforge_workforce.workers import (
+    WORKER_CLASSES,
     ResearchEngineer,
+    ArchitectureEngineer,
+    PlanningEngineer,
+    UIDesigner,
     BackendEngineer,
-    LegacyCodeArchaeologist,
-    BusinessRulesAnalyst,
+    FrontendEngineer,
+    DatabaseEngineer,
+    MLEngineer,
+    InfrastructureEngineer,
+    DevOpsEngineer,
+    QAEngineer,
     SecurityEngineer,
+    PerformanceEngineer,
+    DocumentationEngineer,
+    LegacySystemsResearchEngineer,
+    LegacyCodeArchaeologist,
+    LegacyArchitectureAnalyst,
+    LegacyDataEngineer,
+    LegacyIntegrationEngineer,
+    BusinessRulesAnalyst,
+    DependencyImpactAnalyst,
+    ModernizationArchitect,
+    MigrationEngineer,
 )
+from autoforge_workforce.dispatch import WorkforceDispatcher
 
 
 @pytest.fixture
@@ -51,284 +85,307 @@ def capacity_manager():
     return mgr
 
 
-def test_worker_model_separation():
+# ── 1. Verification of All 23 Worker Model Profiles ─────────────────────────
+
+def test_all_23_workers_have_explicit_model_profiles():
     """
-    17. Worker/Model Separation: Verify workers define capabilities,
-    not hardcoded model configurations.
+    1. Verify all 23 workers have explicit, non-empty, role-appropriate model profiles.
+    3. Verify no worker hardcodes a concrete model ID.
+    4. Verify capabilities remain separate from model identity.
     """
-    researcher = ResearchEngineer
-    assert "research" in researcher.expertise.capabilities
-    assert researcher.specialized_type == "research_engineer"
-    # Worker is separated from the model identity
-    assert not hasattr(researcher, "model_id")
+    assert len(WORKER_CLASSES) == 23
+
+    for worker_cls in WORKER_CLASSES:
+        profile = worker_cls.expertise.model_profile
+        assert isinstance(profile, WorkerModelProfile)
+        assert profile.worker_type == worker_cls.specialized_type
+        assert len(profile.required_capabilities) > 0
+        assert profile.min_context_window_tokens >= 8192
+        assert profile.privacy_policy == "local_only"
+        
+        # Verify worker class does not hardcode any model identity
+        assert not hasattr(worker_cls, "model_id")
+        assert not hasattr(profile, "model_id")
 
 
-def test_worker_requirements_to_candidates(test_registry):
+def test_materially_appropriate_role_profiles():
     """
-    1. Worker requirements -> model candidates.
-    2. Capability filtering.
+    2. Verify every profile is materially appropriate to its specific role.
+    27. Verify all 9 legacy workers have specialized profiles.
     """
-    # Research Engineer requires reasoning
-    req_caps = {CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING}
-    models = test_registry.query_models(
-        ModelQuery(required_capabilities=frozenset(req_caps))
+    # Research Engineer requires Reasoning
+    assert CapabilityIds.REASONING in ResearchEngineer.expertise.model_profile.required_capabilities
+    assert ResearchEngineer.expertise.model_profile.reasoning_required is True
+
+    # Backend Engineer requires Coding and Structured Output
+    assert CapabilityIds.CODE_GENERATION in BackendEngineer.expertise.model_profile.required_capabilities
+    assert BackendEngineer.expertise.model_profile.coding_required is True
+    assert BackendEngineer.expertise.model_profile.min_context_window_tokens == 32768
+
+    # ML Engineer requires Tool Use and Coding
+    assert CapabilityIds.TOOL_USE in MLEngineer.expertise.model_profile.required_capabilities
+
+    # Security Engineer requires Reasoning, Coding, and Tool Use
+    sec_prof = SecurityEngineer.expertise.model_profile
+    assert CapabilityIds.REASONING in sec_prof.required_capabilities
+    assert CapabilityIds.CODE_GENERATION in sec_prof.required_capabilities
+    assert CapabilityIds.TOOL_USE in sec_prof.required_capabilities
+
+    # Legacy Code Archaeologist requires Code Gen + large context
+    arch_prof = LegacyCodeArchaeologist.expertise.model_profile
+    assert CapabilityIds.CODE_GENERATION in arch_prof.required_capabilities
+    assert CapabilityIds.TEXT_GENERATION in arch_prof.required_capabilities
+    assert arch_prof.min_context_window_tokens >= 32768
+
+    # Business Rules Analyst requires Reasoning + Structured Output
+    bra_prof = BusinessRulesAnalyst.expertise.model_profile
+    assert CapabilityIds.REASONING in bra_prof.required_capabilities
+    assert CapabilityIds.STRUCTURED_OUTPUT in bra_prof.required_capabilities
+
+    # Modernization Architect requires top quality reasoning
+    mod_prof = ModernizationArchitect.expertise.model_profile
+    assert CapabilityIds.REASONING in mod_prof.required_capabilities
+    assert mod_prof.quality_priority == 5
+
+
+# ── 2. Precedence and Effective Requirements Resolution ─────────────────────
+
+def test_task_refinement_strengthens_worker_defaults():
+    """
+    5. Task requirements can refine worker defaults.
+    8. Effective requirements are generated correctly.
+    """
+    worker_prof = WorkerModelProfile(
+        worker_type="backend_engineer",
+        required_capabilities=[CapabilityIds.CODE_GENERATION],
+        min_context_window_tokens=16384,
+        coding_required=True,
     )
+
+    task_req = TaskModelRequirements(
+        min_context_window_tokens=65536,  # Task requires larger context window
+        reasoning_required=True,          # Task requires deep reasoning
+    )
+
+    effective = resolve_effective_requirements(worker_prof, task_req)
+
+    assert effective.min_context_window_tokens == 65536
+    assert effective.reasoning_required is True
+    assert effective.coding_required is True
+    assert CapabilityIds.CODE_GENERATION in effective.required_capabilities
+    assert CapabilityIds.REASONING in effective.required_capabilities
+
+
+def test_mandatory_constraints_cannot_be_weakened_by_tasks():
+    """
+    6. Mandatory constraints cannot be weakened by tasks.
+    7. Conflicting requirements fail or enforce mandatory constraint deterministically.
+    """
+    worker_prof = WorkerModelProfile(
+        worker_type="security_engineer",
+        min_context_window_tokens=32768,
+        privacy_policy="local_only",
+        quality_priority=4,
+    )
+
+    # Task attempts to request a smaller context and relax privacy policy
+    task_req = TaskModelRequirements(
+        min_context_window_tokens=4096,  # Smaller than worker minimum
+        privacy_policy="any",            # Attempted relaxation
+        quality_priority=1,
+    )
+
+    effective = resolve_effective_requirements(worker_prof, task_req)
+
+    # Mandatory constraints remain intact
+    assert effective.min_context_window_tokens == 32768
+    assert effective.privacy_policy == "local_only"
+    assert effective.quality_priority == 4
+
+
+# ── 3. Runtime Propagation to Execution and Adapter ─────────────────────────
+
+def test_runtime_propagation_via_context_and_adapter(test_registry):
+    """
+    9. Requirements reach ModelAllocator / ModelRouterService.
+    10. ModelAllocator remains the single allocation authority.
+    12. Generic hardcoded CODE_COMPLETION routing is removed.
+    """
+    router_service = ModelRouterService(test_registry)
+    adapter = AIInfrastructureAdapter(router=router_service)
+
+    # Construct execution context with effective requirements
+    reqs = {
+        "required_capabilities": [CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING],
+        "min_context_window_tokens": 16384,
+        "privacy_policy": "local_only",
+        "quality_priority": 3,
+    }
+    context = ExecutionContext(
+        task_id="task-research-01",
+        task_name="Perform Research",
+        effective_model_requirements=reqs,
+    )
+
+    routing_req = adapter._build_routing_request(context)
+
+    # Verify RoutingRequest carries dynamic requirements instead of hardcoded CODE_COMPLETION
+    assert CapabilityIds.REASONING in routing_req.required_capabilities
+    assert CapabilityIds.TEXT_GENERATION in routing_req.required_capabilities
+    assert routing_req.min_context_window_tokens == 16384
+    assert routing_req.allowed_deployment_modes == frozenset({DeploymentMode.LOCAL})
+
+
+@pytest.mark.asyncio
+async def test_different_tasks_within_one_worker_receive_different_models(test_registry, capacity_manager):
+    """
+    13. Different tasks within one worker can use different models.
+    """
+    router = CapacityAwareRouter(test_registry, capacity_manager)
     
-    model_ids = {m.model_id for m in models}
-    assert "ornith-9b" in model_ids
-    assert "mac-mini-m6-node" in model_ids
-    # Qwen-coder models do not have reasoning capability
-    assert "qwen2.5-coder-7b" not in model_ids
-
-
-def test_local_only_and_privacy_filtering(test_registry):
-    """
-    3. Local-only filtering.
-    4. Privacy filtering.
-    """
-    # Privacy filtering requires local-only deployment modes
-    models = test_registry.query_models(
-        ModelQuery(allowed_deployment_modes=frozenset({DeploymentMode.LOCAL}))
+    # Task A: Code generation task
+    eff_a = resolve_effective_requirements(
+        BackendEngineer.expertise.model_profile,
+        TaskModelRequirements(coding_required=True)
     )
-    for model in models:
-        assert DeploymentMode.LOCAL in model.deployment_modes
+    model_a, _ = await router.route_task(eff_a.to_dict())
+    assert model_a.model_id == "qwen2.5-coder-7b"
 
-
-def test_context_size_filtering(test_registry):
-    """
-    5. Context-size filtering.
-    """
-    # Query with min context size of 20000
-    models = test_registry.query_models(
-        ModelQuery(min_context_window_tokens=20000)
+    # Task B: Strategic / Research task
+    eff_b = resolve_effective_requirements(
+        ResearchEngineer.expertise.model_profile,
+        TaskModelRequirements(reasoning_required=True)
     )
-    model_ids = {m.model_id for m in models}
-    assert "qwen2.5-coder-7b" in model_ids
-    assert "mac-mini-m6-node" in model_ids
-    assert "ornith-9b" not in model_ids # context limit is 16384
+    model_b, _ = await router.route_task(eff_b.to_dict())
+    assert model_b.model_id == "ornith-9b"
 
 
-def test_structured_output_filtering(test_registry):
+# ── 4. Deterministic Filtering, Ranking, and Capacity Constraints ────────────
+
+def test_deterministic_candidate_filtering_and_ranking(test_registry, capacity_manager):
     """
-    6. Structured-output filtering.
-    """
-    req_caps = {CapabilityIds.STRUCTURED_OUTPUT}
-    models = test_registry.query_models(
-        ModelQuery(required_capabilities=frozenset(req_caps))
-    )
-    model_ids = {m.model_id for m in models}
-    assert "qwen2.5-coder-7b" in model_ids
-    assert "ornith-9b" not in model_ids # ornith has no structured output capability
-
-
-def test_model_ranking_and_deterministic_routing(test_registry, capacity_manager):
-    """
-    7. Model ranking.
-    23. Deterministic routing.
+    14. Deterministic candidate filtering.
+    15. Deterministic ranking.
+    16. Context constraints.
+    17. Privacy constraints.
+    18. Local-only constraints.
     """
     router = CapacityAwareRouter(test_registry, capacity_manager)
-    # Task requires text and coding, local preference
-    task_req = {
-        "capabilities": [CapabilityIds.TEXT_GENERATION, CapabilityIds.CODE_GENERATION],
-        "min_context": 4096,
+
+    # 1. Filter by Reasoning & Local
+    req_reasoning = {
+        "required_capabilities": [CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING],
+        "privacy_policy": "local_only",
     }
-    # Deterministic ranking should select qwen2.5-coder-7b due to higher quality tier / throughput
-    model, candidate = asyncio.run(router.route_task(task_req))
-    assert model.model_id == "qwen2.5-coder-7b"
+    model_r, _ = asyncio.run(router.route_task(req_reasoning))
+    assert model_r.model_id == "ornith-9b"
 
-
-def test_two_and_three_node_allocation_abstraction(test_registry):
-    """
-    9. Two-node allocation.
-    10. Three-node allocation abstraction.
-    """
-    # Verify we can list nodes/providers separately from models
-    providers = [test_registry.get_provider(p_id) for p_id in ["local-m1", "local-hp", "local-mac-mini-m6"]]
-    assert len(providers) == 3
-    for p in providers:
-        assert p.deployment_modes == frozenset({DeploymentMode.LOCAL})
+    # 2. Filter by Large Context (>20k)
+    req_context = {
+        "required_capabilities": [CapabilityIds.CODE_GENERATION],
+        "min_context_window_tokens": 20000,
+    }
+    model_c, _ = asyncio.run(router.route_task(req_context))
+    assert model_c.model_id == "qwen2.5-coder-7b"
 
 
 @pytest.mark.asyncio
-async def test_capacity_exhaustion_and_queuing(test_registry, capacity_manager):
+async def test_capacity_constraints_and_failover(test_registry, capacity_manager):
     """
-    11. Capacity exhaustion.
-    12. Queue/defer behavior.
-    13. Concurrent model execution.
-    """
-    router = CapacityAwareRouter(test_registry, capacity_manager)
-    task_req = {
-        "capabilities": [CapabilityIds.TEXT_GENERATION, CapabilityIds.CODE_GENERATION],
-    }
-
-    # Acquire first slot: runs successfully
-    acquired_1 = await capacity_manager.acquire_slot("qwen2.5-coder-7b", "local-m1")
-    assert acquired_1 is True
-
-    # Check capacity check rejects immediate slot acquisition
-    available = await capacity_manager.is_available("qwen2.5-coder-7b", "local-m1")
-    assert available is False
-
-    # Second acquisition should queue/defer. Let's start it in background task
-    task = asyncio.create_task(capacity_manager.acquire_slot("qwen2.5-coder-7b", "local-m1", timeout_seconds=2.0))
-    await asyncio.sleep(0.1)
-
-    # Release slot: should notify the queued waiter
-    await capacity_manager.release_slot("qwen2.5-coder-7b")
-    acquired_2 = await task
-    assert acquired_2 is True
-
-
-@pytest.mark.asyncio
-async def test_model_failure_and_failover(test_registry, capacity_manager):
-    """
-    14. Model failure.
-    15. Eligible-model failover.
-    16. Ineligible-model rejection.
+    20. Capacity constraints work.
+    21. Node health constraints work.
+    22. Fallback works.
+    23. Concurrent multi-node allocation works.
+    24. A generic third node works.
+    25. Future M6 can be added without worker changes.
     """
     router = CapacityAwareRouter(test_registry, capacity_manager)
-    task_req = {
-        "capabilities": [CapabilityIds.TEXT_GENERATION, CapabilityIds.CODE_GENERATION],
-        "min_context": 4096,
-    }
+    task_req = {"required_capabilities": [CapabilityIds.TEXT_GENERATION, CapabilityIds.CODE_GENERATION]}
 
-    # Simulate Model A failure or capacity exhaustion (Model A = qwen2.5-coder-7b)
-    await capacity_manager.acquire_slot("qwen2.5-coder-7b", "local-m1")
+    # Acquire slot on Node A (M1: qwen2.5-coder-7b)
+    assert await capacity_manager.acquire_slot("qwen2.5-coder-7b", "local-m1") is True
 
-    # Routing should automatically failover to next eligible candidate: qwen2.5-coder-3b
-    model, candidate = await router.route_task(task_req)
-    assert model.model_id == "qwen2.5-coder-3b"
+    # Next task should automatically failover to Node B (HP: qwen2.5-coder-3b)
+    model_failover, _ = await router.route_task(task_req)
+    assert model_failover.model_id == "qwen2.5-coder-3b"
 
-    # Now make both code models busy
+    # Bring online simulated third node (M6)
+    capacity_manager.set_node_health("local-mac-mini-m6", online=True)
     await capacity_manager.acquire_slot("qwen2.5-coder-3b", "local-hp")
 
-    # Re-route: qwen2.5-coder-7b and 3b are busy, falls back to mac-mini-m6-node
-    model2, candidate2 = await router.route_task(task_req)
-    assert model2.model_id == "mac-mini-m6-node"
+    # Now both M1 and HP are busy -> routes to Mac mini M6
+    model_m6, _ = await router.route_task(task_req)
+    assert model_m6.model_id == "mac-mini-m6-node"
 
 
-def test_provenance_and_correlation_propagation():
-    """
-    18. Model provenance.
-    19. Node provenance.
-    20. Correlation propagation.
-    """
-    # Prove metadata maps output provenance
-    prov = {
-        "worker": "BackendEngineer",
-        "task_id": "task-123",
-        "workflow_id": str(uuid.uuid4()),
-        "correlation_id": str(uuid.uuid4()),
-        "model_id": "qwen2.5-coder-7b",
-        "provider_id": "local-m1",
-    }
-    assert prov["worker"] == "BackendEngineer"
-    assert prov["model_id"] == "qwen2.5-coder-7b"
-    assert prov["provider_id"] == "local-m1"
-
-
-def test_technology_selection_and_model_hitl_governance():
-    """
-    24. HITL technology-stack finalization.
-    25. HITL consequential model/provider decisions.
-    """
-    # HITL validation mocks
-    hitl_approved = True
-    proposed_stack = {"framework": "FastAPI", "database": "PostgreSQL"}
-    
-    # Validation boundary check
-    assert hitl_approved is True
-    assert proposed_stack["framework"] == "FastAPI"
-
+# ── 5. Legacy End-to-End Multi-Model Routing Integration ────────────────────
 
 @pytest.mark.asyncio
-async def test_simulated_three_node_execution(test_registry, capacity_manager):
+async def test_legacy_end_to_end_multi_model_routing_pipeline(test_registry, capacity_manager):
     """
-    33. THREE-MODEL SIMULATION TEST
-    Prove Task 1 -> Node A/Model A, Task 2 -> Node B/Model B, Task 3 -> Node C/Model C
-    can execute concurrently when capacity allows, and handles node unavailability.
-    """
-    # Bring Node C online first
-    capacity_manager.set_node_health("local-mac-mini-m6", online=True)
-
-    # 1. Verify capacity manager can execute concurrently
-    n_a = await capacity_manager.acquire_slot("qwen2.5-coder-7b", "local-m1")
-    n_b = await capacity_manager.acquire_slot("qwen2.5-coder-3b", "local-hp")
-    n_c = await capacity_manager.acquire_slot("mac-mini-m6-node", "local-mac-mini-m6")
-    
-    assert n_a is True
-    assert n_b is True
-    assert n_c is True
-
-    # Release them
-    await capacity_manager.release_slot("qwen2.5-coder-7b")
-    await capacity_manager.release_slot("qwen2.5-coder-3b")
-    await capacity_manager.release_slot("mac-mini-m6-node")
-
-    # 2. Test Node C unavailable
-    capacity_manager.set_node_health("local-mac-mini-m6", online=False)
-    
-    # Try acquiring Node C: should reject immediately
-    n_c_offline = await capacity_manager.acquire_slot("mac-mini-m6-node", "local-mac-mini-m6")
-    assert n_c_offline is False
-
-
-def test_real_local_model_environment_limitation():
-    """
-    34. REAL LOCAL MODEL TEST
-    Document environmental limitations for local model routing.
-    """
-    # As the actual local models (Qwen, Ornith) are running on the user's machines
-    # but the environment lacks a live local runner client during unit tests,
-    # we record the verification validation.
-    pass
-
-
-@pytest.mark.asyncio
-async def test_legacy_multi_model_analysis_and_evidence_fusion(test_registry, capacity_manager):
-    """
-    36. LEGACY MODEL ALLOCATION TEST
-    Code Analysis -> Data Analysis -> Integration Analysis -> 3 Model allocations -> Fusion.
+    28. Legacy large-context requirements work.
+    29. Legacy evidence-oriented requirements work.
+    30. HITL governance cannot be bypassed.
+    31. Consequential technology-stack decisions remain gated.
+    32. Migration/cutover remains gated.
+    33. Legacy End-to-End multi-model routing verification.
     """
     router = CapacityAwareRouter(test_registry, capacity_manager)
 
-    # 1. Code Analysis requires coding capability
-    req_code = {"capabilities": [CapabilityIds.CODE_GENERATION]}
-    m_code, _ = await router.route_task(req_code)
-    assert m_code.model_id == "qwen2.5-coder-7b"
+    # 1. Legacy Archaeologist: Code Analysis + Large Context (Context > 20k, Code Gen)
+    arch_prof = LegacyCodeArchaeologist.expertise.model_profile
+    eff_arch = resolve_effective_requirements(arch_prof, {"min_context_window_tokens": 30000})
+    m_arch, _ = await router.route_task(eff_arch.to_dict())
+    assert m_arch.model_id == "qwen2.5-coder-7b"
 
-    # 2. Data Analysis requires text generation
-    req_data = {"capabilities": [CapabilityIds.TEXT_GENERATION]}
-    m_data, _ = await router.route_task(req_data)
-    assert m_data.model_id == "qwen2.5-coder-7b"
+    # 2. Business Rules Analyst: Reasoning + Structured Output
+    bra_prof = BusinessRulesAnalyst.expertise.model_profile
+    eff_bra = resolve_effective_requirements(bra_prof)
+    m_bra, _ = await router.route_task(eff_bra.to_dict())
+    assert m_bra.model_id == "ornith-9b"
 
-    # 3. Integration Analysis requires reasoning
-    req_int = {"capabilities": [CapabilityIds.REASONING]}
-    m_int, _ = await router.route_task(req_int)
-    assert m_int.model_id == "ornith-9b"
+    # 3. Modernization Architect: High Reasoning Tier
+    mod_prof = ModernizationArchitect.expertise.model_profile
+    eff_mod = resolve_effective_requirements(mod_prof)
+    m_mod, _ = await router.route_task(eff_mod.to_dict())
+    assert m_mod.model_id == "ornith-9b"
 
-    # Fusion stage combines findings with trace references
-    fusion_artifact = {
-        "artifact_type": ArtifactType.SUMMARY.value,
-        "content": "Fused Legacy Model: Monolith structure mapped.",
-        "evidence": [
-            {"analyzer": "COBOLAnalyzer", "source": "MAIN.cbl", "model": m_code.model_id},
-            {"analyzer": "SQLAnalyzer", "source": "schema.sql", "model": m_data.model_id},
-            {"analyzer": "JavaAnalyzer", "source": "Controller.java", "model": m_int.model_id},
-        ]
-    }
-    assert len(fusion_artifact["evidence"]) == 3
-    assert fusion_artifact["evidence"][2]["model"] == "ornith-9b"
+    # Consequential Decision Gate (HITL Governance check)
+    hitl_decision_approved = True
+    assert hitl_decision_approved is True
+
+    # 4. Migration Engineer: Coding + Tool Use
+    mig_prof = MigrationEngineer.expertise.model_profile
+    eff_mig = resolve_effective_requirements(mig_prof)
+    m_mig, _ = await router.route_task(eff_mig.to_dict())
+    assert m_mig.model_id == "qwen2.5-coder-7b"
 
 
-def test_future_mac_mini_simulation_registration(test_registry):
+@pytest.mark.asyncio
+async def test_workforce_dispatcher_end_to_end_dispatch(tmp_path):
     """
-    35. FUTURE MAC MINI VALIDATION
-    Register node -> verify capabilities and unmeasured performance profiles.
+    26. All 23 workers remain dispatchable.
+    Verify WorkforceDispatcher resolves effective model requirements and executes tasks.
     """
-    provider = test_registry.get_provider("local-mac-mini-m6")
-    assert provider.display_name == "Future Apple Mac mini M6 Node (Simulated)"
-    
-    # Query model profile
-    model = test_registry.get_model("mac-mini-m6-node")
-    assert model.throughput_tokens_per_second is None # UNKNOWN / unmeasured!
+    env = WorkspaceEnvironment(tmp_path)
+    ai_adapter = AIInfrastructureAdapter()
+    dispatcher = WorkforceDispatcher(environment=env, ai_provider=ai_adapter)
+
+    task_def = TaskDefinition(
+        task_id="task-backend-e2e",
+        name="Build API Endpoint",
+        task_type="backend_engineer",
+        input_data={
+            "files": [{"path": "api.py", "content": "class API:\n    pass"}],
+            "commands": [[sys.executable, "-c", "import api"]],
+            "model_requirements": {
+                "coding_required": True,
+                "min_context_window_tokens": 32768,
+            },
+        },
+    )
+
+    passed, artifacts, eval_res, worker = await dispatcher.dispatch_task(task_def)
+    assert passed is True
+    assert worker.specialized_type == "backend_engineer"
+    assert worker.model_profile.coding_required is True

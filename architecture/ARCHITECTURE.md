@@ -165,20 +165,71 @@ The Scheduler receives executable units of work from the Workflow Engine and dis
 
 The AI Workforce represents the collection of specialised engineering workers responsible for implementation activities. Workers may be added, removed, or specialised without changing the platform architecture.
 
-Execution Model: Every engineering worker follows the Execution Engine Lifecycle defined in Section 9. The Execution Engine is responsible for orchestrating worker execution, while each worker is responsible for completing its own iterative implementation lifecycle.
+Every engineering worker follows the Execution Engine Lifecycle. The Execution Engine is responsible for orchestrating worker execution, while each worker is responsible for completing its own iterative implementation lifecycle.
+
+#### Worker Allocation and Model Policy Hierarchy
+
+Workers express their LLM needs through a deterministic model policy and allocation hierarchy (ADR-014):
+`Worker (WorkerModelProfile) + Task (TaskModelRequirements) → Effective Model Requirements → ModelAllocator → ModelRouterService → Provider → Deployment → Inference Node → Actual Model`
+
+1. **Worker Model Policy / Profile**: The worker declares what kind of model it needs (required LLM capabilities, minimum context window, reasoning tier, structured output, local-only constraints) rather than a concrete model identity.
+2. **Task Model Requirements**: Tasks can refine or strengthen model requirements (e.g. demanding higher context or specialized tool use for a specific step) without silently weakening mandatory worker constraints.
+3. **Effective Model Requirements**: Deterministically resolved requirements combining worker defaults and task overrides.
+4. **Model Allocation**: Checks capacity and concurrency limits via `ModelCapacityManager` under `ModelAllocator`.
+5. **Model Router**: `ModelRouterService` deterministically filters, ranks, and routes to appropriate providers.
+6. **Provider**: An abstract execution service hosting models (e.g., `local-m1`, `local-hp`).
+7. **Deployment**: Specific deployment mode (e.g., local, cloud).
+8. **Inference Node**: The hardware substrate running the model (e.g., M1, HP, or simulated Mac mini).
+9. **Model**: The concrete AI model (e.g., Qwen2.5-Coder 7B, Ornith 9B) executing the reasoning loop.
+
+#### Current Local Topologies
+
+The local runtime environment is designed around local-first inference nodes:
+- **local-m1**: Apple Mac M1 local Node (running code/reasoning/text capabilities).
+- **local-hp**: HP local Node (running code/text capabilities).
+- **local-mac-mini-m6**: Future Mac mini M6 local Node (simulated for horizontal scaling).
+
+#### Legacy Evidence-Driven Architecture
+
+Legacy modernization activities are supported by an evidence-driven architecture. Discovery and archaeological tasks gather findings into a persistent evidence log, where each finding is classified into one of the following epistemic types:
+- **FACT**: Deterministic, verified evidence collected directly from systems or configuration.
+- **INFERENCE**: Logically derived evidence backed by facts and architectural rules.
+- **HYPOTHESIS**: Probabilistic guess or AI-derived claim requiring verification.
+- **UNKNOWN**: Undocumented or legacy technologies requiring archaeological investigation.
 
 ### Engineering Workers
 
-The following engineering workers execute the implementation work. Each worker is a specialised agent responsible for a specific engineering domain.
+The workforce is divided into 14 Greenfield engineering roles and 9 Legacy modernization roles.
 
+#### Greenfield Workers
+
+- **Research Engineer** — Performs technical research, documentation research, framework research, and technology comparisons.
+- **Architecture Engineer** — Produces system architectures, defines component boundaries, and designs architectural blueprints.
+- **Planning Engineer** — Translates plans into executable work breakdown structures and task lists.
+- **UI Designer** — Designs user interfaces and conducts accessibility audits.
 - **Backend Engineer** — Implements server-side logic, APIs, and data processing components.
 - **Frontend Engineer** — Implements user-facing interfaces and client-side logic.
 - **Database Engineer** — Designs and implements data storage schemas, queries, and data migration strategies.
-- **DevOps Engineer** — Implements infrastructure configuration, deployment pipelines, and operational tooling.
-- **Security Engineer** — Implements security controls, vulnerability assessments, and compliance measures.
+- **ML Engineer** — Designs machine learning inference flows and data pipelines.
+- **Infrastructure Engineer** — Implements cloud resources, containers, and computing infrastructure.
+- **DevOps Engineer** — Implements deployment pipelines, environment configurations, and operational tooling.
 - **QA Engineer** — Implements test suites, executes quality verification, and reports defects.
+- **Security Engineer** — Implements security controls, vulnerability assessments, and compliance measures.
 - **Performance Engineer** — Implements performance benchmarks, identifies bottlenecks, and optimises system behaviour.
 - **Documentation Engineer** — Produces technical documentation, API references, and user guides.
+
+#### Legacy Workers
+
+- **Legacy Systems Research Engineer** — Performs research on legacy infrastructure, systems, and source configurations.
+- **Legacy Code Archaeologist** — Reconstructs and understands historical source code bases and extracts logic.
+- **Legacy Architecture Analyst** — Reconstructs and maps architecture diagrams and topology models from legacy systems.
+- **Legacy Data Engineer** — Analyzes database schema structures, data storage patterns, and designs data migrations from legacy databases.
+- **Legacy Integration Engineer** — Maps external system integration APIs, protocols, and data pathways.
+- **Business Rules Analyst** — Identifies, extracts, and documents implicit business rules from legacy code.
+- **Dependency & Impact Analyst** — Evaluates code dependencies, impact boundaries, and change risks.
+- **Modernization Architect** — Designs targeted modernized architectures for target platforms.
+- **Migration Engineer** — Executes the automated or semi-automated migration of codebase, data, and configs to modern structures.
+
 
 ### Review Engine
 

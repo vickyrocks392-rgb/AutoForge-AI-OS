@@ -7,6 +7,7 @@ from typing import Any
 import uuid
 from datetime import datetime, timezone
 
+from autoforge_ai_infrastructure.metadata import CapabilityIds
 from autoforge_execution.worker import EngineeringWorker
 from autoforge_execution.models import WorkerType as BaseWorkerType, WorkerStatus
 from autoforge_execution.environment import WorkspaceEnvironment
@@ -15,13 +16,13 @@ from autoforge_execution.artifacts import ArtifactPipeline
 from autoforge_execution.governance import ExecutionGovernance
 from autoforge_execution.models import LoopConfig, ArtifactRecord, EvaluationResult
 
-from autoforge_workforce.capabilities import ExpertiseModel, Permission
+from autoforge_workforce.capabilities import ExpertiseModel, Permission, WorkerModelProfile
 from autoforge_workforce.registry import WORKER_REGISTRY
 
 
 class WorkforceWorker(EngineeringWorker):
     """
-    Subclass of EngineeringWorker that adds capabilities, permissions, and specialized loop mapping.
+    Subclass of EngineeringWorker that adds capabilities, permissions, model profiles, and specialized loop mapping.
     """
     specialized_type: str = "general"
     base_type: BaseWorkerType = BaseWorkerType.GENERAL
@@ -48,6 +49,10 @@ class WorkforceWorker(EngineeringWorker):
             loop_config=loop_config,
             event_sink=event_sink,
         )
+
+    @property
+    def model_profile(self) -> WorkerModelProfile:
+        return self.expertise.model_profile
 
     def check_permission(self, operation: str, resource: str) -> bool:
         return self.expertise.validates_permissions(operation, resource)
@@ -119,6 +124,15 @@ class ResearchEngineer(WorkforceWorker):
         tool_access=["search_web", "view_file"],
         expected_artifacts=["research_brief"],
         default_loop_type="research",
+        model_profile=WorkerModelProfile(
+            worker_type="research_engineer",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            quality_priority=3,
+            latency_priority="medium",
+            privacy_policy="local_only",
+        ),
     )
 
 class ArchitectureEngineer(WorkforceWorker):
@@ -130,6 +144,15 @@ class ArchitectureEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write"])],
         expected_artifacts=["architecture_proposal"],
         default_loop_type="architecture",
+        model_profile=WorkerModelProfile(
+            worker_type="architecture_engineer",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            structured_output_required=True,
+            quality_priority=4,
+            privacy_policy="local_only",
+        ),
     )
 
 class PlanningEngineer(WorkforceWorker):
@@ -141,6 +164,15 @@ class PlanningEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write"])],
         expected_artifacts=["work_breakdown_structure"],
         default_loop_type="planning",
+        model_profile=WorkerModelProfile(
+            worker_type="planning_engineer",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            structured_output_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class UIDesigner(WorkforceWorker):
@@ -152,6 +184,14 @@ class UIDesigner(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write"])],
         expected_artifacts=["ui_design_specification"],
         default_loop_type="ui_design",
+        model_profile=WorkerModelProfile(
+            worker_type="ui_designer",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=8192,
+            structured_output_required=True,
+            quality_priority=2,
+            privacy_policy="local_only",
+        ),
     )
 
 class BackendEngineer(WorkforceWorker):
@@ -163,6 +203,15 @@ class BackendEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["source_code"],
         default_loop_type="backend",
+        model_profile=WorkerModelProfile(
+            worker_type="backend_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=32768,
+            coding_required=True,
+            structured_output_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class FrontendEngineer(WorkforceWorker):
@@ -174,6 +223,15 @@ class FrontendEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write"])],
         expected_artifacts=["source_code"],
         default_loop_type="frontend",
+        model_profile=WorkerModelProfile(
+            worker_type="frontend_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            coding_required=True,
+            structured_output_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class DatabaseEngineer(WorkforceWorker):
@@ -185,6 +243,15 @@ class DatabaseEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["db_schema"],
         default_loop_type="database",
+        model_profile=WorkerModelProfile(
+            worker_type="database_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            coding_required=True,
+            structured_output_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class MLEngineer(WorkforceWorker):
@@ -196,6 +263,16 @@ class MLEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["ml_inference_plan"],
         default_loop_type="ml",
+        model_profile=WorkerModelProfile(
+            worker_type="ml_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.TOOL_USE, CapabilityIds.REASONING],
+            min_context_window_tokens=16384,
+            coding_required=True,
+            tool_use_required=True,
+            reasoning_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class InfrastructureEngineer(WorkforceWorker):
@@ -207,6 +284,15 @@ class InfrastructureEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["infrastructure_code"],
         default_loop_type="infrastructure",
+        model_profile=WorkerModelProfile(
+            worker_type="infrastructure_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            coding_required=True,
+            structured_output_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class DevOpsEngineer(WorkforceWorker):
@@ -218,6 +304,15 @@ class DevOpsEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["cicd_workflow"],
         default_loop_type="devops",
+        model_profile=WorkerModelProfile(
+            worker_type="devops_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            coding_required=True,
+            structured_output_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class QAEngineer(WorkforceWorker):
@@ -229,6 +324,15 @@ class QAEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["test_report"],
         default_loop_type="qa",
+        model_profile=WorkerModelProfile(
+            worker_type="qa_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.TOOL_USE],
+            min_context_window_tokens=16384,
+            coding_required=True,
+            tool_use_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class SecurityEngineer(WorkforceWorker):
@@ -240,6 +344,16 @@ class SecurityEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["security_report"],
         default_loop_type="security",
+        model_profile=WorkerModelProfile(
+            worker_type="security_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.REASONING, CapabilityIds.TOOL_USE],
+            min_context_window_tokens=32768,
+            coding_required=True,
+            reasoning_required=True,
+            tool_use_required=True,
+            quality_priority=4,
+            privacy_policy="local_only",
+        ),
     )
 
 class PerformanceEngineer(WorkforceWorker):
@@ -251,6 +365,15 @@ class PerformanceEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["performance_report"],
         default_loop_type="performance",
+        model_profile=WorkerModelProfile(
+            worker_type="performance_engineer",
+            required_capabilities=[CapabilityIds.REASONING, CapabilityIds.TOOL_USE],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            tool_use_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class DocumentationEngineer(WorkforceWorker):
@@ -262,6 +385,14 @@ class DocumentationEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write"])],
         expected_artifacts=["technical_documentation"],
         default_loop_type="documentation",
+        model_profile=WorkerModelProfile(
+            worker_type="documentation_engineer",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION],
+            min_context_window_tokens=16384,
+            quality_priority=2,
+            latency_priority="high",
+            privacy_policy="local_only",
+        ),
     )
 
 
@@ -276,6 +407,14 @@ class LegacySystemsResearchEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read"])],
         expected_artifacts=["legacy_research_brief"],
         default_loop_type="legacy_discovery",
+        model_profile=WorkerModelProfile(
+            worker_type="legacy_systems_research_engineer",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class LegacyCodeArchaeologist(WorkforceWorker):
@@ -287,6 +426,14 @@ class LegacyCodeArchaeologist(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read"])],
         expected_artifacts=["code_archaeology_finding"],
         default_loop_type="legacy_code_archaeology",
+        model_profile=WorkerModelProfile(
+            worker_type="legacy_code_archaeologist",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.TEXT_GENERATION],
+            min_context_window_tokens=32768,
+            coding_required=True,
+            quality_priority=4,
+            privacy_policy="local_only",
+        ),
     )
 
 class LegacyArchitectureAnalyst(WorkforceWorker):
@@ -298,6 +445,15 @@ class LegacyArchitectureAnalyst(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read"])],
         expected_artifacts=["architecture_reconstruction_proposal"],
         default_loop_type="legacy_architecture_reconstruction",
+        model_profile=WorkerModelProfile(
+            worker_type="legacy_architecture_analyst",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            structured_output_required=True,
+            quality_priority=4,
+            privacy_policy="local_only",
+        ),
     )
 
 class LegacyDataEngineer(WorkforceWorker):
@@ -309,6 +465,15 @@ class LegacyDataEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read"])],
         expected_artifacts=["legacy_schema_report"],
         default_loop_type="legacy_data_analysis",
+        model_profile=WorkerModelProfile(
+            worker_type="legacy_data_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            coding_required=True,
+            structured_output_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class LegacyIntegrationEngineer(WorkforceWorker):
@@ -320,6 +485,15 @@ class LegacyIntegrationEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read"])],
         expected_artifacts=["legacy_integration_map"],
         default_loop_type="legacy_integration_analysis",
+        model_profile=WorkerModelProfile(
+            worker_type="legacy_integration_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            coding_required=True,
+            structured_output_required=True,
+            quality_priority=3,
+            privacy_policy="local_only",
+        ),
     )
 
 class BusinessRulesAnalyst(WorkforceWorker):
@@ -331,6 +505,15 @@ class BusinessRulesAnalyst(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read"])],
         expected_artifacts=["business_rules_list"],
         default_loop_type="business_rule_extraction",
+        model_profile=WorkerModelProfile(
+            worker_type="business_rules_analyst",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            structured_output_required=True,
+            quality_priority=4,
+            privacy_policy="local_only",
+        ),
     )
 
 class DependencyImpactAnalyst(WorkforceWorker):
@@ -342,6 +525,16 @@ class DependencyImpactAnalyst(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read"])],
         expected_artifacts=["impact_analysis_report"],
         default_loop_type="dependency_impact_analysis",
+        model_profile=WorkerModelProfile(
+            worker_type="dependency_impact_analyst",
+            required_capabilities=[CapabilityIds.REASONING, CapabilityIds.STRUCTURED_OUTPUT, CapabilityIds.TOOL_USE],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            structured_output_required=True,
+            tool_use_required=True,
+            quality_priority=4,
+            privacy_policy="local_only",
+        ),
     )
 
 class ModernizationArchitect(WorkforceWorker):
@@ -353,6 +546,15 @@ class ModernizationArchitect(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read"])],
         expected_artifacts=["modernization_proposal"],
         default_loop_type="modernization_architecture",
+        model_profile=WorkerModelProfile(
+            worker_type="modernization_architect",
+            required_capabilities=[CapabilityIds.TEXT_GENERATION, CapabilityIds.REASONING, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=16384,
+            reasoning_required=True,
+            structured_output_required=True,
+            quality_priority=5,
+            privacy_policy="local_only",
+        ),
     )
 
 class MigrationEngineer(WorkforceWorker):
@@ -364,6 +566,17 @@ class MigrationEngineer(WorkforceWorker):
         permissions=[Permission(permission_id="fs", resource="*", allowed_operations=["read", "write", "execute"])],
         expected_artifacts=["migration_plan"],
         default_loop_type="migration_planning",
+        model_profile=WorkerModelProfile(
+            worker_type="migration_engineer",
+            required_capabilities=[CapabilityIds.CODE_GENERATION, CapabilityIds.TOOL_USE, CapabilityIds.STRUCTURED_OUTPUT],
+            min_context_window_tokens=32768,
+            coding_required=True,
+            tool_use_required=True,
+            structured_output_required=True,
+            quality_priority=4,
+            reliability_minimum=0.98,
+            privacy_policy="local_only",
+        ),
     )
 
 

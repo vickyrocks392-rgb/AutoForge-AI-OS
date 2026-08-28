@@ -2,7 +2,15 @@
 AutoForge Workforce Platform — Phase 13.
 """
 
-from autoforge_workforce.capabilities import Capability, Permission, ExpertiseModel
+from autoforge_workforce.capabilities import (
+    Capability,
+    Permission,
+    ExpertiseModel,
+    WorkerModelProfile,
+    TaskModelRequirements,
+    EffectiveModelRequirements,
+    resolve_effective_requirements,
+)
 from autoforge_workforce.registry import WorkerRegistry, WORKER_REGISTRY
 from autoforge_workforce.workers import WorkforceWorker, WORKER_CLASSES
 from autoforge_workforce.legacy_models import LegacySystemModel, LegacyEvidence, FactState, BusinessRule
@@ -21,6 +29,10 @@ __all__ = [
     "Capability",
     "Permission",
     "ExpertiseModel",
+    "WorkerModelProfile",
+    "TaskModelRequirements",
+    "EffectiveModelRequirements",
+    "resolve_effective_requirements",
     "WorkerRegistry",
     "WORKER_REGISTRY",
     "WorkforceWorker",

@@ -442,31 +442,42 @@ Build specialised engineering workers.
 
 Workers
 
-• Backend Engineer
-• Frontend Engineer
-• Database Engineer
-• QA Engineer
-• DevOps Engineer
-• Performance Engineer
-• Security Engineer
-• Documentation Engineer
-
-Future Workers
-
-• Mobile Engineer
-• ML Engineer
-• UI Designer
-• Infrastructure Engineer
-• Research Engineer
+- Research Engineer
+- Architecture Engineer
+- Planning Engineer
+- UI Designer
+- Backend Engineer
+- Frontend Engineer
+- Database Engineer
+- ML Engineer
+- Infrastructure Engineer
+- DevOps Engineer
+- QA Engineer
+- Security Engineer
+- Performance Engineer
+- Documentation Engineer
+- Legacy Systems Research Engineer
+- Legacy Code Archaeologist
+- Legacy Architecture Analyst
+- Legacy Data Engineer
+- Legacy Integration Engineer
+- Business Rules Analyst
+- Dependency & Impact Analyst
+- Modernization Architect
+- Migration Engineer
 
 Validation
 
-• Worker Collaboration
+• Worker Capability Matching
 • Multi-Agent Coordination
+• Worker Model Policy & Task Requirements Integration (ADR-014)
+• Effective Model Requirements resolution and dynamic runtime propagation
+• Model capacity allocation routing
+• Legacy evidence assembly (Fact, Inference, Hypothesis, Unknown)
 
 Outcome
 
-✓ AI Workforce Frozen
+✓ AI Workforce Model Policies & Allocation Integrated
 
 ------------------------------------------------------------
 
@@ -480,21 +491,17 @@ Complete platform visibility.
 
 Implementation
 
-• Metrics
-• Logs
-• Traces
-• Runtime Graph
-• Workflow Graph
-• AI Infrastructure Dashboard
-• Capability Dashboard
-• Provider Dashboard
-• Model Dashboard
+• Deterministic Metrics (System, Workflow, Execution, Worker, AI Infrastructure, Node, Artifact, Review, Legacy Modernization)
+• Structured Logs (JSON schema, security redaction, error normalization)
+• Traces (Span propagation, correlation chains, provenance tracking)
+• Dashboard Projections (13 programmatic read models: System, Workflow, Execution, Workforce, AI Infrastructure, Capability, Provider, Model, Inference Node, Artifact, Review, Legacy Modernization, HITL/Governance)
 
 Validation
 
-• Live Monitoring
-• Alerting
-• Visualization
+• Event ingestion and subscription
+• Correlation chain propagation
+• Cost and Latency aggregation
+• Behavioral and security tests
 
 Outcome
 
