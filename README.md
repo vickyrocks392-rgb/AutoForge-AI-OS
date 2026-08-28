@@ -144,41 +144,37 @@ These engines are supported by a suite of **AI agent services** (`services/`) th
 
 ---
 
-## Long-Term Roadmap
+## Canonical Roadmap
 
-### Phase 1 — Foundation (Current)
-- [x] Repository structure & documentation
-- [x] Monorepo configuration (workspaces, TypeScript, tooling)
-- [x] GitHub foundation (issue templates, PR template)
-- [x] Local development infrastructure (Docker Compose)
-- [ ] Core type system & shared models
-- [ ] Workflow engine skeleton
-- [ ] Execution engine skeleton
-- [ ] Service scaffolding & contracts
+The authoritative implementation roadmap is documented in [`architecture/ROADMAP.md`](architecture/ROADMAP.md) and governed by [`architecture/ARCHITECTURE.md`](architecture/ARCHITECTURE.md).
 
-### Phase 2 — Core Capabilities
-- [ ] Planner service: task decomposition
-- [ ] Research service: context gathering
-- [ ] Requirements service: specification generation
-- [ ] Architecture service: system design
-
-### Phase 3 — Code Generation
-- [ ] Backend service: API & business logic generation
-- [ ] Frontend service: UI component generation
-- [ ] Testing service: automated test generation
-- [ ] Documentation service: self-documenting output
-
-### Phase 4 — Production Readiness
-- [ ] Deployment service: infrastructure as code
-- [ ] CI/CD integration
-- [ ] Monitoring & observability
-- [ ] Human-in-the-loop workflows
-
-### Phase 5 — Scale & Ecosystem
-- [ ] Multi-project orchestration
-- [ ] Plugin system for custom services
-- [ ] Community templates & recipes
-- [ ] Enterprise SSO, audit, compliance
+| Phase | Subsystem / Layer | Status |
+|---|---|---|
+| **Phase 1** | Architecture Foundation | ✅ Frozen |
+| **Phase 2** | Kernel | ✅ Frozen |
+| **Phase 3** | Runtime State Manager | ✅ Frozen |
+| **Phase 4** | Event Platform | ✅ Frozen |
+| **Phase 5** | Knowledge Platform | ✅ Frozen |
+| **Phase 6** | Memory Platform | ✅ Frozen |
+| **Phase 7** | AI Infrastructure Platform | ✅ Frozen |
+| **Phase 8** | Connector Platform | ✅ Frozen |
+| **Phase 9** | Workflow Platform | ✅ Frozen |
+| **Phase 10** | Execution Platform | ✅ Frozen |
+| **Phase 11** | Review Platform | ✅ Frozen |
+| **Phase 12** | Artifact Platform | ✅ Frozen |
+| **Phase 13** | AI Workforce (23 Specialized Workers) | ✅ Frozen |
+| **Phase 14** | Observability Platform & Dashboards | ✅ Frozen |
+| **Phase 15** | Security & Governance Platform | ⏳ Planned |
+| **Phase 16** | AutoForge Product Experience | ⏳ Planned |
+| **Phase 17** | AI Runtime & Real Model Integration | ⏳ Planned |
+| **Phase 18** | Autonomous Engineering & Modernization | ⏳ Planned |
+| **Phase 19** | Continuous Learning & Self-Improvement | ⏳ Planned |
+| **Phase 20** | Modernization Service MVP | ⏳ Planned |
+| **Phase 21** | Desktop Application & Distribution | ⏳ Planned |
+| **Phase 22** | Developer / Extension Platform | ⏳ Planned |
+| **Phase 23** | Enterprise Platform | ⏳ Planned |
+| **Phase 24** | Distributed AI Operating System | ⏳ Planned |
+| **Phase 25** | Production Release (v1.0) | ⏳ Planned |
 
 ---
 

@@ -148,6 +148,44 @@ The platform is responsible for providing the common capabilities required by AI
 
 ---
 
+## Business Strategy & Commercial Delivery Vision
+
+AutoForge AI OS follows a deliberate two-tier commercial strategy:
+
+1. **AutoForge AI OS as Internal Technology Substrate**:
+   AutoForge AI OS is our internal engineering operating system, workforce orchestration engine, and continuous learning platform. We do NOT initially sell AutoForge as standalone retail software or developer tooling.
+
+2. **Modernization Service as the Initial Commercial Offering**:
+   Our initial commercial business model is **Legacy Modernization as a Service**. We deploy our proprietary AutoForge engine and specialized 23-worker workforce to modernize complex, unfamiliar enterprise codebases into modern target architectures with rigorous behavioral equivalence.
+
+### Commercial Go-To-Market Value Flow
+
+```
+Enterprise Client Legacy System
+  ↓
+Modernization Service Intake
+  ↓
+AutoForge AI OS (Proprietary Engine)
+  ├── 14 Greenfield Workers
+  └── 9 Specialized Legacy Modernization Workers
+  ↓
+Evidence-Driven Modernization Pipeline
+  ├── Discovery & Archaeology
+  ├── Architecture Reconstruction
+  ├── Business Rules Extraction
+  ├── Target Architecture Design (with HITL Approval)
+  ├── Automated Translation & Adaptation
+  └── Behavioral Parity & Equivalence Testing
+  ↓
+High-Value Client Deliverables
+  ├── Modernized Source Code & Infrastructure
+  ├── Comprehensive Architecture Specifications
+  ├── Automated Test & Regression Suites
+  └── Operational Runbooks & Cutover Plans
+```
+
+---
+
 ## Future Evolution
 
 The architecture of AutoForge AI OS is expected to evolve over time through deliberate architectural decisions. Each significant architectural change shall be documented as an Architecture Decision Record (ADR), providing a clear rationale and context for the evolution.

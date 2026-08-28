@@ -230,7 +230,6 @@ The workforce is divided into 14 Greenfield engineering roles and 9 Legacy moder
 - **Modernization Architect** — Designs targeted modernized architectures for target platforms.
 - **Migration Engineer** — Executes the automated or semi-automated migration of codebase, data, and configs to modern structures.
 
-
 ### Review Engine
 
 The Review Engine evaluates all artifacts produced by engineering workers against defined quality criteria. It verifies correctness, architectural compliance, test coverage, documentation quality, performance characteristics, security posture, and policy adherence. Artifacts that fail review are returned to the appropriate worker for remediation.
@@ -239,22 +238,55 @@ The Review Engine evaluates all artifacts produced by engineering workers agains
 
 The Artifact Manager is the final stage of the pipeline. It stores, versions, and publishes all approved artifacts. It maintains lineage and traceability from the original idea through every transformation to the finished product.
 
+### Product Experience (Human Interface Layer)
+
+The Product Experience represents the top-level human interface to the AutoForge AI OS.
+
+**Architectural Authority Invariant:**
+The UI is strictly a presentation, monitoring, and steering layer. The UI is NOT an authority. Authoritative state resides exclusively in the Runtime State Manager, Kernel, and platform services.
+
+```
+UI (Web / Desktop Shell)
+  ↓
+Engineering Experience / Read Models (ADR-004)
+  ↓
+Application Services
+  ↓
+Authoritative Platform Services (Kernel, Runtime, Engines)
+```
+
+The UI exposes:
+- **Application Shell & Command Center**: Global navigation, operational control, and execution dispatch.
+- **Engineering Workspaces**: Greenfield Engineering Canvas and Legacy Modernization Workspace.
+- **Specialized Interfaces**: Research, Planning, Architecture, Workforce, Workflow/DAG, Execution, Review, and Artifact interfaces.
+- **Observability UX**: Live telemetry, queue health, worker/workflow activity, latency distributions (P50/P95/P99), model speeds, node utilization, failure/retry metrics, cost aggregation, and distributed trace waterfalls.
+- **HITL Approval Center**: Review and decision controls for consequential governance gates.
+- **Self-Improvement Center**: Learning evidence, candidate improvements, benchmark/regression results, version lineage, and rollback controls.
+
 ---
 
-## 4. Architectural Dependency Principles
+## 4. Architectural Dependency Principles & Governance Invariants
 
-The following principles govern the dependencies between all architectural components of AutoForge AI OS. Adherence to these principles ensures that the platform remains modular, replaceable, testable, and evolvable.
+The following principles govern the dependencies and operational boundaries across all components of AutoForge AI OS:
 
-- **Separation of Concerns** — Every subsystem addresses a distinct domain of responsibility. Concerns must not overlap across subsystem boundaries.
-- **Single Responsibility** — Each subsystem has exactly one primary responsibility. A subsystem with multiple unrelated responsibilities must be decomposed.
-- **Interface First** — Subsystems define their capabilities through explicit, documented interfaces before implementation. Consumers depend on interfaces, not implementations.
-- **No Circular Dependencies** — The dependency graph between subsystems must remain acyclic. Circular dependencies indicate a failure of architectural boundaries and must be resolved through mediation or decomposition.
-- **Event-Driven Communication** — Subsystems communicate primarily through asynchronous events rather than direct invocations. This decouples producers from consumers and enables independent evolution.
-- **State-Driven Coordination** — Workflow progress and subsystem coordination are governed by explicit state transitions rather than imperative control flow. State is the canonical record of progress.
-- **Loose Coupling** — Subsystems depend on contracts, not on the internal implementations of other subsystems. Changes to one subsystem must not propagate to others as long as contracts are preserved.
-- **High Cohesion** — Related behaviour is gathered within the same subsystem boundary. Unrelated behaviour is separated into distinct subsystems.
-- **Platform Services remain independent of engineering workers.** Shared Platform Services provide horizontal capabilities that are available to every engine and worker. They must not depend on the existence or behaviour of any specific worker type.
-- **Higher-level orchestration must not depend on implementation details.** Orchestration layers (Kernel, Strategic Engine, Workflow Engine) coordinate work through abstract contracts. They must not depend on the specific implementation details of the workers or services they coordinate.
+- **AutoForge is the Primary Architecture** — External frameworks do not become architectural authorities. AutoForge owns its domain abstractions, contracts, and lifecycles.
+- **External Framework Containment**:
+  - **Temporal**: Remains an OPTIONAL durable orchestration adapter behind the `OrchestrationAdapter` interface. `WorkflowEngine` remains the AutoForge domain abstraction and policy owner.
+  - **LangGraph, LangChain, CrewAI**: Remain excluded from the live path. They must not silently enter execution. Any future use requires an explicit, narrowly scoped ADR.
+  - **Langfuse**: May serve as an optional observability adapter for LLM telemetry; it is never the system of record. AutoForge Observability remains canonical.
+- **AI Non-Authority Invariant** — AI models do not own governance, policy, state authority, HITL approval gates, determinism, or engineering meaning.
+- **UI Non-Authority Invariant** — The UI is strictly a presentation and control layer; state authority resides exclusively in authoritative platform services.
+- **Worker Model Agnosticism** — Workers declare capability and model requirements (via `WorkerModelProfile`); workers NEVER hardcode concrete model IDs.
+- **Centralized Model Allocation** — Model selection, capacity management, and routing remain centralized in `ModelAllocator` and `ModelRouterService`.
+- **First-Class Legacy Modernization** — Legacy modernization is a co-equal, first-class capability supported by 9 dedicated workers, specialized archaeological pipelines, and explicit uncertainty tracking.
+- **Preserved Specialized Workforce** — The 23 specialized workers (14 Greenfield + 9 Legacy Modernization) remain explicit and must not be reduced to generic agents.
+- **Context Engineering as a First-Class Capability** — Composes Knowledge and Memory capabilities without duplicating them (ADR-003).
+- **Memory ≠ Learning (ADR-005)** — Memory preserves operational state and historical context; Learning synthesizes generalized adaptations and platform optimizations.
+- **Strictly Gated Self-Improvement** — All candidate improvements must pass through the mandatory safety pipeline (Candidate → Evaluation → Benchmark → Regression → Accept/Reject → Version → Rollback → Activate) before activation. No silent self-modification.
+- **Separation of Concerns & Single Responsibility** — Every subsystem addresses exactly one distinct domain. Concerns do not overlap across boundaries.
+- **Interface First & Contract-Driven** — Subsystems define capabilities through explicit, versioned interfaces before implementation.
+- **Event-Driven Communication & State-Driven Coordination** — Subsystems communicate primarily through asynchronous immutable events; state is the canonical record of progress.
+- **Recoverable & Resilient Execution** — Every execution unit supports checkpointing, snapshotting, and resumption from known states.
 
 ---
 
@@ -1281,48 +1313,97 @@ This information is observational only. Observability never modifies platform be
 
 ---
 
-## 22. Security
+## 22. Security & Governance Platform
 
-Security is a cross-cutting concern that applies to every subsystem and interface in the platform.
+Security and governance are cross-cutting capabilities that apply to every subsystem, boundary, and execution path across AutoForge AI OS.
 
 ### Security Mechanisms
 
-- **Sandboxing** — Execution environments are isolated to prevent unauthorised access to resources and data.
-- **Permissions** — Access to platform capabilities and data is governed by a permission model that defines what each entity is allowed to do.
-- **Least Privilege** — Every entity operates with the minimum permissions required to perform its function, reducing the blast radius of compromise.
-- **Secrets** — Sensitive credentials, keys, and tokens are managed through a secure secrets system that prevents exposure in logs, artifacts, or event payloads.
-- **Audit** — All security-relevant actions are recorded in an immutable audit trail that supports forensic analysis.
-- **Isolation** — Projects, executions, and workers are isolated from each other to prevent cross-entity interference.
-- **Human Approval Gates** — Configurable points in workflows require human approval before proceeding, ensuring that sensitive or high-impact actions are subject to human oversight.
+- **Authentication & Identity** — Verification of entities, users, and internal service credentials with session boundaries.
+- **Authorization & RBAC** — Role-based access control defining granular resource permissions and operational privileges.
+- **Sandboxing & Isolation** — Confined execution environments with process isolation, filesystem sandboxing, and resource quotas to prevent unauthorized resource access or leakage.
+- **Secrets & API Key Management** — Encrypted at-rest credential storage with dynamic, non-leaking injection; strictly redacted from logs, traces, and events.
+- **Immutable Audit Trail** — Tamper-evident, structured audit logs capturing all security-relevant and administrative actions for compliance and forensic review.
+- **Human Approval Gates (HITL)** — Enforceable approval gates for high-impact or consequential operations:
+  - Technology-stack finalization
+  - Modernization architecture approval
+  - Migration cutover execution
+  - Production deployment
 
 ---
 
-## 23. Future Evolution
+## 23. Business Architecture & Commercial Model
 
-The architecture of AutoForge AI OS is designed to accommodate future evolution without requiring fundamental redesign. The following directions represent anticipated areas of growth.
+AutoForge AI OS distinguishes strictly between the internal platform technology and the commercial go-to-market offering:
 
-- **Distributed Agents** — Workers operating across multiple machines, coordinating through the Event Bus and Runtime State Manager.
-- **Cloud Workers** — Workers deployed to cloud execution environments for elastic capacity scaling.
-- **Local Clusters** — Workers operating on local cluster infrastructure for high-throughput, low-latency execution.
-- **Swarm Execution** — Coordinated execution across large numbers of workers operating in parallel on related tasks.
-- **Plugin SDK** — A software development kit enabling third-party developers to create custom workers, connectors, and extensions.
-- **Enterprise Edition** — Enhanced security, governance, compliance, and administrative capabilities for enterprise deployments.
-- **Robotics** — Extension of the platform to control and coordinate robotic systems through specialised workers and connectors.
-- **Mobile Dashboard** — A mobile-optimised interface for monitoring platform activity and approving human-in-the-loop gates.
-- **Evolving AI Infrastructure** — The Capability Registry is designed to evolve alongside the AI ecosystem. Future provider classes may include new local runtimes, cloud providers, edge inference systems, distributed inference platforms, and future execution technologies without requiring architectural redesign.
+1. **AutoForge AI OS (Internal Engineering Engine)**:
+   The foundational AI operating system, workforce, and execution runtime developed across Phases 1–25. It is NOT initially sold as standalone software.
+2. **Modernization Service MVP (Initial Commercial Offering)**:
+   We sell enterprise legacy modernization as a high-value managed service. AutoForge AI OS operates internally as our proprietary modernization engine.
 
-Each evolution will be introduced through documented architectural decisions that preserve the principles, boundaries, and relationships defined in this document.
+### Commercial Go-To-Market Pipeline
+
+```
+Customer Legacy System Intake
+  ↓
+Modernization Service (Commercial Offering)
+  ↓
+AutoForge AI Workforce (23 Specialized Workers: 14 Greenfield + 9 Legacy Modernization)
+  ↓
+Modernization Pipeline (Discovery → Archaeology → Architecture Reconstruction → Migration → Validation)
+  ↓
+Validated Modernized System (Behavioral Parity & Performance Confirmed)
+  ↓
+Customer Deliverables (Target Codebase, Schemas, Architecture Specs, Test Suites, Runbooks)
+```
 
 ---
 
-## 24. Architecture Governance
+## 24. Desktop Application & Multi-Node Hardware Topology
 
-This document is the canonical architectural specification for AutoForge AI OS. Every subsystem architecture document derives from this specification and must remain consistent with its principles, boundaries, and relationships.
+The AutoForge AI OS product architecture separates interface design from packaging and distribution:
 
-Architectural changes that affect subsystem boundaries, introduce new dependencies, modify the principles defined herein, or alter the responsibilities of any subsystem require an Architecture Decision Record (ADR). The ADR must describe the context, decision, rationale, and consequences of the change.
+- **Product Experience (Phase 16)**: The UI components, workspaces, visualizations, and read models.
+- **Desktop Application & Distribution (Phase 21)**: The standalone local-first packaging, process supervision, embedded runtime, and multi-node hardware orchestration.
 
-Implementation must conform to this architecture. Deviations between implementation and the architecture defined in this document are considered architectural debt and must be documented, tracked, and resolved through the established governance process.
+### Supported Hardware Topology
 
-Architectural evolution must preserve the platform principles of loose coupling, high cohesion, replaceable components, explicit boundaries, recoverable execution, observability, and vendor neutrality. Ad-hoc architectural changes that bypass the governance process are prohibited.
+```
+AutoForge Desktop (Local-First Application)
+  ├── Node 1: local-m1 (Apple Silicon M1/M2/M3/M4)
+  ├── Node 2: local-hp (HP Workstation x86_64)
+  └── Node 3: local-mac-mini-m6 (Future Node Topology)
+```
 
-This document establishes the stable architectural foundation upon which AutoForge AI OS is designed, implemented, and evolved.
+- **Hardware-Agnostic Workers**: Workers declare required capabilities and model profiles; adding or changing physical nodes requires only runtime configuration without code changes to workers.
+- **Local-First & Offline Resilience**: Full execution operates locally without internet connectivity; optional cloud connectivity provides bursting when permitted.
+
+---
+
+## 25. Canonical Roadmap & Architecture Governance
+
+This document is the canonical architectural specification for AutoForge AI OS. The canonical implementation roadmap comprises 25 phases:
+
+- **Phase 1–14**: Core Architecture, Kernel, Runtime, Events, Knowledge, Memory, AI Infrastructure, Connectors, Workflows, Execution, Review, Artifacts, AI Workforce (23 Workers), and Observability Platform (FROZEN).
+- **Phase 15**: Security & Governance Platform
+- **Phase 16**: AutoForge Product Experience
+- **Phase 17**: AI Runtime & Real Model Integration
+- **Phase 18**: Autonomous Engineering & Modernization
+- **Phase 19**: Continuous Learning & Self-Improvement
+- **Phase 20**: Modernization Service MVP
+- **Phase 21**: Desktop Application & Distribution
+- **Phase 22**: Developer / Extension Platform
+- **Phase 23**: Enterprise Platform
+- **Phase 24**: Distributed AI Operating System
+- **Phase 25**: Production Release (v1.0)
+
+### Standing Governance Invariants
+
+1. **AutoForge Authority**: AutoForge remains the primary architectural authority. External frameworks (Temporal, Langfuse) remain optional adapters; LangGraph, LangChain, and CrewAI remain excluded from the live path.
+2. **AI Non-Authority**: AI does not own governance, policy, state, or HITL authority.
+3. **UI Non-Authority**: The UI is strictly a presentation and control layer.
+4. **Memory ≠ Learning**: Memory stores context; Learning synthesizes adaptations through the mandatory gated safety pipeline.
+5. **Context Engineering**: Composes Knowledge and Memory without duplicating them.
+6. **Centralized Model Allocation**: Workers declare requirements; `ModelAllocator` and `ModelRouterService` control selection.
+
+Architectural modifications require an approved Architecture Decision Record (ADR) adhering to these invariants.

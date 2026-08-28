@@ -44,10 +44,38 @@ Sensible defaults exist for everything. Configuration is explicit only when devi
 ### 10. Observable by Design
 Observability is not an afterthought. Every component emits structured logs, metrics, and traces as a first-class concern.
 
-## Future Topics
+## Architectural & Governance Principles
 
-- Trade-offs between determinism and LLM creativity
-- Balancing autonomy with human oversight
-- Principles for prompt engineering at scale
-- Operational principles for running AI agents in production
-- Security principles for autonomous code generation
+### 11. AutoForge as the Primary Architecture
+AutoForge remains the authoritative operating platform. External frameworks do not become architectural authorities. Domain models, state lifecycles, and orchestration contracts are owned solely by AutoForge.
+
+### 12. External Framework Containment
+- **Temporal**: Remains an OPTIONAL durable orchestration adapter behind the `OrchestrationAdapter` interface. `WorkflowEngine` remains the AutoForge domain abstraction and policy owner.
+- **LangGraph, LangChain, CrewAI**: Remain excluded from the live execution path. They must not silently enter the platform.
+- **Langfuse**: May serve as an optional observability adapter for telemetry export, but never becomes the system of record. AutoForge Observability is canonical.
+
+### 13. AI Non-Authority Invariant
+AI models do not own governance, policy, state authority, HITL approval gates, determinism, or engineering meaning. AI provides probabilistic generation; the platform provides deterministic control.
+
+### 14. UI Non-Authority Invariant
+The user interface is strictly a presentation, monitoring, and control layer. Authoritative state resides exclusively in the Runtime State Manager, Kernel, and platform services.
+
+### 15. Worker Model Agnosticism & Centralized Allocation
+Workers declare domain capabilities and model requirements (via `WorkerModelProfile`); workers NEVER hardcode concrete model IDs. Model selection and capacity management remain strictly centralized in `ModelAllocator` and `ModelRouterService`.
+
+### 16. First-Class Legacy Modernization & Specialized Workforce
+Legacy modernization is a co-equal, first-class capability supported by 9 specialized workers. The 23-worker workforce (14 Greenfield + 9 Legacy) is preserved and never reduced to generic agents.
+
+### 17. Strict Epistemic Separation
+Unfamiliar codebases and systems are analyzed using deterministic evidence collection with strict separation of `FACT`, `INFERENCE`, `HYPOTHESIS`, and `UNKNOWN`. Analysis gaps are explicitly represented; the system never hallucinates missing information.
+
+### 18. Context Engineering as a First-Class Capability (ADR-003)
+Context Engineering composes Knowledge and Memory capabilities without duplicating them, delivering rich, provenance-aware context to execution units.
+
+### 19. Memory ≠ Learning Boundary (ADR-005)
+Memory preserves state, artifacts, and historical context; Learning synthesizes generalized adaptations and platform optimizations.
+
+### 20. Strictly Gated Self-Improvement Pipeline
+All candidate optimizations (routing, prompt, workflow, or heuristics) must pass through the mandatory safety pipeline:
+`Candidate → Evaluation → Benchmark → Regression → Accept/Reject → Version → Rollback Capability → Activate`.
+Silent self-modification is strictly forbidden.
