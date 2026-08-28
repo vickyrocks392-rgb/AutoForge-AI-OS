@@ -43,10 +43,12 @@ from autoforge_composition.artifact_wiring import build_artifact_platform_from_b
 from autoforge_composition.event_bus_adapter import CanonicalKernelEventBus
 from autoforge_composition.execution_wiring import build_execution_engine
 from autoforge_composition.runtime_facade import KernelRuntimeFacade
+from autoforge_composition.security_wiring import build_security_platform_from_bus
 from autoforge_composition.workflow_wiring import build_workflow_engine
 
 from autoforge_execution.engine import ExecutionEngine
 from autoforge_artifacts.engine import ArtifactPlatformServices
+from autoforge_security.engine import SecurityPlatform
 from autoforge_workflows.engine import WorkflowEngine
 
 __all__ = ["AutoForgeSystem", "build_autoforge_system"]
@@ -139,9 +141,14 @@ class AutoForgeSystem:
     workflow_engine: WorkflowEngine
     execution_engine: ExecutionEngine
     artifact_platform: ArtifactPlatformServices
+    security_platform: SecurityPlatform | None = None
 
     #: Raw runtime diagnostics that had no canonical counterpart during lift.
-    skipped_runtime_events: list[dict[str, Any]]
+    skipped_runtime_events: list[dict[str, Any]] = None
+
+    def __post_init__(self) -> None:
+        if self.skipped_runtime_events is None:
+            self.skipped_runtime_events = []
 
     async def initialize(self) -> None:
         """Initialise runtime + kernel through the composed boundary."""
@@ -224,6 +231,11 @@ def build_autoforge_system(
         canonical_bus=canonical_bus,
     )
 
+    # 9. Security Platform — wired with canonical event bus.
+    security_platform = build_security_platform_from_bus(
+        canonical_bus=canonical_bus,
+    )
+
     return AutoForgeSystem(
         kernel=kernel,
         runtime=runtime,
@@ -234,5 +246,6 @@ def build_autoforge_system(
         workflow_engine=workflow_engine,
         execution_engine=execution_engine,
         artifact_platform=artifact_platform,
+        security_platform=security_platform,
         skipped_runtime_events=skipped,
     )

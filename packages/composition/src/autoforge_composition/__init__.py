@@ -21,12 +21,14 @@ from autoforge_composition.composition_root import (
 )
 from autoforge_composition.event_bus_adapter import CanonicalKernelEventBus
 from autoforge_composition.runtime_facade import KernelRuntimeFacade
+from autoforge_composition.security_wiring import build_security_platform_from_bus
 
 __all__ = [
     "AIInfrastructureServices",
     "AutoForgeSystem",
     "build_ai_infrastructure",
     "build_autoforge_system",
+    "build_security_platform_from_bus",
     "CanonicalKernelEventBus",
     "KernelRuntimeFacade",
     "RuntimeCheckpointAdapter",

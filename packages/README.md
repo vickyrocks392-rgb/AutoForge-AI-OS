@@ -19,3 +19,4 @@ This directory contains shared libraries and modules that provide foundational i
 - `models/` — Data models, schemas, and validation
 - `memory/` — State management, persistence, and context storage
 - `tools/` — Shared tool definitions and external integrations
+- `security/` — Deterministic Security & Governance Platform (Phase 15, ADR-016)

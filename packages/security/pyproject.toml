@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoforge-security"
+version = "0.1.0"
+description = "Deterministic Security & Governance Platform for AutoForge AI OS"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.0.0",
+    "autoforge-shared",
+    "autoforge-events",
+    "autoforge-event-platform",
+    "autoforge-runtime",
+    "autoforge-execution",
+    "autoforge-workflows",
+    "autoforge-observability",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
