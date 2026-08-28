@@ -13,9 +13,9 @@ AutoForge AI OS is an autonomous software engineering platform that transforms a
 | Metric | Value |
 |--------|-------|
 | **Overall Status** | Active Development |
-| **Current Milestone** | Phase 15 (Security & Governance Platform) Completed |
-| **Next Planned Phase** | Phase 16 — AutoForge Product Experience (Command Center & UX) |
-| **Completed Subsystems** | 15 of 25 Canonical Phases (100% Green Test Suite) |
+| **Current Milestone** | Phase 16 (AutoForge Product Experience) Completed |
+| **Next Planned Phase** | Phase 17 — AI Runtime & Real Model Integration |
+| **Completed Subsystems** | 16 of 25 Canonical Phases (100% Green Test Suite) |
 | **Specialized Workforce** | 23 Workers (14 Greenfield + 9 Legacy Modernization) |
 
 ---
@@ -38,8 +38,8 @@ AutoForge AI OS is an autonomous software engineering platform that transforms a
 | 12 | Artifact Platform | ✅ Complete | Artifact catalog, versioning, lineage, and rollback (Frozen) |
 | 13 | AI Workforce | ✅ Complete | 23 Specialized workers, model policies & allocation (Frozen) |
 | 14 | Observability Platform | ✅ Complete | Metrics, traces, logs, and 13 programmatic read models (Frozen) |
-| 15 | Security & Governance Platform | ✅ Complete | Auth, RBAC, sandboxing, secrets, consequential HITL gates (ADR-016) |
-| 16 | AutoForge Product Experience | ⏳ Planned | Top-level UI, Command Center, workspaces, visualizers |
+| 15 | Security & Governance Platform | ✅ Complete | Auth, RBAC, sandboxing, secrets, consequential HITL gates (Frozen) |
+| 16 | AutoForge Product Experience | ✅ Complete | Top-level UI, Command Center, 19 surfaces, ADR-017 |
 | 17 | AI Runtime & Real Model Integration | ⏳ Planned | Live local/cloud inference adapters, multi-node topology |
 | 18 | Autonomous Engineering & Modernization | ⏳ Planned | Full Greenfield & Legacy modernization pipelines |
 | 19 | Continuous Learning & Self-Improvement | ⏳ Planned | Learning engine, reflection, gated safety pipeline |

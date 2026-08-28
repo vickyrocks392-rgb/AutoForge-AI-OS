@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoForge AI OS — Autonomous Software Engineering Platform</title>
+  <link rel="stylesheet" href="/styles/theme.css" />
+  <link rel="stylesheet" href="/styles/layout.css" />
+  <link rel="stylesheet" href="/styles/components.css" />
+</head>
+<body class="theme-dark">
+  <div class="app-layout">
+    <!-- Top Application Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <span class="brand-badge">AF</span>
+        <div class="brand-text">
+          <span class="brand-title">AutoForge AI OS</span>
+          <span class="brand-subtitle">Autonomous Engineering Platform</span>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <div class="mode-switcher">
+        <button id="mode-greenfield-btn" class="mode-btn active" onclick="switchMode('GREENFIELD')">
+          🌱 Greenfield Engineering
+        </button>
+        <button id="mode-legacy-btn" class="mode-btn" onclick="switchMode('LEGACY_MODERNIZATION')">
+          🏺 Legacy Modernization
+        </button>
+      </div>
+
+      <!-- Global Status & User Info -->
+      <div class="header-status">
+        <span class="status-indicator online"></span>
+        <span id="system-health-badge" class="badge-status healthy">SYSTEM HEALTHY</span>
+        <span id="system-uptime-text" class="status-text">Uptime: 0s</span>
+        <div class="user-profile">
+          <span class="role-badge" id="user-role-badge">PLATFORM_ADMIN</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar">
+      <div class="nav-group">
+        <div class="nav-label">Overview & Entry</div>
+        <div class="nav-item active" data-view="command-center" onclick="navigateTo('command-center')">
+          <span>⚡</span> Command Center
+        </div>
+        <div class="nav-item" data-view="capabilities" onclick="navigateTo('capabilities')">
+          <span>🎯</span> Capabilities
+        </div>
+        <div class="nav-item" data-view="projects" onclick="navigateTo('projects')">
+          <span>📁</span> Projects & Ingest
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Knowledge Platform</div>
+        <div class="nav-item" data-view="knowledge" onclick="navigateTo('knowledge')">
+          <span>🧠</span> RAG Pipeline & Docs
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Engineering Control</div>
+        <div class="nav-item" data-view="engineering-workspace" onclick="navigateTo('engineering-workspace')">
+          <span>🛠️</span> Engineering Canvas
+        </div>
+        <div class="nav-item" data-view="live-activity" onclick="navigateTo('live-activity')">
+          <span>📡</span> Live Agent Activity
+        </div>
+        <div class="nav-item" data-view="workflows" onclick="navigateTo('workflows')">
+          <span>🔄</span> Workflows & DAG
+        </div>
+        <div class="nav-item" data-view="executions" onclick="navigateTo('executions')">
+          <span>⚙️</span> Executions
+        </div>
+        <div class="nav-item" data-view="reviews" onclick="navigateTo('reviews')">
+          <span>🔍</span> Reviews & Gates
+        </div>
+        <div class="nav-item" data-view="artifacts" onclick="navigateTo('artifacts')">
+          <span>📦</span> Artifact Platform
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Lifecycle Workspaces</div>
+        <div class="nav-item" data-view="planning" onclick="navigateTo('planning')">
+          <span>📋</span> Planning
+        </div>
+        <div class="nav-item" data-view="research" onclick="navigateTo('research')">
+          <span>🔬</span> Research
+        </div>
+        <div class="nav-item" data-view="coding" onclick="navigateTo('coding')">
+          <span>💻</span> Implementation
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Workforce</div>
+        <div class="nav-item" data-view="workforce" onclick="navigateTo('workforce')">
+          <span>👥</span> Workforce (23 Workers) <span class="badge" id="nav-worker-count">23</span>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">AI Infrastructure</div>
+        <div class="nav-item" data-view="models" onclick="navigateTo('models')">
+          <span>🤖</span> Models Catalog
+        </div>
+        <div class="nav-item" data-view="nodes" onclick="navigateTo('nodes')">
+          <span>🖥️</span> Compute Nodes (M1/HP/M6)
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Specialized Workspaces</div>
+        <div class="nav-item" data-view="legacy-workspace" onclick="navigateTo('legacy-workspace')">
+          <span>🏺</span> Legacy Modernization
+        </div>
+        <div class="nav-item" data-view="hitl-center" onclick="navigateTo('hitl-center')">
+          <span>🛡️</span> HITL Approval Center <span class="badge" id="nav-approval-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">0</span>
+        </div>
+        <div class="nav-item" data-view="observability" onclick="navigateTo('observability')">
+          <span>📊</span> Observability (13 Dashboards)
+        </div>
+        <div class="nav-item" data-view="experience" onclick="navigateTo('experience')">
+          <span>📜</span> Engineering Experience (ADR-004)
+        </div>
+        <div class="nav-item" data-view="self-improvement" onclick="navigateTo('self-improvement')">
+          <span>🌱</span> Self-Improvement Shell
+        </div>
+        <div class="nav-item" data-view="settings" onclick="navigateTo('settings')">
+          <span>⚙️</span> Settings & Controls
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Viewport -->
+    <main class="app-main">
+      <!-- 1. Command Center -->
+      <section id="view-command-center" class="view-container active">
+        <!-- Hero First-Entry Prompt -->
+        <div class="welcome-hero">
+          <h1 class="hero-title">What are we doing today?</h1>
+          <p class="hero-subtitle">AutoForge Agentic Engineering Operating System — Full Trajectory or Single Independent Capability</p>
+          <div class="hero-input-container">
+            <textarea id="hero-prompt-input" class="hero-input" rows="2" placeholder="e.g. Build me a desktop inventory management application, modernize a legacy COBOL ledger, or research distributed consensus architectures..."></textarea>
+            <div class="hero-actions">
+              <div class="hero-capability-select">
+                <label><input type="radio" name="hero-cap-choice" value="full_stack" checked /> 🚀 Full Stack Trajectory</label>
+                <label><input type="radio" name="hero-cap-choice" value="planning" /> 📋 Planning</label>
+                <label><input type="radio" name="hero-cap-choice" value="research" /> 🔬 Research</label>
+                <label><input type="radio" name="hero-cap-choice" value="coding" /> 💻 Coding</label>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-secondary" onclick="openUploadFolderModal()">📂 Import Project Folder</button>
+                <button class="btn btn-primary" onclick="executeHeroPrompt()">Start Workflow ⚡</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">⚡ Executive Command Center</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Authoritative Platform Telemetry & Live Control</div>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <span class="metric-label">Active Operations</span>
+              <span class="metric-value" id="cc-active-ops">0</span>
+              <span class="metric-subtext">Workflows & Tasks running</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Active Workforce</span>
+              <span class="metric-value" id="cc-active-workers">23 Ready</span>
+              <span class="metric-subtext">14 Greenfield / 9 Legacy</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Pending HITL Approvals</span>
+              <span class="metric-value" id="cc-pending-approvals" style="color: var(--status-warning);">0</span>
+              <span class="metric-subtext">Consequential governance gates</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">RAG Retrieval Latency</span>
+              <span class="metric-value" style="color: var(--color-cyan);">28.0ms</span>
+              <span class="metric-subtext">Hybrid HNSW + BM25</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem;">
+            <div>
+              <h4 style="margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Live Agent Activity Stream</h4>
+              <div id="cc-activity-feed" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+            <div>
+              <h4 style="margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Inference Nodes Status</h4>
+              <div id="cc-nodes-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Capabilities -->
+      <section id="view-capabilities" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🎯 Independent Engineering Capabilities</div>
+            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">Standalone Execution Units</span>
+          </div>
+
+          <!-- Capability Subtabs -->
+          <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchCapabilityTab('planning')">📋 Planning</button>
+            <button class="tab-btn" onclick="switchCapabilityTab('research')">🔬 Research</button>
+            <button class="tab-btn" onclick="switchCapabilityTab('coding')">💻 Coding / Implementation</button>
+            <button class="tab-btn" onclick="switchCapabilityTab('full_stack')">🚀 Full Stack Trajectory</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <!-- Left Column: Input Form -->
+            <div style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+              <h4 id="cap-input-title" style="margin-bottom: 0.5rem; color: var(--text-primary);">Planning Capability Input</h4>
+              <p id="cap-input-desc" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Decompose software requirements, establish architectural boundaries, and generate module execution plans.
+              </p>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Capability Prompt</label>
+                <textarea id="cap-prompt-input" class="hero-input" rows="4" style="min-height: 90px;" placeholder="Describe what you want this capability to execute..."></textarea>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Optional Project Context</label>
+                <select id="cap-project-select" class="hero-input" style="padding: 0.5rem;">
+                  <option value="">No Project Context (Standalone)</option>
+                  <option value="proj-legacy-01">Legacy Banking Modernization Suite</option>
+                  <option value="proj-greenfield-01">Greenfield E-Commerce Core</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Upload Reference Documents</label>
+                <input type="file" id="cap-file-input" multiple style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;" />
+              </div>
+
+              <button class="btn btn-primary btn-block" onclick="submitCapabilityExecution()">Execute Capability ⚡</button>
+            </div>
+
+            <!-- Right Column: Live Output & Telemetry -->
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <div style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                  <h4 style="color: var(--text-primary); margin: 0;">Capability Execution Output</h4>
+                  <span id="cap-status-badge" class="badge-status healthy">READY</span>
+                </div>
+                <div id="cap-output-content" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                  <div class="empty-state" style="margin: 0; padding: 2rem 1rem;">
+                    <div class="empty-icon">🎯</div>
+                    <div class="empty-title">Ready for Execution</div>
+                    <div class="empty-desc">Enter your requirements on the left and click 'Execute Capability' to run specialized autonomous workers.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Output Artifacts & Telemetry Card -->
+              <div id="cap-artifacts-card" style="display: none; background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                <h5 style="margin: 0 0 0.5rem 0; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Generated Artifacts & Telemetry</h5>
+                <div id="cap-artifacts-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Projects & Ingestion -->
+      <section id="view-projects" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📁 Project & Workspace Management</div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary" onclick="openUploadFolderModal()">📂 Upload Project Folder</button>
+              <button class="btn btn-primary" onclick="openCreateProjectModal()">+ New Project</button>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Project ID</th>
+                <th>Name</th>
+                <th>Phase</th>
+                <th>Status</th>
+                <th>Active Workers</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="projects-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. Dedicated Knowledge Platform -->
+      <section id="view-knowledge" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🧠 Authoritative Knowledge & RAG Platform</div>
+            <span class="badge" style="background: rgba(6, 182, 212, 0.2); color: #38bdf8;">10-Stage Pipeline</span>
+          </div>
+
+          <!-- Knowledge Navigation Subtabs -->
+          <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchKnowledgeTab('pipeline')">Pipeline Architecture</button>
+            <button class="tab-btn" onclick="switchKnowledgeTab('documents')">Ingested Documents</button>
+            <button class="tab-btn" onclick="switchKnowledgeTab('chunks')">Semantic Chunks Browser</button>
+            <button class="tab-btn" onclick="switchKnowledgeTab('query')">Hybrid Query Tester</button>
+            <button class="tab-btn" onclick="switchKnowledgeTab('traces')">Worker Grounding Traces</button>
+          </div>
+
+          <!-- Knowledge Content Sections -->
+          <div id="knowledge-tab-pipeline">
+            <div class="metric-grid" id="knowledge-telemetry-grid">
+              <!-- Dynamically loaded telemetry -->
+            </div>
+            <h4 style="margin: 1rem 0 0.5rem 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">
+              Authoritative 10-Stage RAG Pipeline
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;" id="rag-pipeline-stages">
+              <!-- Dynamically rendered 10 stages -->
+            </div>
+          </div>
+
+          <div id="knowledge-tab-documents" style="display: none;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">
+              Ingested Source Documents & Schemas
+            </h4>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Doc ID</th>
+                  <th>File Path</th>
+                  <th>MIME Type</th>
+                  <th>Size</th>
+                  <th>Chunks</th>
+                  <th>Status</th>
+                  <th>Epistemic Provenance</th>
+                </tr>
+              </thead>
+              <tbody id="knowledge-docs-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="knowledge-tab-chunks" style="display: none;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">
+              Semantic AST Chunks Browser
+            </h4>
+            <div id="knowledge-chunks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <!-- Dynamically loaded -->
+            </div>
+          </div>
+
+          <div id="knowledge-tab-query" style="display: none;">
+            <div style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 1rem;">
+              <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Test Hybrid Vector (HNSW) + Lexical (BM25) Retrieval</h4>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="rag-test-query-input" class="hero-input" style="min-height: 40px; padding: 0.5rem 1rem;" placeholder="e.g. Credit calculation rule formula or ledger strangler pattern..." />
+                <button class="btn btn-primary" onclick="testKnowledgeQuery()">Query Index 🔍</button>
+              </div>
+            </div>
+            <div id="rag-query-results" style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <!-- Results rendered here -->
+            </div>
+          </div>
+
+          <div id="knowledge-tab-traces" style="display: none;">
+            <h4 style="margin: 0 0 0.75rem 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">
+              Live Knowledge → Worker Grounding Traces
+            </h4>
+            <div id="knowledge-traces-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <!-- Dynamically rendered -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Engineering Canvas -->
+      <section id="view-engineering-workspace" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🛠️ Greenfield Autonomous Engineering Canvas</div>
+            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">9-Stage Pipeline</span>
+          </div>
+          <div class="pipeline-stepper" id="engineering-stages">
+            <div class="step-card active"><div class="step-num">01</div><div class="step-title">Idea Intake</div><div class="step-desc">Requirements & Prompt</div></div>
+            <div class="step-card"><div class="step-num">02</div><div class="step-title">Research</div><div class="step-desc">Knowledge Retrieval</div></div>
+            <div class="step-card"><div class="step-num">03</div><div class="step-title">Planning</div><div class="step-desc">Task Decomposition</div></div>
+            <div class="step-card"><div class="step-num">04</div><div class="step-title">Architecture</div><div class="step-desc">ADRs & Contracts</div></div>
+            <div class="step-card"><div class="step-num">05</div><div class="step-title">Design</div><div class="step-desc">UI/UX & Schemas</div></div>
+            <div class="step-card"><div class="step-num">06</div><div class="step-title">Implementation</div><div class="step-desc">23 Specialized Workers</div></div>
+            <div class="step-card"><div class="step-num">07</div><div class="step-title">Testing</div><div class="step-desc">Unit, E2E & Regressions</div></div>
+            <div class="step-card"><div class="step-num">08</div><div class="step-title">Review</div><div class="step-desc">Multi-Aspect Quality Gates</div></div>
+            <div class="step-card"><div class="step-num">09</div><div class="step-title">Artifacts</div><div class="step-desc">Catalog & Packaging</div></div>
+          </div>
+          <div id="stage-details-container" style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-top: 1rem;">
+            <div id="stage-details-content">
+              <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">Pipeline Active: Ready for Work</h4>
+              <p style="color: var(--text-secondary); font-size: 0.85rem;">Select a stage above to inspect its execution contract, assigned workers, and epistemic guarantees.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Live Agent Activity -->
+      <section id="view-live-activity" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📡 Live Agent Activity Stream & Trace Drilldown</div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Worker Filter:</label>
+              <select id="activity-worker-filter" class="hero-input" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onchange="loadAgentActivity()">
+                <option value="">All 23 Workers</option>
+              </select>
+              <button class="btn btn-secondary" onclick="loadAgentActivity()">Refresh</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem;">
+            <!-- Left: Activity Timeline -->
+            <div>
+              <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Structured Operational Timeline</h4>
+              <div id="activity-stream-container" style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+
+            <!-- Right: Execution Drilldown -->
+            <div>
+              <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Full Execution Trace Drilldown</h4>
+              <div id="execution-drilldown-panel" style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Workflows & DAG -->
+      <section id="view-workflows" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔄 Workflows & Dependency Graph (DAG)</div>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">Deterministic Engine</span>
+          </div>
+          <div style="background: #090d16; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); padding: 1rem; overflow-x: auto;">
+            <svg id="dag-svg" width="100%" height="320" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg">
+              <!-- Rendered DAG -->
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. Executions -->
+      <section id="view-executions" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">⚙️ Execution History & Metrics</div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Execution ID</th>
+                <th>Worker</th>
+                <th>Task</th>
+                <th>Allocated Model</th>
+                <th>Node</th>
+                <th>Status</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody id="executions-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 9. Reviews & Gates -->
+      <section id="view-reviews" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔍 Multi-Aspect Quality Review Gates</div>
+          </div>
+          <div id="reviews-content">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 10. Artifact Platform -->
+      <section id="view-artifacts" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📦 Canonical Artifact Platform</div>
+          </div>
+          <div id="artifacts-content">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 11. Lifecycle Workspaces: Planning, Research, Coding -->
+      <section id="view-planning" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📋 Planning & Decomposition Workspace</div>
+            <button class="btn btn-primary" onclick="switchCapabilityTab('planning'); navigateTo('capabilities');">+ New Plan</button>
+          </div>
+          <div id="planning-content">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-title">Planning Capability Ready</div>
+              <div class="empty-desc">Decompose software requirements, establish architectural boundaries, and generate execution DAGs.</div>
+              <button class="btn btn-primary" onclick="switchCapabilityTab('planning'); navigateTo('capabilities');">Start Planning Capability</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-research" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔬 Technical Research & Evidence Workspace</div>
+            <button class="btn btn-primary" onclick="switchCapabilityTab('research'); navigateTo('capabilities');">+ New Research</button>
+          </div>
+          <div id="research-content">
+            <div class="empty-state">
+              <div class="empty-icon">🔬</div>
+              <div class="empty-title">Research Capability Ready</div>
+              <div class="empty-desc">Retrieve domain knowledge, evaluate architectural alternatives, and synthesize citations with zero hallucination.</div>
+              <button class="btn btn-primary" onclick="switchCapabilityTab('research'); navigateTo('capabilities');">Start Research Capability</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-coding" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">💻 Implementation & Code Synthesis Workspace</div>
+            <button class="btn btn-primary" onclick="switchCapabilityTab('coding'); navigateTo('capabilities');">+ New Implementation</button>
+          </div>
+          <div id="coding-content">
+            <div class="empty-state">
+              <div class="empty-icon">💻</div>
+              <div class="empty-title">Implementation Capability Ready</div>
+              <div class="empty-desc">Generate production-grade code, unit tests, and validation fixtures backed by 23 specialized workers.</div>
+              <button class="btn btn-primary" onclick="switchCapabilityTab('coding'); navigateTo('capabilities');">Start Implementation Capability</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12. Workforce (23 Workers) -->
+      <section id="view-workforce" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">👥 AI Engineering Workforce (23 Workers)</div>
+          </div>
+          <div class="filter-bar">
+            <button class="filter-chip active" onclick="filterWorkforce('all')">All Workers (23)</button>
+            <button class="filter-chip" onclick="filterWorkforce('greenfield')">🌱 Greenfield (14)</button>
+            <button class="filter-chip" onclick="filterWorkforce('legacy')">🏺 Legacy Modernization (9)</button>
+          </div>
+          <div class="workforce-grid" id="workforce-cards">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 13. Models Catalog -->
+      <section id="view-models" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🤖 Authoritative Model Catalog & Governance</div>
+            <button class="btn btn-primary" onclick="openRegisterModelModal()">+ Register Model</button>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <span class="metric-label">Registered Models</span>
+              <span class="metric-value" id="models-count-val">3</span>
+              <span class="metric-subtext">Authoritative Capability Registry</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Local Offline Execution</span>
+              <span class="metric-value" style="color: var(--status-healthy);">100%</span>
+              <span class="metric-subtext">Zero external API dependencies</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Max Context Window</span>
+              <span class="metric-value" style="color: var(--color-cyan);">32,768</span>
+              <span class="metric-subtext">Tokens per inference slot</span>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Model ID</th>
+                <th>Display Name</th>
+                <th>Node / Provider</th>
+                <th>Quality Tier</th>
+                <th>Context Tokens</th>
+                <th>Throughput</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="models-tbody">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 14. Compute Nodes -->
+      <section id="view-nodes" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🖥️ Inference Node Topology Management</div>
+            <button class="btn btn-primary" onclick="openAddNodeModal()">+ Add Compute Node</button>
+          </div>
+          <div id="nodes-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 15. Legacy Modernization Workspace -->
+      <section id="view-legacy-workspace" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🏺 Legacy Modernization Workspace</div>
+            <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">8-Part Modernization Workspace</span>
+          </div>
+          <div id="legacy-workspace-content">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 16. HITL Approval Center -->
+      <section id="view-hitl-center" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🛡️ HITL Approval Center & Security Governance</div>
+            <button class="btn btn-primary" onclick="openRequestApprovalModal()">+ Request Gate Approval</button>
+          </div>
+          <div id="hitl-center-content">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 17. Observability Hub (13 Dashboards) -->
+      <section id="view-observability" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📊 Platform Observability Hub (13 Phase 14 Read Models)</div>
+            <button class="btn btn-secondary" onclick="loadObservability()">Refresh All Dashboards</button>
+          </div>
+          <div id="observability-dashboards-content">
+            <!-- Dynamically rendered 13 dashboards with KPIs and tables -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 18. Engineering Experience (ADR-004) -->
+      <section id="view-experience" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📜 Engineering Experience (ADR-004 Trajectory Timeline)</div>
+          </div>
+          <div id="experience-content">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 19. Self-Improvement Shell -->
+      <section id="view-self-improvement" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🌱 Self-Improvement Center (Phase 19 Safety-Gated Shell)</div>
+            <span class="badge-status healthy">GATED / STRICT HITL</span>
+          </div>
+          <div id="self-improvement-content">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 20. Settings & Controls -->
+      <section id="view-settings" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">⚙️ Platform Settings & Environment Controls</div>
+          </div>
+          <div id="settings-content">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       MODALS
+       ========================================================================= -->
+
+  <!-- Project Upload / Folder Ingestion Modal -->
+  <div id="upload-folder-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-panel" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title">📂 Import & Ingest Project Folder</div>
+        <button class="btn-close" onclick="closeUploadFolderModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Project Name</label>
+          <input type="text" id="upload-proj-name" class="hero-input" style="min-height: 38px; padding: 0.5rem 0.75rem;" placeholder="e.g. Distributed Core Ledger" />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Description</label>
+          <input type="text" id="upload-proj-desc" class="hero-input" style="min-height: 38px; padding: 0.5rem 0.75rem;" placeholder="Project purpose and architecture..." />
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Select Folder / Multiple Files</label>
+          <input type="file" id="upload-folder-files" multiple style="display: block; font-size: 0.8rem; color: var(--text-secondary);" />
+        </div>
+        <div id="upload-stepper-container" style="display: none;">
+          <h5 style="margin: 0.5rem 0; color: var(--text-primary);">Ingestion Pipeline Progress</h5>
+          <div class="ingestion-stepper" id="upload-stepper-steps"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeUploadFolderModal()">Cancel</button>
+        <button class="btn btn-primary" id="btn-start-ingest" onclick="submitProjectFolderUpload()">Start Ingestion ⚡</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Project Modal -->
+  <div id="create-project-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">📁 Create New Project</div>
+        <button class="btn-close" onclick="closeCreateProjectModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Project Name</label>
+          <input type="text" id="modal-proj-name" placeholder="e.g. Microservices Core" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="modal-proj-desc" rows="3" placeholder="Describe the project..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Template</label>
+          <select id="modal-proj-template">
+            <option value="greenfield">Greenfield Autonomous Engineering</option>
+            <option value="legacy_modernization">Legacy Modernization</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeCreateProjectModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCreateProject()">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Model Modal -->
+  <div id="register-model-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">🤖 Register Model into Capability Registry</div>
+        <button class="btn-close" onclick="closeRegisterModelModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Model ID</label>
+          <input type="text" id="model-id-input" placeholder="e.g. qwen2.5-coder-7b-custom" />
+        </div>
+        <div class="form-group">
+          <label>Display Name</label>
+          <input type="text" id="model-name-input" placeholder="e.g. Qwen2.5-Coder 7B Custom Q4" />
+        </div>
+        <div class="form-group">
+          <label>Provider / Node ID</label>
+          <select id="model-provider-input">
+            <option value="local-m1">Apple Silicon M1 (local-m1)</option>
+            <option value="local-hp">HP Z840 Dual Xeon (local-hp)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quality Tier (1-4)</label>
+          <input type="number" id="model-tier-input" value="3" min="1" max="4" />
+        </div>
+        <div class="form-group">
+          <label>Context Window Tokens</label>
+          <input type="number" id="model-context-input" value="32768" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeRegisterModelModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitRegisterModel()">Register Model</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Node Modal -->
+  <div id="add-node-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">🖥️ Add Compute Node</div>
+        <button class="btn-close" onclick="closeAddNodeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Node ID</label>
+          <input type="text" id="node-id-input" placeholder="e.g. local_workstation_02" />
+        </div>
+        <div class="form-group">
+          <label>Display Name</label>
+          <input type="text" id="node-name-input" placeholder="e.g. Mac Studio M2 Ultra" />
+        </div>
+        <div class="form-group">
+          <label>Hardware Type</label>
+          <select id="node-type-input">
+            <option value="apple_silicon">Apple Silicon</option>
+            <option value="x86_workstation">x86 Workstation (NVIDIA GPU)</option>
+            <option value="simulation">Simulation / Planned Spec</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Capacity Slots</label>
+          <input type="number" id="node-slots-input" value="8" min="1" max="64" />
+        </div>
+        <div class="form-group">
+          <label>Total Memory (GB)</label>
+          <input type="number" id="node-memory-input" value="64" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddNodeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddNode()">Add Node</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Approval Modal -->
+  <div id="request-approval-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">🛡️ Request Consequential HITL Approval</div>
+        <button class="btn-close" onclick="closeRequestApprovalModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Action Type</label>
+          <select id="app-action-type">
+            <option value="schema_modification">Database Schema Mutation</option>
+            <option value="production_deployment">Production Deployment</option>
+            <option value="code_deletion">Core Module Deletion</option>
+            <option value="policy_override">Security Policy Override</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Target Resource</label>
+          <input type="text" id="app-target-resource" value="database/schema/migrations_v2" />
+        </div>
+        <div class="form-group">
+          <label>Evidence / Rationale</label>
+          <textarea id="app-evidence" rows="2" placeholder="Explain why this action is required..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Risk Level</label>
+          <select id="app-risk-level">
+            <option value="high">High Risk</option>
+            <option value="critical">Critical Risk</option>
+            <option value="medium">Medium Risk</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeRequestApprovalModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitRequestApproval()">Submit Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Universal Object Inspector & Drawer Modal -->
+  <div id="generic-inspector-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-panel modal-lg">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="modal-title" id="inspector-modal-title">Object Inspector</div>
+          <span id="inspector-modal-badge" class="badge-status healthy">ACTIVE</span>
+        </div>
+        <button class="btn-close" onclick="closeGenericInspectorModal()">✕</button>
+      </div>
+      <div class="modal-body" id="inspector-modal-body">
+        <!-- Dynamically rendered inspector tabs and content -->
+      </div>
+      <div class="modal-footer" id="inspector-modal-footer">
+        <button class="btn btn-secondary" onclick="closeGenericInspectorModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HITL Steering Guidance Modal -->
+  <div id="steer-hitl-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title">🧭 Provide Steering Guidance to HITL Gate</div>
+        <button class="btn-close" onclick="closeSteerHITLModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="steer-approval-id" />
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Approval Gate ID</label>
+          <input type="text" id="steer-display-id" class="hero-input" disabled style="min-height: 38px;" />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Steering Instructions & Policy Constraints</label>
+          <textarea id="steer-instructions-input" class="hero-input" rows="3" placeholder="e.g. Allow migration only if backward compatibility tests pass and database rollback script is validated..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSteerHITLModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSteerGuidance()">Submit Steer Directive 🧭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/api-client.js"></script>
+  <script src="/js/app.js"></script>
+
+</body>
+</html>
