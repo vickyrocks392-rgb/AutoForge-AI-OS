@@ -11,6 +11,8 @@ node_modules/
 dist/
 build/
 out/
+builds/
+apps/builds/
 *.tsbuildinfo
 
 # Environment files

@@ -15,6 +15,7 @@ from autoforge_ai_infrastructure.metadata import (
     CapabilityIds,
     CapabilityMetadata,
     ProviderMetadata,
+    ProviderStatus,
     ProviderType,
     DeploymentMode,
     ModelMetadata,
@@ -30,13 +31,21 @@ from autoforge_ai_infrastructure.reference_catalog import register_reference_cap
 
 logger = logging.getLogger(__name__)
 
-# Register capabilities and custom task properties
 def register_workforce_models(registry: CapabilityRegistryPort) -> None:
     """
     Register local nodes (M1, HP, future Mac mini) and their capabilities.
     """
-    # Register standard capabilities first
-    register_reference_capabilities(registry)
+    # Register standard capabilities if not already present
+    from autoforge_ai_infrastructure.reference_catalog import _CAPABILITIES
+    for capability_id, display_name, description in _CAPABILITIES:
+        if registry.get_capability(capability_id) is None:
+            registry.register_capability(
+                CapabilityMetadata(
+                    capability_id=capability_id,
+                    display_name=display_name,
+                    description=description,
+                )
+            )
 
     # 1. Register Providers/Nodes
     registry.register_provider(
@@ -75,6 +84,7 @@ def register_workforce_models(registry: CapabilityRegistryPort) -> None:
             provider_id="local-mac-mini-m6",
             display_name="Future Apple Mac mini M6 Node (Simulated)",
             provider_type=ProviderType.LOCAL_RUNTIME,
+            status=ProviderStatus.UNAVAILABLE,
             endpoint=None,
             supported_capabilities=frozenset({
                 CapabilityIds.TEXT_GENERATION,
@@ -199,10 +209,10 @@ class ModelCapacityManager:
     Capacity & concurrency tracker for models and nodes.
     Input: active runs, concurrency limit, health constraints.
     """
-    def __init__(self, max_concurrency: int = 1) -> None:
+    def __init__(self, max_concurrency: int = 1, offline_nodes: set[str] | None = None) -> None:
         self._max_concurrency = max_concurrency
         self._active_runs: dict[str, int] = {} # model_id -> active runs
-        self._offline_nodes: set[str] = set() # set of offline provider_ids
+        self._offline_nodes: set[str] = set(offline_nodes) if offline_nodes is not None else {"local-mac-mini-m6"} # Future M6 is offline by default
         self._lock = asyncio.Lock()
         self._waiting_queues: dict[str, list[asyncio.Event]] = {} # model_id -> list of waiting events
 

@@ -12,7 +12,7 @@
   <div class="app-layout">
     <!-- Top Application Header -->
     <header class="app-header">
-      <div class="header-brand">
+      <div class="header-brand" onclick="navigateTo('entry')" style="cursor: pointer;">
         <span class="brand-badge">AF</span>
         <div class="brand-text">
           <span class="brand-title">AutoForge AI OS</span>
@@ -44,12 +44,18 @@
     <!-- Sidebar Navigation -->
     <aside class="app-sidebar">
       <div class="nav-group">
-        <div class="nav-label">Overview & Entry</div>
-        <div class="nav-item active" data-view="command-center" onclick="navigateTo('command-center')">
+        <div class="nav-label">Core Entry & Overview</div>
+        <div class="nav-item active" data-view="entry" onclick="navigateTo('entry')">
+          <span>✨</span> Build with AutoForge
+        </div>
+        <div class="nav-item" data-view="command-center" onclick="navigateTo('command-center')">
           <span>⚡</span> Command Center
         </div>
+        <div class="nav-item" data-view="output" onclick="navigateTo('output')">
+          <span>📦</span> Project Output & App
+        </div>
         <div class="nav-item" data-view="capabilities" onclick="navigateTo('capabilities')">
-          <span>🎯</span> Capabilities
+          <span>🎯</span> Capabilities Hub
         </div>
         <div class="nav-item" data-view="projects" onclick="navigateTo('projects')">
           <span>📁</span> Projects & Ingest
@@ -57,16 +63,41 @@
       </div>
 
       <div class="nav-group">
-        <div class="nav-label">Knowledge Platform</div>
+        <div class="nav-label">Lifecycle Workspaces</div>
+        <div class="nav-item" data-view="planning" onclick="navigateTo('planning')">
+          <span>📋</span> Planning Workspace
+        </div>
+        <div class="nav-item" data-view="research" onclick="navigateTo('research')">
+          <span>🔬</span> Research Workspace
+        </div>
+        <div class="nav-item" data-view="design" onclick="navigateTo('design')">
+          <span>🎨</span> Design Workspace
+        </div>
+        <div class="nav-item" data-view="coding" onclick="navigateTo('coding')">
+          <span>💻</span> Implementation Workspace
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Workforce & AI Infrastructure</div>
+        <div class="nav-item" data-view="workforce" onclick="navigateTo('workforce')">
+          <span>👥</span> Workforce <span class="badge" id="nav-worker-count">23</span>
+        </div>
+        <div class="nav-item" data-view="models" onclick="navigateTo('models')">
+          <span>🤖</span> Models Catalog
+        </div>
+        <div class="nav-item" data-view="nodes" onclick="navigateTo('nodes')">
+          <span>🖥️</span> Compute Nodes
+        </div>
         <div class="nav-item" data-view="knowledge" onclick="navigateTo('knowledge')">
           <span>🧠</span> RAG Pipeline & Docs
         </div>
       </div>
 
       <div class="nav-group">
-        <div class="nav-label">Engineering Control</div>
-        <div class="nav-item" data-view="engineering-workspace" onclick="navigateTo('engineering-workspace')">
-          <span>🛠️</span> Engineering Canvas
+        <div class="nav-label">Observability & Governance</div>
+        <div class="nav-item" data-view="observability" onclick="navigateTo('observability')">
+          <span>🔭</span> Dual-Level Observability
         </div>
         <div class="nav-item" data-view="live-activity" onclick="navigateTo('live-activity')">
           <span>📡</span> Live Agent Activity
@@ -83,51 +114,14 @@
         <div class="nav-item" data-view="artifacts" onclick="navigateTo('artifacts')">
           <span>📦</span> Artifact Platform
         </div>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">Lifecycle Workspaces</div>
-        <div class="nav-item" data-view="planning" onclick="navigateTo('planning')">
-          <span>📋</span> Planning
-        </div>
-        <div class="nav-item" data-view="research" onclick="navigateTo('research')">
-          <span>🔬</span> Research
-        </div>
-        <div class="nav-item" data-view="coding" onclick="navigateTo('coding')">
-          <span>💻</span> Implementation
-        </div>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">Workforce</div>
-        <div class="nav-item" data-view="workforce" onclick="navigateTo('workforce')">
-          <span>👥</span> Workforce (23 Workers) <span class="badge" id="nav-worker-count">23</span>
-        </div>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">AI Infrastructure</div>
-        <div class="nav-item" data-view="models" onclick="navigateTo('models')">
-          <span>🤖</span> Models Catalog
-        </div>
-        <div class="nav-item" data-view="nodes" onclick="navigateTo('nodes')">
-          <span>🖥️</span> Compute Nodes (M1/HP/M6)
-        </div>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">Specialized Workspaces</div>
-        <div class="nav-item" data-view="legacy-workspace" onclick="navigateTo('legacy-workspace')">
-          <span>🏺</span> Legacy Modernization
-        </div>
         <div class="nav-item" data-view="hitl-center" onclick="navigateTo('hitl-center')">
           <span>🛡️</span> HITL Approval Center <span class="badge" id="nav-approval-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">0</span>
         </div>
-        <div class="nav-item" data-view="observability" onclick="navigateTo('observability')">
-          <span>📊</span> Observability (13 Dashboards)
+        <div class="nav-item" data-view="legacy-workspace" onclick="navigateTo('legacy-workspace')">
+          <span>🏺</span> Legacy Modernization
         </div>
         <div class="nav-item" data-view="experience" onclick="navigateTo('experience')">
-          <span>📜</span> Engineering Experience (ADR-004)
+          <span>📜</span> Engineering Experience
         </div>
         <div class="nav-item" data-view="self-improvement" onclick="navigateTo('self-improvement')">
           <span>🌱</span> Self-Improvement Shell
@@ -140,33 +134,174 @@
 
     <!-- Main Viewport -->
     <main class="app-main">
-      <!-- 1. Command Center -->
-      <section id="view-command-center" class="view-container active">
-        <!-- Hero First-Entry Prompt -->
-        <div class="welcome-hero">
-          <h1 class="hero-title">What are we doing today?</h1>
-          <p class="hero-subtitle">AutoForge Agentic Engineering Operating System — Full Trajectory or Single Independent Capability</p>
-          <div class="hero-input-container">
-            <textarea id="hero-prompt-input" class="hero-input" rows="2" placeholder="e.g. Build me a desktop inventory management application, modernize a legacy COBOL ledger, or research distributed consensus architectures..."></textarea>
-            <div class="hero-actions">
-              <div class="hero-capability-select">
-                <label><input type="radio" name="hero-cap-choice" value="full_stack" checked /> 🚀 Full Stack Trajectory</label>
-                <label><input type="radio" name="hero-cap-choice" value="planning" /> 📋 Planning</label>
-                <label><input type="radio" name="hero-cap-choice" value="research" /> 🔬 Research</label>
-                <label><input type="radio" name="hero-cap-choice" value="coding" /> 💻 Coding</label>
+
+      <!-- =====================================================================
+           0. NEW CLEAN INTENT-DRIVEN ENTRY EXPERIENCE (DEFAULT)
+           ===================================================================== -->
+      <section id="view-entry" class="view-container active">
+        <div class="entry-hero-container">
+          <!-- Logo & Brand Header -->
+          <div class="entry-brand-header">
+            <div class="entry-brand-badge">AUTOFORGE</div>
+            <h1 class="entry-hero-title">What do you want to build?</h1>
+            <p class="entry-hero-subtitle">
+              Describe your application idea, supply an existing technical plan, or paste specifications. AutoForge scopes the intent, selects the shortest valid path, and executes autonomous engineering.
+            </p>
+          </div>
+
+          <!-- Focused Natural Language Input Box -->
+          <div class="entry-card-input">
+            <textarea
+              id="entry-prompt-input"
+              class="entry-textarea"
+              rows="3"
+              placeholder="e.g. Build me a desktop inventory management application for Windows..."
+            ></textarea>
+
+            <div class="entry-action-bar">
+              <div class="entry-tags-row">
+                <span class="entry-tag" onclick="populateEntryPrompt('Build me a desktop inventory management application for Windows.')">
+                  ⚡ Desktop Inventory Manager
+                </span>
+                <span class="entry-tag" onclick="populateEntryPrompt('Here is the technical plan: Decompose into SQLite DB, FastAPI backend, and React UI. Implement and test.')">
+                  📋 Plan Supplied (Skip Planning)
+                </span>
+                <span class="entry-tag" onclick="populateEntryPrompt('Technical plan and UI design supplied: Build an event-driven payment webhook microservice.')">
+                  🎨 Plan + Design Supplied
+                </span>
+                <span class="entry-tag" onclick="populateEntryPrompt('Research distributed consensus architectures comparing Raft and Paxos.')">
+                  🔬 Research Tech
+                </span>
+                <span class="entry-tag" onclick="populateEntryPrompt('Modernize legacy COBOL batch billing ledger into event-sourced microservices.')">
+                  🏺 Legacy Modernization
+                </span>
               </div>
-              <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-secondary" onclick="openUploadFolderModal()">📂 Import Project Folder</button>
-                <button class="btn btn-primary" onclick="executeHeroPrompt()">Start Workflow ⚡</button>
+              <div class="entry-buttons-row">
+                <button class="btn btn-secondary" onclick="openUploadFolderModal()">📂 Import Project</button>
+                <button id="btn-entry-build" class="btn btn-primary btn-lg" onclick="handleEntryPromptSubmit()">
+                  Build with AutoForge ⚡
+                </button>
               </div>
             </div>
           </div>
-        </div>
 
+          <!-- Dynamic Intent Breakdown & Shortest Path Card (Hidden until analyzed/submitted) -->
+          <div id="entry-intent-card" class="entry-intent-panel" style="display: none;">
+            <div class="intent-header">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span class="intent-icon">🎯</span>
+                <div>
+                  <h3 id="intent-title-text" class="intent-title">Application Creation</h3>
+                  <div id="intent-desc-text" class="intent-desc">AutoForge inferred full-stack delivery with shortest-path optimization.</div>
+                </div>
+              </div>
+              <span id="intent-type-badge" class="badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.8rem;">
+                SHORTEST VALID PATH
+              </span>
+            </div>
+
+            <!-- Path Operational Transparency Summary -->
+            <div class="path-transparency-box">
+              <div class="path-transparency-title">YOUR BUILD PATH</div>
+              <div id="path-transparency-items" class="path-transparency-list">
+                <!-- Dynamically populated breakdown -->
+              </div>
+              <div id="path-skipped-summary" class="path-skipped-box" style="display: none;">
+                <!-- Skipped stages explanation -->
+              </div>
+            </div>
+
+            <!-- Technical Approach & Tech Stack Proposal HITL Review Panel -->
+            <div id="entry-hitl-stack-panel" class="entry-hitl-panel" style="display: none; margin-top: 1rem;">
+              <!-- Dynamically populated with Tech Stack Breakdown, Project Plan, Architecture Spec, Design Spec, and Approval Actions -->
+            </div>
+
+            <!-- Live Project Pipeline Stepper -->
+            <div id="entry-stepper-section" class="live-pipeline-container" style="display: none;">
+              <div class="pipeline-section-title">LIVE PROJECT PIPELINE</div>
+              <div id="entry-pipeline-stepper" class="entry-pipeline-grid">
+                <!-- Dynamically populated stages with animated status -->
+              </div>
+            </div>
+
+            <!-- Live Active Stage Operational Information -->
+            <div id="entry-stage-info-card" class="entry-stage-info" style="display: none;">
+              <div class="stage-info-header">
+                <div id="active-stage-name" class="stage-info-title">IMPLEMENTING</div>
+                <div id="active-stage-badge" class="badge-status healthy">ACTIVE</div>
+              </div>
+              <div class="stage-info-grid">
+                <div class="stage-info-item">
+                  <span class="stage-info-label">Active Worker</span>
+                  <span id="active-stage-worker" class="stage-info-val">BackendEngineer (worker_backend_01)</span>
+                </div>
+                <div class="stage-info-item">
+                  <span class="stage-info-label">Compute Node</span>
+                  <span id="active-stage-node" class="stage-info-val">local-m1 (Apple Silicon)</span>
+                </div>
+                <div class="stage-info-item">
+                  <span class="stage-info-label">Allocated Model</span>
+                  <span id="active-stage-model" class="stage-info-val">qwen2.5-coder:7b</span>
+                </div>
+                <div class="stage-info-item">
+                  <span class="stage-info-label">Verification</span>
+                  <span id="active-stage-tests" class="stage-info-val">32 Tests Passed (100% Coverage)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Final Completion State Card with AutoForge Signature Builder Presentation -->
+            <div id="entry-completion-card" class="entry-completion-panel" style="display: none;">
+              <div class="builder-presentation-container">
+                <!-- Tasteful SVG/CSS Animated AutoForge Builder holding the DONE board -->
+                <div class="builder-character-stage">
+                  <div class="builder-character">
+                    <div class="builder-hat"></div>
+                    <div class="builder-head">
+                      <div class="builder-eyes"></div>
+                    </div>
+                    <div class="builder-body"></div>
+                    <div class="builder-arms"></div>
+                  </div>
+                  <div class="builder-done-board">
+                    <div class="done-board-inner">
+                      <span class="done-check">✓</span>
+                      <span class="done-text">DONE</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="completion-details">
+                  <h2 class="completion-title">Your application is ready.</h2>
+                  <p id="completion-summary-text" class="completion-desc">
+                    AutoForge autonomously synthesized, verified, and packaged your software with 100% test coverage.
+                  </p>
+                  <div class="completion-actions">
+                    <button class="btn btn-primary btn-lg" onclick="navigateTo('output')">
+                      🚀 Open Application & Artifacts
+                    </button>
+                    <button class="btn btn-secondary" onclick="openLatestExecutionInspector()">
+                      🔍 View Build Details & Telemetry
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           1. COMMAND CENTRE (GLOBAL OPERATIONAL OVERVIEW)
+           ===================================================================== -->
+      <section id="view-command-center" class="view-container">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">⚡ Executive Command Center</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Authoritative Platform Telemetry & Live Control</div>
+            <div>
+              <div class="panel-title">⚡ Executive Command Center</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Global Operational Overview & Fleet Telemetry</div>
+            </div>
+            <button class="btn btn-primary" onclick="navigateTo('entry')">+ Build with AutoForge</button>
           </div>
           <div class="metric-grid">
             <div class="metric-card">
@@ -208,24 +343,108 @@
         </div>
       </section>
 
-      <!-- 2. Capabilities -->
+      <!-- =====================================================================
+           2. OUTPUT TAB / FINISHED PRODUCT VIEW
+           ===================================================================== -->
+      <section id="view-output" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">📦 Project Output & Finished Application</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Delivered Codebase, Generated Artifacts & Automated Verification</div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary" onclick="exportProjectArchive()">📥 Download Project Archive</button>
+              <button class="btn btn-primary" onclick="launchLocalPreview()">▶️ Launch in Local Runtime</button>
+            </div>
+          </div>
+
+          <div id="output-view-content">
+            <!-- Dynamically populated project output details -->
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           3. DEDICATED CAPABILITY WORKSPACES: PLANNING, RESEARCH, DESIGN, CODING
+           ===================================================================== -->
+      <section id="view-planning" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">📋 Planning & Architecture Workspace</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Decompose requirements into bounded contexts, ADRs & dependency DAGs</div>
+            </div>
+            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">DIRECT ENTRY POINT</span>
+          </div>
+          <div id="planning-content">
+            <!-- Dynamically rendered planning workspace -->
+          </div>
+        </div>
+      </section>
+
+      <section id="view-research" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">🔬 Technical Research & Knowledge Grounding Workspace</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Retrieve domain evidence, benchmark tradeoffs & ground citations</div>
+            </div>
+            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">DIRECT ENTRY POINT</span>
+          </div>
+          <div id="research-content">
+            <!-- Dynamically rendered research workspace -->
+          </div>
+        </div>
+      </section>
+
+      <section id="view-design" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">🎨 UI/UX & System Design Workspace</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Formulate interface components, data schemas & API contracts</div>
+            </div>
+            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">DIRECT ENTRY POINT</span>
+          </div>
+          <div id="design-content">
+            <!-- Dynamically rendered design workspace -->
+          </div>
+        </div>
+      </section>
+
+      <section id="view-coding" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">💻 Implementation & Code Synthesis Workspace</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Synthesize production modules, unit tests & fixtures</div>
+            </div>
+            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">DIRECT ENTRY POINT</span>
+          </div>
+          <div id="coding-content">
+            <!-- Dynamically rendered coding workspace -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Capabilities Hub -->
       <section id="view-capabilities" class="view-container">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">🎯 Independent Engineering Capabilities</div>
-            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">Standalone Execution Units</span>
+            <div class="panel-title">🎯 Standalone Engineering Capabilities Hub</div>
+            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">Direct Capability Runners</span>
           </div>
 
-          <!-- Capability Subtabs -->
           <div class="tab-nav">
             <button class="tab-btn active" onclick="switchCapabilityTab('planning')">📋 Planning</button>
             <button class="tab-btn" onclick="switchCapabilityTab('research')">🔬 Research</button>
+            <button class="tab-btn" onclick="switchCapabilityTab('design')">🎨 Design</button>
             <button class="tab-btn" onclick="switchCapabilityTab('coding')">💻 Coding / Implementation</button>
             <button class="tab-btn" onclick="switchCapabilityTab('full_stack')">🚀 Full Stack Trajectory</button>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-            <!-- Left Column: Input Form -->
             <div style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
               <h4 id="cap-input-title" style="margin-bottom: 0.5rem; color: var(--text-primary);">Planning Capability Input</h4>
               <p id="cap-input-desc" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
@@ -246,15 +465,9 @@
                 </select>
               </div>
 
-              <div class="form-group" style="margin-bottom: 1rem;">
-                <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Upload Reference Documents</label>
-                <input type="file" id="cap-file-input" multiple style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;" />
-              </div>
-
               <button class="btn btn-primary btn-block" onclick="submitCapabilityExecution()">Execute Capability ⚡</button>
             </div>
 
-            <!-- Right Column: Live Output & Telemetry -->
             <div style="display: flex; flex-direction: column; gap: 1rem;">
               <div style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); flex: 1;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
@@ -270,7 +483,6 @@
                 </div>
               </div>
 
-              <!-- Output Artifacts & Telemetry Card -->
               <div id="cap-artifacts-card" style="display: none; background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
                 <h5 style="margin: 0 0 0.5rem 0; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Generated Artifacts & Telemetry</h5>
                 <div id="cap-artifacts-list"></div>
@@ -280,7 +492,7 @@
         </div>
       </section>
 
-      <!-- 3. Projects & Ingestion -->
+      <!-- 5. Projects & Ingest -->
       <section id="view-projects" class="view-container">
         <div class="panel">
           <div class="panel-header">
@@ -308,7 +520,7 @@
         </div>
       </section>
 
-      <!-- 4. Dedicated Knowledge Platform -->
+      <!-- 6. RAG & Knowledge Platform -->
       <section id="view-knowledge" class="view-container">
         <div class="panel">
           <div class="panel-header">
@@ -316,7 +528,6 @@
             <span class="badge" style="background: rgba(6, 182, 212, 0.2); color: #38bdf8;">10-Stage Pipeline</span>
           </div>
 
-          <!-- Knowledge Navigation Subtabs -->
           <div class="tab-nav">
             <button class="tab-btn active" onclick="switchKnowledgeTab('pipeline')">Pipeline Architecture</button>
             <button class="tab-btn" onclick="switchKnowledgeTab('documents')">Ingested Documents</button>
@@ -325,7 +536,6 @@
             <button class="tab-btn" onclick="switchKnowledgeTab('traces')">Worker Grounding Traces</button>
           </div>
 
-          <!-- Knowledge Content Sections -->
           <div id="knowledge-tab-pipeline">
             <div class="metric-grid" id="knowledge-telemetry-grid">
               <!-- Dynamically loaded telemetry -->
@@ -393,188 +603,11 @@
         </div>
       </section>
 
-      <!-- 5. Engineering Canvas -->
-      <section id="view-engineering-workspace" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">🛠️ Greenfield Autonomous Engineering Canvas</div>
-            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">9-Stage Pipeline</span>
-          </div>
-          <div class="pipeline-stepper" id="engineering-stages">
-            <div class="step-card active"><div class="step-num">01</div><div class="step-title">Idea Intake</div><div class="step-desc">Requirements & Prompt</div></div>
-            <div class="step-card"><div class="step-num">02</div><div class="step-title">Research</div><div class="step-desc">Knowledge Retrieval</div></div>
-            <div class="step-card"><div class="step-num">03</div><div class="step-title">Planning</div><div class="step-desc">Task Decomposition</div></div>
-            <div class="step-card"><div class="step-num">04</div><div class="step-title">Architecture</div><div class="step-desc">ADRs & Contracts</div></div>
-            <div class="step-card"><div class="step-num">05</div><div class="step-title">Design</div><div class="step-desc">UI/UX & Schemas</div></div>
-            <div class="step-card"><div class="step-num">06</div><div class="step-title">Implementation</div><div class="step-desc">23 Specialized Workers</div></div>
-            <div class="step-card"><div class="step-num">07</div><div class="step-title">Testing</div><div class="step-desc">Unit, E2E & Regressions</div></div>
-            <div class="step-card"><div class="step-num">08</div><div class="step-title">Review</div><div class="step-desc">Multi-Aspect Quality Gates</div></div>
-            <div class="step-card"><div class="step-num">09</div><div class="step-title">Artifacts</div><div class="step-desc">Catalog & Packaging</div></div>
-          </div>
-          <div id="stage-details-container" style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-top: 1rem;">
-            <div id="stage-details-content">
-              <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">Pipeline Active: Ready for Work</h4>
-              <p style="color: var(--text-secondary); font-size: 0.85rem;">Select a stage above to inspect its execution contract, assigned workers, and epistemic guarantees.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 6. Live Agent Activity -->
-      <section id="view-live-activity" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">📡 Live Agent Activity Stream & Trace Drilldown</div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <label style="font-size: 0.75rem; color: var(--text-muted);">Worker Filter:</label>
-              <select id="activity-worker-filter" class="hero-input" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onchange="loadAgentActivity()">
-                <option value="">All 23 Workers</option>
-              </select>
-              <button class="btn btn-secondary" onclick="loadAgentActivity()">Refresh</button>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem;">
-            <!-- Left: Activity Timeline -->
-            <div>
-              <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Structured Operational Timeline</h4>
-              <div id="activity-stream-container" style="display: flex; flex-direction: column; gap: 0.6rem;">
-                <!-- Dynamically rendered -->
-              </div>
-            </div>
-
-            <!-- Right: Execution Drilldown -->
-            <div>
-              <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Full Execution Trace Drilldown</h4>
-              <div id="execution-drilldown-panel" style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-                <!-- Dynamically rendered -->
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 7. Workflows & DAG -->
-      <section id="view-workflows" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">🔄 Workflows & Dependency Graph (DAG)</div>
-            <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">Deterministic Engine</span>
-          </div>
-          <div style="background: #090d16; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); padding: 1rem; overflow-x: auto;">
-            <svg id="dag-svg" width="100%" height="320" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg">
-              <!-- Rendered DAG -->
-            </svg>
-          </div>
-        </div>
-      </section>
-
-      <!-- 8. Executions -->
-      <section id="view-executions" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">⚙️ Execution History & Metrics</div>
-          </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Execution ID</th>
-                <th>Worker</th>
-                <th>Task</th>
-                <th>Allocated Model</th>
-                <th>Node</th>
-                <th>Status</th>
-                <th>Duration</th>
-              </tr>
-            </thead>
-            <tbody id="executions-tbody">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- 9. Reviews & Gates -->
-      <section id="view-reviews" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">🔍 Multi-Aspect Quality Review Gates</div>
-          </div>
-          <div id="reviews-content">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-      </section>
-
-      <!-- 10. Artifact Platform -->
-      <section id="view-artifacts" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">📦 Canonical Artifact Platform</div>
-          </div>
-          <div id="artifacts-content">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-      </section>
-
-      <!-- 11. Lifecycle Workspaces: Planning, Research, Coding -->
-      <section id="view-planning" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">📋 Planning & Decomposition Workspace</div>
-            <button class="btn btn-primary" onclick="switchCapabilityTab('planning'); navigateTo('capabilities');">+ New Plan</button>
-          </div>
-          <div id="planning-content">
-            <div class="empty-state">
-              <div class="empty-icon">📋</div>
-              <div class="empty-title">Planning Capability Ready</div>
-              <div class="empty-desc">Decompose software requirements, establish architectural boundaries, and generate execution DAGs.</div>
-              <button class="btn btn-primary" onclick="switchCapabilityTab('planning'); navigateTo('capabilities');">Start Planning Capability</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="view-research" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">🔬 Technical Research & Evidence Workspace</div>
-            <button class="btn btn-primary" onclick="switchCapabilityTab('research'); navigateTo('capabilities');">+ New Research</button>
-          </div>
-          <div id="research-content">
-            <div class="empty-state">
-              <div class="empty-icon">🔬</div>
-              <div class="empty-title">Research Capability Ready</div>
-              <div class="empty-desc">Retrieve domain knowledge, evaluate architectural alternatives, and synthesize citations with zero hallucination.</div>
-              <button class="btn btn-primary" onclick="switchCapabilityTab('research'); navigateTo('capabilities');">Start Research Capability</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="view-coding" class="view-container">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">💻 Implementation & Code Synthesis Workspace</div>
-            <button class="btn btn-primary" onclick="switchCapabilityTab('coding'); navigateTo('capabilities');">+ New Implementation</button>
-          </div>
-          <div id="coding-content">
-            <div class="empty-state">
-              <div class="empty-icon">💻</div>
-              <div class="empty-title">Implementation Capability Ready</div>
-              <div class="empty-desc">Generate production-grade code, unit tests, and validation fixtures backed by 23 specialized workers.</div>
-              <button class="btn btn-primary" onclick="switchCapabilityTab('coding'); navigateTo('capabilities');">Start Implementation Capability</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 12. Workforce (23 Workers) -->
+      <!-- 7. Workforce -->
       <section id="view-workforce" class="view-container">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">👥 AI Engineering Workforce (23 Workers)</div>
+            <div class="panel-title">👥 AI Engineering Workforce (23 Registered Workers)</div>
           </div>
           <div class="filter-bar">
             <button class="filter-chip active" onclick="filterWorkforce('all')">All Workers (23)</button>
@@ -587,29 +620,12 @@
         </div>
       </section>
 
-      <!-- 13. Models Catalog -->
+      <!-- 8. Models Catalog -->
       <section id="view-models" class="view-container">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">🤖 Authoritative Model Catalog & Governance</div>
+            <div class="panel-title">🤖 Authoritative Model Catalog & Routing</div>
             <button class="btn btn-primary" onclick="openRegisterModelModal()">+ Register Model</button>
-          </div>
-          <div class="metric-grid">
-            <div class="metric-card">
-              <span class="metric-label">Registered Models</span>
-              <span class="metric-value" id="models-count-val">3</span>
-              <span class="metric-subtext">Authoritative Capability Registry</span>
-            </div>
-            <div class="metric-card">
-              <span class="metric-label">Local Offline Execution</span>
-              <span class="metric-value" style="color: var(--status-healthy);">100%</span>
-              <span class="metric-subtext">Zero external API dependencies</span>
-            </div>
-            <div class="metric-card">
-              <span class="metric-label">Max Context Window</span>
-              <span class="metric-value" style="color: var(--color-cyan);">32,768</span>
-              <span class="metric-subtext">Tokens per inference slot</span>
-            </div>
           </div>
           <table class="data-table">
             <thead>
@@ -631,7 +647,7 @@
         </div>
       </section>
 
-      <!-- 14. Compute Nodes -->
+      <!-- 9. Compute Nodes -->
       <section id="view-nodes" class="view-container">
         <div class="panel">
           <div class="panel-header">
@@ -644,16 +660,124 @@
         </div>
       </section>
 
-      <!-- 15. Legacy Modernization Workspace -->
-      <section id="view-legacy-workspace" class="view-container">
+      <!-- 10. Dual-Level Observability -->
+      <section id="view-observability" class="view-container">
+        <div class="panel" style="margin-bottom: 1rem;">
+          <div class="panel-header" style="flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div class="panel-title" style="font-size: 1.15rem;">🔭 Dual-Level Observability Platform</div>
+              <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">PHASE 17-A CANONICAL</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <div style="display: flex; background: rgba(0, 0, 0, 0.3); padding: 3px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                <button id="obs-tab-btn-node" class="btn" style="background: #38bdf8; color: #090d16; font-weight: 600; padding: 4px 14px; font-size: 0.8rem;" onclick="switchObservabilityTab('node')">
+                  🖥️ THIS NODE
+                </button>
+                <button id="obs-tab-btn-fleet" class="btn" style="background: transparent; color: var(--text-muted); font-weight: 500; padding: 4px 14px; font-size: 0.8rem;" onclick="switchObservabilityTab('fleet')">
+                  🌐 THE FLEET
+                </button>
+                <button id="obs-tab-btn-raw" class="btn" style="background: transparent; color: var(--text-muted); font-weight: 500; padding: 4px 14px; font-size: 0.8rem;" onclick="switchObservabilityTab('raw')">
+                  📊 READ MODELS (13)
+                </button>
+              </div>
+              <button class="btn btn-secondary" style="font-size: 0.8rem;" onclick="refreshObservabilityView()">
+                🔄 Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="obs-view-node-container"></div>
+        <div id="obs-view-fleet-container" style="display: none;"></div>
+        <div id="obs-view-raw-container" style="display: none;">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">📊 13 Authoritative Read Model Projections</div>
+            </div>
+            <div id="observability-dashboards-content"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11. Live Agent Activity -->
+      <section id="view-live-activity" class="view-container">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">🏺 Legacy Modernization Workspace</div>
-            <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">8-Part Modernization Workspace</span>
+            <div class="panel-title">📡 Live Agent Activity Stream & Trace Drilldown</div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Worker Filter:</label>
+              <select id="activity-worker-filter" class="hero-input" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onchange="loadAgentActivity()">
+                <option value="">All 23 Workers</option>
+              </select>
+              <button class="btn btn-secondary" onclick="loadAgentActivity()">Refresh</button>
+            </div>
           </div>
-          <div id="legacy-workspace-content">
-            <!-- Dynamically rendered -->
+          <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem;">
+            <div>
+              <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Structured Operational Timeline</h4>
+              <div id="activity-stream-container" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+            </div>
+            <div>
+              <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Full Execution Trace Drilldown</h4>
+              <div id="execution-drilldown-panel" style="background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);"></div>
+            </div>
           </div>
+        </div>
+      </section>
+
+      <!-- 12. Workflows & DAG -->
+      <section id="view-workflows" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔄 Workflows & Dependency Graph (DAG)</div>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">Deterministic Engine</span>
+          </div>
+          <div style="background: #090d16; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); padding: 1rem; overflow-x: auto;">
+            <svg id="dag-svg" width="100%" height="320" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- 13. Executions -->
+      <section id="view-executions" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">⚙️ Execution History & Metrics</div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Execution ID</th>
+                <th>Worker</th>
+                <th>Task</th>
+                <th>Allocated Model</th>
+                <th>Node</th>
+                <th>Status</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody id="executions-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 14. Reviews & Quality Gates -->
+      <section id="view-reviews" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔍 Multi-Aspect Quality Review Gates</div>
+          </div>
+          <div id="reviews-content"></div>
+        </div>
+      </section>
+
+      <!-- 15. Artifact Platform -->
+      <section id="view-artifacts" class="view-container">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">📦 Canonical Artifact Platform</div>
+          </div>
+          <div id="artifacts-content"></div>
         </div>
       </section>
 
@@ -664,22 +788,18 @@
             <div class="panel-title">🛡️ HITL Approval Center & Security Governance</div>
             <button class="btn btn-primary" onclick="openRequestApprovalModal()">+ Request Gate Approval</button>
           </div>
-          <div id="hitl-center-content">
-            <!-- Dynamically rendered -->
-          </div>
+          <div id="hitl-center-content"></div>
         </div>
       </section>
 
-      <!-- 17. Observability Hub (13 Dashboards) -->
-      <section id="view-observability" class="view-container">
+      <!-- 17. Legacy Modernization Workspace -->
+      <section id="view-legacy-workspace" class="view-container">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">📊 Platform Observability Hub (13 Phase 14 Read Models)</div>
-            <button class="btn btn-secondary" onclick="loadObservability()">Refresh All Dashboards</button>
+            <div class="panel-title">🏺 Legacy Modernization Workspace</div>
+            <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">8-Part Modernization Workspace</span>
           </div>
-          <div id="observability-dashboards-content">
-            <!-- Dynamically rendered 13 dashboards with KPIs and tables -->
-          </div>
+          <div id="legacy-workspace-content"></div>
         </div>
       </section>
 
@@ -689,9 +809,7 @@
           <div class="panel-header">
             <div class="panel-title">📜 Engineering Experience (ADR-004 Trajectory Timeline)</div>
           </div>
-          <div id="experience-content">
-            <!-- Dynamically rendered -->
-          </div>
+          <div id="experience-content"></div>
         </div>
       </section>
 
@@ -699,12 +817,10 @@
       <section id="view-self-improvement" class="view-container">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">🌱 Self-Improvement Center (Phase 19 Safety-Gated Shell)</div>
+            <div class="panel-title">🌱 Self-Improvement Center (Safety-Gated Shell)</div>
             <span class="badge-status healthy">GATED / STRICT HITL</span>
           </div>
-          <div id="self-improvement-content">
-            <!-- Dynamically rendered -->
-          </div>
+          <div id="self-improvement-content"></div>
         </div>
       </section>
 
@@ -714,11 +830,10 @@
           <div class="panel-header">
             <div class="panel-title">⚙️ Platform Settings & Environment Controls</div>
           </div>
-          <div id="settings-content">
-            <!-- Dynamically rendered -->
-          </div>
+          <div id="settings-content"></div>
         </div>
       </section>
+
     </main>
   </div>
 
@@ -726,7 +841,7 @@
        MODALS
        ========================================================================= -->
 
-  <!-- Project Upload / Folder Ingestion Modal -->
+  <!-- Project Upload Modal -->
   <div id="upload-folder-modal" class="modal-backdrop" style="display: none;">
     <div class="modal-panel" style="max-width: 580px;">
       <div class="modal-header">
@@ -919,9 +1034,7 @@
         </div>
         <button class="btn-close" onclick="closeGenericInspectorModal()">✕</button>
       </div>
-      <div class="modal-body" id="inspector-modal-body">
-        <!-- Dynamically rendered inspector tabs and content -->
-      </div>
+      <div class="modal-body" id="inspector-modal-body"></div>
       <div class="modal-footer" id="inspector-modal-footer">
         <button class="btn btn-secondary" onclick="closeGenericInspectorModal()">Close</button>
       </div>
@@ -956,6 +1069,5 @@
   <!-- Scripts -->
   <script src="/js/api-client.js"></script>
   <script src="/js/app.js"></script>
-
 </body>
 </html>

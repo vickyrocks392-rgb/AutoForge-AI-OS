@@ -14,6 +14,7 @@ from autoforge_ai_infrastructure.registry import InMemoryCapabilityRegistry
 from autoforge_ai_infrastructure.metadata import (
     CapabilityIds,
     ModelStatus,
+    ProviderStatus,
     DeploymentMode,
     ModelQuery,
     RoutingRequest,
@@ -310,6 +311,7 @@ async def test_capacity_constraints_and_failover(test_registry, capacity_manager
     assert model_failover.model_id == "qwen2.5-coder-3b"
 
     # Bring online simulated third node (M6)
+    test_registry.set_provider_status("local-mac-mini-m6", ProviderStatus.AVAILABLE)
     capacity_manager.set_node_health("local-mac-mini-m6", online=True)
     await capacity_manager.acquire_slot("qwen2.5-coder-3b", "local-hp")
 

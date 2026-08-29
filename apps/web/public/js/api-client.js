@@ -117,6 +117,64 @@ class AutoForgeApiClient {
     return this._request(`/api/executions/drilldown?execution_id=${encodeURIComponent(executionId)}`);
   }
 
+  // Intent Understanding, Path Optimization & Output
+  analyzeIntent(prompt, context = {}) {
+    return this._request("/api/intent/analyze", {
+      method: "POST",
+      body: JSON.stringify({ prompt, context }),
+    });
+  }
+
+  executeIntent(payload) {
+    return this._request("/api/intent/execute", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  approveTechStack(approvalId, decision = "APPROVE", modifiedStack = null, feedback = "") {
+    return this._request("/api/intent/approve-stack", {
+      method: "POST",
+      body: JSON.stringify({
+        approval_id: approvalId,
+        decision,
+        modified_stack: modifiedStack,
+        feedback,
+      }),
+    });
+  }
+
+  getProjectOutput(projectId = "default") {
+    return this._request(`/api/projects/${encodeURIComponent(projectId)}/output`);
+  }
+
+  // Application Runtime Lifecycle & Delivery
+  runProject(projectId) {
+    return this._request(`/api/projects/${encodeURIComponent(projectId)}/run`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  }
+
+  getProjectRuntime(projectId) {
+    return this._request(`/api/projects/${encodeURIComponent(projectId)}/runtime`);
+  }
+
+  stopProject(projectId) {
+    return this._request(`/api/projects/${encodeURIComponent(projectId)}/stop`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  }
+
+  exportProject(projectId) {
+    return this._request(`/api/projects/${encodeURIComponent(projectId)}/export`);
+  }
+
+  getToolchains() {
+    return this._request("/api/toolchains");
+  }
+
   // Capabilities
   executeCapability(payload) {
     return this._request("/api/capabilities/execute", {
@@ -212,9 +270,22 @@ class AutoForgeApiClient {
     return this._request("/api/knowledge/traces");
   }
 
-  // Observability & ADR-004 Read Models
+  // Observability & Dual-Level (Node-Local & Fleet) Read Models
   getObservabilityDashboards() {
     return this._request("/api/observability/dashboards");
+  }
+
+  getCurrentNode() {
+    return this._request("/api/observability/current-node");
+  }
+
+  getNodeObservability(nodeId = null) {
+    const q = nodeId ? `?node_id=${encodeURIComponent(nodeId)}` : "";
+    return this._request(`/api/observability/node${q}`);
+  }
+
+  getFleetObservability() {
+    return this._request("/api/observability/fleet");
   }
 
   getEngineeringExperience() {

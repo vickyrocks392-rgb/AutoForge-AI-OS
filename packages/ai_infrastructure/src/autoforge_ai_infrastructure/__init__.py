@@ -114,7 +114,23 @@ from autoforge_ai_infrastructure.router import (
     RoutingDecision,
 )
 
+from autoforge_ai_infrastructure.adapters import (
+    AnthropicProviderAdapter,
+    BaseProviderAdapter,
+    GeminiProviderAdapter,
+    OllamaProviderAdapter,
+    OpenAICompatibleProviderAdapter,
+    extract_json_payload,
+)
+
 __all__ = [
+    # adapters
+    "AnthropicProviderAdapter",
+    "BaseProviderAdapter",
+    "GeminiProviderAdapter",
+    "OllamaProviderAdapter",
+    "OpenAICompatibleProviderAdapter",
+    "extract_json_payload",
     # errors
     "AIInfrastructureError",
     "CheckpointRecoveryError",

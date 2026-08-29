@@ -76,6 +76,12 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
                 projects = asyncio.run(self.service.list_projects())
                 self._send_json(HTTPStatus.OK, [p.model_dump() for p in projects])
 
+            elif path == "/api/projects/output" or (path.startswith("/api/projects/") and path.endswith("/output")):
+                parts = path.split("/")
+                p_id = parts[3] if len(parts) > 4 else query_params.get("project_id", ["default"])[0]
+                output = self.service.get_project_output(project_id=p_id)
+                self._send_json(HTTPStatus.OK, output.model_dump())
+
             elif path == "/api/workforce":
                 workers = self.service.list_workforce()
                 self._send_json(HTTPStatus.OK, [w.model_dump() for w in workers])
@@ -154,6 +160,20 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
                 dashboards = self.service.get_observability_dashboards()
                 self._send_json(HTTPStatus.OK, dashboards)
 
+            elif path == "/api/observability/current-node":
+                cur = self.service.get_current_node()
+                self._send_json(HTTPStatus.OK, cur.model_dump())
+
+            elif path == "/api/observability/node":
+                node_id = query_params.get("node_id", [None])[0]
+                node_obs = self.service.get_node_observability(node_id=node_id)
+                self._send_json(HTTPStatus.OK, node_obs.model_dump())
+
+            elif path == "/api/observability/fleet":
+                fleet_obs = self.service.get_fleet_observability()
+                self._send_json(HTTPStatus.OK, fleet_obs.model_dump())
+
+
             elif path == "/api/experience":
                 experience = self.service.get_engineering_experience()
                 self._send_json(HTTPStatus.OK, experience)
@@ -172,6 +192,54 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
                     "secrets": {"api_key": "sk-autoforge-secret-12345"}, # Will be automatically redacted
                 }
                 self._send_json(HTTPStatus.OK, settings)
+
+            elif path.startswith("/api/projects/") and path.endswith("/runtime"):
+                proj_id = path.split("/")[3]
+                rt = self.service.get_project_app_runtime(proj_id)
+                self._send_json(HTTPStatus.OK, rt)
+
+            elif path.startswith("/api/projects/") and path.endswith("/export"):
+                proj_id = path.split("/")[3]
+                exp = self.service.export_project_archive(proj_id)
+                self._send_json(HTTPStatus.OK, exp)
+
+            elif path.startswith("/api/projects/") and path.endswith("/download"):
+                proj_id = path.split("/")[3]
+                exp = self.service.export_project_archive(proj_id)
+                arch_path = exp.get("absolute_path")
+                if arch_path and os.path.isfile(arch_path):
+                    with open(arch_path, "rb") as f:
+                        file_bytes = f.read()
+                    self.send_response(HTTPStatus.OK)
+                    self.send_header("Content-Type", "application/gzip")
+                    self.send_header("Content-Length", str(len(file_bytes)))
+                    self.send_header("Content-Disposition", f'attachment; filename="{exp["filename"]}"')
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(file_bytes)
+                else:
+                    self._send_error_json(HTTPStatus.NOT_FOUND, "Archive file not found.")
+
+            elif path.startswith("/api/projects/") and path.endswith("/download-source"):
+                proj_id = path.split("/")[3]
+                dist_dir = os.path.join(self.service.build_engine.dist_dir, proj_id)
+                src_tar = os.path.join(dist_dir, f"autoforge-src-{proj_id}.tar.gz")
+                if os.path.isfile(src_tar):
+                    with open(src_tar, "rb") as f:
+                        file_bytes = f.read()
+                    self.send_response(HTTPStatus.OK)
+                    self.send_header("Content-Type", "application/gzip")
+                    self.send_header("Content-Length", str(len(file_bytes)))
+                    self.send_header("Content-Disposition", f'attachment; filename="autoforge-src-{proj_id}.tar.gz"')
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(file_bytes)
+                else:
+                    self._send_error_json(HTTPStatus.NOT_FOUND, "Source archive not found.")
+
+            elif path == "/api/toolchains":
+                toolchains = self.service.build_engine.toolchain_mgr.discover_toolchains()
+                self._send_json(HTTPStatus.OK, [t.model_dump() for t in toolchains])
 
             elif path == "/api/auth/me":
                 user = {
@@ -220,6 +288,24 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
                 res = self.service.execute_capability(req_cap)
                 self._send_json(HTTPStatus.OK, res.model_dump())
 
+            elif path == "/api/intent/analyze":
+                from autoforge_api.models import IntentAnalysisRequest
+                req_intent = IntentAnalysisRequest(**data)
+                analysis = self.service.analyze_intent(req_intent)
+                self._send_json(HTTPStatus.OK, analysis.model_dump())
+
+            elif path == "/api/intent/execute":
+                from autoforge_api.models import IntentExecutionRequest
+                req_exec = IntentExecutionRequest(**data)
+                res = self.service.execute_intent_pipeline(req_exec)
+                self._send_json(HTTPStatus.OK, res.model_dump())
+
+            elif path == "/api/intent/approve-stack":
+                from autoforge_api.models import TechStackApprovalRequest
+                req_app = TechStackApprovalRequest(**data)
+                res = self.service.approve_tech_stack(req_app)
+                self._send_json(HTTPStatus.OK, res)
+
             elif path == "/api/projects":
                 import asyncio
                 name = data.get("name")
@@ -236,6 +322,16 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
                 req_up = ProjectUploadRequest(**data)
                 res = self.service.upload_project(req_up)
                 self._send_json(HTTPStatus.CREATED, res.model_dump())
+
+            elif path.startswith("/api/projects/") and (path.endswith("/run") or path.endswith("/launch")):
+                proj_id = path.split("/")[3]
+                res = self.service.launch_project_app(proj_id)
+                self._send_json(HTTPStatus.OK, res)
+
+            elif path.startswith("/api/projects/") and path.endswith("/stop"):
+                proj_id = path.split("/")[3]
+                res = self.service.stop_project_app(proj_id)
+                self._send_json(HTTPStatus.OK, res)
 
             elif path == "/api/knowledge/query":
                 q = data.get("query", "")

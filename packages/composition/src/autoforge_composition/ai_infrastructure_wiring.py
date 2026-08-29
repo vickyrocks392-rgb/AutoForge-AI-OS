@@ -1,20 +1,16 @@
 """AI Infrastructure Platform wiring within the composition root.
 
-Wires the Phase 7 AI Infrastructure Platform into the AutoForge composition
+Wires the AI Infrastructure Platform into the AutoForge composition
 root WITHOUT forcing existing subsystems to depend on it:
 
 - :class:`RuntimeCheckpointAdapter` adapts the frozen Runtime State Manager to
   the ``RuntimeCheckpointPort`` protocol consumed by the Execution Continuity
   Manager.
 - :class:`build_ai_infrastructure` constructs the full AI Infrastructure stack
-  (Capability Registry + reference catalog, Model Router, Executor Registry,
+  (Capability Registry + reference catalog / workforce catalog, Model Router, Executor Registry,
   Execution Continuity Manager) and returns the injectable services.
 - :class:`AIInfrastructureServices` holds the wired components so they can be
   injected into the Kernel (via Kernel adapters) or other consumers.
-
-The composition root calls this factory and injects the Kernel-facing adapters,
-preserving the dependency-inversion boundary: the Kernel depends on ABCs in
-``autoforge_kernel.interfaces``; the adapters live here.
 """
 
 from __future__ import annotations
@@ -27,6 +23,8 @@ from autoforge_ai_infrastructure import (
     ExecutorRegistry,
     InMemoryCapabilityRegistry,
     ModelRouterService,
+    OllamaProviderAdapter,
+    OpenAICompatibleProviderAdapter,
     RetryPolicy,
 )
 from autoforge_ai_infrastructure.events import AIInfrastructureEvents
@@ -36,11 +34,13 @@ from autoforge_ai_infrastructure.kernel_adapter import (
 )
 from autoforge_ai_infrastructure.reference_catalog import install_reference_catalog
 from autoforge_composition.checkpoint_port_adapter import RuntimeCheckpointAdapter
+from autoforge_workforce.model_allocator import register_workforce_models
 
 
 __all__ = [
     "AIInfrastructureServices",
     "build_ai_infrastructure",
+    "bind_default_provider_adapters",
 ]
 
 
@@ -60,6 +60,35 @@ class AIInfrastructureServices:
     kernel_continuity: KernelContinuityManager
 
 
+def bind_default_provider_adapters(
+    executor_registry: ExecutorRegistry,
+    *,
+    ollama_base_url: str = "http://127.0.0.1:11434",
+    secrets_manager: Any | None = None,
+) -> None:
+    """Bind standard local and cloud provider adapters to ExecutorRegistry."""
+    # 1. Local M1 Ollama
+    local_m1_adapter = OllamaProviderAdapter(
+        provider_id="local-m1",
+        base_url=ollama_base_url,
+    )
+    executor_registry.bind("local-m1", local_m1_adapter)
+
+    # 2. Local HP Ollama
+    local_hp_adapter = OllamaProviderAdapter(
+        provider_id="local-hp",
+        base_url=ollama_base_url,
+    )
+    executor_registry.bind("local-hp", local_hp_adapter)
+
+    # 3. OpenAI-compatible
+    openai_adapter = OpenAICompatibleProviderAdapter(
+        provider_id="openai-compatible",
+        secrets_manager=secrets_manager,
+    )
+    executor_registry.bind("openai-compatible", openai_adapter)
+
+
 def build_ai_infrastructure(
     *,
     runtime: Any | None = None,
@@ -67,35 +96,44 @@ def build_ai_infrastructure(
     retry_policy: RetryPolicy | None = None,
     event_sink: Any | None = None,
     sleeper: Any | None = None,
+    include_workforce_models: bool = False,
+    bind_adapters: bool = False,
+    ollama_base_url: str = "http://127.0.0.1:11434",
+    secrets_manager: Any | None = None,
 ) -> AIInfrastructureServices:
-    """Construct the AI Infrastructure Platform with the reference catalog.
+    """Construct the AI Infrastructure Platform.
 
     Args:
-        runtime: Optional :class:`RuntimeStateManager` — when provided, the
-            Execution Continuity Manager is wired with a checkpoint adapter so
-            checkpoint recovery delegates to the Runtime boundary. When omitted,
-            continuity operates without durable checkpoints (valid in offline
-            mode).
+        runtime: Optional :class:`RuntimeStateManager` for checkpoint adaptation.
         default_policy: Optional routing policy injected into the Model Router.
         retry_policy: Optional ``RetryPolicy`` for the continuity manager.
-        event_sink: Optional :class:`CanonicalEventSink` for canonical event
-            publication through the existing Event Platform transport.
-        sleeper: Optional callable ``(seconds: float) -> Awaitable[None]`` for
-            backoff between retry attempts. When omitted, defaults to
-            :func:`asyncio.sleep`.
+        event_sink: Optional :class:`CanonicalEventSink` for canonical event publication.
+        sleeper: Optional callable for async sleep.
+        include_workforce_models: If True, registers canonical workforce models alongside reference catalog.
+        bind_adapters: If True, binds standard provider adapters (Ollama, OpenAI-compatible).
+        ollama_base_url: Base URL for local Ollama instance.
+        secrets_manager: Optional SecretsManager for cloud adapter credentials.
 
     Returns:
         :class:`AIInfrastructureServices` ready for dependency injection.
     """
-    # 1. Capability Registry + reference catalog (metadata only).
+    # 1. Capability Registry + catalog registration.
     registry = InMemoryCapabilityRegistry()
     install_reference_catalog(registry)
+    if include_workforce_models:
+        register_workforce_models(registry)
 
     # 2. Model Router (selection only; no execution).
     router = ModelRouterService(registry, default_policy=default_policy)
 
     # 3. Executor Registry (provider-neutral execution seam).
     executor_registry = ExecutorRegistry()
+    if bind_adapters:
+        bind_default_provider_adapters(
+            executor_registry,
+            ollama_base_url=ollama_base_url,
+            secrets_manager=secrets_manager,
+        )
 
     # 4. Checkpoint adapter over the frozen Runtime boundary.
     checkpoint_port = (

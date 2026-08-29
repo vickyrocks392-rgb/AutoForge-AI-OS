@@ -4,7 +4,7 @@ Telemetry, logging, tracing, and dashboard read-models for AutoForge Observabili
 
 from __future__ import annotations
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 from pydantic import BaseModel, Field
@@ -206,3 +206,117 @@ class HITLGovernanceDashboard(BaseModel):
     active_approvals_count: int = 0
     approvals_by_worker: Dict[str, int] = Field(default_factory=dict)
     approvals_by_type: Dict[str, int] = Field(default_factory=dict)
+
+
+# ── Phase 17-A Dual-Level Observability Models ──────────────────────────────
+
+class NodeStatusEnum(str, Enum):
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"
+    OFFLINE = "offline"
+    UNAVAILABLE = "unavailable"
+    UNKNOWN = "unknown"
+    PLANNED_SPEC = "planned_spec"
+
+
+class NodeResourceMetadata(BaseModel):
+    cpu_utilization_percent: Optional[float] = None
+    memory_total_bytes: Optional[int] = None
+    memory_used_bytes: Optional[int] = None
+    memory_free_bytes: Optional[int] = None
+    memory_total_gb: Optional[float] = None
+    memory_free_gb: Optional[float] = None
+    gpu_info: Optional[str] = None
+    vram_total_bytes: Optional[int] = None
+    vram_used_bytes: Optional[int] = None
+    disk_total_bytes: Optional[int] = None
+    disk_free_bytes: Optional[int] = None
+    process_health: str = "healthy"
+    extra: Dict[str, Any] = Field(default_factory=dict)
+
+
+class NodeIdentity(BaseModel):
+    node_id: str
+    display_name: str
+    hostname: str = "localhost"
+    platform: str = "darwin"
+    architecture: str = "arm64"
+    autoforge_version: str = "1.0.0"
+    runtime_version: str = "3.14"
+    health: NodeStatusEnum = NodeStatusEnum.HEALTHY
+    uptime_seconds: float = 0.0
+    last_seen: Optional[datetime] = None
+    capabilities: List[str] = Field(default_factory=list)
+    providers: List[str] = Field(default_factory=list)
+    models: List[str] = Field(default_factory=list)
+    capacity_slots: int = 1
+    active_slots: int = 0
+    resource_metadata: NodeResourceMetadata = Field(default_factory=NodeResourceMetadata)
+    is_live_hardware: bool = True
+    endpoint: Optional[str] = None
+    notes: str = ""
+
+
+class RoutingDecisionRecord(BaseModel):
+    decision_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc) if "timezone" in globals() else datetime.utcnow())
+    correlation_id: Optional[str] = None
+    task_id: Optional[str] = None
+    worker_id: Optional[str] = None
+    worker_type: Optional[str] = None
+    required_capabilities: List[str] = Field(default_factory=list)
+    min_context_window_tokens: int = 1024
+    privacy_policy: str = "local_only"
+    candidate_scores: List[Dict[str, Any]] = Field(default_factory=list)
+    selected_node_id: str = ""
+    selected_model_id: str = ""
+    selected_provider_id: str = ""
+    outcome: str = "success"  # "success", "failover", "failed"
+    failover_occurred: bool = False
+    notes: str = ""
+
+
+class NodeObservabilityReadModel(BaseModel):
+    node: NodeIdentity
+    active_calls: int = 0
+    total_requests: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    average_throughput_tps: float = 0.0
+    average_latency_ms: float = 0.0
+    retries_count: int = 0
+    failovers_count: int = 0
+    failures_count: int = 0
+    queue_depth: int = 0
+    utilization: float = 0.0
+    model_metrics: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    provider_metrics: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    active_executions: List[Dict[str, Any]] = Field(default_factory=list)
+    recent_events: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class FleetObservabilityReadModel(BaseModel):
+    nodes_count: int = 0
+    healthy_nodes_count: int = 0
+    degraded_nodes_count: int = 0
+    offline_nodes_count: int = 0
+    unavailable_nodes_count: int = 0
+    total_calls: int = 0
+    successful_calls: int = 0
+    failed_calls: int = 0
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
+    total_tokens: int = 0
+    aggregate_throughput_tps: float = 0.0
+    average_latency_ms: float = 0.0
+    total_retries: int = 0
+    total_failovers: int = 0
+    total_capacity_slots: int = 0
+    total_active_slots: int = 0
+    fleet_utilization: float = 0.0
+    nodes: Dict[str, NodeIdentity] = Field(default_factory=dict)
+    model_distribution: Dict[str, List[str]] = Field(default_factory=dict)
+    routing_decisions: List[RoutingDecisionRecord] = Field(default_factory=list)
+    failure_breakdown: Dict[str, int] = Field(default_factory=dict)
+
