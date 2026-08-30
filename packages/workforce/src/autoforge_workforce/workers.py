@@ -84,10 +84,16 @@ class WorkforceWorker(EngineeringWorker):
             on_iteration_callback=self._on_loop_iteration,
         )
 
+        # Extract verification commands from context input_data
+        verification_commands = None
+        if hasattr(context, 'input_data') and context.input_data:
+            verification_commands = context.input_data.get("verification_commands")
+
         try:
             passed, artifacts, last_eval = await loop.run(
                 context=context,
                 worker_id=self._worker_id,
+                verification_commands=verification_commands,
                 is_cancelled=self.is_cancelled,
             )
             self._state.produced_artifacts.extend(artifacts)

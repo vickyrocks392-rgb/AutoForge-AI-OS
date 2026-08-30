@@ -162,6 +162,18 @@ class EventType(str, Enum):
     WORKER_DISPATCHED = "worker.dispatched"
     """Worker dispatched to task."""
 
+    WORKER_ASSIGNED = "worker.assigned"
+    """Capability-driven worker was assigned to a stage."""
+
+    WORKER_STARTED = "worker.started"
+    """The assigned worker actually started executing its loop."""
+
+    WORKER_COMPLETED = "worker.completed"
+    """The assigned worker finished executing successfully."""
+
+    WORKER_FAILED = "worker.failed"
+    """The assigned worker failed during execution."""
+
     # ------------------------------------------------------------------
     # Intent and planning events
     # ------------------------------------------------------------------
@@ -296,6 +308,102 @@ class EventType(str, Enum):
 
     REVIEW_CHANGES_REQUESTED = "review.changes_requested"
     """Changes requested."""
+
+    # ------------------------------------------------------------------
+    # Workflow lifecycle events (Phase 18 orchestration)
+    # ------------------------------------------------------------------
+    WORKFLOW_STARTED = "workflow.started"
+    """Workflow execution started."""
+
+    WORKFLOW_COMPLETED = "workflow.completed"
+    """Workflow execution completed successfully."""
+
+    WORKFLOW_FAILED = "workflow.failed"
+    """Workflow execution failed."""
+
+    WORKFLOW_PAUSED = "workflow.paused"
+    """Workflow execution paused (awaiting human approval or recovery)."""
+
+    WORKFLOW_RESUMED = "workflow.resumed"
+    """Workflow execution resumed."""
+
+    WORKFLOW_CANCELLED = "workflow.cancelled"
+    """Workflow execution cancelled."""
+
+    # ------------------------------------------------------------------
+    # Stage lifecycle events (Phase 18 orchestration)
+    # ------------------------------------------------------------------
+    STAGE_READY = "stage.ready"
+    """Stage transitioned to READY."""
+
+    STAGE_STARTED = "stage.started"
+    """Stage started execution."""
+
+    STAGE_SUCCEEDED = "stage.succeeded"
+    """Stage completed successfully."""
+
+    STAGE_FAILED = "stage.failed"
+    """Stage failed."""
+
+    STAGE_BLOCKED = "stage.blocked"
+    """Stage blocked by a failed dependency or unavailable resource."""
+
+    STAGE_SKIPPED = "stage.skipped"
+    """Stage skipped (policy or preconditions)."""
+
+    STAGE_CANCELLED = "stage.cancelled"
+    """Stage cancelled."""
+
+    STAGE_RETRYING = "stage.retrying"
+    """Stage waiting for a retry due to a transient infrastructure failure."""
+
+    STAGE_WAITING_APPROVAL = "stage.waiting_approval"
+    """Stage paused at an HITL approval gate."""
+
+    # ------------------------------------------------------------------
+    # Orchestration allocation / reasoning events (Phase 18)
+    # ------------------------------------------------------------------
+    EXECUTION_CREATED = "execution.created"
+    """A project execution record was created."""
+
+    MODEL_ROUTED = "model.routed"
+    """A model/node routing decision was made for a stage."""
+
+    INFERENCE_STARTED = "inference.started"
+    """A model inference began."""
+
+    INFERENCE_COMPLETED = "inference.completed"
+    """A model inference completed."""
+
+    EVALUATION_COMPLETED = "evaluation.completed"
+    """A stage evaluation gate produced a structured verdict."""
+
+    DIAGNOSIS_COMPLETED = "diagnosis.completed"
+    """A failure diagnosis completed."""
+
+    REPAIR_STARTED = "repair.started"
+    """An engineering repair/reimplementation began."""
+
+    REPAIR_COMPLETED = "repair.completed"
+    """An engineering repair/reimplementation completed."""
+
+    RECTIFICATION_STARTED = "rectification.started"
+    """A rectification loop was entered."""
+
+    RECTIFICATION_COMPLETED = "rectification.completed"
+    """A rectification loop completed (success or bound exhausted)."""
+
+    # ------------------------------------------------------------------
+    # Deployment events (Phase 18)
+    # ------------------------------------------------------------------
+    DEPLOYMENT_STARTED = "deployment.started"
+    """Deployment stage started."""
+
+    DEPLOYMENT_COMPLETED = "deployment.completed"
+    """Deployment stage completed successfully."""
+
+    DEPLOYMENT_UNAVAILABLE = "deployment.unavailable"
+    """Deployment is explicitly unavailable for the requested target."""
 
     # ------------------------------------------------------------------
     # Service events

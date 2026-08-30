@@ -139,6 +139,70 @@ class EventTelemetryCollector:
         elif etype == "workflow.failed":
             self.metrics.record_counter("workflow.failed")
             self.dashboards.record_workflow_failed()
+        elif etype == "workflow.paused" or etype == "workflow.resumed":
+            self.metrics.record_counter(etype)
+        elif etype == "workflow.cancelled":
+            self.metrics.record_counter("workflow.cancelled")
+            self.dashboards.record_execution_cancelled()
+
+        # Stage lifecycle
+        elif etype == "stage.ready" or etype == "stage.started":
+            self.metrics.record_counter("stage.started")
+        elif etype == "stage.succeeded":
+            self.metrics.record_counter("stage.succeeded")
+        elif etype == "stage.failed":
+            self.metrics.record_counter("stage.failed")
+        elif etype == "stage.retrying":
+            self.metrics.record_counter("stage.retrying")
+        elif etype == "stage.waiting_approval":
+            self.metrics.record_counter("stage.waiting_approval")
+            worker_id = str(ctx.get("worker_id") or "")
+            app_type = str(ctx.get("approval_type") or "general")
+            self.dashboards.record_hitl_approval_requested(worker_id, app_type)
+        elif etype == "stage.blocked":
+            self.metrics.record_counter("stage.blocked")
+        elif etype == "stage.skipped":
+            self.metrics.record_counter("stage.skipped")
+        elif etype == "stage.cancelled":
+            self.metrics.record_counter("stage.cancelled")
+
+        # Orchestration allocation / reasoning telemetry
+        elif etype == "execution.created":
+            self.metrics.record_counter("execution.created")
+        elif etype == "worker.assigned":
+            self.metrics.record_counter("worker.assigned")
+        elif etype == "model.routed":
+            self.metrics.record_counter("model.routed")
+            node_id = str(ctx.get("node_id") or ctx.get("provider_id") or "")
+            model_id = str(ctx.get("model_id") or "")
+            if node_id and model_id:
+                self.dashboards.record_node_model_active(node_id, model_id)
+        elif etype == "inference.started":
+            self.metrics.record_counter("inference.started")
+        elif etype == "inference.completed":
+            self.metrics.record_counter("inference.completed")
+        elif etype == "evaluation.completed":
+            self.metrics.record_counter("evaluation.completed")
+            if "duration_ms" in ctx:
+                self.metrics.record_histogram("evaluation.duration", ctx["duration_ms"] / 1000.0)
+        elif etype == "diagnosis.completed":
+            self.metrics.record_counter("diagnosis.completed")
+        elif etype == "repair.started":
+            self.metrics.record_counter("repair.started")
+        elif etype == "repair.completed":
+            self.metrics.record_counter("repair.completed")
+        elif etype == "rectification.started":
+            self.metrics.record_counter("rectification.started")
+        elif etype == "rectification.completed":
+            self.metrics.record_counter("rectification.completed")
+
+        # Deployment telemetry
+        elif etype == "deployment.started":
+            self.metrics.record_counter("deployment.started")
+        elif etype == "deployment.completed":
+            self.metrics.record_counter("deployment.completed")
+        elif etype == "deployment.unavailable":
+            self.metrics.record_counter("deployment.unavailable")
 
         # Task lifecycle
         elif etype == "task.created":

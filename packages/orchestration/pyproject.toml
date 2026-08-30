@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoforge-orchestration"
+version = "0.1.0"
+description = "AutoForge AI OS - Phase 18 Autonomous Engineering & Modernization Orchestration Platform"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "AutoForge AI"},
+]
+# Phase 18 constraints: stdlib + existing AutoForge packages only.
+# This package COMPOSES the existing platform; it introduces no new
+# infrastructure (no Celery, Redis, Kafka, Temporal, Kubernetes).
+dependencies = [
+    "autoforge-models",
+    "autoforge-events",
+    "autoforge-event-platform",
+    "autoforge-connectors",
+    "autoforge-workflows",
+    "autoforge-execution",
+    "autoforge-ai-infrastructure",
+    "autoforge-workforce",
+    "autoforge-review",
+    "autoforge-artifacts",
+    "autoforge-security",
+    "autoforge-knowledge-platform",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
