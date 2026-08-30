@@ -24,6 +24,8 @@ from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
 from autoforge_ai_infrastructure.router import ModelRouterService
+from autoforge_ai_infrastructure.metadata import RoutingRequest
+from autoforge_ai_infrastructure.execution import ExecutorRegistry
 from autoforge_events.base import BaseEvent
 from autoforge_events.event_types import EventCategory, EventType
 
@@ -196,6 +198,7 @@ class OrchestrationEngine:
         event_sink: EventSinkProtocol | None = None,
         worker_registry: Any | None = None,
         model_router: ModelRouterService | None = None,
+        executor_registry: ExecutorRegistry | None = None,
         execution_engine: Any = None,
         artifact_manager: ArtifactManagerProtocol | None = None,
         review_engine: ReviewEngineProtocol | None = None,
@@ -206,6 +209,7 @@ class OrchestrationEngine:
         self._event_sink = event_sink
         self._worker_registry = worker_registry
         self._model_router = model_router
+        self._executor_registry = executor_registry
         self._execution_engine = execution_engine
         self._artifact_manager = artifact_manager
         self._review_engine = review_engine
@@ -219,6 +223,7 @@ class OrchestrationEngine:
         self._states: dict[str, ProjectExecutionState] = {}
         self._lock = asyncio.Lock()
         self._active_tasks: dict[str, asyncio.Task] = {}
+        self._ai_provider_cache: dict[str, Any] = {}
 
     # ── State management ─────────────────────────────────────────────────
 
@@ -521,7 +526,7 @@ class OrchestrationEngine:
         try:
             worker_type = _worker_type_for_stage(stage.kind)
             ai_provider = self._get_ai_provider(stage)
-            model_decision = await self._route_model(state, stage, worker_type)
+            model_decision = self._route_model(state, stage, worker_type)
 
                         # Resolve a real workforce worker for this stage. This is the
             # canonical 23-worker workforce path. If resolution fails,
@@ -852,60 +857,111 @@ class OrchestrationEngine:
 
     # ── Model routing ───────────────────────────────────────────────────
 
-    async def _route_model(
+    def _route_model(
         self,
         state: ProjectExecutionState,
         stage: StageDefinition,
         worker_type: Any,
     ) -> ModelDecision | None:
-        """Route to an appropriate model for this stage."""
+        """
+        Route to an appropriate model for this stage using real model routing.
+
+        Uses the worker's model requirements when available to build a proper
+        RoutingRequest, then delegates to ModelRouterService for deterministic
+        model selection. Returns the routing decision for provenance tracking.
+
+        The selected model/provider/node flows through ExecutionContext metadata
+        to the AI adapter, which uses it for actual inference execution.
+        """
         if self._model_router is None:
             return None
         try:
             capability = _capability_for_stage(stage.kind)
-            query: dict[str, Any] = {
-                "requested_capabilities": [capability],
-                "worker_type": str(worker_type.value) if hasattr(worker_type, "value") else str(worker_type),
-                "stage_kind": stage.kind.value,
-                "task_description": stage.description or "",
-            }
-            result = await self._model_router.route(query)
+
+            # Build a proper RoutingRequest from stage requirements.
+            # Privacy policy defaults to local_only (the fleet's default).
+            # IMPORTANT: None means "no constraint" — frozenset() would forbid
+            # ALL modes and cause NoEligibleModelError.
+            allowed_modes: frozenset | None = None  # no deployment-mode constraint
+
+            req = RoutingRequest(
+                required_capabilities=frozenset({capability}),
+                min_context_window_tokens=stage.metadata.get("min_context_window_tokens"),
+                allowed_deployment_modes=allowed_modes,
+            )
+
+            # Route synchronously (ModelRouterService.route is sync, not async)
+            decision = self._model_router.route(req)
+
+            # Emit the canonical MODEL_ROUTED event with the selected model
             self._emit(
                 EventType.MODEL_ROUTED,
                 EventCategory.EXECUTION,
                 execution=state,
                 stage_id=stage.stage_id,
-                model=result.get("model_id") if isinstance(result, dict) else None,
+                model=decision.selected.model.model_id,
+                provider=decision.selected.model.provider_id,
+                node=decision.selected.model.provider_id,
+                policy=decision.policy_name,
+                rationale=decision.rationale,
             )
-            if isinstance(result, dict):
-                return ModelDecision(
-                    model_id=result.get("model_id", "unknown"),
-                    provider=result.get("provider", "unknown"),
-                    capability=capability,
-                    reasoning=result.get("reasoning", ""),
-                    latency_estimate_ms=result.get("latency_estimate_ms"),
-                    cost_estimate=result.get("cost_estimate"),
-                    confidence=result.get("confidence", 0.9),
-                )
-            return None
+
+            # Construct ModelDecision from the routing decision for provenance
+            return ModelDecision(
+                model_id=decision.selected.model.model_id,
+                provider_id=decision.selected.model.provider_id,
+                node_id=decision.selected.model.provider_id,
+                policy_name=decision.policy_name,
+                decision_id=str(decision.decision_id),
+                rationale=decision.rationale,
+                resolved_capabilities=sorted(str(c) for c in req.required_capabilities),
+                decided_at=_iso(_utc_now()),
+            )
         except Exception as exc:
             logger.debug(f"Model routing failed (non-fatal): {exc}")
             return None
 
     # ── AI provider & loop config helpers ──────────────────────────────
 
+    def _ensure_provider_registry(self) -> ExecutorRegistry | None:
+        """
+        Ensure the executor registry has real provider adapters bound.
+
+        When executor_registry is provided at construction time it is used directly.
+        Otherwise creates a fresh registry and binds any locally-available
+        Ollama adapters. This method is idempotent — repeated calls return the
+        same (possibly pre-bound) registry.
+        """
+        if self._executor_registry is not None:
+            return self._executor_registry
+
+        try:
+            registry = ExecutorRegistry()
+            from autoforge_ai_infrastructure.adapters.ollama import OllamaProviderAdapter
+            ollama_m1 = OllamaProviderAdapter(provider_id="local-m1")
+            registry.bind("local-m1", ollama_m1)
+            self._executor_registry = registry
+            return registry
+        except Exception:
+            return None
+
     def _get_ai_provider(self, stage: StageDefinition) -> Any:
         """Return an AI provider for a stage (override in subclasses for testing).
 
         Caches the provider per stage_id so multiple calls within the same
         stage execution return the same instance.
+        When an executor_registry is available, it is passed to the adapter
+        so real model execution can occur.
         """
         if not hasattr(self, "_ai_provider_cache"):
             self._ai_provider_cache: dict[str, Any] = {}
         if stage.stage_id in self._ai_provider_cache:
             return self._ai_provider_cache[stage.stage_id]
         from autoforge_execution.ai_adapter import AIInfrastructureAdapter
-        provider = AIInfrastructureAdapter(router=self._model_router)
+        provider = AIInfrastructureAdapter(
+            router=self._model_router,
+            model_executor=self._ensure_provider_registry(),
+        )
         self._ai_provider_cache[stage.stage_id] = provider
         return provider
 
@@ -914,7 +970,10 @@ class OrchestrationEngine:
         if hasattr(self, "_ai_provider_cache") and stage_id in self._ai_provider_cache:
             return self._ai_provider_cache[stage_id]
         from autoforge_execution.ai_adapter import AIInfrastructureAdapter
-        return AIInfrastructureAdapter(router=self._model_router)
+        return AIInfrastructureAdapter(
+            router=self._model_router,
+            model_executor=self._ensure_provider_registry(),
+        )
 
     def _get_loop_config(self, stage: StageDefinition) -> Any:
         """Return loop config for a stage (can be overridden)."""
@@ -1423,7 +1482,11 @@ def _build_execution_context(
     workspace_root: Path,
     model_decision: ModelDecision | None,
 ) -> Any:
-    """Build an ExecutionContext from a stage definition and project state."""
+    """Build an ExecutionContext from a stage definition and project state.
+
+    The model_decision (routing provenance) is embedded in context.metadata so
+    the AI adapter can access the selected model/provider/node for actual inference.
+    """
     from autoforge_execution.context import ExecutionContext
 
     verification_commands = stage.metadata.get("verification_commands") or []
@@ -1436,6 +1499,14 @@ def _build_execution_context(
     for artifact in state.artifacts:
         if artifact.get("path"):
             project_files.append(artifact["path"])
+
+    # Build context metadata including the routing decision for provenance
+    context_metadata = dict(stage.metadata or {})
+    if model_decision is not None:
+        context_metadata["model_decision"] = model_decision.to_dict()
+        context_metadata["selected_model_id"] = model_decision.model_id
+        context_metadata["selected_provider_id"] = model_decision.provider_id
+        context_metadata["selected_node_id"] = model_decision.node_id
 
     return ExecutionContext(
         task_id=stage.stage_id,
@@ -1450,10 +1521,12 @@ def _build_execution_context(
         attempt_number=max(1, stage_state.attempt_number),
         project_files=project_files,
         file_contents=file_contents,
-        metadata=dict(stage.metadata or {}),
+        metadata=context_metadata,
         effective_model_requirements={
             "required_capabilities": [_capability_for_stage(stage.kind)],
             "model_id": model_decision.model_id if model_decision else None,
+            "provider_id": model_decision.provider_id if model_decision else None,
+            "node_id": model_decision.node_id if model_decision else None,
         },
     )
 

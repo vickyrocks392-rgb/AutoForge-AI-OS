@@ -138,8 +138,38 @@ class AIInfrastructureAdapter:
         req: ExecutionRequest,
         routing: RoutingRequest,
     ) -> ExecutionResult:
+        """Execute a model request through the bound executor.
+
+        Supports three executor types:
+        1. ExecutionContinuityService — routing + retry + failover
+        2. RoutedModelExecutor — routing + single execution
+        3. ExecutorRegistry — direct execution (requires router for target resolution)
+        """
         if self._executor is None:
             raise RuntimeError("No model executor is bound to AIInfrastructureAdapter")
+
+        # Handle ExecutorRegistry directly: route first, then execute.
+        # This is the minimal integration that wires real providers to the adapter.
+        from autoforge_ai_infrastructure.execution import (
+            ExecutionTarget,
+            ExecutorRegistry,
+            execute_attempt,
+        )
+
+        if isinstance(self._executor, ExecutorRegistry):
+            if self._router is None:
+                raise RuntimeError(
+                    "AIInfrastructureAdapter has an ExecutorRegistry but no ModelRouterService; "
+                    "cannot resolve a model target for execution"
+                )
+            # Route to get the target model/provider
+            decision = self._router.route(routing)
+            candidate = decision.selected
+            target = ExecutionTarget(
+                model_id=candidate.model.model_id,
+                provider_id=candidate.model.provider_id,
+            )
+            return await execute_attempt(self._executor, req, target)
 
         try:
             # Try ExecutionContinuityService signature
