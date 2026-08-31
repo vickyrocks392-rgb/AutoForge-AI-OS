@@ -90,11 +90,34 @@ class EngineeringWorker:
         attempt_number: int = 1,
     ) -> None:
         """
-        Transition worker from CREATED to READY for a specific task.
+        Transition worker to READY for a specific task.
+
+        Valid source states (H2 — 18-C hardening):
+          - CREATED   → worker is new; first execution attempt
+          - READY     → worker is already prepared; no-op (safe for callers
+                         that always invoke prepare() before execute_task())
+          - FAILED    → worker failed a previous attempt; prepare for retry
+          - CANCELLED → worker was cancelled; prepare for re-execution
+
+        Invalid source states:
+          - RUNNING           → worker is actively executing
+          - WAITING_APPROVAL  → pending human approval
+
+        This change preserves worker identity across retries (task_id,
+        workflow_id, correlation_id, attempt_number are updated correctly)
+        while allowing a failed worker to legitimately enter a new attempt.
         """
-        if self._state.status != WorkerStatus.CREATED:
+        valid_from = (
+            WorkerStatus.CREATED,
+            WorkerStatus.READY,
+            WorkerStatus.FAILED,
+            WorkerStatus.CANCELLED,
+        )
+        if self._state.status not in valid_from:
             raise WorkerError(
-                f"Worker '{self._worker_id}' cannot prepare from status '{self._state.status.value}'"
+                f"Worker '{self._worker_id}' cannot prepare from status "
+                f"'{self._state.status.value}'. "
+                f"Valid source states: {[s.value for s in valid_from]}"
             )
         self._state.task_id = task_id
         self._state.workflow_id = workflow_id

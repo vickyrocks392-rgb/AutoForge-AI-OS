@@ -39,6 +39,10 @@ from autoforge_kernel.request_intake import (
 
 from autoforge_runtime import RuntimeStateManager
 
+from autoforge_composition.ai_infrastructure_wiring import (
+    bind_default_provider_adapters,
+    build_ai_infrastructure,
+)
 from autoforge_composition.artifact_wiring import build_artifact_platform_from_bus
 from autoforge_composition.event_bus_adapter import CanonicalKernelEventBus
 from autoforge_composition.execution_wiring import build_execution_engine
@@ -217,12 +221,25 @@ def build_autoforge_system(
         auto_checkpoint=True,
     )
 
-    # 7. Execution Engine — wired with environment, workflow engine, events, and runtime.
+    # 6a. AI Infrastructure — capability registry, router, executor registry.
+    # Wiring this here ensures the Execution Engine can route real model requests
+    # through the AI adapter instead of falling back to deterministic stubs.
+    ai_infra = build_ai_infrastructure(
+        runtime=runtime,
+        include_workforce_models=True,
+        bind_adapters=True,
+    )
+
+    # 7. Execution Engine — wired with environment, workflow engine, events, runtime,
+    # AND the AI infrastructure (router + executor registry) so that real model
+    # calls succeed end-to-end.
     execution_engine = build_execution_engine(
         workspace_root=workspace_root,
         canonical_bus=canonical_bus,
         runtime=runtime,
         workflow_engine=workflow_engine,
+        model_router=ai_infra.router,
+        model_executor=ai_infra.executor_registry,
         max_concurrent_workers=(config or {}).get("max_concurrent_workers", 4),
     )
 

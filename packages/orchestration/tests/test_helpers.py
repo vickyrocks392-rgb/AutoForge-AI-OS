@@ -89,8 +89,36 @@ class DeterministicStageAIProvider:
         self._diag_counter = 0
         self._repair_counter = 0
 
+        # Mock execution result for routing info capture (Phase 18-C)
+        self._last_execution_result = type('obj', (object,), {
+            'provider_id': 'test-provider',
+            'model_id': 'test-model',
+        })()
+
     async def generate_plan(self, context: Any) -> str:
-        plan = f"Plan for {context.task_name} (attempt {context.attempt_number})"
+        # Return realistic-length output that reflects actual AI behavior.
+        # The real AI adapter's generate_plan() produces substantive plans.
+        # Tests must use realistic-length output to properly exercise the
+        # execution pipeline (verification commands, artifact recording, etc.).
+        task_type = getattr(context, 'task_type', 'general')
+        task_name = context.task_name
+        plan = (
+            f"# Plan for {task_name}\n\n"
+            f"## Task Type: {task_type}\n\n"
+            f"This is a deterministic test plan for '{task_name}' on attempt {context.attempt_number}.\n\n"
+            f"## Objectives\n"
+            f"- Primary: Complete the task successfully\n"
+            f"- Secondary: Meet quality requirements\n\n"
+            f"## Work Breakdown\n"
+            f"1. Initialize the workspace\n"
+            f"2. Analyze requirements from task description\n"
+            f"3. Generate appropriate artifacts\n"
+            f"4. Verify outputs meet acceptance criteria\n\n"
+            f"## Acceptance Criteria\n"
+            f"- All artifacts generated with correct metadata\n"
+            f"- Evaluation status reflects actual AI output quality\n"
+            f"- Provenance correctly recorded\n"
+        )
         self.plans_generated.append(plan)
         return plan
 
