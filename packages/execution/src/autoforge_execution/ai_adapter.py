@@ -27,6 +27,7 @@ from autoforge_ai_infrastructure.router import ModelRouterService
 
 from autoforge_execution.context import ExecutionContext
 from autoforge_execution.models import DiagnosisReport
+from autoforge_execution.evidence import assemble_evidence
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,10 @@ class AIInfrastructureAdapter:
                 f"4. Testing strategy\n"
                 f"5. Documentation"
             )
+            # Phase 18-D: append retrieved-knowledge evidence block
+            evidence_block = assemble_evidence(context.retrieved_knowledge)
+            if evidence_block:
+                user_msg = user_msg + "\n\n" + evidence_block
             max_toks = (
                 context.effective_model_requirements.get("max_tokens")
                 or context.effective_model_requirements.get("max_output_tokens")

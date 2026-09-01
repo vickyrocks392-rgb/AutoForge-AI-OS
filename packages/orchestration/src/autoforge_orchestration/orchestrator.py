@@ -224,6 +224,49 @@ class OrchestrationEngine:
         self._lock = asyncio.Lock()
         self._active_tasks: dict[str, asyncio.Task] = {}
         self._ai_provider_cache: dict[str, Any] = {}
+        # Phase 18-D: local RAG engine (lazily constructed on first retrieval)
+        self._rag_engine: Any | None = None
+
+    # ── Phase 18-D: Local RAG engine (lazy init) ─────────────────────────]
+
+    def _get_rag_engine(self) -> Any:
+        if self._rag_engine is not None:
+            return self._rag_engine
+        try:
+            from autoforge_knowledge_platform.rag18 import (
+                KnowledgeRAGEngine,
+                KnowledgeConfig,
+            )
+            cfg = KnowledgeConfig(
+                workspace_root=self._config.workspace_root,
+            )
+            self._rag_engine = KnowledgeRAGEngine(config=cfg)
+            return self._rag_engine
+        except Exception as exc:
+            logger.debug("RAG engine unavailable (offline?): %s", exc)
+            return None
+
+    async def _retrieve_knowledge_for_context(
+        self,
+        query: str,
+        project_id: uuid.UUID | None,
+        workspace_root: Path,
+        top_k: int = 5,
+    ) -> list[dict[str, Any]]:
+        engine = self._get_rag_engine()
+        if engine is None:
+            return []
+        try:
+            result = await engine.retrieve_for_context(
+                query=query,
+                project_id=str(project_id) if project_id else None,
+                workspace_root=str(workspace_root),
+                top_k=top_k,
+            )
+            return [hit.model_dump() for hit in result.hits]
+        except Exception as exc:
+            logger.debug("RAG retrieval failed: %s", exc)
+            return []
 
     # ── State management ─────────────────────────────────────────────────
 
@@ -571,12 +614,19 @@ class OrchestrationEngine:
             )
 
             workspace_root = Path(self._config.workspace_root)
+            # Phase 18-D: retrieve local RAG evidence before building context
+            retrieved_knowledge = await self._retrieve_knowledge_for_context(
+                query=stage.description or stage.name,
+                project_id=_safe_uuid(state.project_id),
+                workspace_root=workspace_root,
+            )
             context = _build_execution_context(
                 stage=stage,
                 stage_state=stage_state,
                 state=state,
                 workspace_root=workspace_root,
                 model_decision=model_decision,
+                retrieved_knowledge=retrieved_knowledge,
             )
 
             # The selected workforce worker IS the execution object.
@@ -736,12 +786,19 @@ class OrchestrationEngine:
                 stage_state.status = StageStatus.RUNNING
                 self._persist(state)
 
+                # Phase 18-D: re-retrieve RAG evidence for repaired context
+                repaired_rag = await self._retrieve_knowledge_for_context(
+                    query=stage.description or stage.name,
+                    project_id=_safe_uuid(state.project_id),
+                    workspace_root=workspace_root,
+                )
                 repaired_context = _build_execution_context(
                     stage=stage,
                     stage_state=stage_state,
                     state=state,
                     workspace_root=workspace_root,
                     model_decision=model_decision,
+                    retrieved_knowledge=repaired_rag,
                 )
                 if diagnosis is not None and hasattr(diagnosis, "model_dump"):
                     repaired_context.metadata["last_diagnosis"] = diagnosis.model_dump()
@@ -1481,6 +1538,7 @@ def _build_execution_context(
     state: ProjectExecutionState,
     workspace_root: Path,
     model_decision: ModelDecision | None,
+    retrieved_knowledge: list[dict[str, Any]] | None = None,
 ) -> Any:
     """Build an ExecutionContext from a stage definition and project state.
 
@@ -1528,6 +1586,7 @@ def _build_execution_context(
             "provider_id": model_decision.provider_id if model_decision else None,
             "node_id": model_decision.node_id if model_decision else None,
         },
+        retrieved_knowledge=retrieved_knowledge,
     )
 
 

@@ -45,6 +45,11 @@ class ExecutionContext:
     last_evaluation: EvaluationResult | None = None
     last_diagnosis: DiagnosisReport | None = None
 
+    # Phase 18-D: RAG-retrieved knowledge evidence (populated by orchestrator)
+    # Each entry is a serialized RetrievalResultHit dict, ready to be injected
+    # into prompts as [RETRIEVED KNOWLEDGE / EVIDENCE].
+    retrieved_knowledge: list[dict[str, Any]] | None = None
+
     metadata: dict[str, Any] = field(default_factory=dict)
     effective_model_requirements: dict[str, Any] = field(default_factory=dict)
 
