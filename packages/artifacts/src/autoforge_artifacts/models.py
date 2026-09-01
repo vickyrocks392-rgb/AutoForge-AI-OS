@@ -121,6 +121,10 @@ class CanonicalArtifactType(str, Enum):
     EXECUTION_LOG = "execution_log"
     EVALUATION_REPORT = "evaluation_report"
     REPAIR_PLAN = "repair_plan"
+    # Phase 18-F: Governance / Review / Artifact
+    GOVERNANCE_REPORT = "governance_report"
+    GOVERNANCE_EVIDENCE = "governance_evidence"
+    REVIEW_ARTIFACT = "review_artifact"
     OTHER = "other"
 
 

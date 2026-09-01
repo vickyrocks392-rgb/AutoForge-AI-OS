@@ -82,6 +82,18 @@ from autoforge_orchestration.errors import (
     PersistenceError,
     SecurityBoundaryError,
 )
+from autoforge_orchestration.governance_service import (
+    GovernanceReportService,
+    GovernanceReport,
+    GovernanceEvidence,
+    GovernanceDecision,
+    StageEvidence,
+    ReviewEvidence,
+    HITLEvidence,
+    AuditEvidence,
+)
+
+
 from autoforge_orchestration.orchestrator import OrchestrationEngine
 
 __all__ = [
@@ -129,6 +141,15 @@ __all__ = [
     "transition_stage",
     # Orchestration
     "OrchestrationEngine",
+    # Governance
+    "GovernanceReportService",
+    "GovernanceReport",
+    "GovernanceEvidence",
+    "GovernanceDecision",
+    "StageEvidence",
+    "ReviewEvidence",
+    "HITLEvidence",
+    "AuditEvidence",
     # Persistence
     "StatePersistence",
     "SnapshotStore",

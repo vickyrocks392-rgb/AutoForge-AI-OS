@@ -44,6 +44,7 @@ from autoforge_orchestration.models import (
     ModelDecision,
     ProjectExecutionMetrics,
     ProjectExecutionState,
+    ReviewGateResult,
     ReviewVerdict,
     RunMode,
     StageDefinition,
@@ -56,12 +57,14 @@ from autoforge_orchestration.models import (
     WorkerAssignment,
     WorkflowStatus,
 )
+from autoforge_review.models import ReviewDecision
 from autoforge_orchestration.persistence import StatePersistence
 from autoforge_orchestration.workflow_definitions import (
     GREENFIELD_WORKFLOW_DEFINITION,
     LEGACY_WORKFLOW_DEFINITION,
 )
 from autoforge_orchestration.security import SecurityBoundaryGuard
+from autoforge_orchestration.governance_service import GovernanceReportService
 
 logger = logging.getLogger(__name__)
 
@@ -204,6 +207,7 @@ class OrchestrationEngine:
         review_engine: ReviewEngineProtocol | None = None,
         knowledge_engine: KnowledgeEngineProtocol | None = None,
         persistence: StatePersistence | None = None,
+        audit_engine: Any | None = None,
     ) -> None:
         self._config = config
         self._event_sink = event_sink
@@ -220,12 +224,132 @@ class OrchestrationEngine:
             if config.security_guard_enabled
             else None
         )
+        self._audit_engine = audit_engine
+        # Phase 18-F: lazily created GovernanceReportService (stateless)
+        self._governance_service: GovernanceReportService | None = None
         self._states: dict[str, ProjectExecutionState] = {}
         self._lock = asyncio.Lock()
         self._active_tasks: dict[str, asyncio.Task] = {}
         self._ai_provider_cache: dict[str, Any] = {}
         # Phase 18-D: local RAG engine (lazily constructed on first retrieval)
         self._rag_engine: Any | None = None
+
+    def _get_governance_service(self) -> GovernanceReportService:
+        """Lazy accessor for the stateless GovernanceReportService."""
+        if self._governance_service is None:
+            self._governance_service = GovernanceReportService()
+        return self._governance_service
+
+    def _get_audit_records(self, state: ProjectExecutionState) -> list[Any]:
+        """Extract audit records from the AuditEngine if available."""
+        if self._audit_engine is None:
+            return []
+        for attr in ("records", "_records", "audit_records", "all_records"):
+            data = getattr(self._audit_engine, attr, None)
+            if data:
+                return list(data) if isinstance(data, list) else [data]
+        if hasattr(self._audit_engine, "query"):
+            try:
+                result = self._audit_engine.query(project_id=state.project_id)
+                if result:
+                    return list(result)
+            except Exception:
+                pass
+        return []
+
+    def _get_hitl_gates(self, state: ProjectExecutionState) -> dict[str, Any]:
+        """Extract HITL gate records from state."""
+        gates: dict[str, Any] = {}
+        for sid, ss in (state.stages or {}).items():
+            gate = getattr(ss, "hitl_gate", None)
+            if gate is not None:
+                gates[getattr(gate, "gate_id", sid)] = gate
+        gates_attr = getattr(state, "hitl_gates", None)
+        if isinstance(gates_attr, dict):
+            gates.update(gates_attr)
+        return gates
+
+    def _get_review_results(self, state: ProjectExecutionState) -> list[Any]:
+        """Extract real review result objects from state stages.
+
+        Phase 18-F: the governance evidence collector needs the raw
+        ``ReviewResult`` objects (with ``blocking_findings`` and
+        ``decision``) in order to surface blocking review findings in the
+        GOVERNANCE_REPORT. We reconstruct what we can from ``ReviewGateResult``
+        on each stage. When the orchestrator captured a richer raw result
+        (e.g. via a custom subclass) it is preferred; otherwise we rebuild
+        a ``SimpleNamespace`` compatible with ``assemble_governance_evidence``.
+        """
+        from types import SimpleNamespace
+
+        results: list[Any] = []
+        for sid, ss in (state.stages or {}).items():
+            rgr = getattr(ss, "review", None)
+            if rgr is None:
+                continue
+            verdict = getattr(rgr, "verdict", None)
+            decision_str = (
+                "REJECTED" if str(verdict).upper().endswith("REJECTED") else "APPROVED"
+            )
+            findings = list(getattr(rgr, "findings", []) or [])
+            blocking_findings = 0
+            for f in findings:
+                if isinstance(f, dict):
+                    if f.get("blocking") or f.get("severity", "").upper() in {"HIGH", "CRITICAL"}:
+                        blocking_findings += 1
+                elif hasattr(f, "blocking"):
+                    if getattr(f, "blocking"):
+                        blocking_findings += 1
+            results.append(SimpleNamespace(
+                review_id=getattr(rgr, "review_id", "") or f"rev-{sid}",
+                task_id=sid,
+                stage_id=sid,
+                decision=decision_str,
+                findings=findings,
+                blocking_findings=blocking_findings,
+                deterministic_findings=len(findings),
+                ai_findings=0,
+                categories_run=[],
+                gate=SimpleNamespace(status="PASS" if decision_str == "APPROVED" else "FAIL"),
+            ))
+        return results
+
+    def _emit_governance_report(self, state: ProjectExecutionState) -> None:
+        """Assemble, decide, register and emit a governance report at workflow end."""
+        if self._artifact_manager is None:
+            return
+        try:
+            artifact_records = []
+            for a in (getattr(state, "artifact_inventory", []) or []):
+                if hasattr(a, "to_dict"):
+                    artifact_records.append(a.to_dict())
+                elif isinstance(a, dict):
+                    artifact_records.append(a)
+                else:
+                    try:
+                        artifact_records.append({k: v for k, v in vars(a).items()})
+                    except TypeError:
+                        artifact_records.append({})
+            evidence = self._get_governance_service().assemble_execution_chain(
+                state, artifact_records=artifact_records,
+            )
+            evidence = self._get_governance_service().assemble_governance_evidence(
+                evidence,
+                audit_records=self._get_audit_records(state),
+                hitl_gates=self._get_hitl_gates(state),
+                review_results=self._get_review_results(state),
+            )
+            decision = self._get_governance_service().make_governance_decision(evidence)
+            report = self._get_governance_service().produce_governance_report(
+                state, evidence, decision, artifact_records=artifact_records,
+            )
+            self._get_governance_service().register_governance_report(
+                report, self._artifact_manager,
+                created_by="orchestration_engine",
+                provenance={"project_id": state.project_id, "workflow_id": str(state.workflow_id) if state.workflow_id else ""},
+            )
+        except Exception as exc:
+            logger.debug(f"Governance report emission failed (non-fatal): {exc}")
 
     # ── Phase 18-D: Local RAG engine (lazy init) ─────────────────────────]
 
@@ -471,6 +595,10 @@ class OrchestrationEngine:
                 else None
             ),
         )
+
+        # Phase 18-F: assemble and register the end-of-workflow governance report
+        self._emit_governance_report(state)
+
         return state
 
     # ── Stage execution ─────────────────────────────────────────────────
@@ -1116,12 +1244,12 @@ class OrchestrationEngine:
             if self._artifact_manager is not None:
                 try:
                     import uuid as _uuid
-                    self._artifact_manager.create_artifact(
+                    artifact_content = art_dict.get("content", "")
+                    created = self._artifact_manager.create_artifact(
                         name=art_dict.get("name", f"{stage_state.stage_id}-artifact"),
                         artifact_type=art_dict.get("artifact_type", "SOURCE"),
                         project_id=_uuid.UUID(state.project_id) if state.project_id else None,
                         workflow_id=state.workflow_id,
-                        content=art_dict.get("content", ""),
                         metadata={
                             "stage_id": stage_state.stage_id,
                             "stage_kind": stage_state.definition.kind.value,
@@ -1129,6 +1257,22 @@ class OrchestrationEngine:
                             **art_dict.get("metadata", {}),
                         },
                     )
+                    # Real ArtifactManager API: body lives in create_version.
+                    if (
+                        artifact_content
+                        and created is not None
+                        and hasattr(self._artifact_manager, "create_version")
+                    ):
+                        try:
+                            self._artifact_manager.create_version(
+                                created.artifact_id,
+                                artifact_content,
+                                created_by=stage_state.worker_type or "stage",
+                            )
+                        except Exception as exc:
+                            logger.debug(
+                                f"Artifact version create failed (non-fatal): {exc}"
+                            )
                 except Exception as exc:
                     # Artifact registration failure must not break the stage.
                     logger.debug(f"Artifact manager registration failed (non-fatal): {exc}")
@@ -1227,21 +1371,76 @@ class OrchestrationEngine:
         verdict = ReviewVerdict.APPROVED
         review_output: dict[str, Any] = {}
 
+        review_result: Any = None
         if self._review_engine is not None:
             try:
                 review_req = _build_review_request(state, stage_state, context)
                 review_result = await self._review_engine.review(review_req)
-                if hasattr(review_result, "verdict"):
+                # Use .decision (ReviewDecision enum) from ReviewResult as the verdict source.
+                if hasattr(review_result, "decision"):
+                    decision_val = review_result.decision
+                    if isinstance(decision_val, ReviewDecision):
+                        # CHANGES_REQUESTED and REQUIRES_HITL are non-approving —
+                        # they must NOT silently become APPROVED. Treat them as REJECTED
+                        # so the stage fails closed and governance sees the blocker.
+                        if decision_val in (
+                            ReviewDecision.REJECTED,
+                            ReviewDecision.CHANGES_REQUESTED,
+                            ReviewDecision.REQUIRES_HITL,
+                        ):
+                            verdict = ReviewVerdict.REJECTED
+                        else:
+                            verdict = ReviewVerdict.APPROVED
+                    else:
+                        verdict = ReviewVerdict(str(decision_val))
+                    review_output = review_result.model_dump() if hasattr(review_result, "model_dump") else {}
+                elif hasattr(review_result, "verdict"):
+                    # Legacy support for engines that return a .verdict attribute.
                     verdict = ReviewVerdict(review_result.verdict)
                     review_output = review_result.model_dump() if hasattr(review_result, "model_dump") else {}
                 elif isinstance(review_result, dict):
-                    verdict = ReviewVerdict(review_result.get("verdict", "approved"))
+                    verdict = ReviewVerdict(review_result.get("decision", review_result.get("verdict", "approved")))
                     review_output = review_result
             except Exception as exc:
                 logger.warning(f"Review engine failed: {exc}. Defaulting to approved.")
                 review_output = {"error": str(exc)}
 
         stage_state.output = {"review_output": review_output}
+
+        # Phase 18-F: persist the ReviewGateResult on stage state so the
+        # governance evidence collection can surface real review evidence
+        # (findings, blocking_findings, decision) to the GOVERNANCE_REPORT.
+        if review_result is not None:
+            try:
+                review_id_val = getattr(review_result, "review_id", "") or ""
+                findings_list = getattr(review_result, "findings", []) or []
+                try:
+                    findings_payload = [
+                        f.model_dump() if hasattr(f, "model_dump") else dict(f) if isinstance(f, dict) else {"raw": str(f)}
+                        for f in findings_list
+                    ]
+                except Exception:
+                    findings_payload = []
+                stage_state.review = ReviewGateResult(
+                    verdict=verdict,
+                    review_id=str(review_id_val),
+                    findings=findings_payload,
+                )
+            except Exception as exc:
+                logger.debug(f"Failed to persist ReviewGateResult on stage state: {exc}")
+
+        # Phase 18-F: register the ReviewEngine result as a REVIEW_ARTIFACT
+        if self._artifact_manager is not None and review_result is not None:
+            try:
+                self._get_governance_service().register_review_artifact(
+                    review_result=review_result,
+                    stage_id=stage_state.stage_id,
+                    artifact_manager=self._artifact_manager,
+                    project_id=state.project_id,
+                    workflow_id=state.workflow_id,
+                )
+            except Exception as exc:
+                logger.debug(f"Review artifact registration failed (non-fatal): {exc}")
 
         if verdict == ReviewVerdict.REJECTED:
             await self._finalize_stage_failure(
@@ -1413,7 +1612,11 @@ class OrchestrationEngine:
             stage_state.output = {"hitl_rejected": True, "reason": reason}
             state.status = WorkflowStatus.FAILED
             state.metrics.record_failure()
+            state.completed_at = _iso(_utc_now())
+            state.metrics.finalize()
             self._persist(state)
+            # Phase 18-F: emit governance report so rejected HITL is reflected.
+            self._emit_governance_report(state)
             return state
 
         stage_state.status = StageStatus.RUNNING
@@ -1468,6 +1671,11 @@ class OrchestrationEngine:
                 else None
             ),
         )
+
+        # Phase 18-F: emit governance report after HITL resumption so the
+        # final report reflects the resolved HITL gate (APPROVED/REJECTED).
+        self._emit_governance_report(state)
+
         return state
 
     # ── Health check ────────────────────────────────────────────────────
