@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoforge-modernization"
+version = "0.1.0"
+description = "Legacy Modernization Engine for AutoForge AI OS — Phase 18-G Foundation: capability registry, planning gate, contracts, data models, and observability for bounded transformation."
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "AutoForge AI"},
+]
+# Phase 18-G G.1: Foundation contracts only. No specialist toolchain packages
+# are installed here — those are installed later by G.2+ tooling inventory.
+dependencies = [
+    "autoforge-models",
+    "autoforge-events",
+    "autoforge-runtime",
+    "autoforge-artifacts",
+    "autoforge-workforce",
+    "autoforge-observability",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
