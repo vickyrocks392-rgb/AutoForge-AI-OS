@@ -467,3 +467,48 @@ class WorkerState:
             "cancellation_requested": self.cancellation_requested,
             "metadata": self.metadata,
         }
+
+
+# ── Phase 18-E: RAG Retrieval Engine Protocol ─────────────────────────────────
+
+from typing import Any, Protocol, runtime_checkable
+
+
+@runtime_checkable
+class RAGRetrievalEngine(Protocol):
+    """
+    Protocol for a RAG-enabled knowledge retrieval engine.
+
+    Matches the interface of
+    ``autoforge_knowledge_platform.rag18.facade.KnowledgeRAGEngine``.
+    The execution layer depends only on this protocol — no runtime import of
+    ``autoforge_knowledge_platform`` is required.
+
+    Implementations must provide:
+
+        await engine.retrieve_for_context(
+            query: str,
+            *,
+            project_id: str | None = None,
+            workflow_id: str | None = None,
+            execution_id: str | None = None,
+            workspace_root: str | None = None,
+            top_k: int | None = None,
+            score_threshold: float | None = None,
+        ) -> Any
+
+    The returned value is duck-typed: it must have ``.hits`` or ``.results``
+    (a list of retrieval hits).
+    """
+
+    async def retrieve_for_context(
+        self,
+        query: str,
+        *,
+        project_id: str | None = None,
+        workflow_id: str | None = None,
+        execution_id: str | None = None,
+        workspace_root: str | None = None,
+        top_k: int | None = None,
+        score_threshold: float | None = None,
+    ) -> Any: ...

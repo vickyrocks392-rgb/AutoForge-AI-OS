@@ -903,11 +903,23 @@ class OrchestrationEngine:
             # Use the already-resolved AI provider for this stage if given.
             if ai_provider is None:
                 ai_provider = self._get_ai_provider(stage)
-            worker = worker_cls(
-                worker_id=f"wf-{stage.stage_id[:8]}-{uuid.uuid4().hex[:6]}",
-                environment=env,
-                ai_provider=ai_provider,
-            )
+            # Phase 18-E: wire the 18-D RAG engine into the workforce worker
+            # so its engineering loop can drive the bounded repair cycle.
+            rag_engine = self._get_rag_engine()
+            try:
+                worker = worker_cls(
+                    worker_id=f"wf-{stage.stage_id[:8]}-{uuid.uuid4().hex[:6]}",
+                    environment=env,
+                    ai_provider=ai_provider,
+                    rag_engine=rag_engine,
+                )
+            except TypeError:
+                # Backwards compatibility: workers without rag_engine param
+                worker = worker_cls(
+                    worker_id=f"wf-{stage.stage_id[:8]}-{uuid.uuid4().hex[:6]}",
+                    environment=env,
+                    ai_provider=ai_provider,
+                )
             return worker
         except Exception:
             return None

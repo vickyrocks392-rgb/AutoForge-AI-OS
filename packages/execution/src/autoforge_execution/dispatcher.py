@@ -31,6 +31,7 @@ from autoforge_execution.errors import (
 )
 from autoforge_execution.governance import ExecutionGovernance
 from autoforge_execution.models import (
+    RAGRetrievalEngine,
     ArtifactRecord,
     EvaluationResult,
     LoopConfig,
@@ -55,6 +56,7 @@ class WorkerDispatcher:
         governance: ExecutionGovernance | None = None,
         loop_config: LoopConfig | None = None,
         event_sink: Any = None,
+        rag_engine: RAGRetrievalEngine | None = None,
     ) -> None:
         self._env = environment
         self._ai = ai_provider
@@ -63,6 +65,7 @@ class WorkerDispatcher:
         self._governance = governance or ExecutionGovernance()
         self._loop_config = loop_config or LoopConfig()
         self._event_sink = event_sink
+        self._rag_engine = rag_engine
 
         self._active_workers: dict[str, EngineeringWorker] = {}
         self._worker_counter = 0
@@ -106,6 +109,7 @@ class WorkerDispatcher:
             governance=self._governance,
             loop_config=self._loop_config,
             event_sink=self._event_sink,
+            rag_engine=self._rag_engine,
         )
         self._active_workers[worker_id] = worker
         return worker

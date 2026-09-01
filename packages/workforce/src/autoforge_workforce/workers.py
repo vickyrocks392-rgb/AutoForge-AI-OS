@@ -38,6 +38,7 @@ class WorkforceWorker(EngineeringWorker):
         governance: ExecutionGovernance | None = None,
         loop_config: LoopConfig | None = None,
         event_sink: Any = None,
+        rag_engine: Any | None = None,
     ) -> None:
         super().__init__(
             worker_id=worker_id,
@@ -49,6 +50,7 @@ class WorkforceWorker(EngineeringWorker):
             loop_config=loop_config,
             event_sink=event_sink,
         )
+        self._rag_engine = rag_engine
 
     @property
     def model_profile(self) -> WorkerModelProfile:
@@ -82,6 +84,7 @@ class WorkforceWorker(EngineeringWorker):
             governance=self._governance,
             config=self._loop_config,
             on_iteration_callback=self._on_loop_iteration,
+            rag_engine=self._rag_engine,
         )
 
         # Extract verification commands from context input_data

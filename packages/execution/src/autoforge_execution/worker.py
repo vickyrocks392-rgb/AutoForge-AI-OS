@@ -22,6 +22,7 @@ from autoforge_execution.errors import WorkerCancelledError, WorkerError
 from autoforge_execution.governance import ExecutionGovernance
 from autoforge_execution.loop import EngineeringLoop
 from autoforge_execution.models import (
+    RAGRetrievalEngine,
     ArtifactRecord,
     EvaluationResult,
     LoopConfig,
@@ -47,6 +48,7 @@ class EngineeringWorker:
         governance: ExecutionGovernance | None = None,
         loop_config: LoopConfig | None = None,
         event_sink: Any = None,
+        rag_engine: RAGRetrievalEngine | None = None,
     ) -> None:
         self._worker_id = worker_id
         self._worker_type = worker_type
@@ -56,6 +58,7 @@ class EngineeringWorker:
         self._governance = governance or ExecutionGovernance()
         self._loop_config = loop_config or LoopConfig()
         self._event_sink = event_sink
+        self._rag_engine = rag_engine
 
         self._state = WorkerState(
             worker_id=worker_id,
@@ -165,6 +168,7 @@ class EngineeringWorker:
             governance=self._governance,
             config=self._loop_config,
             on_iteration_callback=self._on_loop_iteration,
+            rag_engine=getattr(self, "_rag_engine", None),
         )
 
         try:

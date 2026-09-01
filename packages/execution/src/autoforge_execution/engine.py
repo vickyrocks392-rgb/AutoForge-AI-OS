@@ -33,6 +33,7 @@ from autoforge_execution.environment import WorkspaceEnvironment
 from autoforge_execution.events import EventSinkProtocol, ExecutionEvents
 from autoforge_execution.governance import ExecutionGovernance
 from autoforge_execution.models import (
+    RAGRetrievalEngine,
     ArtifactRecord,
     EvaluationResult,
     LoopConfig,
@@ -75,6 +76,7 @@ class ExecutionEngine:
         governance: ExecutionGovernance | None = None,
         event_sink: EventSinkProtocol | None = None,
         runtime_facade: RuntimeFacadeProtocol | None = None,
+        rag_engine: RAGRetrievalEngine | None = None,
     ) -> None:
         self._env = environment
         self._ai = ai_provider or AIInfrastructureAdapter()
@@ -82,6 +84,7 @@ class ExecutionEngine:
         self._config = config or ExecutionEngineConfig()
         self._event_sink = event_sink
         self._runtime_facade = runtime_facade
+        self._rag_engine = rag_engine
 
         self._artifacts = artifact_pipeline or ArtifactPipeline(event_sink)
         self._governance = governance or ExecutionGovernance()
@@ -95,6 +98,7 @@ class ExecutionEngine:
             governance=self._governance,
             loop_config=self._config.default_loop_config,
             event_sink=self._event_sink,
+            rag_engine=self._rag_engine,
         )
 
     @property
