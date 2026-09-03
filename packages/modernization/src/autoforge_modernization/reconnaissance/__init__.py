@@ -1,0 +1,62 @@
+"""AutoForge Modernization Engine - Phase 18-G.2 Reconnaissance."""
+from autoforge_modernization.reconnaissance.models import (
+    FileCategory, EvidenceKind, FactConfidence,
+    ScannedFile, DiscoveredFile,
+    TechnologyKind, TechnologyCategory, EvidenceSource,
+    DetectionMethod, TechnologyEvidence, DetectedTechnology,
+    ProjectMetadata, DependencyKind, DependencyEdge, DependencyGraph,
+    BuildSystem, BuildTarget, RuntimeSpec,
+    DeploymentTarget, DeploymentSpec,
+    DatabaseKind, SQLDialect, DatabaseObjectKind,
+    DatabaseObject, DatabaseInventory,
+    ArchitectureNodeKind, ArchitectureProvenance,
+    ArchitectureNode, ArchitectureEdge, ArchitectureGraph,
+    TestKind, TestDiscovery,
+    EvidenceSourceKind, DocumentDiscovery, BusinessEvidence,
+    CountingMethodology, SizingSource, ProjectSizing,
+    ComparisonOutcome, ToolRequirementKind,
+    ProjectCapabilityComparison, ProjectToolRequirement,
+    LegacyInventory, HierarchicalSummary,
+    ContextRetrievalRecord, RAGQueryRecord,
+    ResearchSanitizationCheck,
+    ReconnaissanceEventType, ReconnaissanceEvent,
+    ReconnaissanceEngineState,
+)
+from autoforge_modernization.reconnaissance.scanner import (
+    ReconnaissanceScanner, ScanResult, scan_repository,
+    VersionManifest, VersionDetector,
+)
+from autoforge_modernization.reconnaissance.detector import (
+    TechnologyDetector,
+)
+from autoforge_modernization.reconnaissance.engine import (
+    ReconnaissanceEngine,
+    run_reconnaissance,
+)
+__all__ = [
+    "FileCategory", "EvidenceKind", "FactConfidence",
+    "ScannedFile", "DiscoveredFile",
+    "TechnologyKind", "TechnologyCategory", "EvidenceSource",
+    "DetectionMethod", "TechnologyEvidence", "DetectedTechnology",
+    "ProjectMetadata", "DependencyKind", "DependencyEdge", "DependencyGraph",
+    "BuildSystem", "BuildTarget", "RuntimeSpec",
+    "DeploymentTarget", "DeploymentSpec",
+    "DatabaseKind", "SQLDialect", "DatabaseObjectKind",
+    "DatabaseObject", "DatabaseInventory",
+    "ArchitectureNodeKind", "ArchitectureProvenance",
+    "ArchitectureNode", "ArchitectureEdge", "ArchitectureGraph",
+    "TestKind", "TestDiscovery",
+    "EvidenceSourceKind", "DocumentDiscovery", "BusinessEvidence",
+    "CountingMethodology", "SizingSource", "ProjectSizing",
+    "ComparisonOutcome", "ToolRequirementKind",
+    "ProjectCapabilityComparison", "ProjectToolRequirement",
+    "LegacyInventory", "HierarchicalSummary",
+    "ContextRetrievalRecord", "RAGQueryRecord",
+    "ResearchSanitizationCheck",
+    "ReconnaissanceEventType", "ReconnaissanceEvent",
+    "ReconnaissanceEngineState",
+    "ReconnaissanceScanner", "ScanResult", "scan_repository",
+    "VersionManifest", "VersionDetector",
+    "TechnologyDetector",
+    "ReconnaissanceEngine", "run_reconnaissance",
+]

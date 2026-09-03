@@ -23,8 +23,15 @@ class COBOLParser:
     PERFORM_RE = re.compile(r"\bPERFORM\s+([\w-]+)(?:\s+THRU\s+([\w-]+))?(?:\s+(VARYING|UNTIL)\s+(\S+))?", re.IGNORECASE)
     MOVE_RE = re.compile(r"\bMOVE\s+(.+?)\s+TO\s+([A-Z0-9-]+(?:\s+[A-Z0-9-]+)*)", re.IGNORECASE)
     COMPUTE_RE = re.compile(r"\bCOMPUTE\s+([A-Z0-9-]+)\s*=\s*(.+)", re.IGNORECASE)
-    IF_RE = re.compile(r"\bIF\s+(.+?)\s+THEN\b", re.IGNORECASE)
-    EVALUATE_RE = re.compile(r"\bEVALUATE\s+(.+)", re.IGNORECASE)
+    # COBOL IF does NOT require THEN.
+    IF_RE = re.compile(r"^\s*IF\s+(.+?)(?:\s+THEN)?\.?\s*$", re.IGNORECASE)
+    IF_INLINE_RE = re.compile(r"^\s*IF\s+(.+?)(?:\s+THEN)?\s+(.+)$", re.IGNORECASE)
+    EVALUATE_RE = re.compile(r"^\s*EVALUATE\s+(.+?)\.?\s*$", re.IGNORECASE)
+    WHEN_RE = re.compile(r"^\s*WHEN\s+(.+?)\.?\s*$", re.IGNORECASE)
+    WHEN_OTHER_RE = re.compile(r"^\s*WHEN\s+OTHER\s*\.?\s*$", re.IGNORECASE)
+    END_EVALUATE_RE = re.compile(r"^\s*END-EVALUATE\s*\.?\s*$", re.IGNORECASE)
+    ELSE_RE = re.compile(r"^\s*ELSE\s*\.?\s*$", re.IGNORECASE)
+    END_IF_RE = re.compile(r"^\s*END-IF\s*\.?\s*$", re.IGNORECASE)
     ADD_RE = re.compile(r"\bADD\s+(.+?)\s+TO\s+([A-Z0-9-]+)", re.IGNORECASE)
     SUB_RE = re.compile(r"\bSUBTRACT\s+(.+?)\s+FROM\s+([A-Z0-9-]+)", re.IGNORECASE)
     MUL_RE = re.compile(r"\bMULTIPLY\s+(.+?)\s+BY\s+([A-Z0-9-]+)", re.IGNORECASE)
@@ -35,6 +42,8 @@ class COBOLParser:
     FS_HDR_RE = re.compile(r"\bFILE-SECTION\b", re.IGNORECASE)
     FD_RE = re.compile(r"\bFD\s+([A-Z0-9-]+)", re.IGNORECASE)
     PROG_ID_RE = re.compile(r"\bPROGRAM-ID\.\s*([A-Z0-9][\w-]*)", re.IGNORECASE)
+    EXEC_SQL_RE = re.compile(r"\bEXEC\s+SQL\b", re.IGNORECASE)
+    END_EXEC_RE = re.compile(r"\bEND-EXEC\b", re.IGNORECASE)
     VERBS = ("MOVE", "IF", "EVALUATE", "COMPUTE", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "PERFORM", "CALL", "COPY", "OPEN", "CLOSE", "READ", "WRITE", "REWRITE", "DELETE", "START", "STRING", "UNSTRING", "INSPECT", "SET", "GO", "EXIT", "STOP", "GOBACK")
     VERB_RE = re.compile(r"^\s*(" + "|".join(VERBS) + r")\b", re.IGNORECASE)
 
@@ -48,6 +57,41 @@ class COBOLParser:
         self._paragraphs = []
         self._performed_targets = []
         self._files = []
+        self._sql_blocks = []
+        self._in_sql_block = False
+        self._sql_buffer = []
+        self._if_depth = 0
+
+    def _capture_sql_block(self, ls, lineno):
+        if self.EXEC_SQL_RE.search(ls):
+            self._in_sql_block = True
+            self._sql_line_start = lineno
+            self._sql_buffer = [ls]
+            return True
+        if self._in_sql_block:
+            self._sql_buffer.append(ls)
+            if self.END_EXEC_RE.search(ls):
+                self._in_sql_block = False
+                self._sql_blocks.append({
+                    "line_start": self._sql_line_start,
+                    "text": " ".join(self._sql_buffer),
+                    "line_count": len(self._sql_buffer),
+                    "incomplete": False
+                })
+                self._sql_buffer = []
+            return True
+        return False
+
+    def _flush_sql_block(self):
+        if self._in_sql_block and self._sql_buffer:
+            self._sql_blocks.append({
+                "line_start": getattr(self, "_sql_line_start", 0),
+                "text": " ".join(self._sql_buffer),
+                "line_count": len(self._sql_buffer),
+                "incomplete": True
+            })
+            self._in_sql_block = False
+            self._sql_buffer = []
 
     def _is_verb(self, ls):
         return bool(self.VERB_RE.match(ls))
@@ -76,6 +120,9 @@ class COBOLParser:
         while i < len(self.tokens):
             tok = self.tokens[i]; text = tok["text"]; line = tok["line"]; ls = text.strip()
             if not ls: i += 1; continue
+            if self._capture_sql_block(ls, line):
+                i += 1
+                continue
             m = self.PROG_ID_RE.search(ls)
             if m and not self.tree.name:
                 self.tree.name = m.group(1).upper(); self.tree.location = SourceLocation(line=line); i += 1; continue
@@ -130,10 +177,71 @@ class COBOLParser:
             if m: node.add(COBOLNode(kind=COBOLKind.MOVE, name=f"MOVE TO {m.group(2)}", location=SourceLocation(line=line), raw=ls, attrs={"source": m.group(1).strip(), "targets": [d.strip() for d in m.group(2).split()]})); i += 1; continue
             m = self.COMPUTE_RE.search(ls)
             if m: node.add(COBOLNode(kind=COBOLKind.COMPUTE, name=m.group(1).upper(), location=SourceLocation(line=line), raw=ls, attrs={"target": m.group(1).upper(), "expression": m.group(2).strip().rstrip(".")})); i += 1; continue
-            m = self.IF_RE.search(ls)
-            if m: node.add(COBOLNode(kind=COBOLKind.IF, name="IF", location=SourceLocation(line=line), raw=ls, attrs={"condition": m.group(1).strip()})); i += 1; continue
-            m = self.EVALUATE_RE.search(ls)
-            if m: node.add(COBOLNode(kind=COBOLKind.EVALUATE, name="EVALUATE", location=SourceLocation(line=line), raw=ls, attrs={"subject": m.group(1).strip()})); i += 1; continue
+            m = self.IF_RE.match(ls)
+            if m and " END-IF" not in ls.upper():
+                condition = m.group(1).strip()
+                if_node = COBOLNode(kind=COBOLKind.IF, name="IF", location=SourceLocation(line=line), raw=ls, attrs={"condition": condition})
+                node.add(if_node)
+                i += 1
+                depth = 1
+                else_found = False
+                while i < len(self.tokens) and depth > 0:
+                    t2 = self.tokens[i]
+                    bls2 = t2.get("text", "").strip()
+                    bls2_upper = bls2.upper()
+                    if not bls2:
+                        i += 1
+                        continue
+                    if self.END_IF_RE.match(bls2):
+                        depth -= 1
+                        if depth == 0:
+                            i += 1
+                            break
+                        i += 1
+                        continue
+                    if self.IF_RE.match(bls2) and " END-IF" not in bls2_upper:
+                        depth += 1
+                    if depth == 1 and self.ELSE_RE.match(bls2):
+                        else_found = True
+                        i += 1
+                        continue
+                    if else_found:
+                        if_node.attrs.setdefault("else_lines", []).append(bls2)
+                    else:
+                        if_node.attrs.setdefault("body_lines", []).append(bls2)
+                    i += 1
+                continue
+            m = self.EVALUATE_RE.match(ls)
+            if m:
+                subject = m.group(1).strip()
+                eval_node = COBOLNode(kind=COBOLKind.EVALUATE, name="EVALUATE", location=SourceLocation(line=line), raw=ls, attrs={"subject": subject, "when_branches": []})
+                node.add(eval_node)
+                i += 1
+                current_when = None
+                while i < len(self.tokens):
+                    t2 = self.tokens[i]
+                    bls2 = t2.get("text", "").strip()
+                    if not bls2:
+                        i += 1
+                        continue
+                    if self.END_EVALUATE_RE.match(bls2):
+                        if current_when:
+                            eval_node.attrs["when_branches"].append(current_when)
+                        i += 1
+                        break
+                    wm = self.WHEN_RE.match(bls2)
+                    if wm:
+                        if current_when:
+                            eval_node.attrs["when_branches"].append(current_when)
+                        cond = wm.group(1).strip()
+                        is_other = bool(self.WHEN_OTHER_RE.match(bls2))
+                        current_when = {"condition": cond, "is_other": is_other, "body_lines": []}
+                        i += 1
+                        continue
+                    if current_when is not None:
+                        current_when["body_lines"].append(bls2)
+                    i += 1
+                continue
             handled = False
             for pat, op in ((self.ADD_RE, "ADD"), (self.SUB_RE, "SUBTRACT"), (self.MUL_RE, "MULTIPLY"), (self.DIV_RE, "DIVIDE")):
                 m = pat.search(ls)
@@ -145,6 +253,7 @@ class COBOLParser:
                 for kw, kind in (("STRING", "STRING_OP"), ("UNSTRING", "STRING_OP"), ("INSPECT", "INSPECT"), ("SET", "SET"), ("GO TO", "GOTO"), ("EXIT PROGRAM", "EXIT"), ("GOBACK", "EXIT"), ("EXIT", "EXIT"), ("STOP RUN", "EXIT")):
                     if re.match(r"^\s*" + kw + r"\b", ls, re.IGNORECASE): node.add(COBOLNode(kind=COBOLKind(kind.lower()), name=kw.upper(), location=SourceLocation(line=line), raw=ls)); break
             i += 1
+        self._flush_sql_block()
         return self.tree
 
     def summary(self):
@@ -157,6 +266,7 @@ class COBOLParser:
             "files": self._files,
             "data_items": list(self._pic_map.keys()),
             "data_types": dict(self._pic_map),
+            "embedded_sql_blocks": self._sql_blocks,
             "gaps": [{"construct": g.construct, "location": str(g.location), "reason": g.reason, "strategy": g.suggested_strategy} for g in self.gaps],
         }
 

@@ -100,6 +100,7 @@ class COBOLSemanticEmitter:
         self.lines = source_text.split("\n")
         self._var_map: dict = {}
         self._gaps: list = []
+        self._dependency_calls: list = []
         self._cics_detected = False
         self._embedded_sql = False
         self._paragraph_map: dict = {}
@@ -331,9 +332,28 @@ class COBOLSemanticEmitter:
     def _emit_if(self, out: list, node: COBOLNode, line: int):
         attrs = node.attrs or {}
         cond = attrs.get("condition", "")
+        body_lines = attrs.get("body_lines", [])
+        else_lines = attrs.get("else_lines", [])
+        cond_java = self._resolve_condition(cond)
         out.append(f"        // L{line}: IF {cond[:70]}")
-        out.append(f"        if ({self._resolve_condition(cond)}) {{")
-        out.append(f"            // body: see source L{line}..END-IF")
+        out.append(f"        if ({cond_java}) {{")
+        if body_lines:
+            for bl in body_lines[:20]:
+                trimmed = bl.strip()
+                if not trimmed:
+                    continue
+                if trimmed.upper().startswith("END-IF"):
+                    break
+                out.append(f"            // L{line}: {trimmed[:70]}")
+        if else_lines:
+            out.append("        } else {")
+            for el in else_lines[:20]:
+                trimmed = el.strip()
+                if not trimmed:
+                    continue
+                if trimmed.upper().startswith("END-IF"):
+                    break
+                out.append(f"            // L{line}: {trimmed[:70]}")
         out.append("        }")
 
     def _resolve_condition(self, cond: str) -> str:
@@ -375,11 +395,31 @@ class COBOLSemanticEmitter:
     def _emit_evaluate(self, out: list, node: COBOLNode, line: int):
         attrs = node.attrs or {}
         subj = attrs.get("subject", "")
+        branches = attrs.get("when_branches", [])
         out.append(f"        // L{line}: EVALUATE {subj[:60]}")
-        out.append(f"        switch (this.{_java_safe(subj)}) {{")
-        out.append(f"            // WHEN branches: see source after L{line}")
-        out.append("            default: break;")
-        out.append("        }")
+        if not branches:
+            out.append(f"        switch (this.{_java_safe(subj)}) {{")
+            out.append("            default: break;")
+            out.append("        }")
+            return
+        for idx, branch in enumerate(branches):
+            cond = branch.get("condition", "")
+            is_other = branch.get("is_other", False)
+            body_lines = branch.get("body_lines", [])
+            cond_java = self._resolve_condition(cond) if not is_other else "true"
+            if idx == 0:
+                out.append(f"        if ({cond_java}) {{")
+            elif is_other:
+                out.append("        } else {")
+            else:
+                out.append(f"        }} else if ({cond_java}) {{")
+            for bl in body_lines[:20]:
+                trimmed = bl.strip()
+                if not trimmed or trimmed.upper().startswith("END-EVALUATE"):
+                    break
+                out.append(f"            // L{line}: {trimmed[:70]}")
+        if branches:
+            out.append("        }")
 
     def _emit_perform(self, out: list, node: COBOLNode, line: int):
         attrs = node.attrs or {}
@@ -408,7 +448,10 @@ class COBOLSemanticEmitter:
         attrs = node.attrs or {}
         target = attrs.get("target", "")
         out.append(f"        // L{line}: CALL '{target}' (external program)")
-        out.append(f"        // REVIEW_REQUIRED: wire {target} to adapter/interface")
+        if target:
+            out.append(f"        // Dependency: program -> {target} (CALL edge)")
+            out.append(f"        // REVIEW_REQUIRED: wire {target} to adapter/interface")
+            self._dependency_calls.append({"target": target, "line": line})
         self._gaps.append(f"external_call:{target}@L{line}")
 
     def _emit_set(self, out: list, node: COBOLNode, line: int):
@@ -451,6 +494,7 @@ class COBOLSemanticEmitter:
             "cics_detected": self._cics_detected,
             "embedded_sql": self._embedded_sql,
             "gaps": list(self._gaps),
+            "dependency_calls": list(self._dependency_calls),
         }
 
 
