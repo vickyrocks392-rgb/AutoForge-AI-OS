@@ -150,6 +150,15 @@ class TechnologyCapability(BaseModel):
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     assessment_method: str = "manual"
 
+    # Detailed confidence breakdown
+    detection_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    analysis_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    transformation_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+
+    # Supported/unsupported constructs
+    supported_constructs: list[str] = Field(default_factory=list)
+    unsupported_constructs: list[str] = Field(default_factory=list)
+
     # Provenance
     assessed_at: datetime = Field(default_factory=_utc_now)
     assessed_by: str = "autoforge-core"

@@ -95,6 +95,10 @@ class MigrationUnitSpec(BaseModel):
     strategy: MigrationStrategy
     description: str
 
+    # Source / target
+    source_technology: str | None = None  # Discovered source technology (from G.2/G.3)
+    source_language: str | None = None  # Optional override of detected source
+
     # Boundaries
     source_files: list[str] = Field(default_factory=list)
     target_files: list[str] = Field(default_factory=list)

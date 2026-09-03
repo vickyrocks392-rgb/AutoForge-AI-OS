@@ -65,6 +65,30 @@ class GateCondition(BaseModel):
     kind: GateConditionKind
     description: str
 
+    # Status / state-machine fields
+    status: GateConditionStatus = GateConditionStatus.PENDING
+    blocking_reason: str | None = None
+    blocking_finding_ids: list[str] = Field(default_factory=list)
+    blocking_requirement_ids: list[str] = Field(default_factory=list)
+
+    # Satisfaction
+    satisfied_by: str | None = None
+    satisfied_at: datetime | None = None
+
+    # Waiver
+    waived_by: str | None = None
+    waiver_reason: str | None = None
+
+    # HITL
+    required_approvers: list[str] = Field(default_factory=list)
+    is_hitl_required: bool = False
+
+    def is_satisfied(self) -> bool:
+        return self.status == GateConditionStatus.SATISFIED
+
+    def is_blocked(self) -> bool:
+        return self.status == GateConditionStatus.BLOCKED
+
 
 
 class GateDecision(str, Enum):
@@ -138,22 +162,3 @@ class GateDecisionRecord(BaseModel):
             f"[{c.kind.value}] {c.blocking_reason or 'unknown'}"
             for c in self.blocked_conditions
         ]
-
-    status: GateConditionStatus = GateConditionStatus.PENDING
-    blocking_reason: str | None = None
-    blocking_finding_ids: list[str] = Field(default_factory=list)
-    blocking_requirement_ids: list[str] = Field(default_factory=list)
-
-    satisfied_by: str | None = None
-    satisfied_at: datetime | None = None
-    waived_by: str | None = None
-    waiver_reason: str | None = None
-
-    required_approvers: list[str] = Field(default_factory=list)
-    is_hitl_required: bool = False
-
-    def is_satisfied(self) -> bool:
-        return self.status == GateConditionStatus.SATISFIED
-
-    def is_blocked(self) -> bool:
-        return self.status == GateConditionStatus.BLOCKED

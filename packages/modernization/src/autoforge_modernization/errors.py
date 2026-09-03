@@ -229,12 +229,6 @@ class TransformationBlockedError(TransformationError):
             f"Transformation unit {unit_id!r} is blocked: {reason}"
         )
 
-        self.requirement_id = requirement_id
-        self.reason = reason
-        super().__init__(
-            f"Requirement {requirement_id!r} is ambiguous: {reason}"
-        )
-
 
 class UnresolvedBusinessIntentError(PlanningGateError):
     """Business intent for a component is unresolved; transformation is deferred."""
