@@ -216,6 +216,12 @@ class TransformationExecutor:
                 unit_id=unit.unit_id,
                 kind=UnitKind.UNAVAILABLE,
                 target_technology=tgt,
+                llm_calls=1 if result.model else 0,
+                model=result.model or "",
+                provider=result.provider or "",
+                prompt_tokens=result.token_usage_in,
+                completion_tokens=result.token_usage_out,
+                latency_ms=result.latency_ms,
             )
             self._telemetry.emit(
                 TelemetryEventType.UNIT_UNAVAILABLE,
@@ -316,6 +322,12 @@ class TransformationExecutor:
                 verification_passed=False,
                 verification_report_id=vr.report_id,
                 error="verification failed after repair",
+                llm_calls=1 if result.model else 0,
+                model=result.model or "",
+                provider=result.provider or "",
+                prompt_tokens=result.token_usage_in,
+                completion_tokens=result.token_usage_out,
+                latency_ms=result.latency_ms,
             )
             self._telemetry.emit(
                 TelemetryEventType.UNIT_FAILED,
