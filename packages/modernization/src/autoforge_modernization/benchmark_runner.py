@@ -53,6 +53,15 @@ from autoforge_modernization.transformation_execution import (
     TransformationExecutor,
     TransformationUnit,
 )
+from autoforge_modernization.analysis import (
+    AnalysisReport,
+    LegacyAnalysisEngine,
+)
+from autoforge_modernization.analyzers.base import AnalyzerDispatcher, FindingKind
+from autoforge_modernization.transformation_context import (
+    SemanticModelSnapshot,
+    semantic_snapshot_from_analysis,
+)
 from autoforge_modernization.throughput_accounting import ThroughputAccounting
 
 logger = logging.getLogger(__name__)
@@ -86,6 +95,100 @@ _TARGET_TECHNOLOGY_BY_EXT: dict[str, str] = {
     ".ddl": "sql",
     ".asm": "java",
 }
+
+
+# Singleton dispatcher shared across all analysis calls in this module.
+_ANALYZER_DISPATCHER = AnalyzerDispatcher()
+
+
+def _project_analysis_result(result) -> dict[str, Any] | None:
+    """Project an AnalysisResult from AnalyzerDispatcher into the dict shape expected by
+    ``semantic_snapshot_from_analysis()``.
+
+    The bridge maps structured ``AnalysisResult`` findings to the loose dict format::
+
+        {
+            "semantic": {
+                "paragraphs":     [...],
+                "data_items":    [...],
+                "external_calls": [...],
+                "copybooks":     [...],
+                "cics_detected": bool,
+            }
+        }
+
+    If ``result`` is None (no analyzer for the technology), returns None.
+    """
+    if result is None:
+        return None
+
+    def _findings_by_kind(kind: FindingKind) -> list[dict[str, Any]]:
+        return [
+            {
+                "name": f.name,
+                "kind": f.kind.value,
+                "location": f.location,
+                "detail": dict(f.detail or {}),
+            }
+            for f in result.findings
+            if f.kind == kind
+        ]
+
+    semantic: dict[str, Any] = {
+        # Paragraphs — mapped to SemanticMethod candidates
+        "paragraphs": [
+            {
+                "name": f.name.replace("PARAGRAPH: ", ""),
+                "kind": "paragraph",
+                "perform_targets": [],
+                "ifs": 0,
+                "evaluates": 0,
+                "loops": 0,
+                "calls": [],
+            }
+            for f in result.findings_by_kind(FindingKind.PARAGRAPH)
+        ],
+        # Data declarations — mapped to SemanticField candidates
+        "data_items": [
+            {
+                "name": f.name,
+                "level": f.detail.get("level"),
+                "type": "",
+                "pic": "",
+                "value": "",
+            }
+            for f in result.findings_by_kind(FindingKind.DATA_DECLARATION)
+        ],
+        # External CALLs (PERFORM and CALL statements)
+        "external_calls": [
+            {
+                "name": f.detail.get("target", f.name),
+                "kind": "CALL",
+            }
+            for f in result.findings_by_kind(FindingKind.PROCEDURE_CALL)
+        ],
+        # Copybook references
+        "copybooks": [
+            {
+                "name": f.name,
+            }
+            for f in result.findings_by_kind(FindingKind.COPYBOOK_REF)
+        ],
+        # CICS presence flag
+        "cics_detected": bool(result.structural_summary.get("has_cics", False)),
+    }
+
+    # Carry forward any business-findings as gaps / unresolved semantics
+    if result.business_findings:
+        semantic["gaps"] = list(result.business_findings)
+
+    # Carry forward structural summary extras
+    for _key in ("sections", "has_sql", "has_copybooks"):
+        if _key in result.structural_summary:
+            semantic[_key] = result.structural_summary[_key]
+
+    return {"semantic": semantic}
+
 
 
 class WorkloadDiscoverer:
@@ -184,6 +287,13 @@ class BenchmarkRunner:
         self.target_technology = target_technology
         self._session_id = str(uuid.uuid4())
         self._result: ThroughputBenchmarkResult | None = None
+        # The LegacyAnalysisEngine-driven report computed during arun().  Exposed
+        # for downstream consumers and for provenance linkage.
+        self._analysis_report: AnalysisReport | None = None
+        # Per-unit semantic evidence captured during arun() so downstream
+        # consumers (PRG, repair, governance) can see the snapshot flow
+        # end-to-end without re-running analysis.
+        self._semantic_evidence: list[dict[str, Any]] = []
 
     def run(self) -> ThroughputBenchmarkResult:
         """Synchronous entry point."""
@@ -213,24 +323,145 @@ class BenchmarkRunner:
         if os.environ.get("AUTOFORGE_MAX_CONCURRENCY", "").isdigit():
             self.max_concurrent = int(os.environ["AUTOFORGE_MAX_CONCURRENCY"])
 
-        units: list[TransformationUnit] = []
+        # ── Semantic analysis stage ───────────────────────────────────────
+        # Each record runs through AnalyzerDispatcher (the existing per-file
+        # deterministic analyzer).  The structured AnalysisResult is projected
+        # into the dict shape that semantic_snapshot_from_analysis() expects,
+        # and a real SemanticModelSnapshot is attached to each
+        # TransformationUnit.  LegacyAnalysisEngine runs in the background to
+        # produce a project-level AnalysisReport for provenance + RAG.
+        analysis_t0 = datetime.now(UTC)
+        analysis_timing = StageTiming(stage="analysis", started_at=analysis_t0)
+        per_unit_snapshots: list[SemanticModelSnapshot | None] = []
+        per_unit_warnings: list[list[str]] = []
         for r in records:
+            text = r.get("text") or ""
+            tech = r.get("technology", "")
+            # Map extension-keyed technology names to AnalyzerDispatcher keys.
+            _tech_aliases = {
+                "cobol": "COBOL",
+                "copybook": "COBOL_COPYBOOK",
+                "bms": "BMS",
+                "jcl": "JCL",
+                "proc": "JCL",
+                "dcl": "JCL",
+                "ddl": "SQL",
+                "asm": "COBOL",  # ASMs treated as procedural legacy; fall back
+                "sql": "SQL",
+            }
+            tech_key = _tech_aliases.get(tech, tech.upper())
+            try:
+                ar_result = _ANALYZER_DISPATCHER.analyze(text, tech_key, r.get("path"))
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("analysis failed for %s: %s", r.get("path"), exc)
+                ar_result = None
+            projected = _project_analysis_result(ar_result)
+            if projected is not None:
+                snap = semantic_snapshot_from_analysis(projected)
+            else:
+                snap = SemanticModelSnapshot()
+                per_unit_warnings.append(
+                    [f"no analyzer registered for technology={tech}"]
+                )
+            per_unit_snapshots.append(snap)
+
+        # Build a project-level AnalysisReport for provenance + RAG indexing.
+        # We run analyze_technologies() over the discovered technology list, then
+        # chain analyze_architecture() with a minimal DependencyGraph.  The
+        # remaining stages are not needed for snapshot building but are kept
+        # available for downstream consumers.
+        engine = LegacyAnalysisEngine()
+        # Deduplicate technologies from the workload.  Names are stored lowercase
+        # because LegacyAnalysisEngine.analyze_technologies does name.lower() for lookup.
+        detected_tech_names_lower: list[str] = []
+        for r in records:
+            tech = r.get("technology", "")
+            if tech and tech.lower() not in detected_tech_names_lower:
+                detected_tech_names_lower.append(tech.lower())
+        report = AnalysisReport(
+            project_id=self._session_id,
+            job_id=self._session_id,
+        )
+        try:
+            from autoforge_modernization.reconnaissance.models import (
+                DependencyGraph,
+                DetectedTechnology,
+                FactConfidence,
+                TechnologyKind,
+            )
+            detected = [
+                DetectedTechnology(
+                    technology_id=f"rec-{name}",
+                    name=name,
+                    kind=TechnologyKind.LANGUAGE,
+                    confidence=FactConfidence.HIGH,
+                )
+                for name in detected_tech_names_lower
+            ]
+            report.technologies = engine.analyze_technologies(detected)
+            report.architecture = engine.analyze_architecture(
+                report.technologies, DependencyGraph()
+            )
+            # Map back to the original-case name for the report's primary_language
+            report.primary_language = (
+                detected_tech_names_lower[0].upper() if detected_tech_names_lower else None
+            )
+            report.overall_confidence = (
+                sum(t.confidence for t in report.technologies)
+                / max(1, len(report.technologies))
+                if report.technologies
+                else 0.0
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("project-level analysis report partial: %s", exc)
+        self._analysis_report = report
+
+        units: list[TransformationUnit] = []
+        for r, snap in zip(records, per_unit_snapshots):
+            unit_id = str(uuid.uuid4())
+            meta = {
+                "source_path": r["path"],
+                "rel_path": r.get("rel_path", ""),
+                "ext": r.get("ext", ""),
+                "loc": int(r.get("loc", 0) or 0),
+            }
             units.append(
                 TransformationUnit(
-                    unit_id=str(uuid.uuid4()),
+                    unit_id=unit_id,
                     target_technology=r.get("target_technology", self.target_technology),
                     source_artifacts=[r["path"]],
                     source_text=r["text"],
                     source_technology=r["technology"],
                     source_sha256=r["sha256"],
+                    semantic_snapshot=snap,
+                    metadata=meta,
                 )
             )
-        analysis_timing = StageTiming(stage="analysis", started_at=datetime.now(UTC))
+        # Capture per-unit semantic evidence for provenance and downstream consumers.
+        self._semantic_evidence = [
+            {
+                "unit_id": u.unit_id,
+                "source_path": u.source_artifacts[0] if u.source_artifacts else "",
+                "source_technology": u.source_technology,
+                "target_technology": u.target_technology,
+                "source_sha256": u.source_sha256,
+                "semantic_constructs": u.semantic_snapshot.semantic_constructs if u.semantic_snapshot else 0,
+                "control_flow_nodes": u.semantic_snapshot.control_flow_nodes if u.semantic_snapshot else 0,
+                "methods": [m.name for m in (u.semantic_snapshot.methods if u.semantic_snapshot else [])],
+                "fields": [f.name for f in (u.semantic_snapshot.fields if u.semantic_snapshot else [])],
+                "dependencies": [{"kind": d.kind, "target": d.target} for d in (u.semantic_snapshot.dependencies if u.semantic_snapshot else [])],
+                "unresolved_semantics": list(u.semantic_snapshot.unresolved_semantics if u.semantic_snapshot else []),
+            }
+            for u in units
+        ]
         analysis_timing.files = len(units)
         analysis_timing.loc = sum(r["loc"] for r in records)
+        analysis_now = datetime.now(UTC)
+        analysis_timing.completed_at = analysis_now
+        analysis_timing.duration_ms = (
+            (analysis_now - analysis_t0).total_seconds() * 1000
+        )
         analysis_timing.status = "ok"
-        analysis_timing.completed_at = datetime.now(UTC)
-        analysis_timing.duration_ms = 0.0
 
         transformation_timing = StageTiming(stage="transformation", started_at=datetime.now(UTC))
         executor = TransformationExecutor(

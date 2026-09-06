@@ -439,6 +439,7 @@ class LLMInferenceFrontend:
                     "input_tokens": int(tokens.get("input_tokens", 0)),
                     "output_tokens": int(tokens.get("output_tokens", 0)),
                 },
+                "ollama_timings": output.get("ollama_timings"),
                 "routing_policy": decision.policy_name,
                 "routing_decision_id": str(decision.decision_id),
                 "error": None,

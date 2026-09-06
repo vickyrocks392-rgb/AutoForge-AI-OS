@@ -41,6 +41,7 @@ from autoforge_modernization.throughput_accounting import (
     UnitKind,
 )
 from autoforge_modernization.transformation_context import (
+    SemanticModelSnapshot,
     TransformationContextAssembler,
     TransformationInputs,
     TransformationPrompt,
@@ -63,6 +64,10 @@ class TransformationUnit(BaseModel):
     source_sha256: str = Field(
         default_factory=lambda: hashlib.sha256(b"placeholder").hexdigest()
     )
+    # Semantic snapshot produced by LegacyAnalysisEngine via AnalyzerDispatcher.
+    # Populated by BenchmarkRunner.arun() before the unit is submitted for transformation.
+    # May be None for units where analysis was unavailable or skipped.
+    semantic_snapshot: "SemanticModelSnapshot | None" = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -150,14 +155,27 @@ class TransformationExecutor:
         target_technology: str,
     ) -> TransformationPrompt:
         target_knowledge = self._tech_registry.get(target_technology)
+        # Wire the pre-computed semantic snapshot from the unit (populated by
+        # LegacyAnalysisEngine via AnalyzerDispatcher in BenchmarkRunner) into
+        # TransformationInputs.  An empty snapshot is acceptable and means
+        # the source had no detectable semantic constructs.
+        snapshot = unit.semantic_snapshot or SemanticModelSnapshot()
+        # Prefer the first source artifact path if present; fall back to metadata.
+        source_path = ""
+        if unit.source_artifacts:
+            source_path = unit.source_artifacts[0]
+        elif unit.metadata.get("source_path"):
+            source_path = str(unit.metadata["source_path"])
         inputs = TransformationInputs(
             source_artifact_id=unit.unit_id,
-            source_path="",
+            source_path=source_path,
             source_sha256=unit.source_sha256,
             source_technology=unit.source_technology or "unknown",
             source_text=unit.source_text,
+            source_loc=int(unit.metadata.get("loc", 0) or 0),
             unit_id=unit.unit_id,
             project_id=unit.unit_id,
+            semantic_snapshot=snapshot,
         )
         rag_evidence = None
         if self._rag_evidence_fn is not None:

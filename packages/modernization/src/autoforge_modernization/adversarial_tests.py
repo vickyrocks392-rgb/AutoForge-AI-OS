@@ -1,7 +1,20 @@
-"""Adversarial tests for Phase 18-G.3 modernization engine."""
+"""Adversarial tests for Phase 18-G.3 modernization engine.
+
+This module is runnable as a script:
+
+    python -m autoforge_modernization.adversarial_tests
+
+When invoked that way no sys.path manipulation is needed because the
+package is already importable via the installed ``autoforge_modernization``
+namespace.  A guard is kept for the case where the file is executed
+directly with a non-package interpreter, but it derives the package ``src``
+directory from ``__file__`` (no hardcoded developer paths).
+"""
 from __future__ import annotations
-import sys, time
+import sys
+import time
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass
@@ -21,8 +34,20 @@ def run_test(name: str, fn) -> TestResult:
         return TestResult(name=name, passed=False, duration_ms=int((time.time() - start) * 1000), error=str(e))
 
 
+def _ensure_package_on_path() -> None:
+    """Add the package ``src`` directory to ``sys.path`` only when needed.
+
+    Derives the path from ``__file__`` so it works regardless of where the
+    repository is checked out.  This is a controlled bootstrap path for the
+    script-entry use case, not a hardcoded developer path.
+    """
+    pkg_src = Path(__file__).resolve().parent
+    if str(pkg_src) not in sys.path:
+        sys.path.insert(0, str(pkg_src))
+
+
 def _m():
-    sys.path.insert(0, "/Users/kalachanddash/Documents/AutoForge AI/packages/modernization/src")
+    _ensure_package_on_path()
     from autoforge_modernization.cobol_ast import COBOLTokenizer
     from autoforge_modernization.cobol_parser import COBOLParser
     from autoforge_modernization.jcl_semantics import JCLParser

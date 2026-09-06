@@ -147,6 +147,44 @@ from autoforge_modernization.capability_stubs import (
 )
 from autoforge_modernization.metrics_forensics import MetricsForensics, StageTimer
 
+# Generalized Autonomous Capability Expansion
+from autoforge_modernization.capabilities import (
+    CapabilityClass,
+    CapabilityState as ExpansionCapabilityState,
+    CapabilityRequirement,
+    QualifiedCapability,
+    VerifiedTechnologyProvider,
+    ProviderRegistry,
+    CapabilityRequirementGraph,
+    CapabilityGapAnalyzer,
+    AutonomousAcquisitionEngine,
+)
+from autoforge_modernization.discovery import (
+    ProjectTechnologyDiscoveryEngine,
+    ProjectTechnologyInventory,
+    DetectedTechnologySummary,
+    EvidenceProvider,
+)
+from autoforge_modernization.semantic import (
+    TechnologyNeutralSemanticModel,
+    SemanticModule,
+    SemanticProcedure,
+    SemanticField,
+    SemanticOperation,
+    SemanticBusinessRule,
+    SemanticModelExtractor,
+)
+from autoforge_modernization.target import (
+    TargetSpecification,
+    TargetCapabilityDeriver,
+)
+from autoforge_modernization.composition import (
+    TransformationPlan,
+    GenericTransformationPlanner,
+    DynamicCapabilityWorkflow,
+    CompositionWorkflowReport,
+)
+
 
 __all__ = [
     "ModernizationError",
@@ -311,4 +349,32 @@ __all__ = [
     "VSAMCapability", "PLICapability", "AssemblerCapability",
     # G.3 metrics forensics
     "MetricsForensics", "StageTimer",
+    # Generalized Autonomous Capability Expansion
+    "CapabilityClass",
+    "ExpansionCapabilityState",
+    "CapabilityRequirement",
+    "QualifiedCapability",
+    "VerifiedTechnologyProvider",
+    "ProviderRegistry",
+    "CapabilityRequirementGraph",
+    "CapabilityGapAnalyzer",
+    "AutonomousAcquisitionEngine",
+    "ProjectTechnologyDiscoveryEngine",
+    "ProjectTechnologyInventory",
+    "DetectedTechnologySummary",
+    "EvidenceProvider",
+    "TechnologyNeutralSemanticModel",
+    "SemanticModule",
+    "SemanticProcedure",
+    "SemanticField",
+    "SemanticOperation",
+    "SemanticBusinessRule",
+    "SemanticModelExtractor",
+    "TargetSpecification",
+    "TargetCapabilityDeriver",
+    "TransformationPlan",
+    "GenericTransformationPlanner",
+    "DynamicCapabilityWorkflow",
+    "CompositionWorkflowReport",
 ]
+
