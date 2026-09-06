@@ -1,0 +1,5 @@
+DEFINE TRANSACTION(ACT1) GROUP(CARDGRP)
+       PROGRAM(CBACT01C)
+       DESCRIPTION('Account inquiry and balance check')
+       TASKDATALOC(ANY)
+       TASKDATAKEY(USER)

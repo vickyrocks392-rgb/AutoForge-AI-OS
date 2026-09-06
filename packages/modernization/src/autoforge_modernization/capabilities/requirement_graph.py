@@ -200,6 +200,360 @@ class CapabilityRequirementGraph:
             ],
         )
 
+        # ── CICS ───────────────────────────────────────────────────────────
+        self.register_requirements(
+            "CICS",
+            [
+                CapabilityRequirement(
+                    technology="CICS",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="cics_command_parsing",
+                    description="Parsing of EXEC CICS statements, maps, programs, and dataset operations.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+                CapabilityRequirement(
+                    technology="CICS",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="cics_transaction_program_mapping",
+                    description="Mapping of CICS transaction IDs to COBOL programs and BMS maps.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+            ],
+        )
+
+        # ── BMS ────────────────────────────────────────────────────────────
+        self.register_requirements(
+            "BMS",
+            [
+                CapabilityRequirement(
+                    technology="BMS",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="bms_map_parsing",
+                    description="Parsing of BMS map definitions (DFHMSD/DFHMDI/DFHMDF).",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+                CapabilityRequirement(
+                    technology="BMS",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="bms_screen_field_extraction",
+                    description="Extraction of 3270 screen coordinates and emission of modern UI screen models.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+            ],
+        )
+
+        # ── VSAM ───────────────────────────────────────────────────────────
+        self.register_requirements(
+            "VSAM",
+            [
+                CapabilityRequirement(
+                    technology="VSAM",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="vsam_file_definition_analysis",
+                    description="Analysis of VSAM datasets, organizations (KSDS/ESDS/RRDS), and key offsets.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+                CapabilityRequirement(
+                    technology="VSAM",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="vsam_key_crud_mapping",
+                    description="Analysis of VSAM READ/WRITE/REWRITE/DELETE operations.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+            ],
+        )
+
+        # ── DB2 / EMBEDDED SQL ─────────────────────────────────────────────
+        self.register_requirements(
+            "DB2",
+            [
+                CapabilityRequirement(
+                    technology="DB2",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="db2_embedded_sql_extraction",
+                    description="Extraction of EXEC SQL statements, host variables, and SQLCA checks.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+                CapabilityRequirement(
+                    technology="DB2",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="db2_ddl_schema_analysis",
+                    description="Analysis of DB2 table schemas, indexes, and primary/foreign keys.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+            ],
+        )
+
+        # ── COPYBOOK ───────────────────────────────────────────────────────
+        copybook_reqs = [
+            CapabilityRequirement(
+                technology="COPYBOOK",
+                capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                capability_name="copybook_resolution_expansion",
+                description="Recursive resolution and expansion of COPY statements across libraries.",
+                mandatory=True,
+                minimum_level=CapabilityLevel.ANALYZE,
+            ),
+            CapabilityRequirement(
+                technology="COPYBOOK",
+                capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                capability_name="copybook_catalog_indexing",
+                description="Catalog indexing and nested copybook graph construction.",
+                mandatory=True,
+                minimum_level=CapabilityLevel.ANALYZE,
+            ),
+        ]
+        self.register_requirements("COPYBOOK", copybook_reqs)
+        self.register_requirements("COBOL_COPYBOOK", copybook_reqs)
+
+        # ── BATCH & TRANSACTION DEPENDENCIES ───────────────────────────────
+        self.register_requirements(
+            "DEPENDENCIES",
+            [
+                CapabilityRequirement(
+                    technology="DEPENDENCIES",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="batch_job_step_flow_analysis",
+                    description="Analysis of batch job step execution order and dataset linkages.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+                CapabilityRequirement(
+                    technology="DEPENDENCIES",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="cross_technology_call_graph",
+                    description="Multigraph representation of JCL -> COBOL -> CICS -> VSAM/DB2 interactions.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+            ],
+        )
+
+        # ── SQL / RELATIONAL DATABASES ─────────────────────────────────────
+        self.register_requirements(
+            "SQL",
+            [
+                CapabilityRequirement(
+                    technology="SQL",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="sql_ddl_parsing",
+                    description="Parsing and extraction of relational tables, columns, and constraints.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+                CapabilityRequirement(
+                    technology="SQL",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="sql_schema_verification",
+                    description="Executable schema verification against SQLite or relational engine.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.VERIFY,
+                ),
+            ],
+        )
+
+        # ── SPRING BOOT (Target) ───────────────────────────────────────────
+        self.register_requirements(
+            "SPRING_BOOT",
+            [
+                CapabilityRequirement(
+                    technology="SPRING_BOOT",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="spring_boot_project_generation",
+                    description="Generation of Spring Boot project layout, models, repositories, and controllers.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+                CapabilityRequirement(
+                    technology="SPRING_BOOT",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="spring_component_verification",
+                    description="Structural verification of Spring Boot components and annotations.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.VERIFY,
+                ),
+            ],
+        )
+
+        # ── FASTAPI (Target) ───────────────────────────────────────────────
+        self.register_requirements(
+            "FASTAPI",
+            [
+                CapabilityRequirement(
+                    technology="FASTAPI",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="fastapi_route_generation",
+                    description="Generation of FastAPI router endpoints, Pydantic models, and dependencies.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+                CapabilityRequirement(
+                    technology="FASTAPI",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="fastapi_route_verification",
+                    description="Verification of FastAPI routes and Pydantic schemas via AST.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.VERIFY,
+                ),
+            ],
+        )
+
+        # ── NODEJS (Target / Runtime) ──────────────────────────────────────
+        self.register_requirements(
+            "NODEJS",
+            [
+                CapabilityRequirement(
+                    technology="NODEJS",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="nodejs_project_generation",
+                    description="Generation of package.json, runtime scripts, and module structures.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+                CapabilityRequirement(
+                    technology="NODEJS",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="node_syntax_check",
+                    description="Node.js execution and syntax verification.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.VERIFY,
+                ),
+            ],
+        )
+
+        # ── EXPRESS (Target) ───────────────────────────────────────────────
+        self.register_requirements(
+            "EXPRESS",
+            [
+                CapabilityRequirement(
+                    technology="EXPRESS",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="express_route_generation",
+                    description="Generation of Express router handlers, middleware, and app setups.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+                CapabilityRequirement(
+                    technology="EXPRESS",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="express_route_verification",
+                    description="Verification of Express router scripts via Node runtime.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.VERIFY,
+                ),
+            ],
+        )
+
+        # ── REACT (Target) ─────────────────────────────────────────────────
+        self.register_requirements(
+            "REACT",
+            [
+                CapabilityRequirement(
+                    technology="REACT",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="react_component_generation",
+                    description="Generation of modern functional React components with hooks and TypeScript props.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+                CapabilityRequirement(
+                    technology="REACT",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="react_component_syntax_check",
+                    description="Verification of React component structure and JSX syntax.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.VERIFY,
+                ),
+            ],
+        )
+
+        # ── GO (Target) ────────────────────────────────────────────────────
+        self.register_requirements(
+            "GO",
+            [
+                CapabilityRequirement(
+                    technology="GO",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="go_source_generation",
+                    description="Generation of idiomatic Go packages, structs, and interfaces.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+                CapabilityRequirement(
+                    technology="GO",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="go_syntax_check",
+                    description="Verification of Go syntax and package compilation.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.VERIFY,
+                    remediation_hint="Install Go toolchain (e.g. brew install go) to enable Go verification.",
+                ),
+            ],
+        )
+
+        # ── REST API ───────────────────────────────────────────────────────
+        self.register_requirements(
+            "REST_API",
+            [
+                CapabilityRequirement(
+                    technology="REST_API",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="openapi_spec_generation",
+                    description="Emission of OpenAPI 3.0 / 3.1 REST contract specifications.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+                CapabilityRequirement(
+                    technology="REST_API",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="rest_contract_validation",
+                    description="Structural validation of REST contracts and OpenAPI schemas.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.VERIFY,
+                ),
+            ],
+        )
+
+        # ── DOCKER ─────────────────────────────────────────────────────────
+        self.register_requirements(
+            "DOCKER",
+            [
+                CapabilityRequirement(
+                    technology="DOCKER",
+                    capability_class=CapabilityClass.TARGET_GENERATION,
+                    capability_name="dockerfile_generation",
+                    description="Emission of production-grade, multi-stage Dockerfiles and container specs.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.FULL_TRANSFORM,
+                ),
+                CapabilityRequirement(
+                    technology="DOCKER",
+                    capability_class=CapabilityClass.SOURCE_UNDERSTANDING,
+                    capability_name="docker_syntax_validation",
+                    description="Static understanding and structural validation of Dockerfile instructions.",
+                    mandatory=True,
+                    minimum_level=CapabilityLevel.ANALYZE,
+                ),
+                CapabilityRequirement(
+                    technology="DOCKER",
+                    capability_class=CapabilityClass.TARGET_VERIFICATION,
+                    capability_name="docker_container_execution",
+                    description="Docker Engine build, run, and container execution.",
+                    mandatory=False,
+                    minimum_level=CapabilityLevel.VERIFY,
+                    remediation_hint="Install Docker Engine / Docker Desktop (brew install --cask docker).",
+                ),
+            ],
+        )
+
         # ── SPECIALIST TECHNOLOGIES (IMS, ASSEMBLER) ──────────────────────
         self.register_requirements(
             "IMS",

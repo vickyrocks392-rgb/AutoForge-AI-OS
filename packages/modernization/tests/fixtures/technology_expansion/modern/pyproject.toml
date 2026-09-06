@@ -1,0 +1,9 @@
+[project]
+name = "modernized-account-service"
+version = "1.0.0"
+description = "AutoForge modernized Python microservice"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.5.0",
+    "fastapi>=0.100.0",
+]

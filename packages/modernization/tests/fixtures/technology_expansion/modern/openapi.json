@@ -1,0 +1,45 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Modernized Account API",
+    "version": "1.0.0",
+    "description": "AutoForge generated and verified REST API contract"
+  },
+  "paths": {
+    "/api/v1/accounts": {
+      "get": {
+        "summary": "Retrieve all customer accounts",
+        "operationId": "getAccounts",
+        "responses": {
+          "200": {
+            "description": "A list of customer accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Account"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Account": {
+        "type": "object",
+        "required": ["accountId", "accountNumber", "balance", "status"],
+        "properties": {
+          "accountId": { "type": "string" },
+          "accountNumber": { "type": "string" },
+          "balance": { "type": "number", "format": "double" },
+          "status": { "type": "string", "enum": ["ACTIVE", "SUSPENDED", "CLOSED"] }
+        }
+      }
+    }
+  }
+}

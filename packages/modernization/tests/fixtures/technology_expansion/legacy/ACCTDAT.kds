@@ -1,0 +1,8 @@
+DEFINE CLUSTER (NAME(CARDDEMO.ACCTDATA) -
+               INDEXED -
+               KEYS(11 0) -
+               RECORDSIZE(120 120) -
+               FREESPACE(10 10) -
+               SHAREOPTIONS(2 3)) -
+        DATA   (NAME(CARDDEMO.ACCTDATA.DATA)) -
+        INDEX  (NAME(CARDDEMO.ACCTDATA.INDEX))
