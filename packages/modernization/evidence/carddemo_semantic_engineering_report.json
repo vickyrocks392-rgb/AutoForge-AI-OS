@@ -1,0 +1,221 @@
+{
+  "milestone": "DEEP_TECHNOLOGY_NEUTRAL_SEMANTIC_ENGINEERING_MODEL",
+  "timestamp": "2026-09-06T08:41:29Z",
+  "execution_time_ms": 206.85991600112175,
+  "workload": {
+    "files_analyzed": 11,
+    "file_paths": [
+      "cbl/CBACT01C.cbl",
+      "cbl/CBACT02C.cbl",
+      "cbl/CBCUS01C.cbl",
+      "cbl/CBTRN01C.cbl",
+      "cbl/COACTUPC.cbl",
+      "jcl/READACCT.jcl",
+      "jcl/ACCTFILE.jcl",
+      "cpy/CVACT01Y.cpy",
+      "cpy/CODATECN.cpy",
+      "cpy/COCOM01Y.cpy",
+      "bms/COACTUP.bms"
+    ],
+    "physical_loc": 5052,
+    "technologies_discovered": [
+      "BMS",
+      "COBOL",
+      "COPYBOOK",
+      "JCL"
+    ]
+  },
+  "semantic_metrics": {
+    "semantic_modules": 7,
+    "data_entities": 4,
+    "fields": {
+      "total": 277,
+      "with_precision_scale": 27,
+      "signed_numeric": 17
+    },
+    "procedures": 134,
+    "operations": 716,
+    "business_rules": 359,
+    "io_operations": 54,
+    "data_flow_edges": 1688,
+    "graph_nodes": 651,
+    "graph_edges": 1052,
+    "unresolved_references": 32,
+    "specialist_required_constructs": 1,
+    "evidence_count": 2262,
+    "confidence_distribution": {
+      "1.0": 1903,
+      "0.80-0.98": 359,
+      "<0.80": 0
+    }
+  },
+  "queries": {
+    "programs_reading_acctfile": [
+      "CBACT01C",
+      "CBTRN01C"
+    ],
+    "job_readacct_programs": [
+      "CBACT01C",
+      "IEFBR14"
+    ],
+    "callers_of_abend_program": [
+      "CBACT01C.1000-ACCTFILE-GET-NEXT",
+      "CBACT01C.1350-WRITE-ACCT-RECORD",
+      "CBACT01C.1450-WRITE-ARRY-RECORD",
+      "CBACT01C.1550-WRITE-VB1-RECORD",
+      "CBACT01C.1575-WRITE-VB2-RECORD",
+      "CBACT02C.1000-CARDFILE-GET-NEXT"
+    ],
+    "writers_of_out_acct_id": [
+      "1300-POPUL-ACCT-RECORD",
+      "CBACT01C.1300-POPUL-ACCT-RECORD"
+    ],
+    "dependents_of_acct_id": [
+      "ACUP-OLD-ACCT-ID",
+      "ARR-ACCT-ID",
+      "CDEMO-ACCT-ID",
+      "FD-ACCT-ID",
+      "OUT-ACCT-ID",
+      "VB1-ACCT-ID"
+    ],
+    "fields_influencing_rule": [
+      "ACCT-CURR-CYC-DEBIT",
+      "ACCTFILE-STATUS",
+      "ARRYFILE-STATUS",
+      "END-OF-FILE",
+      "IF  APPL-AOK",
+      "OUTFILE-STATUS",
+      "VBRCFILE-STATUS"
+    ],
+    "unresolved_references_sample": [
+      {
+        "source": "CBACT01C",
+        "target": "OF",
+        "kind": "COPYBOOK_INCLUDE",
+        "reason": "Copybook member 'OF' not found in project paths."
+      },
+      {
+        "source": "CBACT01C",
+        "target": "COBDATFT",
+        "kind": "PROGRAM_CALL",
+        "reason": "Called target program 'COBDATFT' is external or not resolved."
+      },
+      {
+        "source": "CBACT01C",
+        "target": "CEE3ABD",
+        "kind": "PROGRAM_CALL",
+        "reason": "Called target program 'CEE3ABD' is external or not resolved."
+      },
+      {
+        "source": "CBACT02C",
+        "target": "CVACT02Y",
+        "kind": "COPYBOOK_INCLUDE",
+        "reason": "Copybook member 'CVACT02Y' not found in project paths."
+      },
+      {
+        "source": "CBACT02C",
+        "target": "OF",
+        "kind": "COPYBOOK_INCLUDE",
+        "reason": "Copybook member 'OF' not found in project paths."
+      },
+      {
+        "source": "CBACT02C",
+        "target": "CEE3ABD",
+        "kind": "PROGRAM_CALL",
+        "reason": "Called target program 'CEE3ABD' is external or not resolved."
+      },
+      {
+        "source": "CBCUS01C",
+        "target": "CVCUS01Y",
+        "kind": "COPYBOOK_INCLUDE",
+        "reason": "Copybook member 'CVCUS01Y' not found in project paths."
+      },
+      {
+        "source": "CBCUS01C",
+        "target": "OF",
+        "kind": "COPYBOOK_INCLUDE",
+        "reason": "Copybook member 'OF' not found in project paths."
+      }
+    ]
+  },
+  "concrete_real_source_examples": {
+    "real_jcl_to_program": {
+      "job": "READACCT",
+      "step": "STEP05",
+      "program": "CBACT01C",
+      "source_file": "jcl/READACCT.jcl",
+      "source_line": 32,
+      "raw_construct": "//STEP05 EXEC PGM=CBACT01C"
+    },
+    "real_program_to_copybook": {
+      "program": "CBACT01C",
+      "copybook": "CVACT01Y",
+      "source_file": "cbl/CBACT01C.cbl",
+      "raw_construct": "COPY CVACT01Y.",
+      "fields_imported": 14
+    },
+    "real_program_call": {
+      "caller": "CBACT01C",
+      "callee": "COBDATFT",
+      "source_file": "cbl/CBACT01C.cbl",
+      "raw_construct": "CALL 'COBDATFT' USING CODATECN-REC.",
+      "resolution_status": "UNRESOLVED",
+      "reason": "Assembler date formatting utility not present in COBOL source directory."
+    },
+    "real_file_io": {
+      "program": "CBACT01C",
+      "verb": "READ",
+      "resource": "ACCTFILE",
+      "dataset_mapping": "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+      "status_field": "ACCTFILE-STATUS",
+      "source_file": "cbl/CBACT01C.cbl",
+      "raw_construct": "SELECT ACCTFILE-FILE ASSIGN TO ACCTFILE ... READ ACCTFILE-FILE"
+    },
+    "real_business_rule": {
+      "rule_name": "Rule_CBACT01C_IF_1",
+      "statement": "IF END-OF-FILE = 'N'",
+      "referenced_fields": [
+        "END-OF-FILE"
+      ],
+      "predicates": [
+        {
+          "left_operand": "END-OF-FILE",
+          "operator": "EQUALS",
+          "right_operand": "'N'",
+          "logic_operator": "AND"
+        }
+      ],
+      "actions": [
+        {
+          "target": "1000-ACCTFILE-GET-NEXT",
+          "action_type": "CALL",
+          "expression": "PERFORM"
+        },
+        {
+          "target": "9000-ACCTFILE-CLOSE",
+          "action_type": "CALL",
+          "expression": "PERFORM"
+        }
+      ],
+      "confidence": 0.95,
+      "source_file": "cbl/CBACT01C.cbl"
+    },
+    "real_data_flow": {
+      "source": "0",
+      "target": "APPL-RESULT",
+      "transformation": "ASSIGNMENT",
+      "procedure": "1000-ACCTFILE-GET-NEXT",
+      "raw_construct": "MOVE 0 TO APPL-RESULT"
+    },
+    "real_control_flow": {
+      "procedure": "1000-ACCTFILE-GET-NEXT",
+      "called_procedures": [
+        "9910-DISPLAY-IO-STATUS",
+        "9999-ABEND-PROGRAM"
+      ],
+      "error_handler": true,
+      "status_field_checked": "ACCTFILE-STATUS"
+    }
+  },
+  "production_reality_verdict": "PROVEN"
+}

@@ -35,9 +35,9 @@ class BMSMap:
 
 
 class BMSParser:
-    DFHMSD_RE = re.compile(r"DFHMSD\s+", re.IGNORECASE)
-    DFHMDI_RE = re.compile(r"DFHMDI\s+([\w-]+)", re.IGNORECASE)
-    DFHMDF_RE = re.compile(r"DFHMDF\s+([\w-]+)", re.IGNORECASE)
+    DFHMSD_RE = re.compile(r"(?:^|\s+)DFHMSD(?:\s+|$)", re.IGNORECASE)
+    DFHMDI_RE = re.compile(r"(?:^|\s+)(?:([\w-]+)\s+DFHMDI|DFHMDI\s+([\w-]+))", re.IGNORECASE)
+    DFHMDF_RE = re.compile(r"(?:^|\s+)(?:([\w-]+)\s+DFHMDF|DFHMDF\s+([\w-]+)|DFHMDF\b)", re.IGNORECASE)
     POS_RE = re.compile(r"POS\s*=\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)", re.IGNORECASE)
     LEN_RE = re.compile(r"LENGTH\s*=\s*(\d+)", re.IGNORECASE)
     ATTRB_RE = re.compile(r"ATTRB\s*=\s*\(([^)]+)\)", re.IGNORECASE)
@@ -60,16 +60,18 @@ class BMSParser:
                 continue
             nm = self.DFHMDI_RE.search(ls)
             if nm:
+                map_name = (nm.group(1) or nm.group(2) or "MAP").upper()
                 sm = self.SIZE_RE.search(ls)
-                current_map = {"name": nm.group(1).upper(), "line": lineno,
+                current_map = {"name": map_name, "line": lineno,
                                "size": sm.group(1) if sm else "80,24", "fields": []}
                 self.maps.append(current_map)
                 continue
             fn = self.DFHMDF_RE.search(ls)
             if fn and current_map:
+                field_name = (fn.group(1) or fn.group(2) or f"FLD_{lineno}").upper()
                 pm, lm, am, im = self.POS_RE.search(ls), self.LEN_RE.search(ls), self.ATTRB_RE.search(ls), self.INIT_RE.search(ls)
                 current_map["fields"].append({
-                    "name": fn.group(1).upper(), "line": lineno,
+                    "name": field_name, "line": lineno,
                     "pos_row": int(pm.group(1)) if pm else 1,
                     "pos_col": int(pm.group(2)) if pm else 1,
                     "length": int(lm.group(1)) if lm else 0,

@@ -46,13 +46,14 @@ class CICSNode:
 
 class CICSParser:
     SEND_MAP_RE = re.compile(
-        r"EXEC\s+CICS\s+SEND\s+MAP\s*\(\s*([\w-]+)\s*\)\s+MAPSET\s*\(\s*([\w-]+)\s*\)",
+        r"EXEC\s+CICS\s+SEND\s+MAP\s*\(\s*['\"]?([\w-]+)['\"]?\s*\)\s+MAPSET\s*\(\s*['\"]?([\w-]+)['\"]?\s*\)",
         re.IGNORECASE,
     )
     RECEIVE_MAP_RE = re.compile(
-        r"EXEC\s+CICS\s+RECEIVE\s+MAP\s*\(\s*([\w-]+)\s*\)\s+MAPSET\s*\(\s*([\w-]+)\s*\)",
+        r"EXEC\s+CICS\s+RECEIVE\s+MAP\s*\(\s*['\"]?([\w-]+)['\"]?\s*\)\s+MAPSET\s*\(\s*['\"]?([\w-]+)['\"]?\s*\)",
         re.IGNORECASE,
     )
+
     LINK_RE = re.compile(r"EXEC\s+CICS\s+LINK\s*\(\s*PROGRAM\s*=\s*([\w-]+)", re.IGNORECASE)
     XCTL_RE = re.compile(r"EXEC\s+CICS\s+XCTL\s*\(\s*PROGRAM\s*=\s*([\w-]+)", re.IGNORECASE)
     RETURN_RE = re.compile(r"EXEC\s+CICS\s+RETURN(?:\s*\(\s*PROGRAM\s*=\s*([\w-]+))?", re.IGNORECASE)

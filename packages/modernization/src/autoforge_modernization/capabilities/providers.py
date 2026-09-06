@@ -96,6 +96,10 @@ class VerifiedTechnologyProvider(ABC):
         """
         return False, f"Provider '{self.provider_id}' does not implement autonomous preparation."
 
+    def project_to_semantics(self, content: str, file_path: str = "") -> Any:
+        """Project technology-specific findings into generalized semantic concepts."""
+        return None
+
     def get_provenance(self) -> CapabilityProvenance:
         return CapabilityProvenance(
             provider_id=self.provider_id,
@@ -791,6 +795,10 @@ class PurePythonCOBOLProvider(VerifiedTechnologyProvider):
             "is_free": True,
         }
 
+    def project_to_semantics(self, content: str, file_path: str = "program.cbl") -> Any:
+        from autoforge_modernization.semantic.extractors import SemanticModelExtractor
+        return SemanticModelExtractor().extract_from_cobol(content, file_path=file_path)
+
 
 class JCLUnderstandingProvider(VerifiedTechnologyProvider):
     """Pure-Python deterministic parser for JCL syntax, jobs, and execution flows."""
@@ -867,6 +875,11 @@ class JCLUnderstandingProvider(VerifiedTechnologyProvider):
             "command": "bundled",
             "is_free": True,
         }
+
+    def project_to_semantics(self, content: str, file_path: str = "job.jcl") -> Any:
+        from autoforge_modernization.semantic.extractors import SemanticModelExtractor
+        return SemanticModelExtractor().extract_from_jcl(content, file_path=file_path)
+
 
 
 class SpecialistTechnologyProvider(VerifiedTechnologyProvider):
@@ -996,6 +1009,35 @@ class CICSUnderstandingProvider(VerifiedTechnologyProvider):
     def get_acquisition_recipe(self) -> dict[str, Any]:
         return {"source_url": "internal://autoforge-core", "package_manager": "builtin", "command": "bundled", "is_free": True}
 
+    def project_to_semantics(self, content: str, file_path: str = "program.cbl") -> Any:
+        from autoforge_modernization.cics_semantics import CICSParser, CICSKind
+        from autoforge_modernization.semantic.model import SemanticIOOperation, SemanticIOKind, SourceProvenance
+        parser = CICSParser(content)
+        nodes = parser.parse()
+        ops = []
+        for n in nodes:
+            if n.kind == CICSKind.SEND_MAP:
+                ops.append(SemanticIOOperation(
+                    kind=SemanticIOKind.TRANSACTION_OUTPUT,
+                    resource_name=n.map_name or "SCREEN_MAP",
+                    resource_type="cics_map",
+                    access_mode="output",
+                    line_number=n.line,
+                    original_construct=n.raw,
+                    provenance=SourceProvenance(source_file=file_path, original_construct=n.raw),
+                ))
+            elif n.kind == CICSKind.RECEIVE_MAP:
+                ops.append(SemanticIOOperation(
+                    kind=SemanticIOKind.TRANSACTION_INPUT,
+                    resource_name=n.map_name or "SCREEN_MAP",
+                    resource_type="cics_map",
+                    access_mode="input",
+                    line_number=n.line,
+                    original_construct=n.raw,
+                    provenance=SourceProvenance(source_file=file_path, original_construct=n.raw),
+                ))
+        return ops
+
 
 class BMSUnderstandingProvider(VerifiedTechnologyProvider):
     """Verified BMS 3270 screen map and field definition analyzer."""
@@ -1070,6 +1112,11 @@ class BMSUnderstandingProvider(VerifiedTechnologyProvider):
 
     def get_acquisition_recipe(self) -> dict[str, Any]:
         return {"source_url": "internal://autoforge-core", "package_manager": "builtin", "command": "bundled", "is_free": True}
+
+    def project_to_semantics(self, content: str, file_path: str = "screen.bms") -> Any:
+        from autoforge_modernization.semantic.extractors import SemanticModelExtractor
+        return SemanticModelExtractor().extract_from_bms(content, file_path=file_path)
+
 
 
 class VSAMUnderstandingProvider(VerifiedTechnologyProvider):
@@ -1162,6 +1209,35 @@ class VSAMUnderstandingProvider(VerifiedTechnologyProvider):
     def get_acquisition_recipe(self) -> dict[str, Any]:
         return {"source_url": "internal://autoforge-core", "package_manager": "builtin", "command": "bundled", "is_free": True}
 
+    def project_to_semantics(self, content: str, file_path: str = "program.cbl") -> Any:
+        from autoforge_modernization.vsam_semantics import VSAMAnalyzer
+        from autoforge_modernization.semantic.model import SemanticEntity, SemanticField, SemanticDataType
+        analyzer = VSAMAnalyzer(content)
+        analyzer.analyze()
+        entities = []
+        for ds_name, ds in analyzer.datasets.items():
+            entities.append(SemanticEntity(
+                name=ds_name,
+                entity_type="dataset_schema",
+                source_technology="VSAM",
+                fields=[SemanticField(name=str(ds.key_position or "KEY"), data_type=SemanticDataType.STRING, is_primary_key=True)],
+            ))
+        if not entities:
+            # Check for SELECT ... ORGANIZATION IS ...
+            import re
+            sel_m = re.findall(r"\bSELECT\s+([\w-]+)\s+ASSIGN\s+TO\s+([\w-]+)(?:.*?ORGANIZATION\s+IS\s+([\w-]+))?(?:.*?RECORD\s+KEY\s+IS\s+([\w-]+))?", content, re.IGNORECASE | re.DOTALL)
+            for sel_match in sel_m:
+                ds_name = sel_match[0].upper()
+                rec_key = sel_match[3] if len(sel_match) > 3 and sel_match[3] else "KEY"
+                entities.append(SemanticEntity(
+                    name=ds_name,
+                    entity_type="dataset_schema",
+                    source_technology="VSAM",
+                    fields=[SemanticField(name=rec_key, data_type=SemanticDataType.STRING, is_primary_key=True)],
+                ))
+        return entities
+
+
 
 class DB2SQLUnderstandingProvider(VerifiedTechnologyProvider):
     """Verified DB2 schema and embedded SQL analyzer."""
@@ -1239,6 +1315,11 @@ class DB2SQLUnderstandingProvider(VerifiedTechnologyProvider):
     def get_acquisition_recipe(self) -> dict[str, Any]:
         return {"source_url": "internal://autoforge-core", "package_manager": "builtin", "command": "bundled", "is_free": True}
 
+    def project_to_semantics(self, content: str, file_path: str = "schema.sql") -> Any:
+        from autoforge_modernization.semantic.extractors import SemanticModelExtractor
+        return SemanticModelExtractor().extract_from_sql(content, file_path=file_path)
+
+
 
 class CopybookResolutionProvider(VerifiedTechnologyProvider):
     """Verified COBOL copybook resolver, dependency mapper, and cataloger."""
@@ -1312,6 +1393,11 @@ class CopybookResolutionProvider(VerifiedTechnologyProvider):
 
     def get_acquisition_recipe(self) -> dict[str, Any]:
         return {"source_url": "internal://autoforge-core", "package_manager": "builtin", "command": "bundled", "is_free": True}
+
+    def project_to_semantics(self, content: str, file_path: str = "copybook.cpy") -> Any:
+        from autoforge_modernization.semantic.extractors import SemanticModelExtractor
+        return SemanticModelExtractor().extract_from_copybook(content, file_path=file_path)
+
 
 
 class BatchTransactionDependencyProvider(VerifiedTechnologyProvider):
@@ -1390,6 +1476,13 @@ class BatchTransactionDependencyProvider(VerifiedTechnologyProvider):
 
     def get_acquisition_recipe(self) -> dict[str, Any]:
         return {"source_url": "internal://autoforge-core", "package_manager": "builtin", "command": "bundled", "is_free": True}
+
+    def project_to_semantics(self, project_path: str, file_paths: list[str] | None = None) -> Any:
+        from autoforge_modernization.semantic.extractors import ProjectSemanticExtractor
+        extractor = ProjectSemanticExtractor()
+        model = extractor.extract_project(project_path, file_paths=file_paths)
+        return model.semantic_graph
+
 
 
 class RelationalDatabaseProvider(VerifiedTechnologyProvider):
