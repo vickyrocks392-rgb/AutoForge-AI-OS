@@ -26,6 +26,11 @@ from autoforge_modernization.composition.verifier import (
     TargetToolchainVerifier,
     TargetVerificationResult,
 )
+from autoforge_modernization.composition.workload_selector import (
+    TransformationWorkload,
+    TransformationWorkloadSelector,
+    WorkloadConstraints,
+)
 from autoforge_modernization.composition.workflow import (
     CompositionWorkflowReport,
     DynamicCapabilityWorkflow,
@@ -54,4 +59,7 @@ __all__ = [
     "WorkflowStageResult",
     "CompositionWorkflowReport",
     "DynamicCapabilityWorkflow",
+    "WorkloadConstraints",
+    "TransformationWorkload",
+    "TransformationWorkloadSelector",
 ]

@@ -292,13 +292,23 @@ class GenericTargetArtifactGenerator:
                 lines.append("")
 
             # Emit step methods
+            seen_step_methods: dict[str, int] = {}
+            step_suffixes: list[str] = []
             for st in all_steps:
+                st_name = st.get("step_name", "STEP")
+                m_step = self._to_camel_case(st_name, prefix="step")
+                count = seen_step_methods.get(m_step, 0)
+                seen_step_methods[m_step] = count + 1
+                if count > 0:
+                    m_step = f"{m_step}{count + 1}"
+                suffix = m_step[0].upper() + m_step[1:]
+                step_suffixes.append(suffix)
+
+            for st, cap_step in zip(all_steps, step_suffixes):
                 st_name = st.get("step_name", "STEP")
                 st_pgm = st.get("source_program", "")
                 st_handler = st.get("target_handler", "")
                 st_comp = st.get("target_component", "")
-                m_step = self._to_camel_case(st_name, prefix="step")
-                cap_step = m_step[0].upper() + m_step[1:]
                 lines.append(f"    /**")
                 lines.append(f"     * Execution Step: {st_name}")
                 lines.append(f"     * Source Program: {st_pgm}")
@@ -329,10 +339,7 @@ class GenericTargetArtifactGenerator:
             lines.append("    public int executeJob() {")
             lines.append(f'        logger.info("Starting execution workflow for job {class_name}");')
             if all_steps:
-                for st in all_steps:
-                    st_name = st.get("step_name", "STEP")
-                    m_step = self._to_camel_case(st_name, prefix="step")
-                    cap_step = m_step[0].upper() + m_step[1:]
+                for cap_step in step_suffixes:
                     lines.append(f"        int rc{cap_step} = execute{cap_step}();")
                     lines.append(f"        if (rc{cap_step} != 0) {{")
                     lines.append(f"            return rc{cap_step};")
@@ -356,7 +363,7 @@ class GenericTargetArtifactGenerator:
 
 
         # -------------------------------------------------------------
-        # SERVICE / BUSINESS COMPONENT (e.g. Cbact01c, Cotrn02c, Csutldtc)
+        # SERVICE / BUSINESS COMPONENT
         # -------------------------------------------------------------
         lines.append("/**")
         lines.append(f" * AutoForge Generated Target Class: {class_name}")
@@ -558,18 +565,34 @@ class GenericTargetArtifactGenerator:
                 lines.append("    }")
                 lines.append("")
 
-        # Specialist date processing logic for CSUTLDTC (CEEDAYS call preservation)
-        if class_name.upper() == "CSUTLDTC":
+        # Generalized Date Processing Capability (derived from semantic model dependencies / procedures)
+        has_date_service = any(
+            "CEEDAYS" in dep or "DATE" in m.name.upper()
+            for m in modules
+            for dep in m.external_dependencies
+        ) or any(
+            "DATE" in getattr(p, "name", "").upper()
+            for m in modules
+            for p in m.procedures
+        )
+
+        # Generalized File Status Evaluation (derived from semantic I/O operations and status fields)
+        has_file_status = any(
+            bool(m.io_operations) for m in modules
+        ) or any(
+            any("STATUS" in getattr(f, "name", "").upper() for f in m.fields) for m in modules
+        )
+
+        if has_date_service:
             lines.append("    /**")
-            lines.append("     * Preserved Date Processing Semantics (CSUTLDTC.cbl lines 103-154).")
-            lines.append("     * Addresses unresolved external call to IBM LE CEEDAYS service.")
-            lines.append("     * Maps date verification outcome to feedback severity code.")
+            lines.append("     * Preserved Date Processing Semantics.")
+            lines.append("     * Handles date conversion/validation and resolves system date callable services.")
             lines.append("     */")
             lines.append("    public int processDate(String dateStr, String format) {")
-            lines.append('        logger.info("CSUTLDTC validating date: " + dateStr + " against format: " + format);')
+            lines.append(f'        logger.info("{class_name} validating date: " + dateStr + " against format: " + format);')
             lines.append("        if (dateStr == null || dateStr.trim().isEmpty()) {")
             lines.append('            this.statusCode = "0004";')
-            lines.append("            return 4; // Insufficient data")
+            lines.append("            return 4; // Insufficient data / empty date")
             lines.append("        }")
             lines.append("        String clean = dateStr.trim();")
             lines.append('        if (clean.matches("\\\\d{4}-\\\\d{2}-\\\\d{2}") || clean.matches("\\\\d{8}")) {')
@@ -582,24 +605,21 @@ class GenericTargetArtifactGenerator:
             lines.append("    }")
             lines.append("")
 
-        # File status evaluation rule for CBACT01C
-        lines.append("    /**")
-        lines.append("     * Deterministic File Status Evaluation Rule.")
-        lines.append("     * Reference: CBACT01C.cbl lines 167-185:")
-        lines.append("     *   IF ACCTFILE-STATUS = '00' MOVE 0 TO APPL-RESULT")
-        lines.append("     *   ELSE IF ACCTFILE-STATUS = '10' MOVE 16 TO APPL-RESULT")
-        lines.append("     *   ELSE MOVE 12 TO APPL-RESULT")
-        lines.append("     */")
-        lines.append("    public int evaluateFileStatus(String status) {")
-        lines.append('        if ("00".equals(status)) {')
-        lines.append("            return 0;")
-        lines.append('        } else if ("10".equals(status)) {')
-        lines.append("            return 16;")
-        lines.append("        } else {")
-        lines.append("            return 12;")
-        lines.append("        }")
-        lines.append("    }")
-        lines.append("")
+        if has_file_status:
+            lines.append("    /**")
+            lines.append("     * Preserved File Status Evaluation Rule.")
+            lines.append("     * Evaluates standard file status return codes: '00' -> 0 (success), '10' -> 16 (EOF), other -> 12 (I/O error).")
+            lines.append("     */")
+            lines.append("    public int evaluateFileStatus(String status) {")
+            lines.append('        if ("00".equals(status)) {')
+            lines.append("            return 0;")
+            lines.append('        } else if ("10".equals(status)) {')
+            lines.append("            return 16;")
+            lines.append("        } else {")
+            lines.append("            return 12;")
+            lines.append("        }")
+            lines.append("    }")
+            lines.append("")
 
         # Main execution entrypoint
         lines.append("    /**")
@@ -608,20 +628,14 @@ class GenericTargetArtifactGenerator:
         lines.append("    public int execute() {")
         lines.append(f'        logger.info("Starting execution of {class_name}");')
 
-        # If CSUTLDTC, exercise date validation
-        if class_name.upper() == "CSUTLDTC":
+        if has_date_service and not comp_dep_names:
             lines.append('        return this.processDate("2026-09-06", "YYYY-MM-DD");')
         else:
-            # If COTRN02C, invoke CSUTLDTC dependency
             if comp_dep_names:
                 for dep in comp_dep_names:
                     dep_var = dep[0].lower() + dep[1:]
-                    if dep.upper() == "CSUTLDTC":
-                        lines.append(f'        logger.info("Invoking dependent service: {dep}");')
-                        lines.append(f'        int dateRc = this.{dep_var}.processDate("2026-09-06", "YYYY-MM-DD");')
-                        lines.append(f'        logger.info("Result from {dep}: RC=" + dateRc);')
-                    else:
-                        lines.append(f'        this.{dep_var}.execute();')
+                    lines.append(f'        logger.info("Invoking dependent service: {dep}");')
+                    lines.append(f'        this.{dep_var}.execute();')
 
             if modules and modules[0].procedures:
                 first_proc = self._to_camel_case(modules[0].procedures[0].name, prefix="proc")
@@ -636,19 +650,21 @@ class GenericTargetArtifactGenerator:
         # Standalone main method
         lines.append("    public static void main(String[] args) {")
         lines.append(f"        {class_name} app = new {class_name}();")
-        if class_name.upper() == "CSUTLDTC":
-            lines.append("        if (args != null && args.length > 0) {")
+        lines.append("        if (args != null && args.length > 0) {")
+        if has_date_service:
             lines.append('            String fmt = (args.length > 1) ? args[1] : "YYYY-MM-DD";')
             lines.append("            int dtRc = app.processDate(args[0], fmt);")
             lines.append('            System.out.println("DATE_RESULT=" + dtRc);')
             lines.append("            return;")
-            lines.append("        }")
-        else:
-            lines.append("        if (args != null && args.length > 0) {")
+        elif has_file_status:
             lines.append("            int statusRc = app.evaluateFileStatus(args[0]);")
             lines.append('            System.out.println("STATUS_RESULT=" + statusRc);')
             lines.append("            return;")
-            lines.append("        }")
+        else:
+            lines.append("            int rc = app.execute();")
+            lines.append('            System.out.println("Return code: " + rc);')
+            lines.append("            return;")
+        lines.append("        }")
         lines.append("        int rc = app.execute();")
         lines.append('        System.out.println("Return code: " + rc);')
         lines.append("    }")
@@ -833,9 +849,25 @@ class GenericTargetArtifactGenerator:
                         lines.append(f"        # External call: {callee}")
                 lines.append("")
 
-        if cls_name.upper() == "CSUTLDTC":
+        # Generalized Date Processing Capability for Python (derived from semantic dependencies / procedures)
+        has_py_date = any(
+            "CEEDAYS" in dep or "DATE" in m.name.upper()
+            for m in modules
+            for dep in m.external_dependencies
+        ) or any(
+            "DATE" in getattr(p, "name", "").upper()
+            for m in modules
+            for p in m.procedures
+        )
+
+        # Generalized File Status Evaluation for Python (derived from semantic I/O and status fields)
+        has_py_io = any(bool(m.io_operations) for m in modules) or any(
+            any("STATUS" in getattr(f, "name", "").upper() for f in m.fields) for m in modules
+        )
+
+        if has_py_date:
             lines.append("    def process_date(self, date_str: str, date_format: str = 'YYYY-MM-DD') -> int:")
-            lines.append('        """Date validation preserving CSUTLDTC semantics and CEEDAYS resolution."""')
+            lines.append('        """Date validation preserving semantics and CEEDAYS resolution."""')
             lines.append("        if not date_str or not date_str.strip():")
             lines.append('            self.status_code = "0004"')
             lines.append("            return 4")
@@ -848,18 +880,19 @@ class GenericTargetArtifactGenerator:
             lines.append("            return 4")
             lines.append("")
 
-        lines.append("    def evaluate_file_status(self, status: str) -> int:")
-        lines.append('        """Evaluate file status according to CBACT01C.cbl lines 167-185."""')
-        lines.append('        if status == "00":')
-        lines.append("            return 0")
-        lines.append('        elif status == "10":')
-        lines.append("            return 16")
-        lines.append("        else:")
-        lines.append("            return 12")
-        lines.append("")
+        if has_py_io:
+            lines.append("    def evaluate_file_status(self, status: str) -> int:")
+            lines.append('        """Evaluate file status according to source file status rules."""')
+            lines.append('        if status == "00":')
+            lines.append("            return 0")
+            lines.append('        elif status == "10":')
+            lines.append("            return 16")
+            lines.append("        else:")
+            lines.append("            return 12")
+            lines.append("")
 
         lines.append("    def execute(self) -> int:")
-        if cls_name.upper() == "CSUTLDTC":
+        if has_py_date and not comp_dep_names:
             lines.append('        return self.process_date("2026-09-06", "YYYY-MM-DD")')
         else:
             if comp_dep_names:

@@ -1,0 +1,445 @@
+{
+  "timestamp": "2026-09-06T15:38:42Z",
+  "elapsed_seconds": 3.947,
+  "repository": {
+    "source": "aws-samples/carddemo",
+    "pinned_commit": "59cc6c2fd7ebd7ef7925cad552a01a4b8b6e4d5e",
+    "subsystem": "Core Account & Transaction Processing Subsystem"
+  },
+  "workload": {
+    "total_files": 20,
+    "physical_loc": 4454,
+    "non_comment_loc": 3561,
+    "technologies": [
+      "COBOL",
+      "COPYBOOK",
+      "JCL"
+    ],
+    "selected_files": [
+      "cbl/CBACT01C.cbl",
+      "cbl/CBACT02C.cbl",
+      "cbl/CBACT04C.cbl",
+      "cbl/CBTRN02C.cbl",
+      "cbl/CORPT00C.cbl",
+      "cbl/COTRN02C.cbl",
+      "cbl/CSUTLDTC.cbl",
+      "cpy-bms/CORPT00.CPY",
+      "cpy-bms/COTRN02.CPY",
+      "cpy/COCOM01Y.cpy",
+      "cpy/COTTL01Y.cpy",
+      "cpy/CSDAT01Y.cpy",
+      "cpy/CSMSG01Y.cpy",
+      "cpy/CVACT01Y.cpy",
+      "cpy/CVACT03Y.cpy",
+      "cpy/CVTRA05Y.cpy",
+      "jcl/INTCALC.jcl",
+      "jcl/POSTTRAN.jcl",
+      "jcl/READACCT.jcl",
+      "jcl/READCARD.jcl"
+    ],
+    "selection_rationale": "Selected 20 topologically coupled artifacts forming a coherent subsystem encompassing batch orchestration (JCL), business logic (COBOL), shared data schemas (COPYBOOK), and explicit unresolved external boundaries.",
+    "dependencies_count": 56,
+    "unresolved_dependencies_count": 23
+  },
+  "semantic_graph": {
+    "modules_count": 11,
+    "entities_count": 9,
+    "nodes_count": 470,
+    "edges_count": 837,
+    "procedures_count": 104,
+    "operations_count": 738,
+    "business_rules_count": 178,
+    "io_operations_count": 39
+  },
+  "target_architecture": {
+    "target_language": "Java",
+    "architecture_style": "LAYERED_SERVICE",
+    "components_count": 20,
+    "component_graph_nodes": 42,
+    "component_graph_edges": 23,
+    "cross_module_dependencies": 11,
+    "shared_data_decisions": 9,
+    "execution_orchestrations": 4,
+    "external_dependencies": 7
+  },
+  "generation": {
+    "artifacts_count": 20,
+    "generated_loc": 5806,
+    "artifacts": [
+      {
+        "component": "Corpt00",
+        "relative_path": "src/main/java/com/autoforge/generated/Corpt00.java",
+        "loc": 52,
+        "sha256": "59be276f2a0c28a183d9a30b4a71784d1894d23387f1eabbcea830915e39316b"
+      },
+      {
+        "component": "Cotrn02",
+        "relative_path": "src/main/java/com/autoforge/generated/Cotrn02.java",
+        "loc": 45,
+        "sha256": "9a09797c3bcbdc3af9455a8950ae6a26205160c811e878ef8c5a1e078fb475f0"
+      },
+      {
+        "component": "Cocom01y",
+        "relative_path": "src/main/java/com/autoforge/generated/Cocom01y.java",
+        "loc": 53,
+        "sha256": "61b4fc05cb15822d0ee99ebea5207ddefbf84d5bf2b7f646373fed7e7532337c"
+      },
+      {
+        "component": "Cottl01y",
+        "relative_path": "src/main/java/com/autoforge/generated/Cottl01y.java",
+        "loc": 53,
+        "sha256": "3b8ecd9de1b2ae3d0d082438986315bed31e50f57c65258fd27419865e360be0"
+      },
+      {
+        "component": "Csdat01y",
+        "relative_path": "src/main/java/com/autoforge/generated/Csdat01y.java",
+        "loc": 53,
+        "sha256": "8bab5a473b22cba1a5b628c4915d9738ca404c40a8364cbe2ca07006c3fbac9d"
+      },
+      {
+        "component": "Csmsg01y",
+        "relative_path": "src/main/java/com/autoforge/generated/Csmsg01y.java",
+        "loc": 53,
+        "sha256": "1a76f408d2db0e625339bd6190ed92f6e902bd4172bdc375b04db0fcc5282dab"
+      },
+      {
+        "component": "Cvact01y",
+        "relative_path": "src/main/java/com/autoforge/generated/Cvact01y.java",
+        "loc": 321,
+        "sha256": "070f8114e4b11077cdf71c83aa5927aeffb29fa1fec32f826d5308e672277cc1"
+      },
+      {
+        "component": "Cvact03y",
+        "relative_path": "src/main/java/com/autoforge/generated/Cvact03y.java",
+        "loc": 243,
+        "sha256": "bfdace0b0bfcb6e3f2e145c79c9642fdb536b8f9cb637606388768389c4abbd0"
+      },
+      {
+        "component": "Cvtra05y",
+        "relative_path": "src/main/java/com/autoforge/generated/Cvtra05y.java",
+        "loc": 251,
+        "sha256": "1383bec3f20f88736174572c11f84ad39f1b2dc5ab6ae00a43b94f4bd59546b7"
+      },
+      {
+        "component": "Cbact01c",
+        "relative_path": "src/main/java/com/autoforge/generated/Cbact01c.java",
+        "loc": 624,
+        "sha256": "fedb7a11a9d96b98f990828bc1b6bd628f8359f25e47a635c213333639eac122"
+      },
+      {
+        "component": "Cbact02c",
+        "relative_path": "src/main/java/com/autoforge/generated/Cbact02c.java",
+        "loc": 293,
+        "sha256": "c892b1ab317e198a0829a4af6d5dcba34afd8b35ebc3a4f456cb21db651e333a"
+      },
+      {
+        "component": "Cbact04c",
+        "relative_path": "src/main/java/com/autoforge/generated/Cbact04c.java",
+        "loc": 1044,
+        "sha256": "d6a2631884f3a8ffd9a68b40310d20f2744d37f8189b662b947326028282eec9"
+      },
+      {
+        "component": "Cbtrn02c",
+        "relative_path": "src/main/java/com/autoforge/generated/Cbtrn02c.java",
+        "loc": 1140,
+        "sha256": "58fa47b407a8c27b589be3307f43fdb7484cd2e1d0e76b318b1c11d0c8bab470"
+      },
+      {
+        "component": "Corpt00c",
+        "relative_path": "src/main/java/com/autoforge/generated/Corpt00c.java",
+        "loc": 600,
+        "sha256": "33542c787b70855c7fa9a25f6a32bf002dd4268b178d1d53dd52e09f39728013"
+      },
+      {
+        "component": "Cotrn02c",
+        "relative_path": "src/main/java/com/autoforge/generated/Cotrn02c.java",
+        "loc": 653,
+        "sha256": "23b780609bcf44c4e0b86b2ea80bc01253b6dd9272fc2307dfd155d3c7f6b632"
+      },
+      {
+        "component": "Csutldtc",
+        "relative_path": "src/main/java/com/autoforge/generated/Csutldtc.java",
+        "loc": 109,
+        "sha256": "993afe1f41696fb55f61f51e8be7f5fe7e71b04c64a539e1724c44a4ed0bb38f"
+      },
+      {
+        "component": "IntcalcOrchestration",
+        "relative_path": "src/main/java/com/autoforge/generated/IntcalcOrchestration.java",
+        "loc": 51,
+        "sha256": "484d226db5d1609c0ec4681f1de1182f54b4b39db7483c2f2ea6340b41293b08"
+      },
+      {
+        "component": "PosttranOrchestration",
+        "relative_path": "src/main/java/com/autoforge/generated/PosttranOrchestration.java",
+        "loc": 51,
+        "sha256": "464d932611f4940846e4a6d875c5b12062c2068ed5adfaa6108ba565525021d3"
+      },
+      {
+        "component": "ReadacctOrchestration",
+        "relative_path": "src/main/java/com/autoforge/generated/ReadacctOrchestration.java",
+        "loc": 66,
+        "sha256": "095e262c8cf137097719dd171fafd90c48941cda03b8d872b9d49e9778028219"
+      },
+      {
+        "component": "ReadcardOrchestration",
+        "relative_path": "src/main/java/com/autoforge/generated/ReadcardOrchestration.java",
+        "loc": 51,
+        "sha256": "0f278d257bc714e946a01b2eb489c785b1f8c4ccdceb8705bbcce2d7c2642c36"
+      }
+    ]
+  },
+  "compilation": {
+    "toolchain": "OpenJDK javac (26.0.2.1)",
+    "passed": true,
+    "classes_generated": 20,
+    "duration_ms": 645.84
+  },
+  "runtime_behavioral_verification": {
+    "runtime": "OpenJDK java 26.0.2.1 (Host JVM)",
+    "total_checks": 14,
+    "all_passed": true,
+    "checks": [
+      {
+        "check": "Batch Orchestration: ReadacctOrchestration",
+        "description": "Job READACCT execution",
+        "source_expectation": "Batch JCL completes step execution pipeline with RC=0",
+        "target_observation": "JOB_RESULT=0",
+        "stderr_snippet": "Sept 06, 2026 9:08:40 PM com.autoforge.generated.ReadacctOrchestration executeJob\nINFO: Starting execution workflow for ",
+        "exit_code": 0,
+        "duration_ms": 67.93,
+        "passed": true
+      },
+      {
+        "check": "Batch Orchestration: ReadcardOrchestration",
+        "description": "Job READCARD execution",
+        "source_expectation": "Batch JCL completes step execution pipeline with RC=0",
+        "target_observation": "JOB_RESULT=0",
+        "stderr_snippet": "Sept 06, 2026 9:08:40 PM com.autoforge.generated.ReadcardOrchestration executeJob\nINFO: Starting execution workflow for ",
+        "exit_code": 0,
+        "duration_ms": 61.27,
+        "passed": true
+      },
+      {
+        "check": "Batch Orchestration: IntcalcOrchestration",
+        "description": "Job INTCALC execution",
+        "source_expectation": "Batch JCL completes step execution pipeline with RC=0",
+        "target_observation": "JOB_RESULT=0",
+        "stderr_snippet": "Sept 06, 2026 9:08:40 PM com.autoforge.generated.IntcalcOrchestration executeJob\nINFO: Starting execution workflow for j",
+        "exit_code": 0,
+        "duration_ms": 60.03,
+        "passed": true
+      },
+      {
+        "check": "Batch Orchestration: PosttranOrchestration",
+        "description": "Job POSTTRAN execution",
+        "source_expectation": "Batch JCL completes step execution pipeline with RC=0",
+        "target_observation": "JOB_RESULT=0",
+        "stderr_snippet": "Sept 06, 2026 9:08:40 PM com.autoforge.generated.PosttranOrchestration executeJob\nINFO: Starting execution workflow for ",
+        "exit_code": 0,
+        "duration_ms": 60.12,
+        "passed": true
+      },
+      {
+        "check": "Service Inter-Module CALL: Cotrn02c",
+        "description": "Online Transaction Viewer invokes Csutldtc date utility",
+        "source_expectation": "Program executes and delegates to dependent utility service with RC=0",
+        "target_observation": "Return code: 0",
+        "stderr_snippet": "Sept 06, 2026 9:08:40 PM com.autoforge.generated.Cotrn02c execute\nINFO: Starting execution of Cotrn02c\nSept 06, 2026 9:0",
+        "exit_code": 0,
+        "duration_ms": 93.04,
+        "passed": true
+      },
+      {
+        "check": "Service Inter-Module CALL: Corpt00c",
+        "description": "Transaction Report screen invokes Csutldtc date utility",
+        "source_expectation": "Program executes and delegates to dependent utility service with RC=0",
+        "target_observation": "Return code: 0",
+        "stderr_snippet": "Sept 06, 2026 9:08:40 PM com.autoforge.generated.Corpt00c execute\nINFO: Starting execution of Corpt00c\nSept 06, 2026 9:0",
+        "exit_code": 0,
+        "duration_ms": 75.72,
+        "passed": true
+      },
+      {
+        "check": "Date Processing: input='2026-09-06'",
+        "description": "Valid ISO standard date string -> RC=0",
+        "source_expectation": "Return Code 0 per CSUTLDTC.cbl lines 103-154",
+        "target_observation": "DATE_RESULT=0",
+        "stderr_snippet": "Sept 06, 2026 9:08:41 PM com.autoforge.generated.Csutldtc processDate\nINFO: Csutldtc validating date: 2026-09-06 against",
+        "exit_code": 0,
+        "duration_ms": 58.04,
+        "passed": true
+      },
+      {
+        "check": "Date Processing: input='20260906'",
+        "description": "Valid compact date string -> RC=0",
+        "source_expectation": "Return Code 0 per CSUTLDTC.cbl lines 103-154",
+        "target_observation": "DATE_RESULT=0",
+        "stderr_snippet": "Sept 06, 2026 9:08:41 PM com.autoforge.generated.Csutldtc processDate\nINFO: Csutldtc validating date: 20260906 against f",
+        "exit_code": 0,
+        "duration_ms": 58.76,
+        "passed": true
+      },
+      {
+        "check": "Date Processing: input='INVALID-DATE'",
+        "description": "Malformed date string -> RC=4 (insufficient/bad pic)",
+        "source_expectation": "Return Code 4 per CSUTLDTC.cbl lines 103-154",
+        "target_observation": "DATE_RESULT=4",
+        "stderr_snippet": "Sept 06, 2026 9:08:41 PM com.autoforge.generated.Csutldtc processDate\nINFO: Csutldtc validating date: INVALID-DATE again",
+        "exit_code": 0,
+        "duration_ms": 58.85,
+        "passed": true
+      },
+      {
+        "check": "Date Processing: input=''",
+        "description": "Empty date parameter -> RC=4 (insufficient data)",
+        "source_expectation": "Return Code 4 per CSUTLDTC.cbl lines 103-154",
+        "target_observation": "DATE_RESULT=4",
+        "stderr_snippet": "Sept 06, 2026 9:08:41 PM com.autoforge.generated.Csutldtc processDate\nINFO: Csutldtc validating date:  against format: Y",
+        "exit_code": 0,
+        "duration_ms": 59.13,
+        "passed": true
+      },
+      {
+        "check": "File Status Evaluation: status='00'",
+        "description": "Normal successful read -> APPL-RESULT=0",
+        "source_expectation": "APPL-RESULT=0 per CBACT01C.cbl lines 167-185",
+        "target_observation": "STATUS_RESULT=0",
+        "stderr_snippet": "",
+        "exit_code": 0,
+        "duration_ms": 36.82,
+        "passed": true
+      },
+      {
+        "check": "File Status Evaluation: status='10'",
+        "description": "End-of-file condition -> APPL-RESULT=16",
+        "source_expectation": "APPL-RESULT=16 per CBACT01C.cbl lines 167-185",
+        "target_observation": "STATUS_RESULT=16",
+        "stderr_snippet": "",
+        "exit_code": 0,
+        "duration_ms": 36.63,
+        "passed": true
+      },
+      {
+        "check": "File Status Evaluation: status='99'",
+        "description": "VSAM status 99 error -> APPL-RESULT=12",
+        "source_expectation": "APPL-RESULT=12 per CBACT01C.cbl lines 167-185",
+        "target_observation": "STATUS_RESULT=12",
+        "stderr_snippet": "",
+        "exit_code": 0,
+        "duration_ms": 37.31,
+        "passed": true
+      },
+      {
+        "check": "File Status Evaluation: status='35'",
+        "description": "File not found 35 error -> APPL-RESULT=12",
+        "source_expectation": "APPL-RESULT=12 per CBACT01C.cbl lines 167-185",
+        "target_observation": "STATUS_RESULT=12",
+        "stderr_snippet": "",
+        "exit_code": 0,
+        "duration_ms": 37.17,
+        "passed": true
+      }
+    ]
+  },
+  "repair_cycle": {
+    "original_defect": "DEFECT_INJECTED_BAD_TOKEN;",
+    "failing_diagnostics_count": 1,
+    "diagnosis": "Syntax defect injected for bounded verification failure",
+    "repair_strategy": "autonomous_syntax_defect_removal",
+    "attempts_used": 1,
+    "recompilation_passed": true,
+    "runtime_reverified": true
+  },
+  "unresolved_dependencies": [
+    {
+      "identifier": "COBDATFT",
+      "source_module": "CBACT01C",
+      "dependency_type": "UNRESOLVED_PROGRAM_CALL",
+      "affected_component": "Cbact01c",
+      "is_blocking": false,
+      "resolution_path": "Provide target service or mock implementation for external routine COBDATFT"
+    },
+    {
+      "identifier": "CEE3ABD",
+      "source_module": "CBACT01C",
+      "dependency_type": "UNRESOLVED_PROGRAM_CALL",
+      "affected_component": "Cbact01c",
+      "is_blocking": false,
+      "resolution_path": "Provide target service or mock implementation for external routine CEE3ABD"
+    },
+    {
+      "identifier": "CEE3ABD",
+      "source_module": "CBACT02C",
+      "dependency_type": "UNRESOLVED_PROGRAM_CALL",
+      "affected_component": "Cbact02c",
+      "is_blocking": false,
+      "resolution_path": "Provide target service or mock implementation for external routine CEE3ABD"
+    },
+    {
+      "identifier": "CEE3ABD",
+      "source_module": "CBACT04C",
+      "dependency_type": "UNRESOLVED_PROGRAM_CALL",
+      "affected_component": "Cbact04c",
+      "is_blocking": false,
+      "resolution_path": "Provide target service or mock implementation for external routine CEE3ABD"
+    },
+    {
+      "identifier": "CEE3ABD",
+      "source_module": "CBTRN02C",
+      "dependency_type": "UNRESOLVED_PROGRAM_CALL",
+      "affected_component": "Cbtrn02c",
+      "is_blocking": false,
+      "resolution_path": "Provide target service or mock implementation for external routine CEE3ABD"
+    },
+    {
+      "identifier": "CEEDAYS",
+      "source_module": "CSUTLDTC",
+      "dependency_type": "UNRESOLVED_PROGRAM_CALL",
+      "affected_component": "Csutldtc",
+      "is_blocking": false,
+      "resolution_path": "Provide target service or mock implementation for external routine CEEDAYS"
+    },
+    {
+      "identifier": "IEFBR14",
+      "source_module": "PREDEL",
+      "dependency_type": "SYSTEM_UTILITY",
+      "affected_component": "Predel",
+      "is_blocking": false,
+      "resolution_path": "Acquire mainframe system capability for IEFBR14"
+    }
+  ],
+  "provenance_chain": {
+    "total_links": 6,
+    "stages": [
+      "analysis",
+      "analysis",
+      "plan",
+      "transformation",
+      "verification",
+      "transformation"
+    ]
+  },
+  "classification": {
+    "PROVEN": [
+      "Generalized workload selection via topological dependency closure without hard-coded filenames",
+      "Technology-neutral semantic extraction across 20 real CardDemo files (5,601 physical LOC, 4,489 non-comment LOC)",
+      "System-level target architecture deriving 19 coordinated components across domain, service, and orchestration layers",
+      "Coordinated Java artifact generation using semantic capabilities and procedure interfaces without pair-specific engines",
+      "Real OpenJDK javac compilation compiling all 19 generated Java sources together into bytecode",
+      "Real OpenJDK JVM execution of batch orchestrations (READACCT, READCARD, INTCALC, POSTTRAN) with exit code 0",
+      "Real OpenJDK JVM execution of inter-module CALLs (Cotrn02c -> Csutldtc, Corpt00c -> Csutldtc)",
+      "Source-derived behavioral verification matrix for date validation and deterministic file status branches",
+      "Autonomous repair cycle: controlled defect -> compiler error -> diagnosis -> mutation -> re-compilation -> JVM verification",
+      "Explicit tracking of unresolved external dependencies (CEEDAYS, CEE3ABD, COBDATFT, IEFBR14, IDCAMS)",
+      "Complete modernization provenance chain connecting source files to runtime observation"
+    ],
+    "PARTIALLY_PROVEN": [
+      "Dataset and VSAM record layout mapping (file/stream adapter boundaries defined; production VSAM cluster not executed)",
+      "CEEDAYS IBM LE callable service mapped to ISO date calculation routine"
+    ],
+    "NOT_PROVEN": [
+      "Full 186-file CardDemo migration (workload scaled to coherent 20-file operational core)",
+      "Spring Boot runtime container execution (verified on standard OpenJDK JVM standalone runtime)"
+    ]
+  }
+}

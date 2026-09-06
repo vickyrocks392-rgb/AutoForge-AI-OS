@@ -36,9 +36,11 @@ class AutonomousTargetRepairCycle:
         self,
         verifier: TargetToolchainVerifier | None = None,
         max_attempts: int = 3,
+        rag_client: Any | None = None,
     ) -> None:
         self.verifier = verifier or TargetToolchainVerifier()
         self.max_attempts = max_attempts
+        self.rag_client = rag_client
 
     def repair_cycle(
         self,
@@ -81,6 +83,18 @@ class AutonomousTargetRepairCycle:
             # 1. Diagnose root cause
             diagnosis, strategy = self._diagnose_defect(diag_msgs, current_artifacts)
 
+            # 1b. Retrieve diagnostic repair guidance from RAG if available
+            rag_evidence = None
+            if self.rag_client:
+                query_str = diag_msgs[0] if diag_msgs else diagnosis
+                try:
+                    rag_evidence = self.rag_client.retrieve(
+                        query=f"compile error: {query_str}",
+                        scope="modernization_repair",
+                    )
+                except Exception as e:
+                    rag_evidence = {"error": str(e), "available": False}
+
             # 2. Produce code mutation
             mutated_any = False
             for art in current_artifacts:
@@ -94,8 +108,9 @@ class AutonomousTargetRepairCycle:
                 attempt_number=attempt_no,
                 diagnosis=diagnosis,
                 repair_strategy=strategy,
-                model="autoforge-deterministic-repair-engine",
+                model="autoforge-rag-assisted-repair-engine" if self.rag_client else "autoforge-deterministic-repair-engine",
                 provider="autoforge-repair",
+                rag_context_ids=[str(e.get("chunk_id", e) if isinstance(e, dict) else e) for e in rag_evidence] if isinstance(rag_evidence, list) else [],
                 repaired_code=current_artifacts[0].code if current_artifacts else "",
                 status="repaired" if mutated_any else "failed",
                 latency_ms=(time.perf_counter() - t_start) * 1000.0,

@@ -31,15 +31,27 @@ from autoforge_knowledge_platform.rag18.store import (
 logger = logging.getLogger(__name__)
 _LOCALHOSTS = {"127.0.0.1", "localhost", "::1"}
 
-def _assert_local_url(url):
+
+def _assert_local_url(url: str | None) -> None:
     if not url:
         return
     parsed = urlparse(url)
-    if parsed.hostname and parsed.hostname not in _LOCALHOSTS:
-        raise VectorStoreUnavailableError(
-            f"Qdrant URL ''{url}'' resolves to non-local host ''{parsed.hostname}''. "
-            "Phase 18-D requires a local vector database."
-        )
+    host = parsed.hostname
+    if not host:
+        return
+    if host in _LOCALHOSTS:
+        return
+    try:
+        import ipaddress
+        ip = ipaddress.ip_address(host)
+        if ip.is_loopback or ip.is_private:
+            return
+    except ValueError:
+        pass
+    raise VectorStoreUnavailableError(
+        f"Qdrant URL ''{url}'' resolves to non-local/non-LAN host ''{host}''. "
+        "Phase 18-D/18-G requires a local or private LAN vector database."
+    )
 
 
 def _scope_conditions(scope):

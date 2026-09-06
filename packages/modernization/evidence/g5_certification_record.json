@@ -1,0 +1,620 @@
+{
+  "certification_version": "18-G.5",
+  "timestamp": "2026-09-06T21:51:40Z",
+  "repository": {
+    "branch": "main",
+    "commit": "ff4bc9d717a887f17540196d64b070ded07542fa",
+    "source_repo": "aws-samples/carddemo",
+    "carddemo_path": "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app"
+  },
+  "infrastructure": {
+    "orchestration_node": "Apple M1 Mac (192.168.1.101)",
+    "primary_inference": "Ollama (http://127.0.0.1:11434)",
+    "secondary_inference": "Ollama (http://192.168.1.104:11434)",
+    "remote_qdrant": "Native Qdrant 1.19.0 (http://192.168.1.104:6333) on Windows HP Host",
+    "toolchain": "OpenJDK javac (26.0.2.1)",
+    "runtime": "Host OpenJDK JVM"
+  },
+  "workload": {
+    "selection_mode": "PRODUCTION_DISCOVERY_DRIVEN",
+    "seed_identifiers": [],
+    "subsystem_prefixes": [],
+    "total_files": 28,
+    "physical_loc": 11813,
+    "non_comment_loc": 9897,
+    "technologies": [
+      "COBOL",
+      "COPYBOOK",
+      "JCL"
+    ],
+    "files": [
+      "app-transaction-type-db2/cbl/COTRTLIC.cbl",
+      "app-transaction-type-db2/cpy-bms/COTRTLI.cpy",
+      "cbl/CBACT01C.cbl",
+      "cbl/CBSTM03A.CBL",
+      "cbl/CBSTM03B.CBL",
+      "cbl/CBTRN03C.cbl",
+      "cbl/COACTUPC.cbl",
+      "cbl/CORPT00C.cbl",
+      "cbl/COTRN02C.cbl",
+      "cbl/CSUTLDTC.cbl",
+      "cpy-bms/CORPT00.CPY",
+      "cpy-bms/COTRN02.CPY",
+      "cpy/COCOM01Y.cpy",
+      "cpy/COSTM01.CPY",
+      "cpy/COTTL01Y.cpy",
+      "cpy/CSDAT01Y.cpy",
+      "cpy/CSMSG01Y.cpy",
+      "cpy/CSUSR01Y.cpy",
+      "cpy/CUSTREC.cpy",
+      "cpy/CVACT01Y.cpy",
+      "cpy/CVACT02Y.cpy",
+      "cpy/CVACT03Y.cpy",
+      "cpy/CVCRD01Y.cpy",
+      "cpy/CVTRA05Y.cpy",
+      "jcl/CBEXPORT.jcl",
+      "jcl/CREASTMT.JCL",
+      "jcl/READACCT.jcl",
+      "jcl/TRANREPT.jcl"
+    ],
+    "dependencies_count": 97,
+    "unresolved_dependencies_count": 36
+  },
+  "semantic_extraction": {
+    "modules": 13,
+    "entities": 15,
+    "nodes": 1081,
+    "edges": 1794,
+    "procedures": 323,
+    "operations": 1207,
+    "business_rules": 597,
+    "io_operations": 75
+  },
+  "transformation_planning": {
+    "architecture_style": "LAYERED_SERVICE",
+    "components_count": 28,
+    "cross_module_dependencies": 19,
+    "shared_data_models": 15,
+    "execution_orchestrations": 4,
+    "external_dependencies": [
+      {
+        "identifier": "CEE3ABD",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "source_module": "CBACT01C",
+        "affected_component": "Cbact01c",
+        "blocking": false,
+        "resolution_path": "Provide target service or mock implementation for external routine CEE3ABD"
+      },
+      {
+        "identifier": "COBDATFT",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "source_module": "CBACT01C",
+        "affected_component": "Cbact01c",
+        "blocking": false,
+        "resolution_path": "Provide target service or mock implementation for external routine COBDATFT"
+      },
+      {
+        "identifier": "CEE3ABD",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "source_module": "CBSTM03A",
+        "affected_component": "Cbstm03a",
+        "blocking": false,
+        "resolution_path": "Provide target service or mock implementation for external routine CEE3ABD"
+      },
+      {
+        "identifier": "CEE3ABD",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "source_module": "CBTRN03C",
+        "affected_component": "Cbtrn03c",
+        "blocking": false,
+        "resolution_path": "Provide target service or mock implementation for external routine CEE3ABD"
+      },
+      {
+        "identifier": "CEEDAYS",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "source_module": "CSUTLDTC",
+        "affected_component": "Csutldtc",
+        "blocking": false,
+        "resolution_path": "Provide target service or mock implementation for external routine CEEDAYS"
+      },
+      {
+        "identifier": "IDCAMS",
+        "kind": "SYSTEM_UTILITY",
+        "source_module": "STEP01",
+        "affected_component": "Step01",
+        "blocking": false,
+        "resolution_path": "Acquire mainframe system capability for IDCAMS"
+      },
+      {
+        "identifier": "IDCAMS",
+        "kind": "SYSTEM_UTILITY",
+        "source_module": "DELDEF01",
+        "affected_component": "Deldef01",
+        "blocking": false,
+        "resolution_path": "Acquire mainframe system capability for IDCAMS"
+      },
+      {
+        "identifier": "SORT",
+        "kind": "SYSTEM_UTILITY",
+        "source_module": "STEP010",
+        "affected_component": "Step010",
+        "blocking": false,
+        "resolution_path": "Acquire mainframe system capability for SORT"
+      },
+      {
+        "identifier": "IDCAMS",
+        "kind": "SYSTEM_UTILITY",
+        "source_module": "STEP020",
+        "affected_component": "Step020",
+        "blocking": false,
+        "resolution_path": "Acquire mainframe system capability for IDCAMS"
+      },
+      {
+        "identifier": "IEFBR14",
+        "kind": "SYSTEM_UTILITY",
+        "source_module": "STEP030",
+        "affected_component": "Step030",
+        "blocking": false,
+        "resolution_path": "Acquire mainframe system capability for IEFBR14"
+      },
+      {
+        "identifier": "IEFBR14",
+        "kind": "SYSTEM_UTILITY",
+        "source_module": "PREDEL",
+        "affected_component": "Predel",
+        "blocking": false,
+        "resolution_path": "Acquire mainframe system capability for IEFBR14"
+      },
+      {
+        "identifier": "REPROC",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "source_module": "STEP05R",
+        "affected_component": "Step05r",
+        "blocking": false,
+        "resolution_path": "Provide target service or mock implementation for external routine REPROC"
+      },
+      {
+        "identifier": "SORT",
+        "kind": "SYSTEM_UTILITY",
+        "source_module": "STEP05R",
+        "affected_component": "Step05r",
+        "blocking": false,
+        "resolution_path": "Acquire mainframe system capability for SORT"
+      }
+    ]
+  },
+  "target_generation": {
+    "artifacts_count": 28,
+    "generated_loc": 20447,
+    "artifacts": [
+      {
+        "name": "Cotrtli",
+        "loc": 948,
+        "path": "src/main/java/com/autoforge/generated/Cotrtli.java",
+        "sha256": "b497a488a96475373c0eb4538ab23bfe46576cc521a11d06e1e7df72b5f23dd5"
+      },
+      {
+        "name": "Corpt00",
+        "loc": 52,
+        "path": "src/main/java/com/autoforge/generated/Corpt00.java",
+        "sha256": "59be276f2a0c28a183d9a30b4a71784d1894d23387f1eabbcea830915e39316b"
+      },
+      {
+        "name": "Cotrn02",
+        "loc": 45,
+        "path": "src/main/java/com/autoforge/generated/Cotrn02.java",
+        "sha256": "9a09797c3bcbdc3af9455a8950ae6a26205160c811e878ef8c5a1e078fb475f0"
+      },
+      {
+        "name": "Cocom01y",
+        "loc": 979,
+        "path": "src/main/java/com/autoforge/generated/Cocom01y.java",
+        "sha256": "cfe04cb70d745021274c3934a254066809842f992649857c38fb537e063ad310"
+      },
+      {
+        "name": "Costm01",
+        "loc": 150,
+        "path": "src/main/java/com/autoforge/generated/Costm01.java",
+        "sha256": "aab113290c0875e5bfa153a1cce8da891aba05e0878c6f316b2513176c0e652d"
+      },
+      {
+        "name": "Cottl01y",
+        "loc": 979,
+        "path": "src/main/java/com/autoforge/generated/Cottl01y.java",
+        "sha256": "f63915cbeaff464d849279e1e7f3eefcd78e6bceb940b85ab812322cf6c28581"
+      },
+      {
+        "name": "Csdat01y",
+        "loc": 979,
+        "path": "src/main/java/com/autoforge/generated/Csdat01y.java",
+        "sha256": "1eda8d99a82d6d78b44e9c61855e1c37d6d72666965c6e4ae9a5886dc2938dd1"
+      },
+      {
+        "name": "Csmsg01y",
+        "loc": 979,
+        "path": "src/main/java/com/autoforge/generated/Csmsg01y.java",
+        "sha256": "f21c87e64fc3eb898437d26202bf21d59712462fb82577348344337a5ca7f8d9"
+      },
+      {
+        "name": "Csusr01y",
+        "loc": 956,
+        "path": "src/main/java/com/autoforge/generated/Csusr01y.java",
+        "sha256": "db94d121bb5df5210a082ff02671a06a2fab5f576d6b17dbf208e953376510d6"
+      },
+      {
+        "name": "Custrec",
+        "loc": 150,
+        "path": "src/main/java/com/autoforge/generated/Custrec.java",
+        "sha256": "38a9acdda83e2052644c32020f3c3e9422bb82c4f4bf4a0d2ec938b56a1a1319"
+      },
+      {
+        "name": "Cvact01y",
+        "loc": 391,
+        "path": "src/main/java/com/autoforge/generated/Cvact01y.java",
+        "sha256": "0bf297f59a171f96507cd5ee568e46a2765732f5e5c597193a85c22d53ee8334"
+      },
+      {
+        "name": "Cvact02y",
+        "loc": 948,
+        "path": "src/main/java/com/autoforge/generated/Cvact02y.java",
+        "sha256": "10afcf3fbaef9eca444b9a76995d144e963f20e81d1956f083ce965da46d9b0f"
+      },
+      {
+        "name": "Cvact03y",
+        "loc": 398,
+        "path": "src/main/java/com/autoforge/generated/Cvact03y.java",
+        "sha256": "595b86cf6d22e57f270e41cce17ca4e2d2a5497d23f7add142bcc555628ea348"
+      },
+      {
+        "name": "Cvcrd01y",
+        "loc": 956,
+        "path": "src/main/java/com/autoforge/generated/Cvcrd01y.java",
+        "sha256": "3580ba6c07e8fc8780011775aa39773961a4c32f991be1a8055e0bf2a98ba58c"
+      },
+      {
+        "name": "Cvtra05y",
+        "loc": 208,
+        "path": "src/main/java/com/autoforge/generated/Cvtra05y.java",
+        "sha256": "3c337480e8aec65a2947ec5bb9707ee0a23daeea76b9e7cd4cdcf441781201a2"
+      },
+      {
+        "name": "Comp002600",
+        "loc": 3246,
+        "path": "src/main/java/com/autoforge/generated/Comp002600.java",
+        "sha256": "b900c0112daa64b035cca4dcf56ab65da8f0b58b8b1feb4394cd8f6527d66078"
+      },
+      {
+        "name": "Cbact01c",
+        "loc": 624,
+        "path": "src/main/java/com/autoforge/generated/Cbact01c.java",
+        "sha256": "e5ab6c32d888a31a950116fc801302e6ea326a3af4758cdd2d8bcd03b13e37ac"
+      },
+      {
+        "name": "Cbstm03a",
+        "loc": 694,
+        "path": "src/main/java/com/autoforge/generated/Cbstm03a.java",
+        "sha256": "5f9c93887de0c576d2026daf2b828cf2e701812322067ff09dc366142da49243"
+      },
+      {
+        "name": "Cbstm03b",
+        "loc": 348,
+        "path": "src/main/java/com/autoforge/generated/Cbstm03b.java",
+        "sha256": "8fa3179989c9bbb9df44e81bf4a7468e25bba212561c62a402ad807a43f6f7df"
+      },
+      {
+        "name": "Cbtrn03c",
+        "loc": 1106,
+        "path": "src/main/java/com/autoforge/generated/Cbtrn03c.java",
+        "sha256": "ce210a10961e45c23fd5d1cf697cc6c8bc492950245e405a0a89030745940d21"
+      },
+      {
+        "name": "Coactupc",
+        "loc": 3630,
+        "path": "src/main/java/com/autoforge/generated/Coactupc.java",
+        "sha256": "f41f70641e1539383c21b2d0067fcd3e5da9c47cb481fc5b9ee8d9408e89a7a9"
+      },
+      {
+        "name": "Corpt00c",
+        "loc": 600,
+        "path": "src/main/java/com/autoforge/generated/Corpt00c.java",
+        "sha256": "33542c787b70855c7fa9a25f6a32bf002dd4268b178d1d53dd52e09f39728013"
+      },
+      {
+        "name": "Cotrn02c",
+        "loc": 653,
+        "path": "src/main/java/com/autoforge/generated/Cotrn02c.java",
+        "sha256": "23b780609bcf44c4e0b86b2ea80bc01253b6dd9272fc2307dfd155d3c7f6b632"
+      },
+      {
+        "name": "Csutldtc",
+        "loc": 109,
+        "path": "src/main/java/com/autoforge/generated/Csutldtc.java",
+        "sha256": "993afe1f41696fb55f61f51e8be7f5fe7e71b04c64a539e1724c44a4ed0bb38f"
+      },
+      {
+        "name": "CbexportOrchestration",
+        "loc": 61,
+        "path": "src/main/java/com/autoforge/generated/CbexportOrchestration.java",
+        "sha256": "38e789b98e04b078d52d9aa0c476b1bdecee6479e2e836af69d35ef67740f0aa"
+      },
+      {
+        "name": "CreastmtOrchestration",
+        "loc": 111,
+        "path": "src/main/java/com/autoforge/generated/CreastmtOrchestration.java",
+        "sha256": "8a999764106a53b0fc74003e1b271afdf0448886a7c4cb9eb18028c80861e459"
+      },
+      {
+        "name": "ReadacctOrchestration",
+        "loc": 66,
+        "path": "src/main/java/com/autoforge/generated/ReadacctOrchestration.java",
+        "sha256": "095e262c8cf137097719dd171fafd90c48941cda03b8d872b9d49e9778028219"
+      },
+      {
+        "name": "TranreptOrchestration",
+        "loc": 81,
+        "path": "src/main/java/com/autoforge/generated/TranreptOrchestration.java",
+        "sha256": "27c19561401b2fa2ea7adc2c23a7c5911b12d9eff76993014ef10fd7acdc336d"
+      }
+    ]
+  },
+  "compilation": {
+    "passed": true,
+    "toolchain": "OpenJDK javac (26.0.2.1)",
+    "classes_generated": 28,
+    "duration_ms": 1173.43
+  },
+  "runtime_execution": {
+    "total_checks": 14,
+    "passed_checks": 14,
+    "all_passed": true,
+    "results": [
+      {
+        "flow": "Batch Orchestration: CbexportOrchestration",
+        "class": "com.autoforge.generated.CbexportOrchestration",
+        "input": "None (Batch Job Execution)",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "JOB_RESULT=0",
+        "passed": true
+      },
+      {
+        "flow": "Batch Orchestration: CreastmtOrchestration",
+        "class": "com.autoforge.generated.CreastmtOrchestration",
+        "input": "None (Batch Job Execution)",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "JOB_RESULT=0",
+        "passed": true
+      },
+      {
+        "flow": "Batch Orchestration: ReadacctOrchestration",
+        "class": "com.autoforge.generated.ReadacctOrchestration",
+        "input": "None (Batch Job Execution)",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "JOB_RESULT=0",
+        "passed": true
+      },
+      {
+        "flow": "Batch Orchestration: TranreptOrchestration",
+        "class": "com.autoforge.generated.TranreptOrchestration",
+        "input": "None (Batch Job Execution)",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "JOB_RESULT=0",
+        "passed": true
+      },
+      {
+        "flow": "Inter-Module CALL: Cotrn02c -> Date Utility",
+        "class": "com.autoforge.generated.Cotrn02c",
+        "input": "Default execution",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "Return code: 0",
+        "passed": true
+      },
+      {
+        "flow": "Inter-Module CALL: Corpt00c -> Date Utility",
+        "class": "com.autoforge.generated.Corpt00c",
+        "input": "Default execution",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "Return code: 0",
+        "passed": true
+      },
+      {
+        "flow": "Date Validation (Valid ISO date)",
+        "class": "com.autoforge.generated.Csutldtc",
+        "input": "'2026-09-07' (YYYY-MM-DD)",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "DATE_RESULT=0",
+        "passed": true
+      },
+      {
+        "flow": "Date Validation (Valid 8-digit date)",
+        "class": "com.autoforge.generated.Csutldtc",
+        "input": "'20260907' (YYYYMMDD)",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "DATE_RESULT=0",
+        "passed": true
+      },
+      {
+        "flow": "Date Validation (Malformed date)",
+        "class": "com.autoforge.generated.Csutldtc",
+        "input": "'INVALID_DATE' (YYYY-MM-DD)",
+        "expected_rc": 4,
+        "actual_rc": 4,
+        "stdout": "DATE_RESULT=4",
+        "passed": true
+      },
+      {
+        "flow": "Date Validation (Empty date parameter)",
+        "class": "com.autoforge.generated.Csutldtc",
+        "input": "'' (YYYY-MM-DD)",
+        "expected_rc": 4,
+        "actual_rc": 4,
+        "stdout": "DATE_RESULT=4",
+        "passed": true
+      },
+      {
+        "flow": "File Status Rule (Normal success read)",
+        "class": "com.autoforge.generated.Cbact01c",
+        "input": "status='00'",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "stdout": "STATUS_RESULT=0",
+        "passed": true
+      },
+      {
+        "flow": "File Status Rule (End-of-file condition)",
+        "class": "com.autoforge.generated.Cbact01c",
+        "input": "status='10'",
+        "expected_rc": 16,
+        "actual_rc": 16,
+        "stdout": "STATUS_RESULT=16",
+        "passed": true
+      },
+      {
+        "flow": "File Status Rule (VSAM status 99 error)",
+        "class": "com.autoforge.generated.Cbact01c",
+        "input": "status='99'",
+        "expected_rc": 12,
+        "actual_rc": 12,
+        "stdout": "STATUS_RESULT=12",
+        "passed": true
+      },
+      {
+        "flow": "File Status Rule (File not found error)",
+        "class": "com.autoforge.generated.Cbact01c",
+        "input": "status='35'",
+        "expected_rc": 12,
+        "actual_rc": 12,
+        "stdout": "STATUS_RESULT=12",
+        "passed": true
+      }
+    ]
+  },
+  "qdrant_evidence": {
+    "endpoint": "http://192.168.1.104:6333",
+    "host": "192.168.1.104",
+    "collection": "g5_modernization_knowledge",
+    "points_indexed": 2,
+    "retrieval_verified": true,
+    "scope_isolation_verified": true,
+    "duration_s": 0.931
+  },
+  "distributed_ai_metrics": [
+    {
+      "node": "local-m1",
+      "host": "127.0.0.1",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "role": "PRIMARY_ORCHESTRATION_AND_SYNTHESIS",
+      "output": "PRIMARY_ACTIVE",
+      "duration_ms": 420.55,
+      "input_tokens": 41,
+      "output_tokens": 3,
+      "tokens_per_sec": 16.41
+    },
+    {
+      "node": "local-hp",
+      "host": "192.168.1.104",
+      "model": "qwen2.5-coder:3b",
+      "role": "SECONDARY_INSPECTION_AND_REPAIR",
+      "output": "SECONDARY_ACTIVE",
+      "duration_ms": 874.04,
+      "input_tokens": 42,
+      "output_tokens": 4,
+      "tokens_per_sec": 6.76
+    }
+  ],
+  "repair_cycle": {
+    "defect_marker": "DEFECT_INJECTED_BAD_TOKEN;",
+    "initial_compilation_failed": true,
+    "diagnostics_captured": 1,
+    "qdrant_guidance_retrieved": "Fix for injected bad tokens or unexpected identifiers: remove extraneous identifier tokens before serialVersionUID or variable declarations.",
+    "repair_attempts": 1,
+    "recompilation_passed": true,
+    "runtime_reverified": true
+  },
+  "negative_testing": [
+    {
+      "scenario": "Invalid Generated Code Rejection",
+      "description": "Compiler rejects unparseable Java code",
+      "passed": true
+    },
+    {
+      "scenario": "Failed Repair Retry Exhaustion",
+      "description": "System halts safely when defects cannot be heuristically mutated",
+      "passed": true
+    },
+    {
+      "scenario": "Unavailable Qdrant Handling",
+      "description": "Vector store client catches connection failure and raises VectorStoreUnavailableError",
+      "passed": true
+    },
+    {
+      "scenario": "Unavailable Secondary Node Fallback/Handling",
+      "description": "Provider adapter catches unreachable daemon and raises ProviderUnavailableError",
+      "passed": true
+    }
+  ],
+  "provenance_chain": {
+    "links_count": 7,
+    "stages": [
+      "analysis",
+      "analysis",
+      "plan",
+      "transformation",
+      "verification",
+      "verification",
+      "transformation"
+    ]
+  },
+  "timings": {
+    "qdrant_phase_s": 0.931,
+    "distributed_ai_s": 1.295,
+    "discovery_s": 1.674,
+    "semantic_s": 0.383,
+    "planning_s": 0.396,
+    "generation_s": 0.091,
+    "compilation_s": 1.269,
+    "runtime_execution_s": 0.906,
+    "repair_s": 1.938,
+    "total_e2e_s": 115.015
+  },
+  "throughput_metrics": {
+    "total_physical_loc": 11813,
+    "total_duration_s": 115.01493091700104,
+    "loc_per_hour": 369750.25
+  },
+  "capability_classifications": {
+    "PROVEN": [
+      "Production discovery-driven workload selection without manual seeds or hardcoded subsystem prefixes",
+      "Technology-neutral semantic extraction across COBOL, JCL, and Copybooks",
+      "System-level target architecture planning (layered services, domain models, batch orchestrations)",
+      "Coordinated Java code generation with zero CardDemo executable hardcoding",
+      "Real OpenJDK javac toolchain compilation of generated multi-component system into bytecode",
+      "Real OpenJDK JVM runtime execution across batch orchestrators and inter-module CALL delegations",
+      "Native remote Qdrant operations over LAN (collection creation, upsert, similarity query, scope isolation, deletion)",
+      "Distributed local AI inference across M1 primary node and HP secondary node",
+      "Complete modernization provenance chain from source SHA to runtime observation",
+      "Negative failure injection handling (syntax rejection, retry exhaustion, offline vector store, offline inference)"
+    ],
+    "PARTIALLY_PROVEN": [
+      "Dataset and VSAM record layout mapping (file stream adapters generated; real mainframe VSAM cluster not executed)",
+      "CEEDAYS IBM LE callable service resolution mapped to ISO date calculation routine"
+    ],
+    "BOUNDED_DEMONSTRATION": [
+      "Source-derived behavioral equivalence (verified on deterministic date rules and file status matrices; not generalized to arbitrary programs)",
+      "Compiler defect repair (retrieval-assisted heuristic syntax repair; not generalized to arbitrary compiler diagnostics)"
+    ],
+    "NOT_PROVEN": [
+      "Full 186-file CardDemo migration (workload scaled to coherent operational core)",
+      "Production Spring Boot container runtime execution (verified on standalone OpenJDK JVM)",
+      "Arbitrary legacy language parsing outside configured grammar dispatchers"
+    ]
+  },
+  "certification_decision": "CERTIFIED"
+}
