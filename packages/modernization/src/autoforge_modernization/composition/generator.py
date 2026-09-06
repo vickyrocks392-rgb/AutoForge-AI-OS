@@ -80,10 +80,16 @@ class GenericTargetArtifactGenerator:
             if not modules:
                 continue
 
+            # Gather preservation requirements for this component from the plan
+            comp_preservation = [
+                pr for pr in plan.behavior_preservation_requirements
+                if pr.req_id in comp.preservation_requirement_ids
+            ]
+
             if lang_upper == "JAVA":
-                code = self._emit_java_class(comp.name, modules, target_spec)
+                code = self._emit_java_class(comp.name, modules, target_spec, comp, comp_preservation)
             elif lang_upper == "PYTHON":
-                code = self._emit_python_module(comp.name, modules, target_spec)
+                code = self._emit_python_module(comp.name, modules, target_spec, comp, comp_preservation)
             elif lang_upper in ("TYPESCRIPT", "JAVASCRIPT"):
                 code = self._emit_typescript_module(comp.name, modules, target_spec)
             else:
@@ -106,6 +112,8 @@ class GenericTargetArtifactGenerator:
         class_name: str,
         modules: list[SemanticModule],
         target_spec: TargetSpecification,
+        component: Any = None,
+        preservation_reqs: list[Any] | None = None,
     ) -> str:
         """Emit an idiomatic, compilable Java class from semantic modules."""
         lines: list[str] = []
@@ -122,14 +130,22 @@ class GenericTargetArtifactGenerator:
         lines.append("import java.util.logging.Logger;")
         lines.append("")
 
-        # Class Javadoc with provenance
+        # Class Javadoc with provenance & preservation requirements
         lines.append("/**")
         lines.append(f" * AutoForge Generated Target Class: {class_name}")
         lines.append(f" * Target Language: {target_spec.language} ({target_spec.framework or 'Standard'})")
+        if component and hasattr(component, "role"):
+            lines.append(f" * Architectural Role: {component.role.value if hasattr(component.role, 'value') else component.role}")
         for m in modules:
             lines.append(f" * Source: {m.source_file_path} ({m.source_technology}) [SHA: {m.source_sha256[:12]}]")
             if m.unsupported_constructs:
                 lines.append(f" * Specialist Constructs Noted: {len(m.unsupported_constructs)}")
+        if preservation_reqs:
+            lines.append(f" * Preservation Requirements Addressed: {len(preservation_reqs)}")
+            for pr in preservation_reqs[:5]:
+                lines.append(f" *   [{pr.category.value if hasattr(pr.category, 'value') else pr.category}] {pr.requirement_statement}")
+            if len(preservation_reqs) > 5:
+                lines.append(f" *   ... and {len(preservation_reqs) - 5} more preservation requirements")
         lines.append(" */")
 
         lines.append(f"public class {class_name} implements Serializable {{")
@@ -293,10 +309,20 @@ class GenericTargetArtifactGenerator:
         module_name: str,
         modules: list[SemanticModule],
         target_spec: TargetSpecification,
+        component: Any = None,
+        preservation_reqs: list[Any] | None = None,
     ) -> str:
         """Emit an idiomatic Python module from semantic modules."""
         lines: list[str] = []
-        lines.append('"""AutoForge Generated Target Module."""')
+        lines.append('"""AutoForge Generated Target Module.')
+        lines.append(f"Target Language: {target_spec.language}")
+        if component and hasattr(component, "role"):
+            lines.append(f"Architectural Role: {component.role.value if hasattr(component.role, 'value') else component.role}")
+        if preservation_reqs:
+            lines.append(f"Preservation Requirements Addressed: {len(preservation_reqs)}")
+            for pr in preservation_reqs[:5]:
+                lines.append(f"  [{pr.category.value if hasattr(pr.category, 'value') else pr.category}] {pr.requirement_statement}")
+        lines.append('"""')
         lines.append("from __future__ import annotations")
         lines.append("import logging")
         lines.append("from decimal import Decimal")

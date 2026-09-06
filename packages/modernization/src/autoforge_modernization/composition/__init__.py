@@ -5,11 +5,19 @@ from autoforge_modernization.composition.generator import (
     GenericTargetArtifactGenerator,
 )
 from autoforge_modernization.composition.planner import (
+    ArtifactRole,
+    BehaviorPreservationRequirement,
     GenericTransformationPlanner,
+    PlannedTargetArtifact,
     PlannedTargetComponent,
     PlannedVerificationCheck,
+    PreservationCategory,
+    SemanticMapping,
     SemanticMappingPlan,
+    TargetArchitecturePlan,
+    TargetEngineeringRequirement,
     TransformationPlan,
+    TransformationStep,
 )
 from autoforge_modernization.composition.repair import (
     AutonomousTargetRepairCycle,
@@ -25,8 +33,16 @@ from autoforge_modernization.composition.workflow import (
 )
 
 __all__ = [
+    "PreservationCategory",
+    "BehaviorPreservationRequirement",
+    "TargetEngineeringRequirement",
     "SemanticMappingPlan",
+    "SemanticMapping",
+    "TransformationStep",
+    "ArtifactRole",
+    "PlannedTargetArtifact",
     "PlannedTargetComponent",
+    "TargetArchitecturePlan",
     "PlannedVerificationCheck",
     "TransformationPlan",
     "GenericTransformationPlanner",

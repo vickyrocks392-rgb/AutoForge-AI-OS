@@ -1,0 +1,422 @@
+{
+  "milestone": "SEMANTIC_TRANSFORMATION_PLANNING_AND_TARGET_ENGINEERING",
+  "timestamp": "2026-09-06T09:11:04Z",
+  "execution_duration_seconds": 0.7950963329967635,
+  "source_workload": {
+    "files": [
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cbl/CBACT01C.cbl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/ACCTFILE.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVACT01Y.cpy"
+    ],
+    "modules_count": 2,
+    "entities_count": 1,
+    "procedures_count": 19,
+    "operations_count": 73,
+    "business_rules_count": 22,
+    "io_operations_count": 10
+  },
+  "behavior_preservation_requirements": {
+    "total_count": 134,
+    "categories": {
+      "DATA_INTEGRITY": 35,
+      "CONTROL_FLOW": 19,
+      "DATA_FLOW": 37,
+      "BUSINESS_RULE": 22,
+      "IO_SEMANTICS": 10,
+      "ERROR_HANDLING": 11,
+      "DEPENDENCY": 0
+    },
+    "sample_requirements": [
+      {
+        "req_id": "d5252acc-2c92-4797-b255-a22330bcd494",
+        "category": "DATA_INTEGRITY",
+        "source_element": "CVACT01Y.ACCOUNT-RECORD",
+        "requirement_statement": "Preserve field 'ACCOUNT-RECORD' data type as unknown.",
+        "source_evidence": {
+          "entity": "CVACT01Y",
+          "field": "ACCOUNT-RECORD",
+          "type": "unknown",
+          "provenance": {
+            "source_file": "cpy/CVACT01Y.cpy",
+            "line_start": 4,
+            "line_end": null,
+            "source_sha256": "81a08bad15af5664326a6f0af3650f570821c4857ffdec3a6a39f91f07dca728",
+            "original_construct": "01  ACCOUNT-RECORD.",
+            "analyzer_id": "autoforge-semantic-extractor",
+            "confidence": 1.0
+          }
+        },
+        "criticality": "MANDATORY"
+      },
+      {
+        "req_id": "21d2fbf7-6430-49ac-a951-bbc7d78fadce",
+        "category": "DATA_INTEGRITY",
+        "source_element": "CVACT01Y.ACCT-ID",
+        "requirement_statement": "Preserve field 'ACCT-ID' data type as integer, length 11, precision 11, scale 0.",
+        "source_evidence": {
+          "entity": "CVACT01Y",
+          "field": "ACCT-ID",
+          "type": "integer",
+          "provenance": {
+            "source_file": "cpy/CVACT01Y.cpy",
+            "line_start": 5,
+            "line_end": null,
+            "source_sha256": "81a08bad15af5664326a6f0af3650f570821c4857ffdec3a6a39f91f07dca728",
+            "original_construct": "05  ACCT-ID                           PIC 9(11).",
+            "analyzer_id": "autoforge-semantic-extractor",
+            "confidence": 1.0
+          }
+        },
+        "criticality": "MANDATORY"
+      },
+      {
+        "req_id": "ccb2b24f-91e3-49a3-a0e3-9b89e91191f3",
+        "category": "DATA_INTEGRITY",
+        "source_element": "CVACT01Y.ACCT-ACTIVE-STATUS",
+        "requirement_statement": "Preserve field 'ACCT-ACTIVE-STATUS' data type as string, length 1.",
+        "source_evidence": {
+          "entity": "CVACT01Y",
+          "field": "ACCT-ACTIVE-STATUS",
+          "type": "string",
+          "provenance": {
+            "source_file": "cpy/CVACT01Y.cpy",
+            "line_start": 6,
+            "line_end": null,
+            "source_sha256": "81a08bad15af5664326a6f0af3650f570821c4857ffdec3a6a39f91f07dca728",
+            "original_construct": "05  ACCT-ACTIVE-STATUS                PIC X(01).",
+            "analyzer_id": "autoforge-semantic-extractor",
+            "confidence": 1.0
+          }
+        },
+        "criticality": "MANDATORY"
+      },
+      {
+        "req_id": "4acbbde9-d739-4df1-be2e-8b60bbffc871",
+        "category": "DATA_INTEGRITY",
+        "source_element": "CVACT01Y.ACCT-CURR-BAL",
+        "requirement_statement": "Preserve field 'ACCT-CURR-BAL' data type as decimal, length 12, precision 12, scale 2, signed arithmetic representation.",
+        "source_evidence": {
+          "entity": "CVACT01Y",
+          "field": "ACCT-CURR-BAL",
+          "type": "decimal",
+          "provenance": {
+            "source_file": "cpy/CVACT01Y.cpy",
+            "line_start": 7,
+            "line_end": null,
+            "source_sha256": "81a08bad15af5664326a6f0af3650f570821c4857ffdec3a6a39f91f07dca728",
+            "original_construct": "05  ACCT-CURR-BAL                     PIC S9(10)V99.",
+            "analyzer_id": "autoforge-semantic-extractor",
+            "confidence": 1.0
+          }
+        },
+        "criticality": "MANDATORY"
+      },
+      {
+        "req_id": "b0fb9cf7-bfc8-4eb3-831f-599a41ae80b2",
+        "category": "DATA_INTEGRITY",
+        "source_element": "CVACT01Y.ACCT-CREDIT-LIMIT",
+        "requirement_statement": "Preserve field 'ACCT-CREDIT-LIMIT' data type as decimal, length 12, precision 12, scale 2, signed arithmetic representation.",
+        "source_evidence": {
+          "entity": "CVACT01Y",
+          "field": "ACCT-CREDIT-LIMIT",
+          "type": "decimal",
+          "provenance": {
+            "source_file": "cpy/CVACT01Y.cpy",
+            "line_start": 8,
+            "line_end": null,
+            "source_sha256": "81a08bad15af5664326a6f0af3650f570821c4857ffdec3a6a39f91f07dca728",
+            "original_construct": "05  ACCT-CREDIT-LIMIT                 PIC S9(10)V99.",
+            "analyzer_id": "autoforge-semantic-extractor",
+            "confidence": 1.0
+          }
+        },
+        "criticality": "MANDATORY"
+      },
+      {
+        "req_id": "7a666cdd-88ef-424a-b70e-48faa67c623f",
+        "category": "DATA_INTEGRITY",
+        "source_element": "CVACT01Y.ACCT-CASH-CREDIT-LIMIT",
+        "requirement_statement": "Preserve field 'ACCT-CASH-CREDIT-LIMIT' data type as decimal, length 12, precision 12, scale 2, signed arithmetic representation.",
+        "source_evidence": {
+          "entity": "CVACT01Y",
+          "field": "ACCT-CASH-CREDIT-LIMIT",
+          "type": "decimal",
+          "provenance": {
+            "source_file": "cpy/CVACT01Y.cpy",
+            "line_start": 9,
+            "line_end": null,
+            "source_sha256": "81a08bad15af5664326a6f0af3650f570821c4857ffdec3a6a39f91f07dca728",
+            "original_construct": "05  ACCT-CASH-CREDIT-LIMIT            PIC S9(10)V99.",
+            "analyzer_id": "autoforge-semantic-extractor",
+            "confidence": 1.0
+          }
+        },
+        "criticality": "MANDATORY"
+      },
+      {
+        "req_id": "6510f57f-ca28-4a5a-bf78-c18cfa7e5ded",
+        "category": "DATA_INTEGRITY",
+        "source_element": "CVACT01Y.ACCT-OPEN-DATE",
+        "requirement_statement": "Preserve field 'ACCT-OPEN-DATE' data type as string, length 10.",
+        "source_evidence": {
+          "entity": "CVACT01Y",
+          "field": "ACCT-OPEN-DATE",
+          "type": "string",
+          "provenance": {
+            "source_file": "cpy/CVACT01Y.cpy",
+            "line_start": 10,
+            "line_end": null,
+            "source_sha256": "81a08bad15af5664326a6f0af3650f570821c4857ffdec3a6a39f91f07dca728",
+            "original_construct": "05  ACCT-OPEN-DATE                    PIC X(10).",
+            "analyzer_id": "autoforge-semantic-extractor",
+            "confidence": 1.0
+          }
+        },
+        "criticality": "MANDATORY"
+      },
+      {
+        "req_id": "f136651c-1084-4879-96c5-4225c6c724f4",
+        "category": "DATA_INTEGRITY",
+        "source_element": "CVACT01Y.ACCT-EXPIRAION-DATE",
+        "requirement_statement": "Preserve field 'ACCT-EXPIRAION-DATE' data type as string, length 10.",
+        "source_evidence": {
+          "entity": "CVACT01Y",
+          "field": "ACCT-EXPIRAION-DATE",
+          "type": "string",
+          "provenance": {
+            "source_file": "cpy/CVACT01Y.cpy",
+            "line_start": 11,
+            "line_end": null,
+            "source_sha256": "81a08bad15af5664326a6f0af3650f570821c4857ffdec3a6a39f91f07dca728",
+            "original_construct": "05  ACCT-EXPIRAION-DATE               PIC X(10).",
+            "analyzer_id": "autoforge-semantic-extractor",
+            "confidence": 1.0
+          }
+        },
+        "criticality": "MANDATORY"
+      }
+    ]
+  },
+  "target_engineering_requirements": [
+    {
+      "req_id": "56a05397-1ebb-4f0b-85ba-0d9fd209bba8",
+      "requirement_kind": "DATA_REPRESENTATION",
+      "target_technology": "Java",
+      "description": "Represent legacy fixed-length strings using String and high-precision financial decimals using BigDecimal.",
+      "required_capability": "java_source_generation",
+      "is_supported": true,
+      "conventions_source": "TargetTechnologyKnowledge"
+    },
+    {
+      "req_id": "05389306-4021-4dcc-8750-ceb037d22e47",
+      "requirement_kind": "CONTROL_EXECUTION",
+      "target_technology": "Java",
+      "description": "Encapsulate procedural execution blocks into idiomatic Java methods/functions with structured control flow.",
+      "required_capability": "java_source_generation",
+      "is_supported": true,
+      "conventions_source": "TargetTechnologyKnowledge"
+    },
+    {
+      "req_id": "17d4f09e-3986-4997-bf5d-82cc08cc2dcb",
+      "requirement_kind": "IO_ADAPTER",
+      "target_technology": "Java",
+      "description": "Isolate external file and dataset I/O behind an adapter boundary returning status outcomes.",
+      "required_capability": "java_source_generation",
+      "is_supported": true,
+      "conventions_source": "TargetTechnologyKnowledge"
+    },
+    {
+      "req_id": "0a87aa9f-2d24-4a4c-bbfd-91406a141280",
+      "requirement_kind": "VERIFICATION_HARNESS",
+      "target_technology": "Java",
+      "description": "Provide deterministic verification entrypoint executable via host toolchain (javac_compilation).",
+      "required_capability": "javac_compilation",
+      "is_supported": true,
+      "conventions_source": "TargetTechnologyKnowledge"
+    }
+  ],
+  "multi_target_planning_proof": {
+    "java_target": {
+      "language": "Java",
+      "architecture_style": "LAYERED_SERVICE",
+      "roles_planned": [
+        "ENTRY_POINT",
+        "SERVICE",
+        "TEST_HARNESS",
+        "DOMAIN_MODEL",
+        "ADAPTER"
+      ],
+      "artifacts_count": 2,
+      "steps_count": 43,
+      "file_extension": ".java"
+    },
+    "python_target": {
+      "language": "Python",
+      "architecture_style": "MODULAR_APPLICATION",
+      "roles_planned": [
+        "ENTRY_POINT",
+        "SERVICE",
+        "TEST_HARNESS",
+        "DOMAIN_MODEL",
+        "ADAPTER"
+      ],
+      "artifacts_count": 2,
+      "steps_count": 43,
+      "file_extension": ".py"
+    },
+    "distinct_plans_proven": true,
+    "zero_pair_engines_proven": true
+  },
+  "transformation_plan_sample_steps": [
+    {
+      "step_id": "fdb57b92-d59c-4022-915c-be71ffb72e99",
+      "title": "Engineer Method 1000AcctfileGetNext",
+      "intent": "Transform procedural paragraph 1000-ACCTFILE-GET-NEXT into Method 1000AcctfileGetNext.",
+      "source_semantic_refs": [
+        "CBACT01C.1000-ACCTFILE-GET-NEXT"
+      ],
+      "preservation_requirement_ids": [
+        "59aca92d-bc31-45d0-9d26-dc0e6849063a"
+      ],
+      "target_artifact_name": "Cbact01c",
+      "target_construct": "Method 1000AcctfileGetNext",
+      "ordering_index": 1,
+      "verification_requirement": "Compile verification in Java",
+      "confidence": 1.0
+    },
+    {
+      "step_id": "3a73d027-b813-4e1e-919a-88ad2e86ec49",
+      "title": "Engineer Method 1100DisplayAcctRecord",
+      "intent": "Transform procedural paragraph 1100-DISPLAY-ACCT-RECORD into Method 1100DisplayAcctRecord.",
+      "source_semantic_refs": [
+        "CBACT01C.1100-DISPLAY-ACCT-RECORD"
+      ],
+      "preservation_requirement_ids": [
+        "c615091d-0a36-4d2c-9e84-b37b096bf7f5"
+      ],
+      "target_artifact_name": "Cbact01c",
+      "target_construct": "Method 1100DisplayAcctRecord",
+      "ordering_index": 2,
+      "verification_requirement": "Compile verification in Java",
+      "confidence": 1.0
+    },
+    {
+      "step_id": "7e8616bc-cd0b-42cd-9bbe-ed6d752a0fe4",
+      "title": "Engineer Method 1300PopulAcctRecord",
+      "intent": "Transform procedural paragraph 1300-POPUL-ACCT-RECORD into Method 1300PopulAcctRecord.",
+      "source_semantic_refs": [
+        "CBACT01C.1300-POPUL-ACCT-RECORD"
+      ],
+      "preservation_requirement_ids": [
+        "d6c7b96a-ee11-4c32-8048-db19106282d9"
+      ],
+      "target_artifact_name": "Cbact01c",
+      "target_construct": "Method 1300PopulAcctRecord",
+      "ordering_index": 3,
+      "verification_requirement": "Compile verification in Java",
+      "confidence": 1.0
+    },
+    {
+      "step_id": "f7c8a9bc-54a3-457b-afb4-86d60060ee17",
+      "title": "Engineer Method 1350WriteAcctRecord",
+      "intent": "Transform procedural paragraph 1350-WRITE-ACCT-RECORD into Method 1350WriteAcctRecord.",
+      "source_semantic_refs": [
+        "CBACT01C.1350-WRITE-ACCT-RECORD"
+      ],
+      "preservation_requirement_ids": [
+        "cf733922-5508-4ff7-925f-f142994f1cf8"
+      ],
+      "target_artifact_name": "Cbact01c",
+      "target_construct": "Method 1350WriteAcctRecord",
+      "ordering_index": 4,
+      "verification_requirement": "Compile verification in Java",
+      "confidence": 1.0
+    },
+    {
+      "step_id": "7be0881b-3551-4969-98f9-b7155e6de7ef",
+      "title": "Engineer Method 1400PopulArrayRecord",
+      "intent": "Transform procedural paragraph 1400-POPUL-ARRAY-RECORD into Method 1400PopulArrayRecord.",
+      "source_semantic_refs": [
+        "CBACT01C.1400-POPUL-ARRAY-RECORD"
+      ],
+      "preservation_requirement_ids": [
+        "2df0c80b-82d6-4b6f-b2ca-465ffe8186e2"
+      ],
+      "target_artifact_name": "Cbact01c",
+      "target_construct": "Method 1400PopulArrayRecord",
+      "ordering_index": 5,
+      "verification_requirement": "Compile verification in Java",
+      "confidence": 1.0
+    },
+    {
+      "step_id": "0be4f549-5e00-4232-8713-5bd74f56c5cb",
+      "title": "Engineer Method 1450WriteArryRecord",
+      "intent": "Transform procedural paragraph 1450-WRITE-ARRY-RECORD into Method 1450WriteArryRecord.",
+      "source_semantic_refs": [
+        "CBACT01C.1450-WRITE-ARRY-RECORD"
+      ],
+      "preservation_requirement_ids": [
+        "1e4bfe94-9922-4be0-b808-b455f56e5576"
+      ],
+      "target_artifact_name": "Cbact01c",
+      "target_construct": "Method 1450WriteArryRecord",
+      "ordering_index": 6,
+      "verification_requirement": "Compile verification in Java",
+      "confidence": 1.0
+    }
+  ],
+  "verification_and_execution": {
+    "java_compilation_passed": true,
+    "java_bytecode_classes_generated": [
+      "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_sf4aeaaz/bin/com/autoforge/generated/Acctfile.class",
+      "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_sf4aeaaz/bin/com/autoforge/generated/Cbact01c.class"
+    ],
+    "python_compilation_passed": true,
+    "bounded_behavioral_results": [
+      {
+        "status_input": "00",
+        "semantic": "SUCCESS",
+        "expected_rc": 0,
+        "actual_rc": 0,
+        "matched": true
+      },
+      {
+        "status_input": "10",
+        "semantic": "END_OF_FILE",
+        "expected_rc": 16,
+        "actual_rc": 16,
+        "matched": true
+      },
+      {
+        "status_input": "99",
+        "semantic": "IO_ERROR",
+        "expected_rc": 12,
+        "actual_rc": 12,
+        "matched": true
+      }
+    ],
+    "all_behavioral_tests_passed": true
+  },
+  "provenance_chain": {
+    "chain_id": "0360e5e7-aaee-4d22-84c4-ef2d48c7bc22",
+    "links_count": 5,
+    "stages": [
+      "source",
+      "analysis",
+      "plan",
+      "transformation",
+      "verification"
+    ]
+  },
+  "claims_classification": {
+    "generic_java_application_generation_javac_and_jvm_execution": "PROVEN",
+    "spring_boot_framework_generation_and_runtime_execution": "NOT PROVEN / BLOCKED",
+    "python_artifact_generation_and_py_compile": "PROVEN",
+    "fastapi_framework_generation_and_runtime_execution": "NOT PROVEN / BLOCKED",
+    "semantic_model_to_transformation_plan_derivation": "PROVEN",
+    "multi_target_generality_zero_pair_engines": "PROVEN",
+    "end_to_end_modernization_provenance_binding": "PROVEN",
+    "automated_repair_execution": "NOT PROVEN"
+  },
+  "acceptance_verdict": "PROVEN_GENERIC_TARGETS_BOUNDED_EXECUTION"
+}
