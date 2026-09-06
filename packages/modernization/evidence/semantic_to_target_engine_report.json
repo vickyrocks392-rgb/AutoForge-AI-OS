@@ -1,0 +1,405 @@
+{
+  "timestamp": "2026-09-06T09:46:12Z",
+  "elapsed_seconds": 0.994,
+  "workload": {
+    "name": "CardDemo Multi-Module System Workload",
+    "source_files": [
+      "cbl/CBACT01C.cbl",
+      "cbl/COTRN02C.cbl",
+      "cbl/CSUTLDTC.cbl",
+      "cpy/CVACT01Y.cpy",
+      "jcl/READACCT.jcl"
+    ],
+    "modules_count": 4,
+    "entities_count": 1,
+    "procedures_count": 38,
+    "operations_count": 226,
+    "business_rules_count": 43,
+    "io_operations_count": 12,
+    "system_semantic_graph": {
+      "nodes_count": 240,
+      "edges_count": 314
+    }
+  },
+  "target_system_architecture": {
+    "target_language": "Java",
+    "architecture_style": "LAYERED_SERVICE",
+    "components_count": 5,
+    "component_graph": {
+      "nodes_count": 15,
+      "edges_count": 3,
+      "edges": [
+        {
+          "src": "a84b373c-cff5-47e6-95c5-d0db85ef21b6",
+          "dst": "7da80a5b-1007-4023-8632-09b849482198",
+          "kind": "INVOKES",
+          "interaction_pattern": "SYNCHRONOUS_CALL"
+        },
+        {
+          "src": "9f5ae4b4-8c63-499b-b418-999a494a6af8",
+          "dst": "2e9059c8-7c88-4093-af73-14025000e499",
+          "kind": "EXCHANGES_DATA",
+          "interaction_pattern": "SYNCHRONOUS_CALL"
+        },
+        {
+          "src": "a84b373c-cff5-47e6-95c5-d0db85ef21b6",
+          "dst": "2e9059c8-7c88-4093-af73-14025000e499",
+          "kind": "EXCHANGES_DATA",
+          "interaction_pattern": "SYNCHRONOUS_CALL"
+        }
+      ]
+    },
+    "cross_module_dependencies": [
+      {
+        "caller": "COTRN02C",
+        "callee": "CSUTLDTC",
+        "source_kind": "CALLS",
+        "target_caller": "Cotrn02c",
+        "target_callee": "Csutldtc",
+        "target_kind": "INVOKES",
+        "interaction_pattern": "SERVICE_INJECTION"
+      },
+      {
+        "caller": "READACCT",
+        "callee": "PREDEL",
+        "source_kind": "EXECUTES",
+        "target_caller": "ReadacctOrchestrator",
+        "target_callee": "Predel",
+        "target_kind": "ORCHESTRATES",
+        "interaction_pattern": "ORCHESTRATION_STEP"
+      },
+      {
+        "caller": "READACCT",
+        "callee": "STEP05",
+        "source_kind": "EXECUTES",
+        "target_caller": "ReadacctOrchestrator",
+        "target_callee": "Step05",
+        "target_kind": "ORCHESTRATES",
+        "interaction_pattern": "ORCHESTRATION_STEP"
+      },
+      {
+        "caller": "STEP05",
+        "callee": "CBACT01C",
+        "source_kind": "CALLS",
+        "target_caller": "Step05",
+        "target_callee": "Cbact01c",
+        "target_kind": "INVOKES",
+        "interaction_pattern": "SERVICE_INJECTION"
+      }
+    ],
+    "shared_data_decisions": [
+      {
+        "entity": "CVACT01Y",
+        "source_type": "copybook",
+        "target_model": "Cvact01y",
+        "ownership_strategy": "SHARED_DOMAIN_MODEL",
+        "consumers": [
+          "CBACT01C",
+          "COTRN02C"
+        ]
+      }
+    ],
+    "datastore_mappings": [
+      {
+        "dataset": "ACCTFILE",
+        "resource_type": "vsam",
+        "target_adapter": "AcctfileAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "indexed",
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "OUTFILE",
+        "resource_type": "file",
+        "target_adapter": "OutfileAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "ARRYFILE",
+        "resource_type": "file",
+        "target_adapter": "ArryfileAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "VBRCFILE",
+        "resource_type": "file",
+        "target_adapter": "VbrcfileAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "OUT-ACCT-REC",
+        "resource_type": "record",
+        "target_adapter": "OutAcctRecAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "ARR-ARRAY-REC",
+        "resource_type": "record",
+        "target_adapter": "ArrArrayRecAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "VBR-REC",
+        "resource_type": "record",
+        "target_adapter": "VbrRecAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "AWS.M2.CARDDEMO.ACCTDATA.ARRYPS",
+        "resource_type": "dataset",
+        "target_adapter": "AwsM2CarddemoAcctdataArrypsAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "AWS.M2.CARDDEMO.ACCTDATA.PSCOMP",
+        "resource_type": "dataset",
+        "target_adapter": "AwsM2CarddemoAcctdataPscompAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      },
+      {
+        "dataset": "AWS.M2.CARDDEMO.ACCTDATA.VBPS",
+        "resource_type": "dataset",
+        "target_adapter": "AwsM2CarddemoAcctdataVbpsAdapter",
+        "strategy": "REPOSITORY_PORT",
+        "access_modes": [
+          "sequential"
+        ]
+      }
+    ],
+    "execution_orchestration": [
+      {
+        "job": "READACCT",
+        "orchestrator": "ReadacctOrchestration",
+        "pattern": "PIPELINE_RUNNER",
+        "steps": [
+          {
+            "step_name": "PREDEL",
+            "program": "IEFBR14",
+            "target_component": "",
+            "target_handler": "IEFBR14UtilityHandler",
+            "order": 1,
+            "condition": "ONLY_IF_PRIOR_SUCCESS"
+          },
+          {
+            "step_name": "STEP05",
+            "program": "CBACT01C",
+            "target_component": "Cbact01c",
+            "target_handler": "Cbact01c",
+            "order": 2,
+            "condition": "ONLY_IF_PRIOR_SUCCESS"
+          }
+        ]
+      }
+    ],
+    "external_dependencies": [
+      {
+        "source_module": "CBACT01C",
+        "target": "COBDATFT",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "affected_component": "Cbact01c",
+        "blocking": false,
+        "confidence": 0.0,
+        "recommended_resolution_path": "Provide target service or mock implementation for external routine COBDATFT"
+      },
+      {
+        "source_module": "CBACT01C",
+        "target": "CEE3ABD",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "affected_component": "Cbact01c",
+        "blocking": false,
+        "confidence": 0.0,
+        "recommended_resolution_path": "Provide target service or mock implementation for external routine CEE3ABD"
+      },
+      {
+        "source_module": "CSUTLDTC",
+        "target": "CEEDAYS",
+        "kind": "UNRESOLVED_PROGRAM_CALL",
+        "affected_component": "Csutldtc",
+        "blocking": false,
+        "confidence": 0.0,
+        "recommended_resolution_path": "Provide target service or mock implementation for external routine CEEDAYS"
+      },
+      {
+        "source_module": "PREDEL",
+        "target": "IEFBR14",
+        "kind": "SYSTEM_UTILITY",
+        "affected_component": "Predel",
+        "blocking": false,
+        "confidence": 0.0,
+        "recommended_resolution_path": "Acquire mainframe system capability for IEFBR14"
+      }
+    ]
+  },
+  "multi_target_divergence": {
+    "proven": true,
+    "targets": [
+      {
+        "language": "Java",
+        "style": "LAYERED_SERVICE",
+        "components_count": 5
+      },
+      {
+        "language": "Python",
+        "style": "MODULAR_APPLICATION",
+        "components_count": 5
+      }
+    ]
+  },
+  "generation": {
+    "artifacts_count": 5,
+    "artifacts": [
+      {
+        "component": "Cvact01y",
+        "relative_path": "src/main/java/com/autoforge/generated/Cvact01y.java",
+        "loc": 193,
+        "sha256": "279c505db806997b2f1f31cea31420986de9af121b0bda72a3fc81177722f9c5"
+      },
+      {
+        "component": "Cbact01c",
+        "relative_path": "src/main/java/com/autoforge/generated/Cbact01c.java",
+        "loc": 627,
+        "sha256": "d4fe447f1d4608fa7254e7a491fee52374f3dc7d472d33633103faed179130f6"
+      },
+      {
+        "component": "Cotrn02c",
+        "relative_path": "src/main/java/com/autoforge/generated/Cotrn02c.java",
+        "loc": 594,
+        "sha256": "a0de4467266e2638fd81c340d2a4fda2428a18f02157e636b6fa4ef381cf1980"
+      },
+      {
+        "component": "Csutldtc",
+        "relative_path": "src/main/java/com/autoforge/generated/Csutldtc.java",
+        "loc": 126,
+        "sha256": "119a304133b29b9c2943f479b5b3b20179417496c72ee99798e51e4f6a893de1"
+      },
+      {
+        "component": "ReadacctOrchestration",
+        "relative_path": "src/main/java/com/autoforge/generated/ReadacctOrchestration.java",
+        "loc": 66,
+        "sha256": "92e4d318198ce6e69cc2f5482dff2a7bb4c16f43bab3c48613c20ba3497ae7d2"
+      }
+    ]
+  },
+  "verification": {
+    "toolchain": "OpenJDK javac (Host Compiler)",
+    "passed": true,
+    "classes_generated": 5,
+    "duration_ms": 484.63516699848697
+  },
+  "behavioral_verification": {
+    "runtime": "OpenJDK java (Host JVM)",
+    "total_checks": 7,
+    "all_passed": true,
+    "checks": [
+      {
+        "component": "ReadacctOrchestration",
+        "description": "Multi-step batch job orchestration invoking Cbact01c",
+        "expected": "JOB_RESULT=0",
+        "observed": "JOB_RESULT=0",
+        "passed": true
+      },
+      {
+        "component": "Cotrn02c",
+        "description": "Inter-module call to Csutldtc date routine",
+        "expected": "Return code: 0",
+        "observed": "Return code: 0",
+        "passed": true
+      },
+      {
+        "component": "Csutldtc",
+        "description": "Date validation semantics (Valid ISO date format)",
+        "expected": "DATE_RESULT=0",
+        "observed": "DATE_RESULT=0",
+        "passed": true
+      },
+      {
+        "component": "Csutldtc",
+        "description": "Date validation semantics (Invalid date format error)",
+        "expected": "DATE_RESULT=4",
+        "observed": "DATE_RESULT=4",
+        "passed": true
+      },
+      {
+        "component": "Cbact01c",
+        "description": "Deterministic business rule: Success (00 -> RC 0)",
+        "expected": "STATUS_RESULT=0",
+        "observed": "STATUS_RESULT=0",
+        "passed": true
+      },
+      {
+        "component": "Cbact01c",
+        "description": "Deterministic business rule: End of File (10 -> RC 16)",
+        "expected": "STATUS_RESULT=16",
+        "observed": "STATUS_RESULT=16",
+        "passed": true
+      },
+      {
+        "component": "Cbact01c",
+        "description": "Deterministic business rule: I/O Error (Other -> RC 12)",
+        "expected": "STATUS_RESULT=12",
+        "observed": "STATUS_RESULT=12",
+        "passed": true
+      }
+    ]
+  },
+  "provenance_chain": {
+    "total_links": 5,
+    "stages": [
+      "analysis",
+      "plan",
+      "transformation",
+      "verification",
+      "verification"
+    ]
+  },
+  "production_reality_gate": {
+    "PROVEN": [
+      "Multi-module semantic graph drives system-level target transformation",
+      "Cross-module dependencies (COTRN02C->CSUTLDTC, READACCT->CBACT01C) mapped to target relationships",
+      "Shared copybook entity CVACT01Y mapped to shared target domain model Cvact01y",
+      "Unresolved external dependencies (CEEDAYS, IEFBR14, CEE3ABD, COBDATFT) explicitly tracked without fabrication",
+      "JCL execution flow mapped to sequential pipeline orchestrator ReadacctOrchestration",
+      "Coordinated Java artifacts generated without source-target pair engines",
+      "Real javac compilation of all coordinated artifacts into JVM bytecode",
+      "Real JVM execution of batch orchestration, inter-module call, and file status branches",
+      "Multi-target architecture divergence proven between Java and Python from identical source semantics",
+      "End-to-end modernization provenance connecting source evidence to target behavior"
+    ],
+    "PARTIALLY_PROVEN": [
+      "I/O dataset boundaries mapped to file/stream adapters (runtime VSAM/KSDS emulators not executed)",
+      "CEEDAYS IBM LE callable service mapped to simulated ISO date parser with non-blocking fallback"
+    ],
+    "BLOCKED": [],
+    "NOT_PROVEN": [
+      "Full CardDemo migration (only 5-file bounded multi-module system proven)",
+      "Spring Boot framework runtime execution (only standard OpenJDK JVM execution verified)",
+      "Full relational database / SQL migration for VSAM files (only file/stream adapter mapped)"
+    ]
+  }
+}
