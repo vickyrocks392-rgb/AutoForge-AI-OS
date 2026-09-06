@@ -1,0 +1,509 @@
+{
+  "title": "AutoForge AI 18-G.5 Complete Subsystem Migration Final Certification",
+  "timestamp_utc": "2026-09-06T22:17:06Z",
+  "final_classification": "CERTIFIED",
+  "gates": {
+    "SOURCE_COMPLETENESS": "PASS",
+    "DEPENDENCY_CLOSURE": "PASS",
+    "SEMANTIC_COMPLETENESS": "PASS",
+    "TRANSFORMATION_COVERAGE": "PASS",
+    "TARGET_BUILD": "PASS",
+    "TARGET_STARTUP": "PASS",
+    "RUNTIME_HEALTH": "PASS",
+    "BEHAVIOR_MATRIX": "PASS",
+    "INTEGRATION_MATRIX": "PASS",
+    "RESOURCE_MATRIX": "PASS",
+    "RAG": "PASS",
+    "REPAIR": "PASS",
+    "PROVENANCE": "PASS",
+    "GOVERNANCE": "PASS",
+    "NEGATIVE_TESTING": "PASS",
+    "REGRESSION": "PASS"
+  },
+  "subsystem_definition": {
+    "name": "TRANSACTION_PROCESSING",
+    "entry_points": [
+      "POSTTRAN",
+      "TRANREPT",
+      "CBTRN01C",
+      "CBTRN02C",
+      "CBTRN03C",
+      "COTRN00C",
+      "COTRN01C",
+      "COTRN02C"
+    ],
+    "total_files": 35,
+    "files": [
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cbl/CBTRN01C.cbl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cbl/CBTRN02C.cbl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cbl/CBTRN03C.cbl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cbl/COTRN00C.cbl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cbl/COTRN01C.cbl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cbl/COTRN02C.cbl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cbl/CSUTLDTC.cbl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy-bms/COTRN00.CPY",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy-bms/COTRN01.CPY",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy-bms/COTRN02.CPY",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/COCOM01Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/COTTL01Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CSDAT01Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CSMSG01Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVACT01Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVACT02Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVACT03Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVCUS01Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVTRA01Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVTRA03Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVTRA04Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVTRA05Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVTRA06Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/cpy/CVTRA07Y.cpy",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/ACCTFILE.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/CARDFILE.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/CUSTFILE.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/DALYREJS.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/POSTTRAN.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/TCATBALF.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/TRANCATG.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/TRANFILE.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/TRANREPT.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/TRANTYPE.jcl",
+      "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/carddemo/app/jcl/XREFFILE.jcl"
+    ],
+    "physical_loc": 6356,
+    "non_comment_loc": 5026,
+    "internal_dependency_closure": "COMPLETE",
+    "is_complete": true,
+    "missing_internal_dependencies": [],
+    "external_boundaries": [
+      "CEE3ABD",
+      "CEEDAYS",
+      "DFHAID",
+      "DFHBMSCA",
+      "IDCAMS",
+      "OF",
+      "REPROC",
+      "SDSF",
+      "SORT"
+    ]
+  },
+  "build_metrics": {
+    "toolchain": "Apache Maven 3.9 / OpenJDK 26 (Spring Boot)",
+    "framework": "Spring Boot 3.2.3",
+    "java_version": "openjdk version \"26.0.2.1\" 2026-08-18",
+    "build_duration_ms": 4659.71,
+    "fat_jar_path": "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_spring_boot_app_pjco2rwv/target/modernized-subsystem-1.0.0-SNAPSHOT.jar",
+    "fat_jar_size_bytes": 22352284,
+    "class_count": 36,
+    "warnings_count": 0,
+    "errors_count": 0
+  },
+  "runtime_metrics": {
+    "application_name": "modernized-subsystem-1.0.0-SNAPSHOT",
+    "port": 8089,
+    "started": true,
+    "startup_latency_ms": 2647.28,
+    "health_status": "UP",
+    "readiness_response": {
+      "status": "UP",
+      "timestamp": 1788733006850,
+      "subsystem": "TRANSACTION_PROCESSING",
+      "framework": "Spring Boot 3.2.3",
+      "runtime": "OpenJDK 26 / Java 21 Target",
+      "componentCount": 35
+    }
+  },
+  "behavioral_matrix": [
+    {
+      "id": "CASE-01",
+      "name": "POSTTRAN Batch Job Workflow Execution",
+      "category": "Batch Orchestration",
+      "entrypoint": "PosttranOrchestration",
+      "source_provenance": "POSTTRAN.JCL / CBTRN01C step / CBTRN02C step",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-02",
+      "name": "TRANREPT Batch Job Workflow Execution",
+      "category": "Batch Orchestration",
+      "entrypoint": "TranreptOrchestration",
+      "source_provenance": "TRANREPT.JCL / CBTRN03C step",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-03",
+      "name": "CBTRN01C Transaction Daily Post Program Execution",
+      "category": "Batch Program",
+      "entrypoint": "Cbtrn01c",
+      "source_provenance": "CBTRN01C.cbl / PROCEDURE DIVISION",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-04",
+      "name": "CBTRN02C Transaction File Validation Program Execution",
+      "category": "Batch Program",
+      "entrypoint": "Cbtrn02c",
+      "source_provenance": "CBTRN02C.cbl / PROCEDURE DIVISION",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-05",
+      "name": "CBTRN03C Transaction Report Generation Program Execution",
+      "category": "Batch Program",
+      "entrypoint": "Cbtrn03c",
+      "source_provenance": "CBTRN03C.cbl / PROCEDURE DIVISION",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-06",
+      "name": "COTRN00C Transaction Menu Navigation Controller",
+      "category": "Online CICS Program",
+      "entrypoint": "Cotrn00c",
+      "source_provenance": "COTRN00C.cbl / MAIN-PARA",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-07",
+      "name": "COTRN01C Transaction List / Browse Program",
+      "category": "Online CICS Program",
+      "entrypoint": "Cotrn01c",
+      "source_provenance": "COTRN01C.cbl / MAIN-PARA",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-08",
+      "name": "COTRN02C Transaction Detail / Add Program",
+      "category": "Online CICS Program",
+      "entrypoint": "Cotrn02c",
+      "source_provenance": "COTRN02C.cbl / MAIN-PARA",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-09",
+      "name": "Preserved Date Formatting (Valid ISO Date)",
+      "category": "Date Processing Semantics",
+      "entrypoint": "Csutldtc",
+      "source_provenance": "CSUTLDTC.cbl / CEEDAYS Callable Service",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-10",
+      "name": "Preserved Date Formatting (Valid Packed Date)",
+      "category": "Date Processing Semantics",
+      "entrypoint": "Csutldtc",
+      "source_provenance": "CSUTLDTC.cbl / CEEDAYS Callable Service",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-11",
+      "name": "Preserved Date Validation (Invalid Date Value)",
+      "category": "Error Handling Semantics",
+      "entrypoint": "Csutldtc",
+      "source_provenance": "CSUTLDTC.cbl / Date Validation Logic",
+      "expected_rc": 4,
+      "actual_rc": 4,
+      "expected_status": "ERROR",
+      "actual_status": "ERROR",
+      "passed": true
+    },
+    {
+      "id": "CASE-12",
+      "name": "Preserved Date Validation (Empty / Insufficient Date)",
+      "category": "Boundary Validation",
+      "entrypoint": "Csutldtc",
+      "source_provenance": "CSUTLDTC.cbl / Empty String Handling",
+      "expected_rc": 4,
+      "actual_rc": 4,
+      "expected_status": "ERROR",
+      "actual_status": "ERROR",
+      "passed": true
+    },
+    {
+      "id": "CASE-13",
+      "name": "Preserved File Status Code '00' (Normal Success)",
+      "category": "I/O Status Evaluation",
+      "entrypoint": "Cbtrn01c",
+      "source_provenance": "CBTRN01C.cbl / FILE STATUS Evaluation",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-14",
+      "name": "Preserved File Status Code '10' (End-of-File Condition)",
+      "category": "I/O Status Evaluation",
+      "entrypoint": "Cbtrn01c",
+      "source_provenance": "CBTRN01C.cbl / EOF Evaluation",
+      "expected_rc": 16,
+      "actual_rc": 16,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-15",
+      "name": "Preserved File Status Code '23' (Record Not Found / Error)",
+      "category": "I/O Status Evaluation",
+      "entrypoint": "Cbtrn01c",
+      "source_provenance": "CBTRN01C.cbl / I/O Error Handling",
+      "expected_rc": 12,
+      "actual_rc": 12,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    }
+  ],
+  "integration_matrix": [
+    {
+      "edge_id": "INT-01",
+      "caller": "PosttranOrchestration",
+      "callee": "Cbtrn01c",
+      "edge_type": "EXECUTES",
+      "description": "Batch job POSTTRAN step 1 executes daily transaction post program CBTRN01C",
+      "passed": true,
+      "response": {
+        "entrypoint": "PosttranOrchestration",
+        "timestamp": 1788733007006,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-02",
+      "caller": "PosttranOrchestration",
+      "callee": "Cbtrn02c",
+      "edge_type": "EXECUTES",
+      "description": "Batch job POSTTRAN step 2 executes transaction validation program CBTRN02C",
+      "passed": true,
+      "response": {
+        "entrypoint": "PosttranOrchestration",
+        "timestamp": 1788733007008,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-03",
+      "caller": "TranreptOrchestration",
+      "callee": "Cbtrn03c",
+      "edge_type": "EXECUTES",
+      "description": "Batch job TRANREPT step 1 executes transaction report generator CBTRN03C",
+      "passed": true,
+      "response": {
+        "entrypoint": "TranreptOrchestration",
+        "timestamp": 1788733007009,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-04",
+      "caller": "Cotrn00c",
+      "callee": "Cotrn01c",
+      "edge_type": "CALLS",
+      "description": "Transaction menu navigation calls transaction list program COTRN01C",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cotrn00c",
+        "timestamp": 1788733007011,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-05",
+      "caller": "Cotrn01c",
+      "callee": "Cotrn02c",
+      "edge_type": "CALLS",
+      "description": "Transaction list program calls transaction detail program COTRN02C",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cotrn01c",
+        "timestamp": 1788733007013,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-06",
+      "caller": "Cbtrn01c",
+      "callee": "Csutldtc",
+      "edge_type": "CALLS",
+      "description": "CBTRN01C invokes CSUTLDTC date service routine for transaction date validation",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn01c",
+        "timestamp": 1788733007015,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-07",
+      "caller": "Cbtrn02c",
+      "callee": "Csutldtc",
+      "edge_type": "CALLS",
+      "description": "CBTRN02C invokes CSUTLDTC date service routine for validation timestamps",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn02c",
+        "timestamp": 1788733007020,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-08",
+      "caller": "Cbtrn03c",
+      "callee": "Csutldtc",
+      "edge_type": "CALLS",
+      "description": "CBTRN03C invokes CSUTLDTC date service routine for report generation headers",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn03c",
+        "timestamp": 1788733007023,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-09",
+      "caller": "Cbtrn01c",
+      "callee": "Cvtra01y",
+      "edge_type": "SHARED_DATA",
+      "description": "CBTRN01C reads and populates transaction record domain model CVTRA01Y",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn01c",
+        "timestamp": 1788733007025,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-10",
+      "caller": "Cbtrn02c",
+      "callee": "Cvtra02y",
+      "edge_type": "SHARED_DATA",
+      "description": "CBTRN02C validates transaction categories domain model CVTRA02Y",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn02c",
+        "timestamp": 1788733007029,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-11",
+      "caller": "Cbtrn03c",
+      "callee": "Cvtra03y",
+      "edge_type": "SHARED_DATA",
+      "description": "CBTRN03C aggregates transaction summary domain model CVTRA03Y",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn03c",
+        "timestamp": 1788733007031,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    }
+  ],
+  "ai_metrics": [
+    {
+      "node": "M1 Mac",
+      "host": "127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b",
+      "latency_ms": 6968.43,
+      "input_tokens": 47,
+      "output_tokens": 64,
+      "tokens_per_sec": 10.32
+    },
+    {
+      "node": "HP Windows Host",
+      "host": "192.168.1.104:11434",
+      "model": "qwen2.5-coder:3b",
+      "latency_ms": 7912.8,
+      "input_tokens": 53,
+      "output_tokens": 64,
+      "tokens_per_sec": 8.81
+    }
+  ],
+  "qdrant_metrics": {
+    "url": "http://192.168.1.104:6333",
+    "reachable": true,
+    "upsert_duration_ms": 106.85,
+    "query_duration_ms": 25.19,
+    "retrieved_count": 5
+  },
+  "repair_metrics": {
+    "syntax_defect_detected": true,
+    "autonomous_repair_status": "success",
+    "bad_repair_rejected": true
+  },
+  "timings_ms": {
+    "forensics": 874.0719170018565,
+    "discovery_and_closure": 1133.0880829991656,
+    "semantic_extraction": 92.19149999989895,
+    "planning": 142.08570800110465,
+    "generation": 59.725541999796405,
+    "maven_build": 4670.987124998646,
+    "application_startup": 2764.5201250052196,
+    "behavioral_verification": 58.74737499834737,
+    "integration_verification": 26.154749997658655,
+    "qdrant": 1217.5904160030768,
+    "distributed_ai": 14882.726999996521,
+    "autonomous_repair": 2480.1609579953947,
+    "provenance": 0.9178750042337924,
+    "repeatability": 1122.4872500024503
+  },
+  "end_to_end": {
+    "total_wall_clock_s": 29.6,
+    "source_loc_per_hour": 773023.2,
+    "target_loc_per_hour": 1054454.3,
+    "files_per_hour": 4256.7,
+    "known_defects": 0
+  }
+}
