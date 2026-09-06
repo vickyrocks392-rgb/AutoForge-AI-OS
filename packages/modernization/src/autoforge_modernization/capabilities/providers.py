@@ -242,18 +242,13 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
             cand = Path(af_home) / "bin" / "javac"
             if cand.exists() and os.access(cand, os.X_OK):
                 return str(cand)
-        # 3. Check standard isolated AutoForge tool directory (.autoforge/tools/openjdk)
-        default_tool_dir = Path.cwd() / ".autoforge" / "tools" / "openjdk"
-        cand = default_tool_dir / "bin" / "javac"
-        if cand.exists() and os.access(cand, os.X_OK):
-            return str(cand)
-        # 4. Check JAVA_HOME
+        # 3. Check JAVA_HOME
         java_home = os.environ.get("JAVA_HOME")
         if java_home:
             cand = os.path.join(java_home, "bin", "javac")
             if os.path.exists(cand) and os.access(cand, os.X_OK):
                 return cand
-        # 5. Check PATH
+        # 4. Check PATH
         cand = shutil.which("javac")
         return cand
 
@@ -324,6 +319,20 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
             except OSError:
                 dest_javac.write_text(f'#!/bin/sh\nexec "{source_javac}" "$@"\n')
                 dest_javac.chmod(0o755)
+
+            # Also link java runtime and jar utility if present
+            for tool_name in ("java", "jar"):
+                src_tool = found_source / "bin" / tool_name
+                if src_tool.exists() and os.access(src_tool, os.X_OK):
+                    d_tool = dest_bin / tool_name
+                    if d_tool.is_symlink() or d_tool.exists():
+                        d_tool.unlink()
+                    try:
+                        d_tool.symlink_to(src_tool)
+                    except OSError:
+                        d_tool.write_text(f'#!/bin/sh\nexec "{src_tool}" "$@"\n')
+                        d_tool.chmod(0o755)
+
             self._managed_java_home = dest_dir
             return True, f"Prepared OpenJDK from host distribution '{found_source}' into isolated directory '{dest_dir}'"
 
@@ -342,6 +351,39 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
             return self.acquire_or_prepare(target_dir=dest_dir, allow_external_install=False)
         except Exception as e:
             return False, f"Acquisition error: {str(e)}"
+
+    def compile_java(
+        self,
+        source_files: list[str | Path],
+        output_dir: str | Path,
+        classpath: list[str | Path] | None = None,
+        timeout_seconds: float = 30.0,
+    ) -> tuple[bool, str, list[str]]:
+        """Execute real javac compiler on source files and output compiled class files."""
+        javac = self._find_real_javac()
+        if not javac:
+            return False, "javac compiler not found on PATH or in managed tool directory.", []
+
+        out_path = Path(output_dir)
+        out_path.mkdir(parents=True, exist_ok=True)
+
+        cmd = [javac, "-d", str(out_path)]
+        if classpath:
+            cp_str = os.pathsep.join(str(p) for p in classpath)
+            cmd.extend(["-cp", cp_str])
+
+        cmd.extend([str(f) for f in source_files])
+
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_seconds)
+            combined = (res.stdout or "") + (res.stderr or "")
+            class_files = [str(p) for p in out_path.rglob("*.class")]
+            success = res.returncode == 0 and len(class_files) > 0
+            return success, combined.strip(), class_files
+        except subprocess.TimeoutExpired:
+            return False, f"javac compilation timed out after {timeout_seconds}s", []
+        except Exception as exc:
+            return False, f"javac execution failed: {exc}", []
 
     def qualify(self) -> list[CapabilityQualificationRecord]:
         records: list[CapabilityQualificationRecord] = []

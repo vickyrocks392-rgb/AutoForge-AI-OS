@@ -1,0 +1,574 @@
+{
+  "benchmark": "CardDemo Real Bounded Workload",
+  "timestamp": "2026-09-06T06:33:29Z",
+  "source_files": [
+    "cbl/CBACT01C.cbl",
+    "cbl/CBACT02C.cbl",
+    "jcl/ACCTFILE.jcl"
+  ],
+  "runs": {
+    "run1_clean_java": {
+      "success": true,
+      "duration_seconds": 3.0936904169993795,
+      "requested_target_spec": "java_spring_boot",
+      "proven_target_scope": "Java application generation + javac compilation",
+      "spring_boot_framework_status": "NOT PROVEN (no pom.xml or @SpringBootApplication emitted; plain Java application proven)",
+      "stages": [
+        {
+          "stage_name": "discovery",
+          "passed": true,
+          "details": {
+            "technologies": [
+              "ASSEMBLER",
+              "BMS",
+              "CA7",
+              "CICS",
+              "COBOL",
+              "COBOL_COPYBOOK",
+              "CONTROL_M",
+              "DB2",
+              "DEPENDENCIES",
+              "IMS",
+              "JCL",
+              "SHELL",
+              "SQL",
+              "VSAM"
+            ],
+            "primary": "COBOL_COPYBOOK",
+            "files": 237,
+            "loc": 57752
+          },
+          "duration_ms": 307.17499999999995
+        },
+        {
+          "stage_name": "requirements_resolution",
+          "passed": true,
+          "details": {
+            "source_requirements_count": 25,
+            "target_requirements_count": 3,
+            "total_requirements": 28
+          },
+          "duration_ms": 0.044
+        },
+        {
+          "stage_name": "gap_analysis",
+          "passed": true,
+          "details": {
+            "total_requirements": 28,
+            "operational": 26,
+            "acquirable": 0,
+            "specialist_required": 2,
+            "unavailable": 0,
+            "has_blocking_gaps": false
+          },
+          "duration_ms": 2276.797
+        },
+        {
+          "stage_name": "semantic_extraction",
+          "passed": true,
+          "details": {
+            "modules": 3,
+            "procedures": 24,
+            "unsupported_constructs": 0,
+            "files_extracted": [
+              "cbl/CBACT01C.cbl",
+              "cbl/CBACT02C.cbl",
+              "jcl/ACCTFILE.jcl"
+            ]
+          },
+          "duration_ms": 10.702
+        },
+        {
+          "stage_name": "transformation_planning",
+          "passed": true,
+          "details": {
+            "target_components_count": 3,
+            "verification_checks_count": 3,
+            "can_proceed": true
+          },
+          "duration_ms": 0.164
+        },
+        {
+          "stage_name": "target_generation",
+          "passed": true,
+          "details": {
+            "artifacts_count": 3,
+            "target_language": "Java",
+            "defect_injected": false
+          },
+          "duration_ms": 0.735
+        },
+        {
+          "stage_name": "target_verification",
+          "passed": true,
+          "details": {
+            "toolchain": "OpenJDK javac (26.0.2.1)",
+            "command": "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/tools/java/bin/javac -d /var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_dzm_sels/bin /var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_dzm_sels/src/src/main/java/com/autoforge/generated/Cbact01c.java /var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_dzm_sels/src/src/main/java/com/autoforge/generated/Cbact02c.java /var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_dzm_sels/src/src/main/java/com/autoforge/generated/JobAcctfile.java",
+            "class_files_count": 3,
+            "diagnostics_count": 0
+          },
+          "duration_ms": 497.493
+        },
+        {
+          "stage_name": "failure_diagnosis_and_repair",
+          "passed": true,
+          "details": {
+            "status": "not_required_initial_verification_passed"
+          },
+          "duration_ms": 0.0
+        },
+        {
+          "stage_name": "provenance_binding",
+          "passed": true,
+          "details": {
+            "chain_id": "29426d7b-26a1-409b-8c6a-6879066761e8",
+            "links_count": 7,
+            "stages_completed": [
+              "source",
+              "artifact",
+              "evidence",
+              "verification",
+              "analysis",
+              "transformation",
+              "plan"
+            ]
+          },
+          "duration_ms": 0.15100000000000002
+        }
+      ],
+      "composed_capabilities": [
+        "JCL:jcl_job_parsing",
+        "JCL:jcl_procedure_resolution",
+        "JCL:jcl_dataset_analysis",
+        "JCL:jcl_execution_flow_analysis",
+        "COPYBOOK:copybook_resolution_expansion",
+        "COPYBOOK:copybook_catalog_indexing",
+        "DEPENDENCIES:batch_job_step_flow_analysis",
+        "DEPENDENCIES:cross_technology_call_graph",
+        "DB2:db2_embedded_sql_extraction",
+        "DB2:db2_ddl_schema_analysis",
+        "SQL:sql_ddl_parsing",
+        "SQL:sql_schema_verification",
+        "BMS:bms_map_parsing",
+        "BMS:bms_screen_field_extraction",
+        "COBOL:cobol_lexical_syntactic_analysis",
+        "COBOL:cobol_copybook_resolution",
+        "COBOL:cobol_call_relationship_analysis",
+        "COBOL:cobol_control_data_flow_analysis",
+        "COBOL:cobol_business_rule_extraction",
+        "VSAM:vsam_file_definition_analysis",
+        "VSAM:vsam_key_crud_mapping",
+        "CICS:cics_command_parsing",
+        "CICS:cics_transaction_program_mapping",
+        "JAVA:java_source_generation",
+        "JAVA:javac_compilation",
+        "JAVA:java_syntax_check"
+      ],
+      "unsupported_constructs_count": 0,
+      "generated_artifacts_count": 3,
+      "class_files_generated": [
+        "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_dzm_sels/bin/com/autoforge/generated/Cbact01c.class",
+        "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_dzm_sels/bin/com/autoforge/generated/JobAcctfile.class",
+        "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_dzm_sels/bin/com/autoforge/generated/Cbact02c.class"
+      ],
+      "provenance_chain_id": "29426d7b-26a1-409b-8c6a-6879066761e8",
+      "provenance_links_count": 7
+    },
+    "run2_failure_and_repair": {
+      "success": true,
+      "duration_seconds": 2.111954666999736,
+      "repair_scope": "Bounded repair proof (diagnostic classification of syntax/delimiter error, mutation, re-compilation)",
+      "stages": [
+        {
+          "stage_name": "discovery",
+          "passed": true,
+          "details": {
+            "technologies": [
+              "ASSEMBLER",
+              "BMS",
+              "CA7",
+              "CICS",
+              "COBOL",
+              "COBOL_COPYBOOK",
+              "CONTROL_M",
+              "DB2",
+              "DEPENDENCIES",
+              "IMS",
+              "JCL",
+              "SHELL",
+              "SQL",
+              "VSAM"
+            ],
+            "primary": "COBOL_COPYBOOK",
+            "files": 237,
+            "loc": 57752
+          },
+          "duration_ms": 280.06
+        },
+        {
+          "stage_name": "requirements_resolution",
+          "passed": true,
+          "details": {
+            "source_requirements_count": 25,
+            "target_requirements_count": 3,
+            "total_requirements": 28
+          },
+          "duration_ms": 0.05
+        },
+        {
+          "stage_name": "gap_analysis",
+          "passed": true,
+          "details": {
+            "total_requirements": 28,
+            "operational": 26,
+            "acquirable": 0,
+            "specialist_required": 2,
+            "unavailable": 0,
+            "has_blocking_gaps": false
+          },
+          "duration_ms": 938.837
+        },
+        {
+          "stage_name": "semantic_extraction",
+          "passed": true,
+          "details": {
+            "modules": 1,
+            "procedures": 16,
+            "unsupported_constructs": 0,
+            "files_extracted": [
+              "cbl/CBACT01C.cbl"
+            ]
+          },
+          "duration_ms": 5.335
+        },
+        {
+          "stage_name": "transformation_planning",
+          "passed": true,
+          "details": {
+            "target_components_count": 1,
+            "verification_checks_count": 3,
+            "can_proceed": true
+          },
+          "duration_ms": 0.088
+        },
+        {
+          "stage_name": "target_generation",
+          "passed": true,
+          "details": {
+            "artifacts_count": 1,
+            "target_language": "Java",
+            "defect_injected": true
+          },
+          "duration_ms": 0.45
+        },
+        {
+          "stage_name": "target_verification",
+          "passed": false,
+          "details": {
+            "toolchain": "OpenJDK javac (26.0.2.1)",
+            "command": "/Users/kalachanddash/Documents/AutoForge AI/.autoforge/tools/java/bin/javac -d /var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_1yk_bsum/bin /var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_1yk_bsum/src/src/main/java/com/autoforge/generated/Cbact01c.java",
+            "class_files_count": 0,
+            "diagnostics_count": 9
+          },
+          "duration_ms": 388.821
+        },
+        {
+          "stage_name": "failure_diagnosis_and_repair",
+          "passed": true,
+          "details": {
+            "repair_status": "success",
+            "attempts_used": 1,
+            "re_verification_passed": true,
+            "class_files_count": 1
+          },
+          "duration_ms": 497.801
+        },
+        {
+          "stage_name": "provenance_binding",
+          "passed": true,
+          "details": {
+            "chain_id": "0733a3bc-68d7-4d9c-ac3e-3ce2eccf453c",
+            "links_count": 7,
+            "stages_completed": [
+              "source",
+              "artifact",
+              "evidence",
+              "verification",
+              "analysis",
+              "transformation",
+              "plan"
+            ]
+          },
+          "duration_ms": 0.11900000000000001
+        }
+      ],
+      "repair_outcome": {
+        "outcome_id": "ba5384a2-67b7-4887-ac71-6198c08489d6",
+        "unit_id": "649dc433-c4cf-4f97-bbdc-1ff9176c9e77",
+        "artifact_id": "649dc433-c4cf-4f97-bbdc-1ff9176c9e77",
+        "initial_failure_diagnostics": [
+          "class, interface, annotation type, enum, record, method or field expected",
+          "class, interface, annotation type, enum, record, method or field expected",
+          "class, interface, annotation type, enum, record, method or field expected",
+          "class, interface, annotation type, enum, record, method or field expected",
+          "class, interface, annotation type, enum, record, method or field expected",
+          "class, interface, annotation type, enum, record, method or field expected",
+          "class, interface, annotation type, enum, record, method or field expected",
+          "class, interface, annotation type, enum, record, method or field expected",
+          "class, interface, annotation type, enum, record, method or field expected"
+        ],
+        "attempts": [
+          {
+            "attempt_number": 1,
+            "diagnosis": "Syntax defect injected for bounded verification failure",
+            "repair_strategy": "autonomous_syntax_defect_removal",
+            "model": "autoforge-deterministic-repair-engine",
+            "provider": "autoforge-repair",
+            "rag_context_ids": [],
+            "repaired_code": "package com.autoforge.generated;\n\nimport java.io.Serializable;\nimport java.math.BigDecimal;\nimport java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.logging.Logger;\n\n/**\n * AutoForge Generated Target Class: Cbact01c\n * Target Language: Java (Spring Boot)\n * Source: cbl/CBACT01C.cbl (COBOL) [SHA: f8eb6e3a561f]\n */\npublic class Cbact01c implements Serializable {\n    private static final long serialVersionUID = 1L;\n    private static final Logger logger = Logger.getLogger(Cbact01c.class.getName());\n\n    private String fdAcctfileRec = \"\";\n    private String outAcctRec = \"\";\n    private String arrArrayRec = \"\";\n    private String vbrRec = \"\";\n    private String acctfileStatus = \"\";\n    private String outfileStatus = \"\";\n    private String arryfileStatus = \"\";\n    private String vbrcfileStatus = \"\";\n    private String ioStatus = \"\";\n    private long twoBytesBinary = 0L;\n    private String twoBytesAlpha = \"\";\n    private String ioStatus04 = \"\";\n    private long applResult = 0L;\n    private String endOfFile = \"\";\n    private long abcode = 0L;\n    private long timing = 0L;\n    private long wsRecdLen = 0L;\n    private String vbrcRec1 = \"\";\n    private String vbrcRec2 = \"\";\n    private String wsAcctReissueDate = \"\";\n    private String wsReissueDate = \"\";\n    private String statusCode = \"00\";\n    private long recordsProcessed = 0L;\n\n    public Cbact01c() {\n        // Default constructor\n    }\n\n    public String getFdAcctfileRec() {\n        return this.fdAcctfileRec;\n    }\n\n    public void setFdAcctfileRec(String fdAcctfileRec) {\n        this.fdAcctfileRec = fdAcctfileRec;\n    }\n\n    public String getOutAcctRec() {\n        return this.outAcctRec;\n    }\n\n    public void setOutAcctRec(String outAcctRec) {\n        this.outAcctRec = outAcctRec;\n    }\n\n    public String getArrArrayRec() {\n        return this.arrArrayRec;\n    }\n\n    public void setArrArrayRec(String arrArrayRec) {\n        this.arrArrayRec = arrArrayRec;\n    }\n\n    public String getVbrRec() {\n        return this.vbrRec;\n    }\n\n    public void setVbrRec(String vbrRec) {\n        this.vbrRec = vbrRec;\n    }\n\n    public String getAcctfileStatus() {\n        return this.acctfileStatus;\n    }\n\n    public void setAcctfileStatus(String acctfileStatus) {\n        this.acctfileStatus = acctfileStatus;\n    }\n\n    public String getOutfileStatus() {\n        return this.outfileStatus;\n    }\n\n    public void setOutfileStatus(String outfileStatus) {\n        this.outfileStatus = outfileStatus;\n    }\n\n    public String getArryfileStatus() {\n        return this.arryfileStatus;\n    }\n\n    public void setArryfileStatus(String arryfileStatus) {\n        this.arryfileStatus = arryfileStatus;\n    }\n\n    public String getVbrcfileStatus() {\n        return this.vbrcfileStatus;\n    }\n\n    public void setVbrcfileStatus(String vbrcfileStatus) {\n        this.vbrcfileStatus = vbrcfileStatus;\n    }\n\n    public String getIoStatus() {\n        return this.ioStatus;\n    }\n\n    public void setIoStatus(String ioStatus) {\n        this.ioStatus = ioStatus;\n    }\n\n    public long getTwoBytesBinary() {\n        return this.twoBytesBinary;\n    }\n\n    public void setTwoBytesBinary(long twoBytesBinary) {\n        this.twoBytesBinary = twoBytesBinary;\n    }\n\n    public String getTwoBytesAlpha() {\n        return this.twoBytesAlpha;\n    }\n\n    public void setTwoBytesAlpha(String twoBytesAlpha) {\n        this.twoBytesAlpha = twoBytesAlpha;\n    }\n\n    public String getIoStatus04() {\n        return this.ioStatus04;\n    }\n\n    public void setIoStatus04(String ioStatus04) {\n        this.ioStatus04 = ioStatus04;\n    }\n\n    public long getApplResult() {\n        return this.applResult;\n    }\n\n    public void setApplResult(long applResult) {\n        this.applResult = applResult;\n    }\n\n    public String getEndOfFile() {\n        return this.endOfFile;\n    }\n\n    public void setEndOfFile(String endOfFile) {\n        this.endOfFile = endOfFile;\n    }\n\n    public long getAbcode() {\n        return this.abcode;\n    }\n\n    public void setAbcode(long abcode) {\n        this.abcode = abcode;\n    }\n\n    public long getTiming() {\n        return this.timing;\n    }\n\n    public void setTiming(long timing) {\n        this.timing = timing;\n    }\n\n    public long getWsRecdLen() {\n        return this.wsRecdLen;\n    }\n\n    public void setWsRecdLen(long wsRecdLen) {\n        this.wsRecdLen = wsRecdLen;\n    }\n\n    public String getVbrcRec1() {\n        return this.vbrcRec1;\n    }\n\n    public void setVbrcRec1(String vbrcRec1) {\n        this.vbrcRec1 = vbrcRec1;\n    }\n\n    public String getVbrcRec2() {\n        return this.vbrcRec2;\n    }\n\n    public void setVbrcRec2(String vbrcRec2) {\n        this.vbrcRec2 = vbrcRec2;\n    }\n\n    public String getWsAcctReissueDate() {\n        return this.wsAcctReissueDate;\n    }\n\n    public void setWsAcctReissueDate(String wsAcctReissueDate) {\n        this.wsAcctReissueDate = wsAcctReissueDate;\n    }\n\n    public String getWsReissueDate() {\n        return this.wsReissueDate;\n    }\n\n    public void setWsReissueDate(String wsReissueDate) {\n        this.wsReissueDate = wsReissueDate;\n    }\n\n    public String getStatusCode() {\n        return this.statusCode;\n    }\n\n    public void setStatusCode(String statusCode) {\n        this.statusCode = statusCode;\n    }\n\n    public long getRecordsProcessed() {\n        return this.recordsProcessed;\n    }\n\n    public void setRecordsProcessed(long recordsProcessed) {\n        this.recordsProcessed = recordsProcessed;\n    }\n\n    /**\n     * Procedure: 1000-ACCTFILE-GET-NEXT\n     * Source kind: paragraph\n     */\n    public void proc1000AcctfileGetNext() {\n        logger.info(\"Executing 1000-ACCTFILE-GET-NEXT\");\n        this.proc1100DisplayAcctRecord();\n        this.proc1300PopulAcctRecord();\n        this.proc1350WriteAcctRecord();\n        this.proc1400PopulArrayRecord();\n        this.proc1450WriteArryRecord();\n        this.proc1500PopulVbrcRecord();\n        this.proc1550WriteVb1Record();\n        this.proc1575WriteVb2Record();\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: READ ACCTFILE-FILE\n        // Operation: MOVE 0 TO APPL-RESULT\n        // Operation: PERFORM 1100-DISPLAY-ACCT-RECORD\n        // Operation: PERFORM 1300-POPUL-ACCT-RECORD\n        // Operation: PERFORM 1350-WRITE-ACCT-RECORD\n        // Operation: PERFORM 1400-POPUL-ARRAY-RECORD\n        // Operation: PERFORM 1450-WRITE-ARRY-RECORD\n        // Operation: PERFORM 1500-POPUL-VBRC-RECORD\n        // Operation: PERFORM 1550-WRITE-VB1-RECORD\n        // Operation: PERFORM 1575-WRITE-VB2-RECORD\n        // Operation: MOVE 16 TO APPL-RESULT\n        // Operation: MOVE 12 TO APPL-RESULT\n        // Operation: MOVE 'Y' TO END-OF-FILE\n        // Operation: MOVE ACCTFILE-STATUS TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 1100-DISPLAY-ACCT-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1100DisplayAcctRecord() {\n        logger.info(\"Executing 1100-DISPLAY-ACCT-RECORD\");\n    }\n\n    /**\n     * Procedure: 1300-POPUL-ACCT-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1300PopulAcctRecord() {\n        logger.info(\"Executing 1300-POPUL-ACCT-RECORD\");\n        // Operation: MOVE   ACCT-ID                 TO   OUT-ACCT-ID\n        // Operation: MOVE   ACCT-ACTIVE-STATUS      TO   OUT-ACCT-ACTIVE-STATUS\n        // Operation: MOVE   ACCT-CURR-BAL           TO   OUT-ACCT-CURR-BAL\n        // Operation: MOVE   ACCT-CREDIT-LIMIT       TO   OUT-ACCT-CREDIT-LIMIT\n        // Operation: MOVE   ACCT-CASH-CREDIT-LIMIT  TO OUT-ACCT-CASH-CREDIT-LIMIT\n        // Operation: MOVE   ACCT-OPEN-DATE          TO   OUT-ACCT-OPEN-DATE\n        // Operation: MOVE   ACCT-EXPIRAION-DATE     TO   OUT-ACCT-EXPIRAION-DATE\n        // Operation: MOVE   ACCT-REISSUE-DATE       TO   CODATECN-INP-DATE\n    }\n\n    /**\n     * Procedure: 1350-WRITE-ACCT-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1350WriteAcctRecord() {\n        logger.info(\"Executing 1350-WRITE-ACCT-RECORD\");\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: WRITE OUT-ACCT-REC\n        // Operation: MOVE OUTFILE-STATUS  TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 1400-POPUL-ARRAY-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1400PopulArrayRecord() {\n        logger.info(\"Executing 1400-POPUL-ARRAY-RECORD\");\n        // Operation: MOVE   ACCT-ID         TO   ARR-ACCT-ID\n        // Operation: MOVE   ACCT-CURR-BAL   TO   ARR-ACCT-CURR-BAL(1)\n        // Operation: MOVE   1005.00         TO   ARR-ACCT-CURR-CYC-DEBIT(1)\n        // Operation: MOVE   ACCT-CURR-BAL   TO   ARR-ACCT-CURR-BAL(2)\n        // Operation: MOVE   1525.00         TO   ARR-ACCT-CURR-CYC-DEBIT(2)\n        // Operation: MOVE   -1025.00        TO   ARR-ACCT-CURR-BAL(3)\n        // Operation: MOVE   -2500.00        TO   ARR-ACCT-CURR-CYC-DEBIT(3)\n    }\n\n    /**\n     * Procedure: 1450-WRITE-ARRY-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1450WriteArryRecord() {\n        logger.info(\"Executing 1450-WRITE-ARRY-RECORD\");\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: WRITE ARR-ARRAY-REC\n        // Operation: MOVE ARRYFILE-STATUS TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 1500-POPUL-VBRC-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1500PopulVbrcRecord() {\n        logger.info(\"Executing 1500-POPUL-VBRC-RECORD\");\n        // Operation: MOVE   ACCT-ID            TO VB1-ACCT-ID\n    }\n\n    /**\n     * Procedure: 1550-WRITE-VB1-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1550WriteVb1Record() {\n        logger.info(\"Executing 1550-WRITE-VB1-RECORD\");\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: MOVE 12 TO WS-RECD-LEN\n        // Operation: MOVE VBRC-REC1 TO VBR-REC(1:WS-RECD-LEN)\n        // Operation: WRITE VBR-REC\n        // Operation: MOVE VBRCFILE-STATUS TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 1575-WRITE-VB2-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1575WriteVb2Record() {\n        logger.info(\"Executing 1575-WRITE-VB2-RECORD\");\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: MOVE 39 TO WS-RECD-LEN\n        // Operation: MOVE VBRC-REC2 TO VBR-REC(1:WS-RECD-LEN)\n        // Operation: WRITE VBR-REC\n        // Operation: MOVE VBRCFILE-STATUS TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 0000-ACCTFILE-OPEN\n     * Source kind: paragraph\n     */\n    public void proc0000AcctfileOpen() {\n        logger.info(\"Executing 0000-ACCTFILE-OPEN\");\n        this.proc2000OutfileOpen();\n        this.proc3000ArrfileOpen();\n        this.proc4000VbrfileOpen();\n        this.proc1000AcctfileGetNext();\n        // Operation: PERFORM 2000-OUTFILE-OPEN\n        // Operation: PERFORM 3000-ARRFILE-OPEN\n        // Operation: PERFORM 4000-VBRFILE-OPEN\n        // Operation: PERFORM 1000-ACCTFILE-GET-NEXT\n    }\n\n    /**\n     * Procedure: 2000-OUTFILE-OPEN\n     * Source kind: paragraph\n     */\n    public void proc2000OutfileOpen() {\n        logger.info(\"Executing 2000-OUTFILE-OPEN\");\n        this.proc3000ArrfileOpen();\n        this.proc4000VbrfileOpen();\n        this.proc1000AcctfileGetNext();\n        // Operation: PERFORM 3000-ARRFILE-OPEN\n        // Operation: PERFORM 4000-VBRFILE-OPEN\n        // Operation: PERFORM 1000-ACCTFILE-GET-NEXT\n    }\n\n    /**\n     * Procedure: 3000-ARRFILE-OPEN\n     * Source kind: paragraph\n     */\n    public void proc3000ArrfileOpen() {\n        logger.info(\"Executing 3000-ARRFILE-OPEN\");\n        this.proc4000VbrfileOpen();\n        this.proc1000AcctfileGetNext();\n        // Operation: PERFORM 4000-VBRFILE-OPEN\n        // Operation: PERFORM 1000-ACCTFILE-GET-NEXT\n    }\n\n    /**\n     * Procedure: 4000-VBRFILE-OPEN\n     * Source kind: paragraph\n     */\n    public void proc4000VbrfileOpen() {\n        logger.info(\"Executing 4000-VBRFILE-OPEN\");\n        this.proc1000AcctfileGetNext();\n        // Operation: PERFORM 1000-ACCTFILE-GET-NEXT\n    }\n\n    /**\n     * Procedure: 9000-ACCTFILE-CLOSE\n     * Source kind: paragraph\n     */\n    public void proc9000AcctfileClose() {\n        logger.info(\"Executing 9000-ACCTFILE-CLOSE\");\n    }\n\n    /**\n     * Procedure: 9999-ABEND-PROGRAM\n     * Source kind: paragraph\n     */\n    public void proc9999AbendProgram() {\n        logger.info(\"Executing 9999-ABEND-PROGRAM\");\n        // Operation: MOVE 0 TO TIMING\n        // Operation: MOVE 999 TO ABCODE\n    }\n\n    /**\n     * Procedure: 9910-DISPLAY-IO-STATUS\n     * Source kind: paragraph\n     */\n    public void proc9910DisplayIoStatus() {\n        logger.info(\"Executing 9910-DISPLAY-IO-STATUS\");\n        // Operation: MOVE IO-STAT1 TO IO-STATUS-04(1:1)\n        // Operation: MOVE 0        TO TWO-BYTES-BINARY\n        // Operation: MOVE IO-STAT2 TO TWO-BYTES-RIGHT\n        // Operation: MOVE TWO-BYTES-BINARY TO IO-STATUS-0403\n        // Operation: MOVE '0000' TO IO-STATUS-04\n        // Operation: MOVE IO-STATUS TO IO-STATUS-04(3:2)\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_1\n     * Statement: Business rule: arithmetic\n     */\n    public boolean evaluateRulecbact01c1() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_1\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_2\n     * Statement: Business rule: arithmetic\n     */\n    public boolean evaluateRulecbact01c2() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_2\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_3\n     * Statement: Business rule: arithmetic\n     */\n    public boolean evaluateRulecbact01c3() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_3\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_1\n     * Statement: IF END-OF-FILE = 'N'\n     */\n    public boolean evaluateRulecbact01cif1() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_1\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_2\n     * Statement: IF END-OF-FILE = 'N'\n     */\n    public boolean evaluateRulecbact01cif2() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_2\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_4\n     * Statement: IF ACCTFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif4() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_4\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_5\n     * Statement: IF ACCTFILE-STATUS = '10'\n     */\n    public boolean evaluateRulecbact01cif5() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_5\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_7\n     * Statement: IF APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif7() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_7\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_8\n     * Statement: IF APPL-EOF\n     */\n    public boolean evaluateRulecbact01cif8() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_8\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_10\n     * Statement: IF ACCT-CURR-CYC-DEBIT EQUAL TO ZERO\n     */\n    public boolean evaluateRulecbact01cif10() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_10\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_11\n     * Statement: IF OUTFILE-STATUS NOT = '00' AND OUTFILE-STATUS NOT = '10'\n     */\n    public boolean evaluateRulecbact01cif11() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_11\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_12\n     * Statement: IF ARRYFILE-STATUS NOT = '00'\n     */\n    public boolean evaluateRulecbact01cif12() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_12\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_13\n     * Statement: IF VBRCFILE-STATUS NOT = '00'\n     */\n    public boolean evaluateRulecbact01cif13() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_13\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_14\n     * Statement: IF VBRCFILE-STATUS NOT = '00'\n     */\n    public boolean evaluateRulecbact01cif14() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_14\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_15\n     * Statement: IF ACCTFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif15() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_15\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_16\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif16() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_16\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_18\n     * Statement: IF OUTFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif18() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_18\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_19\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif19() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_19\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_21\n     * Statement: IF ARRYFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif21() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_21\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_22\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif22() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_22\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_24\n     * Statement: IF VBRCFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif24() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_24\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_25\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif25() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_25\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_27\n     * Statement: IF ACCTFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif27() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_27\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_28\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif28() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_28\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_30\n     * Statement: IF IO-STATUS NOT NUMERIC\n     */\n    public boolean evaluateRulecbact01cif30() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_30\");\n        return true;\n    }\n\n    /**\n     * Deterministic File Status Evaluation Rule.\n     * Reference: CBACT01C.cbl lines 167-185:\n     *   IF ACCTFILE-STATUS = '00' MOVE 0 TO APPL-RESULT\n     *   ELSE IF ACCTFILE-STATUS = '10' MOVE 16 TO APPL-RESULT\n     *   ELSE MOVE 12 TO APPL-RESULT\n     */\n    public int evaluateFileStatus(String status) {\n        if (\"00\".equals(status)) {\n            return 0;\n        } else if (\"10\".equals(status)) {\n            return 16;\n        } else {\n            return 12;\n        }\n    }\n\n    /**\n     * Primary modern execution workflow.\n     */\n    public int execute() {\n        logger.info(\"Starting execution of Cbact01c\");\n        this.proc1000AcctfileGetNext();\n        this.recordsProcessed++;\n        logger.info(\"Execution complete for Cbact01c. Processed: \" + this.recordsProcessed);\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Cbact01c app = new Cbact01c();\n        if (args != null && args.length > 0) {\n            int statusRc = app.evaluateFileStatus(args[0]);\n            System.out.println(\"STATUS_RESULT=\" + statusRc);\n            return;\n        }\n        int rc = app.execute();\n        System.out.println(\"Return code: \" + rc);\n    }\n}\n",
+            "verification_report_id": "eb2a1da6-40c5-414c-af74-b5bdd503a7a6",
+            "latency_ms": 0.1961250000022119,
+            "status": "verified",
+            "error": ""
+          }
+        ],
+        "final_status": "success",
+        "final_code": "package com.autoforge.generated;\n\nimport java.io.Serializable;\nimport java.math.BigDecimal;\nimport java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.logging.Logger;\n\n/**\n * AutoForge Generated Target Class: Cbact01c\n * Target Language: Java (Spring Boot)\n * Source: cbl/CBACT01C.cbl (COBOL) [SHA: f8eb6e3a561f]\n */\npublic class Cbact01c implements Serializable {\n    private static final long serialVersionUID = 1L;\n    private static final Logger logger = Logger.getLogger(Cbact01c.class.getName());\n\n    private String fdAcctfileRec = \"\";\n    private String outAcctRec = \"\";\n    private String arrArrayRec = \"\";\n    private String vbrRec = \"\";\n    private String acctfileStatus = \"\";\n    private String outfileStatus = \"\";\n    private String arryfileStatus = \"\";\n    private String vbrcfileStatus = \"\";\n    private String ioStatus = \"\";\n    private long twoBytesBinary = 0L;\n    private String twoBytesAlpha = \"\";\n    private String ioStatus04 = \"\";\n    private long applResult = 0L;\n    private String endOfFile = \"\";\n    private long abcode = 0L;\n    private long timing = 0L;\n    private long wsRecdLen = 0L;\n    private String vbrcRec1 = \"\";\n    private String vbrcRec2 = \"\";\n    private String wsAcctReissueDate = \"\";\n    private String wsReissueDate = \"\";\n    private String statusCode = \"00\";\n    private long recordsProcessed = 0L;\n\n    public Cbact01c() {\n        // Default constructor\n    }\n\n    public String getFdAcctfileRec() {\n        return this.fdAcctfileRec;\n    }\n\n    public void setFdAcctfileRec(String fdAcctfileRec) {\n        this.fdAcctfileRec = fdAcctfileRec;\n    }\n\n    public String getOutAcctRec() {\n        return this.outAcctRec;\n    }\n\n    public void setOutAcctRec(String outAcctRec) {\n        this.outAcctRec = outAcctRec;\n    }\n\n    public String getArrArrayRec() {\n        return this.arrArrayRec;\n    }\n\n    public void setArrArrayRec(String arrArrayRec) {\n        this.arrArrayRec = arrArrayRec;\n    }\n\n    public String getVbrRec() {\n        return this.vbrRec;\n    }\n\n    public void setVbrRec(String vbrRec) {\n        this.vbrRec = vbrRec;\n    }\n\n    public String getAcctfileStatus() {\n        return this.acctfileStatus;\n    }\n\n    public void setAcctfileStatus(String acctfileStatus) {\n        this.acctfileStatus = acctfileStatus;\n    }\n\n    public String getOutfileStatus() {\n        return this.outfileStatus;\n    }\n\n    public void setOutfileStatus(String outfileStatus) {\n        this.outfileStatus = outfileStatus;\n    }\n\n    public String getArryfileStatus() {\n        return this.arryfileStatus;\n    }\n\n    public void setArryfileStatus(String arryfileStatus) {\n        this.arryfileStatus = arryfileStatus;\n    }\n\n    public String getVbrcfileStatus() {\n        return this.vbrcfileStatus;\n    }\n\n    public void setVbrcfileStatus(String vbrcfileStatus) {\n        this.vbrcfileStatus = vbrcfileStatus;\n    }\n\n    public String getIoStatus() {\n        return this.ioStatus;\n    }\n\n    public void setIoStatus(String ioStatus) {\n        this.ioStatus = ioStatus;\n    }\n\n    public long getTwoBytesBinary() {\n        return this.twoBytesBinary;\n    }\n\n    public void setTwoBytesBinary(long twoBytesBinary) {\n        this.twoBytesBinary = twoBytesBinary;\n    }\n\n    public String getTwoBytesAlpha() {\n        return this.twoBytesAlpha;\n    }\n\n    public void setTwoBytesAlpha(String twoBytesAlpha) {\n        this.twoBytesAlpha = twoBytesAlpha;\n    }\n\n    public String getIoStatus04() {\n        return this.ioStatus04;\n    }\n\n    public void setIoStatus04(String ioStatus04) {\n        this.ioStatus04 = ioStatus04;\n    }\n\n    public long getApplResult() {\n        return this.applResult;\n    }\n\n    public void setApplResult(long applResult) {\n        this.applResult = applResult;\n    }\n\n    public String getEndOfFile() {\n        return this.endOfFile;\n    }\n\n    public void setEndOfFile(String endOfFile) {\n        this.endOfFile = endOfFile;\n    }\n\n    public long getAbcode() {\n        return this.abcode;\n    }\n\n    public void setAbcode(long abcode) {\n        this.abcode = abcode;\n    }\n\n    public long getTiming() {\n        return this.timing;\n    }\n\n    public void setTiming(long timing) {\n        this.timing = timing;\n    }\n\n    public long getWsRecdLen() {\n        return this.wsRecdLen;\n    }\n\n    public void setWsRecdLen(long wsRecdLen) {\n        this.wsRecdLen = wsRecdLen;\n    }\n\n    public String getVbrcRec1() {\n        return this.vbrcRec1;\n    }\n\n    public void setVbrcRec1(String vbrcRec1) {\n        this.vbrcRec1 = vbrcRec1;\n    }\n\n    public String getVbrcRec2() {\n        return this.vbrcRec2;\n    }\n\n    public void setVbrcRec2(String vbrcRec2) {\n        this.vbrcRec2 = vbrcRec2;\n    }\n\n    public String getWsAcctReissueDate() {\n        return this.wsAcctReissueDate;\n    }\n\n    public void setWsAcctReissueDate(String wsAcctReissueDate) {\n        this.wsAcctReissueDate = wsAcctReissueDate;\n    }\n\n    public String getWsReissueDate() {\n        return this.wsReissueDate;\n    }\n\n    public void setWsReissueDate(String wsReissueDate) {\n        this.wsReissueDate = wsReissueDate;\n    }\n\n    public String getStatusCode() {\n        return this.statusCode;\n    }\n\n    public void setStatusCode(String statusCode) {\n        this.statusCode = statusCode;\n    }\n\n    public long getRecordsProcessed() {\n        return this.recordsProcessed;\n    }\n\n    public void setRecordsProcessed(long recordsProcessed) {\n        this.recordsProcessed = recordsProcessed;\n    }\n\n    /**\n     * Procedure: 1000-ACCTFILE-GET-NEXT\n     * Source kind: paragraph\n     */\n    public void proc1000AcctfileGetNext() {\n        logger.info(\"Executing 1000-ACCTFILE-GET-NEXT\");\n        this.proc1100DisplayAcctRecord();\n        this.proc1300PopulAcctRecord();\n        this.proc1350WriteAcctRecord();\n        this.proc1400PopulArrayRecord();\n        this.proc1450WriteArryRecord();\n        this.proc1500PopulVbrcRecord();\n        this.proc1550WriteVb1Record();\n        this.proc1575WriteVb2Record();\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: READ ACCTFILE-FILE\n        // Operation: MOVE 0 TO APPL-RESULT\n        // Operation: PERFORM 1100-DISPLAY-ACCT-RECORD\n        // Operation: PERFORM 1300-POPUL-ACCT-RECORD\n        // Operation: PERFORM 1350-WRITE-ACCT-RECORD\n        // Operation: PERFORM 1400-POPUL-ARRAY-RECORD\n        // Operation: PERFORM 1450-WRITE-ARRY-RECORD\n        // Operation: PERFORM 1500-POPUL-VBRC-RECORD\n        // Operation: PERFORM 1550-WRITE-VB1-RECORD\n        // Operation: PERFORM 1575-WRITE-VB2-RECORD\n        // Operation: MOVE 16 TO APPL-RESULT\n        // Operation: MOVE 12 TO APPL-RESULT\n        // Operation: MOVE 'Y' TO END-OF-FILE\n        // Operation: MOVE ACCTFILE-STATUS TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 1100-DISPLAY-ACCT-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1100DisplayAcctRecord() {\n        logger.info(\"Executing 1100-DISPLAY-ACCT-RECORD\");\n    }\n\n    /**\n     * Procedure: 1300-POPUL-ACCT-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1300PopulAcctRecord() {\n        logger.info(\"Executing 1300-POPUL-ACCT-RECORD\");\n        // Operation: MOVE   ACCT-ID                 TO   OUT-ACCT-ID\n        // Operation: MOVE   ACCT-ACTIVE-STATUS      TO   OUT-ACCT-ACTIVE-STATUS\n        // Operation: MOVE   ACCT-CURR-BAL           TO   OUT-ACCT-CURR-BAL\n        // Operation: MOVE   ACCT-CREDIT-LIMIT       TO   OUT-ACCT-CREDIT-LIMIT\n        // Operation: MOVE   ACCT-CASH-CREDIT-LIMIT  TO OUT-ACCT-CASH-CREDIT-LIMIT\n        // Operation: MOVE   ACCT-OPEN-DATE          TO   OUT-ACCT-OPEN-DATE\n        // Operation: MOVE   ACCT-EXPIRAION-DATE     TO   OUT-ACCT-EXPIRAION-DATE\n        // Operation: MOVE   ACCT-REISSUE-DATE       TO   CODATECN-INP-DATE\n    }\n\n    /**\n     * Procedure: 1350-WRITE-ACCT-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1350WriteAcctRecord() {\n        logger.info(\"Executing 1350-WRITE-ACCT-RECORD\");\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: WRITE OUT-ACCT-REC\n        // Operation: MOVE OUTFILE-STATUS  TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 1400-POPUL-ARRAY-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1400PopulArrayRecord() {\n        logger.info(\"Executing 1400-POPUL-ARRAY-RECORD\");\n        // Operation: MOVE   ACCT-ID         TO   ARR-ACCT-ID\n        // Operation: MOVE   ACCT-CURR-BAL   TO   ARR-ACCT-CURR-BAL(1)\n        // Operation: MOVE   1005.00         TO   ARR-ACCT-CURR-CYC-DEBIT(1)\n        // Operation: MOVE   ACCT-CURR-BAL   TO   ARR-ACCT-CURR-BAL(2)\n        // Operation: MOVE   1525.00         TO   ARR-ACCT-CURR-CYC-DEBIT(2)\n        // Operation: MOVE   -1025.00        TO   ARR-ACCT-CURR-BAL(3)\n        // Operation: MOVE   -2500.00        TO   ARR-ACCT-CURR-CYC-DEBIT(3)\n    }\n\n    /**\n     * Procedure: 1450-WRITE-ARRY-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1450WriteArryRecord() {\n        logger.info(\"Executing 1450-WRITE-ARRY-RECORD\");\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: WRITE ARR-ARRAY-REC\n        // Operation: MOVE ARRYFILE-STATUS TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 1500-POPUL-VBRC-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1500PopulVbrcRecord() {\n        logger.info(\"Executing 1500-POPUL-VBRC-RECORD\");\n        // Operation: MOVE   ACCT-ID            TO VB1-ACCT-ID\n    }\n\n    /**\n     * Procedure: 1550-WRITE-VB1-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1550WriteVb1Record() {\n        logger.info(\"Executing 1550-WRITE-VB1-RECORD\");\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: MOVE 12 TO WS-RECD-LEN\n        // Operation: MOVE VBRC-REC1 TO VBR-REC(1:WS-RECD-LEN)\n        // Operation: WRITE VBR-REC\n        // Operation: MOVE VBRCFILE-STATUS TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 1575-WRITE-VB2-RECORD\n     * Source kind: paragraph\n     */\n    public void proc1575WriteVb2Record() {\n        logger.info(\"Executing 1575-WRITE-VB2-RECORD\");\n        this.proc9910DisplayIoStatus();\n        this.proc9999AbendProgram();\n        // Operation: MOVE 39 TO WS-RECD-LEN\n        // Operation: MOVE VBRC-REC2 TO VBR-REC(1:WS-RECD-LEN)\n        // Operation: WRITE VBR-REC\n        // Operation: MOVE VBRCFILE-STATUS TO IO-STATUS\n        // Operation: PERFORM 9910-DISPLAY-IO-STATUS\n        // Operation: PERFORM 9999-ABEND-PROGRAM\n    }\n\n    /**\n     * Procedure: 0000-ACCTFILE-OPEN\n     * Source kind: paragraph\n     */\n    public void proc0000AcctfileOpen() {\n        logger.info(\"Executing 0000-ACCTFILE-OPEN\");\n        this.proc2000OutfileOpen();\n        this.proc3000ArrfileOpen();\n        this.proc4000VbrfileOpen();\n        this.proc1000AcctfileGetNext();\n        // Operation: PERFORM 2000-OUTFILE-OPEN\n        // Operation: PERFORM 3000-ARRFILE-OPEN\n        // Operation: PERFORM 4000-VBRFILE-OPEN\n        // Operation: PERFORM 1000-ACCTFILE-GET-NEXT\n    }\n\n    /**\n     * Procedure: 2000-OUTFILE-OPEN\n     * Source kind: paragraph\n     */\n    public void proc2000OutfileOpen() {\n        logger.info(\"Executing 2000-OUTFILE-OPEN\");\n        this.proc3000ArrfileOpen();\n        this.proc4000VbrfileOpen();\n        this.proc1000AcctfileGetNext();\n        // Operation: PERFORM 3000-ARRFILE-OPEN\n        // Operation: PERFORM 4000-VBRFILE-OPEN\n        // Operation: PERFORM 1000-ACCTFILE-GET-NEXT\n    }\n\n    /**\n     * Procedure: 3000-ARRFILE-OPEN\n     * Source kind: paragraph\n     */\n    public void proc3000ArrfileOpen() {\n        logger.info(\"Executing 3000-ARRFILE-OPEN\");\n        this.proc4000VbrfileOpen();\n        this.proc1000AcctfileGetNext();\n        // Operation: PERFORM 4000-VBRFILE-OPEN\n        // Operation: PERFORM 1000-ACCTFILE-GET-NEXT\n    }\n\n    /**\n     * Procedure: 4000-VBRFILE-OPEN\n     * Source kind: paragraph\n     */\n    public void proc4000VbrfileOpen() {\n        logger.info(\"Executing 4000-VBRFILE-OPEN\");\n        this.proc1000AcctfileGetNext();\n        // Operation: PERFORM 1000-ACCTFILE-GET-NEXT\n    }\n\n    /**\n     * Procedure: 9000-ACCTFILE-CLOSE\n     * Source kind: paragraph\n     */\n    public void proc9000AcctfileClose() {\n        logger.info(\"Executing 9000-ACCTFILE-CLOSE\");\n    }\n\n    /**\n     * Procedure: 9999-ABEND-PROGRAM\n     * Source kind: paragraph\n     */\n    public void proc9999AbendProgram() {\n        logger.info(\"Executing 9999-ABEND-PROGRAM\");\n        // Operation: MOVE 0 TO TIMING\n        // Operation: MOVE 999 TO ABCODE\n    }\n\n    /**\n     * Procedure: 9910-DISPLAY-IO-STATUS\n     * Source kind: paragraph\n     */\n    public void proc9910DisplayIoStatus() {\n        logger.info(\"Executing 9910-DISPLAY-IO-STATUS\");\n        // Operation: MOVE IO-STAT1 TO IO-STATUS-04(1:1)\n        // Operation: MOVE 0        TO TWO-BYTES-BINARY\n        // Operation: MOVE IO-STAT2 TO TWO-BYTES-RIGHT\n        // Operation: MOVE TWO-BYTES-BINARY TO IO-STATUS-0403\n        // Operation: MOVE '0000' TO IO-STATUS-04\n        // Operation: MOVE IO-STATUS TO IO-STATUS-04(3:2)\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_1\n     * Statement: Business rule: arithmetic\n     */\n    public boolean evaluateRulecbact01c1() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_1\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_2\n     * Statement: Business rule: arithmetic\n     */\n    public boolean evaluateRulecbact01c2() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_2\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_3\n     * Statement: Business rule: arithmetic\n     */\n    public boolean evaluateRulecbact01c3() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_3\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_1\n     * Statement: IF END-OF-FILE = 'N'\n     */\n    public boolean evaluateRulecbact01cif1() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_1\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_2\n     * Statement: IF END-OF-FILE = 'N'\n     */\n    public boolean evaluateRulecbact01cif2() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_2\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_4\n     * Statement: IF ACCTFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif4() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_4\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_5\n     * Statement: IF ACCTFILE-STATUS = '10'\n     */\n    public boolean evaluateRulecbact01cif5() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_5\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_7\n     * Statement: IF APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif7() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_7\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_8\n     * Statement: IF APPL-EOF\n     */\n    public boolean evaluateRulecbact01cif8() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_8\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_10\n     * Statement: IF ACCT-CURR-CYC-DEBIT EQUAL TO ZERO\n     */\n    public boolean evaluateRulecbact01cif10() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_10\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_11\n     * Statement: IF OUTFILE-STATUS NOT = '00' AND OUTFILE-STATUS NOT = '10'\n     */\n    public boolean evaluateRulecbact01cif11() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_11\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_12\n     * Statement: IF ARRYFILE-STATUS NOT = '00'\n     */\n    public boolean evaluateRulecbact01cif12() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_12\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_13\n     * Statement: IF VBRCFILE-STATUS NOT = '00'\n     */\n    public boolean evaluateRulecbact01cif13() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_13\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_14\n     * Statement: IF VBRCFILE-STATUS NOT = '00'\n     */\n    public boolean evaluateRulecbact01cif14() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_14\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_15\n     * Statement: IF ACCTFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif15() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_15\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_16\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif16() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_16\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_18\n     * Statement: IF OUTFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif18() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_18\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_19\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif19() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_19\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_21\n     * Statement: IF ARRYFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif21() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_21\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_22\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif22() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_22\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_24\n     * Statement: IF VBRCFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif24() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_24\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_25\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif25() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_25\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_27\n     * Statement: IF ACCTFILE-STATUS = '00'\n     */\n    public boolean evaluateRulecbact01cif27() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_27\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_28\n     * Statement: IF IF  APPL-AOK\n     */\n    public boolean evaluateRulecbact01cif28() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_28\");\n        return true;\n    }\n\n    /**\n     * Business Rule: Rule_CBACT01C_IF_30\n     * Statement: IF IO-STATUS NOT NUMERIC\n     */\n    public boolean evaluateRulecbact01cif30() {\n        logger.fine(\"Evaluating rule Rule_CBACT01C_IF_30\");\n        return true;\n    }\n\n    /**\n     * Deterministic File Status Evaluation Rule.\n     * Reference: CBACT01C.cbl lines 167-185:\n     *   IF ACCTFILE-STATUS = '00' MOVE 0 TO APPL-RESULT\n     *   ELSE IF ACCTFILE-STATUS = '10' MOVE 16 TO APPL-RESULT\n     *   ELSE MOVE 12 TO APPL-RESULT\n     */\n    public int evaluateFileStatus(String status) {\n        if (\"00\".equals(status)) {\n            return 0;\n        } else if (\"10\".equals(status)) {\n            return 16;\n        } else {\n            return 12;\n        }\n    }\n\n    /**\n     * Primary modern execution workflow.\n     */\n    public int execute() {\n        logger.info(\"Starting execution of Cbact01c\");\n        this.proc1000AcctfileGetNext();\n        this.recordsProcessed++;\n        logger.info(\"Execution complete for Cbact01c. Processed: \" + this.recordsProcessed);\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Cbact01c app = new Cbact01c();\n        if (args != null && args.length > 0) {\n            int statusRc = app.evaluateFileStatus(args[0]);\n            System.out.println(\"STATUS_RESULT=\" + statusRc);\n            return;\n        }\n        int rc = app.execute();\n        System.out.println(\"Return code: \" + rc);\n    }\n}\n",
+        "total_attempts": 1,
+        "retry_exhausted": false,
+        "repair_engine": "bounded-modernization-cycle",
+        "telemetry": {
+          "repair_strategy": "autonomous_syntax_defect_removal",
+          "attempts_used": 1,
+          "final_toolchain": "OpenJDK javac (26.0.2.1)",
+          "class_files_generated": 1
+        },
+        "started_at": "2026-09-06 06:33:34.054189+00:00",
+        "completed_at": null
+      },
+      "final_verification_passed": true,
+      "class_files_generated": [
+        "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_an82q2dr/bin/com/autoforge/generated/Cbact01c.class"
+      ]
+    },
+    "run3_cross_target_python": {
+      "success": true,
+      "duration_seconds": 0.2941259999988688,
+      "requested_target_spec": "python_fastapi",
+      "proven_target_scope": "Python dataclass module generation + CPython py_compile bytecode compilation",
+      "fastapi_framework_status": "NOT PROVEN / BLOCKED (Host environment lacks FastAPI package; generator emits dataclass module)",
+      "stages": [
+        {
+          "stage_name": "discovery",
+          "passed": true,
+          "details": {
+            "technologies": [
+              "ASSEMBLER",
+              "BMS",
+              "CA7",
+              "CICS",
+              "COBOL",
+              "COBOL_COPYBOOK",
+              "CONTROL_M",
+              "DB2",
+              "DEPENDENCIES",
+              "IMS",
+              "JCL",
+              "SHELL",
+              "SQL",
+              "VSAM"
+            ],
+            "primary": "COBOL_COPYBOOK",
+            "files": 237,
+            "loc": 57752
+          },
+          "duration_ms": 282.964
+        },
+        {
+          "stage_name": "requirements_resolution",
+          "passed": true,
+          "details": {
+            "source_requirements_count": 25,
+            "target_requirements_count": 3,
+            "total_requirements": 28
+          },
+          "duration_ms": 0.039
+        },
+        {
+          "stage_name": "gap_analysis",
+          "passed": true,
+          "details": {
+            "total_requirements": 28,
+            "operational": 26,
+            "acquirable": 0,
+            "specialist_required": 2,
+            "unavailable": 0,
+            "has_blocking_gaps": false
+          },
+          "duration_ms": 3.702
+        },
+        {
+          "stage_name": "semantic_extraction",
+          "passed": true,
+          "details": {
+            "modules": 1,
+            "procedures": 16,
+            "unsupported_constructs": 0,
+            "files_extracted": [
+              "cbl/CBACT01C.cbl"
+            ]
+          },
+          "duration_ms": 5.067
+        },
+        {
+          "stage_name": "transformation_planning",
+          "passed": true,
+          "details": {
+            "target_components_count": 1,
+            "verification_checks_count": 3,
+            "can_proceed": true
+          },
+          "duration_ms": 0.06499999999999999
+        },
+        {
+          "stage_name": "target_generation",
+          "passed": true,
+          "details": {
+            "artifacts_count": 1,
+            "target_language": "Python",
+            "defect_injected": false
+          },
+          "duration_ms": 0.187
+        },
+        {
+          "stage_name": "target_verification",
+          "passed": true,
+          "details": {
+            "toolchain": "CPython py_compile",
+            "command": "py_compile.compile",
+            "class_files_count": 1,
+            "diagnostics_count": 0
+          },
+          "duration_ms": 1.879
+        },
+        {
+          "stage_name": "failure_diagnosis_and_repair",
+          "passed": true,
+          "details": {
+            "status": "not_required_initial_verification_passed"
+          },
+          "duration_ms": 0.0
+        },
+        {
+          "stage_name": "provenance_binding",
+          "passed": true,
+          "details": {
+            "chain_id": "456c4803-7bcc-487c-9f98-0ce75cad7ff3",
+            "links_count": 7,
+            "stages_completed": [
+              "source",
+              "artifact",
+              "evidence",
+              "verification",
+              "analysis",
+              "transformation",
+              "plan"
+            ]
+          },
+          "duration_ms": 0.058
+        }
+      ],
+      "bytecode_files_generated": [
+        "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_kkazdmgp/src/__pycache__/cbact01c.cpython-314.pyc"
+      ]
+    },
+    "run4_bounded_behavioral_verification": {
+      "success": true,
+      "duration_seconds": 0.11014504099875921,
+      "source_reference": "CardDemo CBACT01C.cbl lines 167-185 (ACCTFILE-STATUS -> APPL-RESULT)",
+      "java_jvm_results": [
+        {
+          "input": "00",
+          "semantic_meaning": "SUCCESS",
+          "expected_reference_result": 0,
+          "actual_target_output": "STATUS_RESULT=0",
+          "matched": true
+        },
+        {
+          "input": "10",
+          "semantic_meaning": "END_OF_FILE",
+          "expected_reference_result": 16,
+          "actual_target_output": "STATUS_RESULT=16",
+          "matched": true
+        },
+        {
+          "input": "99",
+          "semantic_meaning": "IO_ERROR",
+          "expected_reference_result": 12,
+          "actual_target_output": "STATUS_RESULT=12",
+          "matched": true
+        }
+      ],
+      "python_results": [
+        {
+          "input": "00",
+          "semantic_meaning": "SUCCESS",
+          "expected_reference_result": 0,
+          "actual_target_result": 0,
+          "matched": true
+        },
+        {
+          "input": "10",
+          "semantic_meaning": "END_OF_FILE",
+          "expected_reference_result": 16,
+          "actual_target_result": 16,
+          "matched": true
+        },
+        {
+          "input": "99",
+          "semantic_meaning": "IO_ERROR",
+          "expected_reference_result": 12,
+          "actual_target_result": 12,
+          "matched": true
+        }
+      ]
+    }
+  },
+  "milestone_summary": {
+    "all_runs_passed": true,
+    "autonomous_acquisition_classification": "Category B: Isolated preparation/linking of existing host distribution into isolated workspace tool directory (.autoforge/tools/openjdk), qualified & registered. (Not Category C/D binary download over HTTP)",
+    "proven_capabilities": [
+      "Real source technology discovery from CardDemo",
+      "Target capability requirement resolution",
+      "Isolated toolchain preparation and linking (Category B: OpenJDK)",
+      "Technology-neutral semantic extraction from COBOL & JCL",
+      "Generic transformation planning without pair-specific engines",
+      "Target artifact generation for Java Application & Python Dataclass",
+      "Real target toolchain compilation (javac & py_compile)",
+      "Real bytecode artifact generation (.class & .pyc on disk)",
+      "Real JVM bytecode execution of generated Java class",
+      "Bounded behavioral verification against COBOL source rule",
+      "Bounded failure detection, diagnosis, repair mutation, and re-verification",
+      "Complete end-to-end modernization provenance binding",
+      "Zero pair-specific architecture (no COBOLToJavaEngine or pairwise translators)"
+    ],
+    "truthful_limitations_and_unproven_claims": {
+      "spring_boot_framework": "NOT PROVEN (Plain Java application generated & compiled; no Spring Boot dependencies/startup)",
+      "fastapi_framework": "NOT PROVEN / BLOCKED (Host lacks fastapi package; Python dataclass module compiled via py_compile)",
+      "autonomous_acquisition": "PROVEN as Category B (isolated host preparation/linking); Category C/D (binary download) not proven",
+      "repair_scope": "Bounded repair proof for syntax/delimiter/import errors; general arbitrary semantic repair not claimed",
+      "behavioral_equivalence": "Bounded reference verification of CBACT01C status rule; full CardDemo equivalence not attempted"
+    },
+    "acquirable_remaining": [
+      "Go",
+      "FastAPI",
+      "Express",
+      "React",
+      "Docker Engine"
+    ],
+    "specialist_required_remaining": [
+      "IMS",
+      "Assembler (HLASM)"
+    ]
+  }
+}

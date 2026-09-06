@@ -117,10 +117,68 @@ class SemanticModelExtractor:
                     calls_found.append(tgt)
 
         # Content regex fallback for CALL statements
+        # Content regex fallback for CALL statements
         for m_call in re.finditer(r"\bCALL\s+['\"]([A-Z0-9-]+)['\"]", content, re.IGNORECASE):
             c_name = m_call.group(1).upper()
             if c_name not in calls_found:
                 calls_found.append(c_name)
+
+        # Extract COPYbook relationships
+        copybooks_found: list[str] = []
+        for m_cpy in re.finditer(r"\bCOPY\s+([A-Z0-9_-]+)", content, re.IGNORECASE):
+            cpy_name = m_cpy.group(1).upper()
+            if cpy_name not in copybooks_found:
+                copybooks_found.append(cpy_name)
+            if cpy_name not in calls_found:
+                calls_found.append(f"COPYBOOK:{cpy_name}")
+
+        # Extract operations inside procedures / paragraphs
+        for proc in procedures:
+            # Look for PERFORM, READ, WRITE, MOVE in content associated with paragraph
+            p_pattern = re.compile(rf"\b{re.escape(proc.name)}\.\s*(.*?)(?=\n\s*[A-Z0-9-]+\.|\Z)", re.DOTALL | re.IGNORECASE)
+            m_p = p_pattern.search(content)
+            if m_p:
+                body = m_p.group(1)
+                for line in body.splitlines():
+                    s_ln = line.strip().upper()
+                    if s_ln.startswith("PERFORM "):
+                        words = s_ln.split()
+                        if len(words) > 1:
+                            target_proc = words[1].rstrip(".")
+                            if target_proc not in ("UNTIL", "VARYING", "WITH", "TEST", "AFTER", "BEFORE", "THRU", "THROUGH"):
+                                proc.called_procedures.append(target_proc)
+                                proc.operations.append(
+                                    SemanticOperation(
+                                        kind=SemanticOperationKind.CALL,
+                                        description=f"PERFORM {target_proc}",
+                                        target=target_proc,
+                                    )
+                                )
+                    elif s_ln.startswith("READ "):
+                        file_tgt = s_ln.split()[1].rstrip(".")
+                        proc.operations.append(
+                            SemanticOperation(
+                                kind=SemanticOperationKind.IO_READ,
+                                description=f"READ {file_tgt}",
+                                target=file_tgt,
+                            )
+                        )
+                    elif s_ln.startswith("WRITE "):
+                        rec_tgt = s_ln.split()[1].rstrip(".")
+                        proc.operations.append(
+                            SemanticOperation(
+                                kind=SemanticOperationKind.IO_WRITE,
+                                description=f"WRITE {rec_tgt}",
+                                target=rec_tgt,
+                            )
+                        )
+                    elif s_ln.startswith("MOVE "):
+                        proc.operations.append(
+                            SemanticOperation(
+                                kind=SemanticOperationKind.ASSIGNMENT,
+                                description=s_ln.rstrip("."),
+                            )
+                        )
 
         # Detect unsupported / specialist constructs (e.g. EXEC CICS, IMS DL/I)
         if "EXEC CICS" in content.upper():
@@ -159,35 +217,38 @@ class SemanticModelExtractor:
         rules: list[SemanticBusinessRule] = []
         rule_findings = [f for f in analysis.findings if f.kind == FindingKind.BUSINESS_RULE]
         for idx, rf in enumerate(rule_findings):
+            stmt = rf.description or rf.name or rf.detail.get("rule_type", "business rule")
             rules.append(
                 SemanticBusinessRule(
                     name=f"Rule_{prog_name}_{idx + 1}",
-                    statement=rf.description,
+                    statement=stmt,
                     conditions=[rf.name],
                     provenance=SourceProvenance(
                         source_file=file_path,
                         source_sha256=sha,
-                        original_construct=rf.description,
+                        original_construct=stmt,
                     ),
                 )
             )
 
-        # Also extract IF / EVALUATE statements as business logic rules
-        if not rules:
-            for idx, m_if in enumerate(re.finditer(r"\bIF\s+([^.\n]+)", content, re.IGNORECASE)):
-                cond = m_if.group(1).strip()
-                rules.append(
-                    SemanticBusinessRule(
-                        name=f"Rule_{prog_name}_IF_{idx + 1}",
-                        statement=f"Condition: {cond}",
-                        conditions=[cond],
-                        provenance=SourceProvenance(
-                            source_file=file_path,
-                            source_sha256=sha,
-                            original_construct=f"IF {cond}",
-                        ),
-                    )
+        # Also extract IF statements as business logic rules
+        for idx, m_if in enumerate(re.finditer(r"\bIF\s+([^.\n]+)", content, re.IGNORECASE)):
+            cond = m_if.group(1).strip()
+            # Filter out COBOL structural keywords and noise
+            if cond.upper() in ("END-IF", "EXIT", "CONTINUE"):
+                continue
+            rules.append(
+                SemanticBusinessRule(
+                    name=f"Rule_{prog_name}_IF_{idx + 1}",
+                    statement=f"IF {cond}",
+                    conditions=[cond],
+                    provenance=SourceProvenance(
+                        source_file=file_path,
+                        source_sha256=sha,
+                        original_construct=f"IF {cond}",
+                    ),
                 )
+            )
 
         return SemanticModule(
             name=prog_name,

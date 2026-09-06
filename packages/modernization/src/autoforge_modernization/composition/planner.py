@@ -24,6 +24,7 @@ Technology-specific behavior belongs behind capability/provider interfaces.
 
 from __future__ import annotations
 
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -153,11 +154,17 @@ class GenericTransformationPlanner:
                 )
 
             # Determine target filename & path from conventions
-            safe_name = mod_name.replace("-", "_").title().replace("_", "")
+            cleaned_mod = re.sub(r"[^a-zA-Z0-9_]", "_", mod_name)
+            safe_name = "".join(part.capitalize() for part in cleaned_mod.split("_") if part)
+            if not safe_name:
+                safe_name = "Component"
+            if safe_name[0].isdigit():
+                safe_name = f"Comp{safe_name}"
+
             rel_path = (
                 f"src/main/java/{base_pkg.replace('.', '/')}/{safe_name}{file_ext}"
                 if target_spec.language.upper() == "JAVA"
-                else f"src/{mod_name.lower().replace('-', '_')}{file_ext}"
+                else f"src/{cleaned_mod.lower()}{file_ext}"
             )
 
             planned_components.append(
