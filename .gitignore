@@ -113,3 +113,17 @@ htmlcov/
 .autoforge/
 .qdrant-initialized
 storage/
+
+# Phase 18-G local implementation and verification scratch artifacts
+phase18/implementation/autoforge_modernization_18g/
+
+# Local benchmark and forensic profiling test scripts
+scripts/distributed_e2e_benchmark.py
+scripts/dual_worker_qualification.py
+scripts/final_production_integrity_audit.py
+scripts/forensic_profile.py
+scripts/probe_hp_qdrant.py
+scripts/production_reality_gate.py
+scripts/profile_one.py
+scripts/run_prg_with_profile.py
+
