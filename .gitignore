@@ -112,3 +112,4 @@ htmlcov/
 # Phase 18-D local runtime artifacts (Qdrant + AutoForge)
 .autoforge/
 .qdrant-initialized
+storage/
