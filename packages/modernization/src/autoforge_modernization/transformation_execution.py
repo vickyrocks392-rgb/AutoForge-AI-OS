@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import time
 import uuid
 from datetime import datetime, timezone
@@ -112,11 +113,14 @@ class TransformationExecutor:
             run_static_checks=run_static_checks,
         )
         if inference is None:
-            try:
-                stack = build_ollama_inference_stack()
-                inference = LLMInferenceFrontend(stack=stack)
-            except Exception:  # noqa: BLE001
+            if os.environ.get("AUTOFORGE_LLM_AVAILABLE") == "0":
                 inference = None
+            else:
+                try:
+                    stack = build_ollama_inference_stack()
+                    inference = LLMInferenceFrontend(stack=stack)
+                except Exception:  # noqa: BLE001
+                    inference = None
         self._inference = inference
         self._rag_evidence_fn = rag_evidence_fn
         self._engine = LLMTransformationEngine(frontend=inference)
@@ -234,12 +238,12 @@ class TransformationExecutor:
                 unit_id=unit.unit_id,
                 kind=UnitKind.UNAVAILABLE,
                 target_technology=tgt,
-                llm_calls=1 if result.model else 0,
-                model=result.model or "",
-                provider=result.provider or "",
-                prompt_tokens=result.token_usage_in,
-                completion_tokens=result.token_usage_out,
-                latency_ms=result.latency_ms,
+                llm_calls=0,
+                model="",
+                provider="",
+                prompt_tokens=0,
+                completion_tokens=0,
+                latency_ms=0.0,
             )
             self._telemetry.emit(
                 TelemetryEventType.UNIT_UNAVAILABLE,

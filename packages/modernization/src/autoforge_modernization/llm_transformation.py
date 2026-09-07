@@ -162,6 +162,9 @@ class InferenceStack:
 
 def check_ollama(base_url: str = DEFAULT_OLLAMA_BASE_URL, timeout: float = 5.0) -> dict:
     """Honest liveness probe of the local Ollama daemon."""
+    import os
+    if os.environ.get("AUTOFORGE_LLM_AVAILABLE") == "0":
+        return {"available": False, "models": [], "error": "disabled via AUTOFORGE_LLM_AVAILABLE=0"}
     import urllib.request
     try:
         req = urllib.request.Request(

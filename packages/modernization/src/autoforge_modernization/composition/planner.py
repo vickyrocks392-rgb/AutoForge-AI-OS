@@ -1050,26 +1050,48 @@ class GenericTransformationPlanner:
                 )
                 step_counter += 1
 
-            # File Status Evaluation Step (Bounded CardDemo rule)
-            status_step_id = str(uuid.uuid4())
-            art_step_ids.append(status_step_id)
+            # Component Workflow Execution Step
+            workflow_step_id = str(uuid.uuid4())
+            art_step_ids.append(workflow_step_id)
             transformation_steps.append(
                 TransformationStep(
-                    step_id=status_step_id,
-                    title="Implement Bounded File Status Evaluation",
-                    intent="Preserve status return code semantics (00->0, 10->16, other->12).",
-                    source_semantic_refs=[f"{mod_name}.status"],
+                    step_id=workflow_step_id,
+                    title=f"Engineer Component Workflow {safe_name}",
+                    intent=f"Coordinate module procedures and operational flow into execute entrypoint.",
+                    source_semantic_refs=[f"{mod_name}.entrypoint"],
                     preservation_requirement_ids=[
                         pr.req_id for pr in preservation_reqs
-                        if pr.category in (PreservationCategory.ERROR_HANDLING, PreservationCategory.IO_SEMANTICS)
+                        if pr.category == PreservationCategory.CONTROL_FLOW
                     ],
                     target_artifact_name=safe_name,
-                    target_construct="evaluateFileStatus(String status)" if lang_upper == "JAVA" else "evaluate_file_status(status: str)",
+                    target_construct="execute()" if lang_upper == "JAVA" else "run()",
                     ordering_index=step_counter,
-                    verification_requirement="Behavioral status check",
+                    verification_requirement="Execution workflow check",
                 )
             )
             step_counter += 1
+
+            # Status Code & Return Code Preservation Step
+            if mod.io_operations or any("STATUS" in getattr(f, "name", "").upper() for f in mod.fields):
+                status_step_id = str(uuid.uuid4())
+                art_step_ids.append(status_step_id)
+                transformation_steps.append(
+                    TransformationStep(
+                        step_id=status_step_id,
+                        title="Implement Status Code Evaluation",
+                        intent="Preserve standard status return code semantics across I/O and service boundaries.",
+                        source_semantic_refs=[f"{mod_name}.status"],
+                        preservation_requirement_ids=[
+                            pr.req_id for pr in preservation_reqs
+                            if pr.category in (PreservationCategory.ERROR_HANDLING, PreservationCategory.IO_SEMANTICS)
+                        ],
+                        target_artifact_name=safe_name,
+                        target_construct="evaluateFileStatus(String status)" if lang_upper == "JAVA" else "evaluate_file_status(status: str)",
+                        ordering_index=step_counter,
+                        verification_requirement="Behavioral status check",
+                    )
+                )
+                step_counter += 1
 
             role_to_assign = (
                 ArtifactRole.ENTRY_POINT if mod.module_type == "job"

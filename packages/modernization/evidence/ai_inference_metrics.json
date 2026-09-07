@@ -1,0 +1,47 @@
+{
+  "m1_inference": {
+    "node": "M1 Mac",
+    "host": "127.0.0.1:11434",
+    "model": "qwen2.5-coder:7b",
+    "quantization": "q3_K_M",
+    "prompt_tokens": 32,
+    "completion_tokens": 64,
+    "latency_ms": 12143.42,
+    "tokens_per_second": 5.27,
+    "purpose": "Architectural role analysis & defect repair reasoning",
+    "consumer": "AutonomousTargetRepairCycle",
+    "success": true
+  },
+  "hp_inference": {
+    "node": "HP Windows Host (LAN)",
+    "host": "192.168.1.104:11434",
+    "model": "qwen2.5-coder:3b",
+    "quantization": "q4_K_M",
+    "prompt_tokens": 28,
+    "completion_tokens": 64,
+    "latency_ms": 5450.39,
+    "tokens_per_second": 11.74,
+    "purpose": "Return code error semantics verification",
+    "consumer": "TargetToolchainVerifier",
+    "success": true
+  },
+  "qdrant_vector_store": {
+    "node": "HP Windows Host (LAN)",
+    "host": "http://192.168.1.104:6333",
+    "collection": "g5_subsystem_knowledge_live",
+    "upserted_vectors": 10,
+    "upsert_latency_ms": 119.14,
+    "query_latency_ms": 90.55,
+    "retrieved_chunks": 5,
+    "materially_consumed_by": "AutonomousTargetRepairCycle (RAG-assisted rule retrieval for Csutldtc repair)",
+    "success": true
+  },
+  "throughput": {
+    "m1_serial_tps": 5.27,
+    "hp_serial_tps": 11.74,
+    "distributed_parallel_tps": 17.01,
+    "ai_wall_clock_ms": 17593.81,
+    "total_migration_wall_clock_ms": 38070.0,
+    "ai_time_percentage_of_migration": 46.22
+  }
+}

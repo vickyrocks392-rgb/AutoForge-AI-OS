@@ -259,6 +259,8 @@ class WorkloadDiscoverer:
 
 def _check_llm_available() -> tuple[bool, str, str]:
     """Probe Ollama inference stack availability. Returns (available, provider, model)."""
+    if os.environ.get("AUTOFORGE_LLM_AVAILABLE") == "0":
+        return (False, "", "")
     try:
         from autoforge_modernization.llm_transformation import build_ollama_inference_stack
         stack = build_ollama_inference_stack()
@@ -568,12 +570,12 @@ class BenchmarkRunner:
             status="AVAILABLE" if llm_available else "UNAVAILABLE",
             provider=llm_provider,
             model=llm_model,
-            total_calls=summary.total_llm_calls,
-            total_input_tokens=summary.total_prompt_tokens,
-            total_output_tokens=summary.total_completion_tokens,
-            total_tokens=summary.total_prompt_tokens + summary.total_completion_tokens,
-            total_latency_ms=summary.total_latency_ms,
-            llm_throughput_loc_per_hour=throughput.llm_assisted_loc_per_hour,
+            total_calls=summary.total_llm_calls if llm_available else 0,
+            total_input_tokens=summary.total_prompt_tokens if llm_available else 0,
+            total_output_tokens=summary.total_completion_tokens if llm_available else 0,
+            total_tokens=(summary.total_prompt_tokens + summary.total_completion_tokens) if llm_available else 0,
+            total_latency_ms=summary.total_latency_ms if llm_available else 0.0,
+            llm_throughput_loc_per_hour=throughput.llm_assisted_loc_per_hour if llm_available else 0.0,
         )
         if llm_metrics.total_calls > 0 and llm_metrics.total_latency_ms > 0:
             llm_metrics.avg_latency_ms = llm_metrics.total_latency_ms / llm_metrics.total_calls

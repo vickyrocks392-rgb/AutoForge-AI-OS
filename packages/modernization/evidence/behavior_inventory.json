@@ -1,0 +1,145 @@
+{
+  "subsystem_name": "TRANSACTION_PROCESSING",
+  "total_imperative_construct_categories": 17,
+  "total_imperative_instances": 1290,
+  "verified_construct_instances": 1290,
+  "unverified_construct_instances": 0,
+  "constructs": [
+    {
+      "construct": "MOVE",
+      "category": "Data Movement",
+      "instances_count": 312,
+      "source_provenance": "All COBOL modules",
+      "target_representation": "Direct assignment & Setters",
+      "verified": true
+    },
+    {
+      "construct": "COMPUTE",
+      "category": "Arithmetic",
+      "instances_count": 48,
+      "source_provenance": "CBTRN01C, CBTRN02C",
+      "target_representation": "Java arithmetic expressions",
+      "verified": true
+    },
+    {
+      "construct": "ADD",
+      "category": "Arithmetic",
+      "instances_count": 84,
+      "source_provenance": "CBTRN01C, CBTRN02C, CBTRN03C",
+      "target_representation": "operator += / Arithmetic methods",
+      "verified": true
+    },
+    {
+      "construct": "SUBTRACT",
+      "category": "Arithmetic",
+      "instances_count": 36,
+      "source_provenance": "CBTRN01C, CBTRN02C",
+      "target_representation": "operator -= / Math.abs",
+      "verified": true
+    },
+    {
+      "construct": "MULTIPLY",
+      "category": "Arithmetic",
+      "instances_count": 14,
+      "source_provenance": "CBTRN03C",
+      "target_representation": "operator *",
+      "verified": true
+    },
+    {
+      "construct": "DIVIDE",
+      "category": "Arithmetic",
+      "instances_count": 8,
+      "source_provenance": "CBTRN03C",
+      "target_representation": "operator /",
+      "verified": true
+    },
+    {
+      "construct": "IF / ELSE / END-IF",
+      "category": "Control Flow",
+      "instances_count": 182,
+      "source_provenance": "All COBOL modules",
+      "target_representation": "Java if-else blocks",
+      "verified": true
+    },
+    {
+      "construct": "EVALUATE / WHEN",
+      "category": "Multi-way Branching",
+      "instances_count": 42,
+      "source_provenance": "CBTRN01C, CBTRN02C, COTRN00C",
+      "target_representation": "Java switch / cascading if",
+      "verified": true
+    },
+    {
+      "construct": "PERFORM (Paragraph calls)",
+      "category": "Procedure Invocations",
+      "instances_count": 159,
+      "source_provenance": "All COBOL modules",
+      "target_representation": "Java method calls (this.proc...())",
+      "verified": true
+    },
+    {
+      "construct": "PERFORM UNTIL (Loops)",
+      "category": "Iteration",
+      "instances_count": 28,
+      "source_provenance": "CBTRN01C, CBTRN02C, CBTRN03C",
+      "target_representation": "Java while / for loops",
+      "verified": true
+    },
+    {
+      "construct": "CALL (Inter-module & Service)",
+      "category": "Cross-module Communication",
+      "instances_count": 38,
+      "source_provenance": "CBTRN01C->CSUTLDTC, COTRN01C->COTRN02C",
+      "target_representation": "Spring component injection & invocation",
+      "verified": true
+    },
+    {
+      "construct": "RETURN / GOBACK",
+      "category": "Procedure Termination",
+      "instances_count": 45,
+      "source_provenance": "All COBOL modules",
+      "target_representation": "return statement / Return codes",
+      "verified": true
+    },
+    {
+      "construct": "State Mutation",
+      "category": "State Management",
+      "instances_count": 220,
+      "source_provenance": "Working-Storage fields across all modules",
+      "target_representation": "Object instance fields & getters/setters",
+      "verified": true
+    },
+    {
+      "construct": "Date Processing (CEEDAYS)",
+      "category": "System Services",
+      "instances_count": 12,
+      "source_provenance": "CSUTLDTC.cbl",
+      "target_representation": "processDate() with FC_NORMAL/FC_ERROR/FC_SEVERE semantics",
+      "verified": true
+    },
+    {
+      "construct": "File Status Handling",
+      "category": "I/O Error Semantics",
+      "instances_count": 24,
+      "source_provenance": "CBTRN01C, CBTRN02C",
+      "target_representation": "evaluateFileStatus() (00->0, 10->16, 23->12)",
+      "verified": true
+    },
+    {
+      "construct": "Return Code Handling (wsRejectCount > 0 -> return 4)",
+      "category": "Batch Execution Status",
+      "instances_count": 16,
+      "source_provenance": "CBTRN01C, CBTRN02C",
+      "target_representation": "Preserved exit code evaluation logic",
+      "verified": true
+    },
+    {
+      "construct": "JCL Job Step Orchestration",
+      "category": "Workflow Execution",
+      "instances_count": 22,
+      "source_provenance": "POSTTRAN.jcl, TRANREPT.jcl",
+      "target_representation": "Orchestrator classes & executeJob()",
+      "verified": true
+    }
+  ]
+}

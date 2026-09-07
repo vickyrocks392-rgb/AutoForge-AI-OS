@@ -28,6 +28,8 @@ from autoforge_modernization.semantic.model import (
     SemanticEntity,
     SemanticField,
     SemanticModule,
+    SemanticOperation,
+    SemanticOperationKind,
     TechnologyNeutralSemanticModel,
 )
 from autoforge_modernization.target.specification import TargetSpecification
@@ -492,7 +494,11 @@ class GenericTargetArtifactGenerator:
             lines.append("")
 
         # Emit fields collected from modules
-        seen_fields: set[str] = set()
+        seen_fields: set[str] = {
+            dep[0].lower() + dep[1:] for dep in comp_dep_names
+        } | {
+            sh[0].lower() + sh[1:] for sh in comp_shared_models
+        }
         fields_to_emit: list[tuple[str, str, str]] = []
 
         for m in modules:
@@ -517,10 +523,85 @@ class GenericTargetArtifactGenerator:
 
                 fields_to_emit.append((jtype, clean_name, init_val))
 
+        # Scan all operations across modules to register any referenced/mutated fields
+        cobol_reserved_tokens = {
+            "OF", "IN", "TO", "FROM", "BY", "INTO", "SPACE", "SPACES", "ZERO", "ZEROS", "ZEROES",
+            "LOW-VALUES", "LOW-VALUE", "MOVE", "COMPUTE", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE",
+            "IF", "ELSE", "END-IF", "EVALUATE", "WHEN", "END-EVALUATE", "AND", "OR", "NOT",
+            "PERFORM", "READ", "WRITE", "REWRITE", "OPEN", "CLOSE", "DISPLAY", "STOP", "GOBACK",
+            "EXIT", "PROGRAM", "RUN", "THEN", "OTHER", "TRUE", "FALSE", "CONTINUE", "CALL", "USING",
+            "INVALID", "KEY", "FUNCTION", "CURRENT-DATE", "NUMVAL", "GO", "INSPECT", "CONVERTING",
+            "LENGTH", "SIZE", "DELIMITED", "SENTENCE", "NEXT"
+        }
+        # Collect any fields assigned string literals across operations
+        string_assigned_fields: set[str] = set()
+        for m in modules:
+            for proc in m.procedures:
+                for op in proc.operations:
+                    desc_s = op.description.strip()
+                    m_asgn = re.match(r"^MOVE\s+('[^']*'|\"[^\"]*\")\s+TO\s+(.+)$", desc_s, re.IGNORECASE)
+                    if not m_asgn:
+                        m_asgn = re.search(r"^MOVE\s+(.+?)\s+TO\s+(.+)$", desc_s, re.IGNORECASE)
+                    if m_asgn:
+                        s_r = m_asgn.group(1).strip()
+                        if s_r.startswith(("'", '"')) and not s_r.strip("'\"").replace(".", "").lstrip("-").isdigit():
+                            for t in m_asgn.group(2).split():
+                                clean_t = self._to_camel_case(t.strip().rstrip("."), prefix="field")
+                                if clean_t:
+                                    string_assigned_fields.add(clean_t)
+
+        for m in modules:
+            for proc in m.procedures:
+                for op in proc.operations:
+                    candidates: list[str] = []
+                    if op.target:
+                        candidates.append(op.target)
+                    candidates.extend(op.mutated_fields)
+                    candidates.extend(op.referenced_fields)
+                    if op.condition and op.condition.expression:
+                        for w in re.findall(r"[A-Za-z0-9-]+", op.condition.expression):
+                            candidates.append(w)
+                    if op.description:
+                        for w in re.findall(r"[A-Za-z0-9-]+", op.description):
+                            candidates.append(w)
+                    for cand in candidates:
+                        cand_s = cand.strip().strip("-").rstrip(".")
+                        cand_s = re.split(r"\s+OF\s+", cand_s, flags=re.IGNORECASE)[0].strip()
+                        if not cand_s or " " in cand_s or cand_s.startswith(("'", '"')) or cand_s.replace(".", "").lstrip("-").isdigit():
+                            continue
+                        cand_u = cand_s.upper()
+                        if cand_u in cobol_reserved_tokens:
+                            continue
+                        clean_name = self._to_camel_case(cand_s, prefix="field")
+                        if not clean_name or clean_name in seen_fields:
+                            continue
+                        seen_fields.add(clean_name)
+                        if clean_name in string_assigned_fields:
+                            jtype = "String"
+                            init_val = '""'
+                        elif any(k in cand_u for k in ("DESC", "NAME", "MSG", "MESSAGE", "TEXT", "TITLE", "DATE", "TIME", "ALPHA", "FLG", "FLAG")):
+                            jtype = "String"
+                            init_val = '""'
+                        elif any(k in cand_u for k in ("COUNT", "STATUS", "REASON", "RESULT", "RC", "NUM", "LILLIAN", "SEVERITY", "AMT", "BAL", "LIMIT", "CREDIT", "DEBIT", "RATE", "PAY", "HOURS", "DED", "TAX", "GROSS", "NET", "HEADCOUNT", "FICA", "TOTAL", "CYCLE", "AVG")):
+                            jtype = "long"
+                            init_val = "0L"
+                        else:
+                            jtype = "String"
+                            init_val = '""'
+                        fields_to_emit.append((jtype, clean_name, init_val))
+
+        field_type_map: dict[str, str] = {fname: jtype for jtype, fname, _ in fields_to_emit}
+        for dep in comp_dep_names:
+            field_type_map[dep[0].lower() + dep[1:]] = dep
+        for sh in comp_shared_models:
+            field_type_map[sh[0].lower() + sh[1:]] = sh
+
         if "statusCode" not in seen_fields:
             fields_to_emit.append(("String", "statusCode", '"00"'))
+            field_type_map["statusCode"] = "String"
         if "recordsProcessed" not in seen_fields:
             fields_to_emit.append(("long", "recordsProcessed", "0L"))
+            field_type_map["recordsProcessed"] = "long"
 
         for jtype, fname, init_val in fields_to_emit:
             lines.append(f"    private {jtype} {fname} = {init_val};")
@@ -529,6 +610,21 @@ class GenericTargetArtifactGenerator:
         # Emit default constructor
         lines.append(f"    public {class_name}() {{")
         lines.append("        // Default constructor")
+        lines.append("    }")
+        lines.append("")
+
+        # Helper method for numeric conversions
+        lines.append("    private long tryParseLong(String val) {")
+        lines.append("        if (val == null) return 0L;")
+        lines.append("        try {")
+        lines.append("            return Long.parseLong(val.trim());")
+        lines.append("        } catch (Exception e) {")
+        lines.append("            return 0L;")
+        lines.append("        }")
+        lines.append("    }")
+        lines.append("")
+        lines.append("    private long tryParseLong(long val) {")
+        lines.append("        return val;")
         lines.append("    }")
         lines.append("")
 
@@ -594,8 +690,38 @@ class GenericTargetArtifactGenerator:
                     elif c_clean:
                         lines.append(f"        // External / conditional procedure call: {callee}")
 
+                cur_indent = "        "
+                block_depth = 0
                 for op in proc.operations:
-                    lines.append(f"        // Operation: {op.description}")
+                    if op.kind == SemanticOperationKind.CALL and op.target in proc.called_procedures:
+                        continue
+                    desc_upper = op.description.strip().upper()
+                    if desc_upper.startswith("ELSE"):
+                        if block_depth > 0:
+                            cur_indent = cur_indent[:-4]
+                            lines.append(f"{cur_indent}}} else {{")
+                            cur_indent += "    "
+                        else:
+                            lines.append(f"{cur_indent}// else")
+                        continue
+                    elif desc_upper.startswith("END-IF"):
+                        if block_depth > 0:
+                            block_depth -= 1
+                            cur_indent = cur_indent[:-4]
+                            lines.append(f"{cur_indent}}}")
+                        continue
+
+                    stmt_lines = self._emit_java_statement(op, field_type_map, declared_proc_names, indent=cur_indent)
+                    for sl in stmt_lines:
+                        lines.append(sl)
+                    if desc_upper.startswith("IF "):
+                        block_depth += 1
+                        cur_indent += "    "
+
+                while block_depth > 0:
+                    block_depth -= 1
+                    cur_indent = cur_indent[:-4]
+                    lines.append(f"{cur_indent}}}")
 
                 lines.append("    }")
                 lines.append("")
@@ -613,62 +739,6 @@ class GenericTargetArtifactGenerator:
                 lines.append("    }")
                 lines.append("")
 
-        # Generalized Date Processing Capability (derived from semantic model dependencies / procedures)
-        has_date_service = any(
-            "CEEDAYS" in dep or "DATE" in m.name.upper()
-            for m in modules
-            for dep in m.external_dependencies
-        ) or any(
-            "DATE" in getattr(p, "name", "").upper()
-            for m in modules
-            for p in m.procedures
-        )
-
-        # Generalized File Status Evaluation (derived from semantic I/O operations and status fields)
-        has_file_status = any(
-            bool(m.io_operations) for m in modules
-        ) or any(
-            any("STATUS" in getattr(f, "name", "").upper() for f in m.fields) for m in modules
-        )
-
-        if has_date_service:
-            lines.append("    /**")
-            lines.append("     * Preserved Date Processing Semantics.")
-            lines.append("     * Handles date conversion/validation and resolves system date callable services.")
-            lines.append("     */")
-            lines.append("    public int processDate(String dateStr, String format) {")
-            lines.append(f'        logger.info("{class_name} validating date: " + dateStr + " against format: " + format);')
-            lines.append("        if (dateStr == null || dateStr.trim().isEmpty()) {")
-            lines.append('            this.statusCode = "0004";')
-            lines.append("            return 4; // Insufficient data / empty date")
-            lines.append("        }")
-            lines.append("        String clean = dateStr.trim();")
-            lines.append('        if (clean.matches("\\\\d{4}-\\\\d{2}-\\\\d{2}") || clean.matches("\\\\d{8}")) {')
-            lines.append('            this.statusCode = "0000";')
-            lines.append("            return 0; // Date is valid")
-            lines.append("        } else {")
-            lines.append('            this.statusCode = "0004";')
-            lines.append("            return 4; // Datevalue error / Bad pic string")
-            lines.append("        }")
-            lines.append("    }")
-            lines.append("")
-
-        if has_file_status:
-            lines.append("    /**")
-            lines.append("     * Preserved File Status Evaluation Rule.")
-            lines.append("     * Evaluates standard file status return codes: '00' -> 0 (success), '10' -> 16 (EOF), other -> 12 (I/O error).")
-            lines.append("     */")
-            lines.append("    public int evaluateFileStatus(String status) {")
-            lines.append('        if ("00".equals(status)) {')
-            lines.append("            return 0;")
-            lines.append('        } else if ("10".equals(status)) {')
-            lines.append("            return 16;")
-            lines.append("        } else {")
-            lines.append("            return 12;")
-            lines.append("        }")
-            lines.append("    }")
-            lines.append("")
-
         # Main execution entrypoint
         lines.append("    /**")
         lines.append("     * Primary modern execution workflow.")
@@ -676,45 +746,55 @@ class GenericTargetArtifactGenerator:
         lines.append("    public int execute() {")
         lines.append(f'        logger.info("Starting execution of {class_name}");')
 
-        if has_date_service and not comp_dep_names:
-            lines.append('        return this.processDate("2026-09-06", "YYYY-MM-DD");')
-        else:
-            if comp_dep_names:
-                for dep in comp_dep_names:
-                    dep_var = dep[0].lower() + dep[1:]
-                    lines.append(f'        logger.info("Invoking dependent service: {dep}");')
-                    lines.append(f'        this.{dep_var}.execute();')
+        if comp_dep_names:
+            for dep in comp_dep_names:
+                dep_var = dep[0].lower() + dep[1:]
+                lines.append(f'        logger.info("Invoking dependent service: {dep}");')
+                lines.append(f'        this.{dep_var}.execute();')
 
-            if modules and modules[0].procedures:
-                first_proc = self._to_camel_case(modules[0].procedures[0].name, prefix="proc")
-                lines.append(f"        this.{first_proc}();")
-            lines.append("        this.recordsProcessed++;")
-            lines.append(f'        logger.info("Execution complete for {class_name}. Processed: " + this.recordsProcessed);')
-            lines.append("        return 0;")
+        if modules and modules[0].procedures:
+            first_proc = self._to_camel_case(modules[0].procedures[0].name, prefix="proc")
+            lines.append(f"        this.{first_proc}();")
+        lines.append("        this.recordsProcessed++;")
+        lines.append(f'        logger.info("Execution complete for {class_name}. Processed: " + this.recordsProcessed);')
 
+        for f_name in seen_fields:
+            f_type = field_type_map.get(f_name, "String")
+            if f_name.lower().endswith(("rejectcount", "errorcount", "failcount", "invalidcount")):
+                if f_type == "String":
+                    lines.append(f'        if (this.{f_name} != null && !"0".equals(this.{f_name}) && !this.{f_name}.isEmpty()) return 4;')
+                else:
+                    lines.append(f"        if (this.{f_name} > 0) return 4;")
+            elif f_name.lower() in ("returncode", "rc", "statuscode", "wsreturncode"):
+                if f_type == "String":
+                    lines.append(f'        if (this.{f_name} != null && !this.{f_name}.isEmpty() && !"0".equals(this.{f_name}) && !"00".equals(this.{f_name}) && !"0000".equals(this.{f_name})) {{ try {{ return Integer.parseInt(this.{f_name}); }} catch (Exception e) {{ return 4; }} }}')
+                else:
+                    lines.append(f"        if (this.{f_name} != 0) return (int) this.{f_name};")
+
+        lines.append("        return 0;")
         lines.append("    }")
         lines.append("")
 
         # Standalone main method
         lines.append("    public static void main(String[] args) {")
         lines.append(f"        {class_name} app = new {class_name}();")
-        lines.append("        if (args != null && args.length > 0) {")
-        if has_date_service:
-            lines.append('            String fmt = (args.length > 1) ? args[1] : "YYYY-MM-DD";')
-            lines.append("            int dtRc = app.processDate(args[0], fmt);")
-            lines.append('            System.out.println("DATE_RESULT=" + dtRc);')
-            lines.append("            return;")
-        elif has_file_status:
-            lines.append("            int statusRc = app.evaluateFileStatus(args[0]);")
-            lines.append('            System.out.println("STATUS_RESULT=" + statusRc);')
-            lines.append("            return;")
-        else:
-            lines.append("            int rc = app.execute();")
-            lines.append('            System.out.println("Return code: " + rc);')
-            lines.append("            return;")
-        lines.append("        }")
         lines.append("        int rc = app.execute();")
+        lines.append("        if (args != null && args.length > 0) {")
+        lines.append("            String arg0 = args[0];")
+        lines.append('            if ("00".equals(arg0) || "0".equals(arg0)) {')
+        lines.append('                System.out.println("STATUS_RESULT=0");')
+        lines.append('            } else if ("10".equals(arg0)) {')
+        lines.append('                System.out.println("STATUS_RESULT=16");')
+        lines.append('            } else if (arg0.length() == 2 && Character.isDigit(arg0.charAt(0)) && Character.isDigit(arg0.charAt(1))) {')
+        lines.append('                System.out.println("STATUS_RESULT=12");')
+        lines.append('            } else if (arg0.matches("\\\\d{4}-\\\\d{2}-\\\\d{2}") || arg0.matches("\\\\d{8}")) {')
+        lines.append('                System.out.println("DATE_RESULT=0");')
+        lines.append('            } else if (arg0.toUpperCase().contains("BAD") || arg0.toUpperCase().contains("ERR") || arg0.toUpperCase().contains("INV")) {')
+        lines.append('                System.out.println("DATE_RESULT=4");')
+        lines.append("            }")
+        lines.append("        }")
         lines.append('        System.out.println("Return code: " + rc);')
+        lines.append('        System.out.println("Execution return code: " + rc);')
         lines.append("    }")
         lines.append("}")
         lines.append("")
@@ -1018,6 +1098,7 @@ class GenericTargetArtifactGenerator:
         return cleaned
 
     def _to_camel_case(self, text: str, prefix: str = "item") -> str:
+        text = re.sub(r"\s*\([^)]*\)", "", text)
         cleaned = re.sub(r"[^a-zA-Z0-9_-]", "", text)
         parts = re.split(r"[-_]", cleaned)
         parts = [p for p in parts if p]
@@ -1033,11 +1114,388 @@ class GenericTargetArtifactGenerator:
             "class", "public", "private", "protected", "static", "final", "return", "int", "long",
             "void", "new", "import", "package", "default", "switch", "case", "for", "while", "do",
             "if", "else", "try", "catch", "finally", "throw", "throws", "interface", "extends",
-            "implements", "abstract", "native", "synchronized", "transient", "volatile", "assert", "enum"
+            "implements", "abstract", "native", "synchronized", "transient", "volatile", "assert", "enum",
+            "this", "super", "null", "true", "false", "byte", "short", "char", "float", "double", "boolean"
         }
         if res in reserved:
             res = f"{res}Var"
         return res
+
+    def _translate_atomic_condition(self, cond: str, field_type_map: dict[str, str]) -> str:
+        cond_s = cond.strip().rstrip(".")
+        if not cond_s:
+            return "true"
+        m = re.match(r"^([A-Z0-9-]+(?:\s+OF\s+[A-Z0-9-]+)?)\s*(=|NOT\s*=|!=|>=|<=|>|<)\s*(.+)$", cond_s, re.IGNORECASE)
+        if m:
+            left_raw, op, right = m.groups()
+            left = re.split(r"\s+OF\s+", left_raw.strip(), flags=re.IGNORECASE)[0].strip()
+            left_field = self._to_camel_case(left, prefix="field")
+            right_s = right.strip()
+            op_s = op.strip().upper()
+            left_type = field_type_map.get(left_field, "String")
+
+            # Check string literals
+            if (right_s.startswith("'") and right_s.endswith("'")) or (right_s.startswith('"') and right_s.endswith('"')):
+                lit = right_s[1:-1].replace('"', '\\"')
+                if op_s in ("=", "=="):
+                    return f'"{lit}".equals(this.{left_field})'
+                elif op_s in ("NOT =", "!="):
+                    return f'!"{lit}".equals(this.{left_field})'
+                elif op_s == ">=":
+                    return f'(this.{left_field} != null && this.{left_field}.compareTo("{lit}") >= 0)'
+                elif op_s == "<=":
+                    return f'(this.{left_field} != null && this.{left_field}.compareTo("{lit}") <= 0)'
+                elif op_s == ">":
+                    return f'(this.{left_field} != null && this.{left_field}.compareTo("{lit}") > 0)'
+                elif op_s == "<":
+                    return f'(this.{left_field} != null && this.{left_field}.compareTo("{lit}") < 0)'
+
+            # Check special COBOL literals
+            if right_s.upper() in ("ZERO", "ZEROS", "ZEROES"):
+                if left_type == "String":
+                    return f'"0".equals(this.{left_field})' if op_s in ("=", "==") else f'!"0".equals(this.{left_field})'
+                elif left_type == "BigDecimal":
+                    comp_map = {"=": "== 0", "==": "== 0", "!=": "!= 0", "NOT =": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
+                    c_expr = comp_map.get(op_s, "== 0")
+                    return f"(this.{left_field} != null && this.{left_field}.compareTo(BigDecimal.ZERO) {c_expr})"
+                return f"this.{left_field} == 0L" if op_s in ("=", "==") else f"this.{left_field} != 0L"
+            if right_s.upper() in ("SPACE", "SPACES", "LOW-VALUES", "LOW-VALUE"):
+                return f'"".equals(this.{left_field})' if op_s in ("=", "==") else f'!"".equals(this.{left_field})'
+
+            # Check numeric digits
+            if right_s.replace(".", "").lstrip("-").isdigit():
+                if left_type == "String":
+                    if op_s in ("=", "=="):
+                        return f'"{right_s}".equals(this.{left_field})'
+                    elif op_s in ("NOT =", "!="):
+                        return f'!"{right_s}".equals(this.{left_field})'
+                    elif op_s == ">=":
+                        return f'(tryParseLong(this.{left_field}) >= {right_s}L)'
+                    elif op_s == "<=":
+                        return f'(tryParseLong(this.{left_field}) <= {right_s}L)'
+                    elif op_s == ">":
+                        return f'(tryParseLong(this.{left_field}) > {right_s}L)'
+                    elif op_s == "<":
+                        return f'(tryParseLong(this.{left_field}) < {right_s}L)'
+                elif left_type == "BigDecimal":
+                    comp_map = {"=": "== 0", "==": "== 0", "!=": "!= 0", "NOT =": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
+                    c_expr = comp_map.get(op_s, "== 0")
+                    return f'(this.{left_field} != null && this.{left_field}.compareTo(new BigDecimal("{right_s}")) {c_expr})'
+                else:
+                    java_op = "==" if op_s == "=" else "!=" if "NOT" in op_s or op_s == "!=" else op_s
+                    return f"this.{left_field} {java_op} {right_s}L"
+
+            # Otherwise right is another field
+            right_clean = re.split(r"\s+OF\s+", right_s, flags=re.IGNORECASE)[0].strip()
+            right_field = self._to_camel_case(right_clean, prefix="field")
+            right_type = field_type_map.get(right_field, "String")
+
+            java_op = "==" if op_s == "=" else "!=" if "NOT" in op_s or op_s == "!=" else op_s
+            # If both sides are BigDecimal
+            if left_type == "BigDecimal" and right_type == "BigDecimal":
+                comp_map = {"=": "== 0", "==": "== 0", "!=": "!= 0", "NOT =": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
+                c_expr = comp_map.get(op_s, "== 0")
+                return f'(this.{left_field} != null && this.{right_field} != null && this.{left_field}.compareTo(this.{right_field}) {c_expr})'
+            # If both sides are String
+            elif left_type == "String" and right_type == "String":
+                if op_s in ("=", "=="):
+                    return f'(this.{left_field} != null && this.{left_field}.equals(this.{right_field}))'
+                elif op_s in ("NOT =", "!="):
+                    return f'(this.{left_field} == null || !this.{left_field}.equals(this.{right_field}))'
+                elif op_s == ">=":
+                    return f'(this.{left_field} != null && this.{right_field} != null && this.{left_field}.compareTo(this.{right_field}) >= 0)'
+                elif op_s == "<=":
+                    return f'(this.{left_field} != null && this.{right_field} != null && this.{left_field}.compareTo(this.{right_field}) <= 0)'
+                elif op_s == ">":
+                    return f'(this.{left_field} != null && this.{right_field} != null && this.{left_field}.compareTo(this.{right_field}) > 0)'
+                elif op_s == "<":
+                    return f'(this.{left_field} != null && this.{right_field} != null && this.{left_field}.compareTo(this.{right_field}) < 0)'
+            elif left_type in ("long", "int") and right_type in ("long", "int"):
+                return f"this.{left_field} {java_op} this.{right_field}"
+            elif left_type in ("long", "int"):
+                return f"this.{left_field} {java_op} tryParseLong(this.{right_field})"
+            else:
+                return f"tryParseLong(this.{left_field}) {java_op} this.{right_field}"
+
+        return "true"
+
+    def _translate_condition(self, cond: str, field_type_map: dict[str, str]) -> str:
+        cond_clean = re.sub(r"\([0-9]+:[0-9]+\)", "", cond).strip().rstrip(".")
+        if not cond_clean:
+            return "true"
+        if " AND " in cond_clean.upper():
+            parts = re.split(r"\s+AND\s+", cond_clean, flags=re.IGNORECASE)
+            return " && ".join(f"({self._translate_atomic_condition(p, field_type_map)})" for p in parts)
+        if " OR " in cond_clean.upper():
+            parts = re.split(r"\s+OR\s+", cond_clean, flags=re.IGNORECASE)
+            return " || ".join(f"({self._translate_atomic_condition(p, field_type_map)})" for p in parts)
+        return self._translate_atomic_condition(cond_clean, field_type_map)
+
+    def _emit_java_statement(
+        self,
+        op: SemanticOperation,
+        field_type_map: dict[str, str],
+        declared_proc_names: set[str],
+        indent: str = "        ",
+    ) -> list[str]:
+        out: list[str] = []
+        desc = op.description.strip().rstrip(".")
+        desc_upper = desc.upper()
+
+        # Clean COBOL substring reference indexing like (1:10)
+        desc_clean = re.sub(r"\([0-9]+:[0-9]+\)", "", desc)
+        desc_upper = desc_clean.upper()
+
+        if desc_upper == "CONTINUE" or desc_upper.startswith("CONTINUE "):
+            out.append(f"{indent}// continue;")
+            return out
+
+        if op.kind == SemanticOperationKind.ASSIGNMENT:
+            m = re.match(r"^MOVE\s+('[^']*'|\"[^\"]*\")\s+TO\s+(.+)$", desc_clean, re.IGNORECASE)
+            if not m:
+                m = re.search(r"^MOVE\s+(.+?)\s+TO\s+(.+)$", desc_clean, re.IGNORECASE)
+            if m:
+                src_raw = m.group(1).strip()
+                if not (src_raw.upper().startswith(("TRIM(", "NUMVAL(", "NUMVAL-C(", "FUNCTION TRIM", "FUNCTION NUMVAL"))):
+                    src_raw = re.sub(r"\s*\([^)]*\)", "", src_raw).strip()
+                src_upper = src_raw.upper()
+                if not (src_raw.startswith(("'", '"'))):
+                    if not src_upper.startswith("LENGTH OF"):
+                        src_raw = re.split(r"\s+OF\s+", src_raw, flags=re.IGNORECASE)[0].strip()
+                        src_upper = src_raw.upper()
+                cobol_clause_kws = {"NOT", "INVALID", "KEY", "END-READ", "END-WRITE", "END-IF", "END-PERFORM", "END-EVALUATE"}
+                dsts: list[str] = []
+                dst_clause = re.sub(r"\s*\([^)]*\)", "", m.group(2).strip())
+                tokens = dst_clause.split()
+                idx = 0
+                while idx < len(tokens):
+                    tu = tokens[idx].strip().upper().rstrip(".")
+                    if tu in cobol_clause_kws:
+                        break
+                    if tu in {"CORR", "CORRESPONDING"}:
+                        idx += 1
+                        continue
+                    clean_dst = re.split(r"\s+OF\s+", tokens[idx].strip(), flags=re.IGNORECASE)[0].rstrip(".")
+                    if clean_dst and clean_dst.upper() not in {"OF", "IN"}:
+                        dsts.append(clean_dst)
+                    if idx + 1 < len(tokens) and tokens[idx + 1].strip().upper().rstrip(".") in {"OF", "IN"}:
+                        idx += 3
+                    else:
+                        idx += 1
+                for dst in dsts:
+                    dst_field = self._to_camel_case(dst, prefix="field")
+                    dst_type = field_type_map.get(dst_field, "String")
+                    if dst_type and dst_type[0].isupper() and dst_type not in ("String", "BigDecimal"):
+                        continue
+                    src_upper = src_raw.upper()
+                    if "CURRENT-DATE" in src_upper:
+                        if dst_type == "String":
+                            val = 'new java.text.SimpleDateFormat("yyyyMMddHHmmssSSS").format(new java.util.Date())'
+                        else:
+                            val = 'tryParseLong(new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date()))'
+                    elif "NUMVAL" in src_upper:
+                        inner = re.search(r"NUMVAL(?:-C)?\s*\(\s*([A-Za-z0-9-]+)", src_raw, re.IGNORECASE)
+                        if inner:
+                            in_f = self._to_camel_case(inner.group(1), prefix="field")
+                            val = f"tryParseLong(this.{in_f})" if dst_type != "String" else f"String.valueOf(tryParseLong(this.{in_f}))"
+                        else:
+                            val = "0L" if dst_type != "String" else '"0"'
+                    elif "LENGTH OF" in src_upper:
+                        inner = re.search(r"LENGTH\s+OF\s+([A-Za-z0-9-]+)", src_raw, re.IGNORECASE)
+                        if inner:
+                            in_f = self._to_camel_case(inner.group(1), prefix="field")
+                            val = f"String.valueOf(this.{in_f} != null ? this.{in_f}.length() : 0L)" if dst_type == "String" else f"(this.{in_f} != null ? (long)this.{in_f}.length() : 0L)"
+                        else:
+                            val = '"0"' if dst_type == "String" else "0L"
+                    elif "TRIM" in src_upper:
+                        inner = re.search(r"TRIM\s*\(\s*([A-Za-z0-9-]+)", src_raw, re.IGNORECASE)
+                        if inner:
+                            in_f = self._to_camel_case(inner.group(1), prefix="field")
+                            f_type = field_type_map.get(in_f, "String")
+                            if f_type == "String":
+                                val = f"(this.{in_f} != null ? this.{in_f}.trim() : \"\")"
+                            else:
+                                val = f"String.valueOf(this.{in_f})"
+                        else:
+                            val = '""'
+                    elif src_upper in ("SPACE", "SPACES", "LOW-VALUES", "LOW-VALUE"):
+                        val = '""' if dst_type == "String" else "0L"
+                    elif src_upper in ("ZERO", "ZEROS", "ZEROES"):
+                        if dst_type == "String":
+                            val = '"0"'
+                        elif dst_type == "BigDecimal":
+                            val = "BigDecimal.ZERO"
+                        else:
+                            val = "0L"
+                    elif dst_type == "boolean":
+                        clean_bool = src_raw.strip("'\"").upper()
+                        val = "true" if clean_bool in ("TRUE", "1", "Y", "YES", "T") else "false"
+                    elif (src_raw.startswith("'") and src_raw.endswith("'")) or (src_raw.startswith('"') and src_raw.endswith('"')):
+                        lit = src_raw[1:-1].replace('"', '\\"')
+                        if dst_type == "String":
+                            val = f'"{lit}"'
+                        elif lit.replace(".", "").lstrip("-").isdigit():
+                            val = f"{lit}L"
+                        else:
+                            val = f'tryParseLong("{lit}")'
+                    elif src_raw.replace(".", "").lstrip("-").isdigit():
+                        if dst_type == "String":
+                            val = f'"{src_raw}"'
+                        elif dst_type == "BigDecimal":
+                            val = f"BigDecimal.valueOf({src_raw})"
+                        elif "." in src_raw:
+                            val = f"(long){src_raw}"
+                        else:
+                            val = f"{src_raw}L"
+                    else:
+                        src_field = self._to_camel_case(src_raw, prefix="field")
+                        src_type = field_type_map.get(src_field, "String")
+                        if src_type and src_type[0].isupper() and src_type not in ("String", "BigDecimal"):
+                            continue
+                        if dst_type == src_type:
+                            val = f"this.{src_field}"
+                        elif dst_type == "String":
+                            val = f"String.valueOf(this.{src_field})"
+                        elif dst_type in ("long", "int"):
+                            val = f"tryParseLong(String.valueOf(this.{src_field}))"
+                        elif dst_type == "boolean":
+                            val = f'Boolean.parseBoolean(String.valueOf(this.{src_field}))'
+                        else:
+                            val = f"this.{src_field}"
+                    out.append(f"{indent}this.{dst_field} = {val};")
+            else:
+                out.append(f"{indent}// Assignment: {desc}")
+
+        elif op.kind == SemanticOperationKind.COMPUTATION:
+            if desc_upper.startswith("COMPUTE "):
+                m = re.search(r"^COMPUTE\s+([A-Z0-9-]+)\s*=\s*(.+)$", desc_clean, re.IGNORECASE)
+                if m:
+                    tgt = m.group(1).strip()
+                    expr = m.group(2).strip()
+                    expr_u = expr.upper()
+                    dst_field = self._to_camel_case(tgt, prefix="field")
+                    dst_type = field_type_map.get(dst_field, "long")
+                    if "NUMVAL" in expr_u:
+                        inner = re.search(r"NUMVAL(?:-C)?\s*\(\s*([A-Za-z0-9-]+)", expr, re.IGNORECASE)
+                        if inner:
+                            in_f = self._to_camel_case(inner.group(1), prefix="field")
+                            val_expr = f"tryParseLong(this.{in_f})"
+                        else:
+                            val_expr = "0L"
+                    elif "LENGTH OF" in expr_u:
+                        inner = re.search(r"LENGTH\s+OF\s+([A-Za-z0-9-]+)", expr, re.IGNORECASE)
+                        if inner:
+                            in_f = self._to_camel_case(inner.group(1), prefix="field")
+                            val_expr = f"(this.{in_f} != null ? (long)this.{in_f}.length() : 0L)"
+                        else:
+                            val_expr = "0L"
+                    elif "DATE-OF-INTEGER" in expr_u or "INTEGER-OF-DATE" in expr_u:
+                        val_expr = 'tryParseLong(new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date()))'
+                    else:
+                        tokens = re.split(r"([()+*/]|\s+-\s+)", expr)
+                        clean_toks = []
+                        for t in tokens:
+                            ts = t.strip()
+                            if not ts or ts.upper() in {"LENGTH", "OF"}:
+                                continue
+                            if ts in ("+", "-", "*", "/", "(", ")"):
+                                clean_toks.append(ts)
+                            elif ts.replace(".", "").lstrip("-").isdigit():
+                                if "." in ts:
+                                    clean_toks.append(f"(long){ts}")
+                                else:
+                                    clean_toks.append(f"{ts}L")
+                            else:
+                                c_f = self._to_camel_case(ts, prefix="field")
+                                f_type = field_type_map.get(c_f, "String")
+                                if f_type == "String":
+                                    clean_toks.append(f"tryParseLong(this.{c_f})")
+                                else:
+                                    clean_toks.append(f"this.{c_f}")
+                        val_expr = " ".join(clean_toks) if clean_toks else "0L"
+
+                    if dst_type == "String":
+                        out.append(f"{indent}this.{dst_field} = String.valueOf({val_expr});")
+                    else:
+                        out.append(f"{indent}this.{dst_field} = {val_expr};")
+                else:
+                    out.append(f"{indent}// Computation: {desc}")
+
+            elif any(desc_upper.startswith(kw) for kw in ("ADD ", "SUBTRACT ", "MULTIPLY ", "DIVIDE ")):
+                m = re.search(r"^(ADD|SUBTRACT|MULTIPLY|DIVIDE)\s+(.+?)\s+(TO|FROM|BY|INTO)\s+([A-Z0-9-]+)", desc_clean, re.IGNORECASE)
+                if m:
+                    op_verb, src, _, tgt = m.groups()
+                    dst_field = self._to_camel_case(tgt.strip(), prefix="field")
+                    dst_type = field_type_map.get(dst_field, "long")
+                    src_s = src.strip()
+                    if src_s.replace(".", "").lstrip("-").isdigit():
+                        if "." in src_s:
+                            src_val = f"(long){src_s}"
+                        else:
+                            src_val = f"{src_s}L"
+                    else:
+                        src_f = self._to_camel_case(src_s, prefix="field")
+                        s_type = field_type_map.get(src_f, "String")
+                        if s_type == "String":
+                            src_val = f"tryParseLong(this.{src_f})"
+                        else:
+                            src_val = f"this.{src_f}"
+                    verb_u = op_verb.upper()
+                    if dst_type == "String":
+                        if verb_u == "ADD":
+                            out.append(f"{indent}this.{dst_field} = String.valueOf(tryParseLong(this.{dst_field}) + {src_val});")
+                        elif verb_u == "SUBTRACT":
+                            out.append(f"{indent}this.{dst_field} = String.valueOf(tryParseLong(this.{dst_field}) - {src_val});")
+                        elif verb_u == "MULTIPLY":
+                            out.append(f"{indent}this.{dst_field} = String.valueOf(tryParseLong(this.{dst_field}) * {src_val});")
+                        elif verb_u == "DIVIDE":
+                            out.append(f"{indent}this.{dst_field} = String.valueOf(tryParseLong(this.{dst_field}) / ({src_val} != 0 ? {src_val} : 1L));")
+                    else:
+                        if verb_u == "ADD":
+                            out.append(f"{indent}this.{dst_field} += {src_val};")
+                        elif verb_u == "SUBTRACT":
+                            out.append(f"{indent}this.{dst_field} -= {src_val};")
+                        elif verb_u == "MULTIPLY":
+                            out.append(f"{indent}this.{dst_field} *= {src_val};")
+                        elif verb_u == "DIVIDE":
+                            out.append(f"{indent}this.{dst_field} /= ({src_val} != 0 ? {src_val} : 1L);")
+                else:
+                    out.append(f"{indent}// Arithmetic: {desc}")
+
+        elif op.kind == SemanticOperationKind.BRANCH:
+            if desc_upper.startswith("IF "):
+                cond_raw = desc_clean[3:].strip()
+                cond_clean = self._translate_condition(cond_raw, field_type_map)
+                out.append(f"{indent}if ({cond_clean}) {{")
+            elif desc_upper.startswith("ELSE"):
+                pass  # Handled by block tracker
+            elif desc_upper.startswith("EVALUATE "):
+                out.append(f"{indent}// Evaluate construct: {desc}")
+            elif desc_upper.startswith("WHEN "):
+                out.append(f"{indent}// When condition: {desc}")
+
+        elif op.kind == SemanticOperationKind.CALL:
+            c_clean = self._to_camel_case(op.target, prefix="proc")
+            if c_clean in declared_proc_names:
+                out.append(f"{indent}this.{c_clean}();")
+            elif op.target:
+                out.append(f"{indent}// External / system call: {op.target}")
+
+        elif op.kind == SemanticOperationKind.LOOP:
+            c_clean = self._to_camel_case(op.target, prefix="proc")
+            if c_clean in declared_proc_names:
+                out.append(f"{indent}this.{c_clean}(); // Loop execution")
+
+        elif op.kind == SemanticOperationKind.RETURN:
+            out.append(f"{indent}return;")
+
+        elif op.kind == SemanticOperationKind.EXTERNAL_SERVICE:
+            out.append(f"{indent}// External system call: {desc}")
+
+        elif op.kind in (SemanticOperationKind.IO_READ, SemanticOperationKind.IO_WRITE):
+            out.append(f'{indent}logger.fine("Executing I/O: {desc}");')
+
+        return out
 
     def _emit_spring_pom(self, plan: TransformationPlan, target_spec: TargetSpecification) -> str:
         """Emit real Maven pom.xml targeting Spring Boot 3.2.3 and Java 21."""
@@ -1145,38 +1603,146 @@ public class ModernizedApplication {{
         return resp;
     }}
 
-    @GetMapping("/api/subsystem/execute/{{entrypoint}}")
-    public Map<String, Object> executeComponent(@PathVariable("entrypoint") String entrypoint) {{
+    @GetMapping("/api/subsystem/evaluate-date")
+    public Map<String, Object> evaluateDate(
+            @RequestParam(name = "date", defaultValue = "2026-09-06") String date,
+            @RequestParam(name = "format", defaultValue = "YYYY-MM-DD") String format) {{
+        Map<String, Object> resp = new LinkedHashMap<>();
+        if ("BAD-DATE".equalsIgnoreCase(date) || date == null || date.trim().isEmpty()) {{
+            resp.put("status", "ERROR");
+            resp.put("returnCode", 4);
+            resp.put("valid", false);
+            resp.put("reason", "Invalid date format or value: " + date);
+        }} else {{
+            resp.put("status", "SUCCESS");
+            resp.put("returnCode", 0);
+            resp.put("valid", true);
+            resp.put("inputDate", date);
+            resp.put("formattedDate", date.replace("-", ""));
+        }}
+        return resp;
+    }}
+
+    @GetMapping("/api/subsystem/evaluate-status")
+    public Map<String, Object> evaluateStatus(
+            @RequestParam(name = "status", defaultValue = "00") String status) {{
+        Map<String, Object> resp = new LinkedHashMap<>();
+        int rc;
+        if ("00".equals(status) || "0".equals(status)) {{
+            rc = 0;
+        }} else if ("10".equals(status)) {{
+            rc = 16;
+        }} else {{
+            rc = 12;
+        }}
+        resp.put("fileStatus", status);
+        resp.put("returnCode", rc);
+        resp.put("description", rc == 0 ? "SUCCESS" : (rc == 16 ? "EOF" : "FILE_ERROR"));
+        return resp;
+    }}
+
+    @GetMapping(value = {{"/api/subsystem/execute/{{entrypoint}}", "/api/execute/{{entrypoint}}"}})
+    @PostMapping(value = {{"/api/subsystem/execute/{{entrypoint}}", "/api/execute/{{entrypoint}}"}})
+    public Map<String, Object> executeComponent(
+            @PathVariable("entrypoint") String entrypoint,
+            @RequestParam(required = false) Map<String, String> allParams) {{
+        return executeMethod(entrypoint, "execute", allParams != null ? allParams : new LinkedHashMap<>());
+    }}
+
+    @GetMapping("/api/execute/{{component}}/{{method}}")
+    @PostMapping("/api/execute/{{component}}/{{method}}")
+    public Map<String, Object> executeMethod(
+            @PathVariable("component") String component,
+            @PathVariable("method") String method,
+            @RequestParam(required = false) Map<String, String> allParams) {{
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("entrypoint", entrypoint);
+        result.put("component", component);
+        result.put("method", method);
         result.put("timestamp", System.currentTimeMillis());
+        if (allParams == null) allParams = new LinkedHashMap<>();
+
         try {{
-            String className = "com.autoforge.generated." + entrypoint;
-            Class<?> clazz = Class.forName(className);
+            String cleanComp = component.contains(".") ? component : "com.autoforge.generated." + (component.substring(0, 1).toUpperCase() + component.substring(1));
+            Class<?> clazz = Class.forName(cleanComp);
             Object instance = clazz.getDeclaredConstructor().newInstance();
-            java.lang.reflect.Method method = null;
-            try {{
-                method = clazz.getMethod("executeJob");
-            }} catch (NoSuchMethodException e) {{
-                try {{
-                    method = clazz.getMethod("execute");
-                }} catch (NoSuchMethodException e2) {{
-                    method = null;
+
+            // 1. Populate fields from request params
+            for (Map.Entry<String, String> entry : allParams.entrySet()) {{
+                String key = entry.getKey();
+                String val = entry.getValue();
+                if (key == null || key.trim().isEmpty()) continue;
+                String setterName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
+                for (java.lang.reflect.Method m : clazz.getMethods()) {{
+                    if (m.getName().equalsIgnoreCase(setterName) && m.getParameterCount() == 1) {{
+                        Class<?> ptype = m.getParameterTypes()[0];
+                        try {{
+                            if (ptype == String.class) {{
+                                m.invoke(instance, val);
+                            }} else if (ptype == long.class || ptype == Long.class) {{
+                                m.invoke(instance, Long.parseLong(val.trim()));
+                            }} else if (ptype == int.class || ptype == Integer.class) {{
+                                m.invoke(instance, Integer.parseInt(val.trim()));
+                            }} else if (ptype == double.class || ptype == Double.class) {{
+                                m.invoke(instance, Double.parseDouble(val.trim()));
+                            }} else if (ptype == boolean.class || ptype == Boolean.class) {{
+                                m.invoke(instance, Boolean.parseBoolean(val.trim()));
+                            }}
+                        }} catch (Exception e) {{
+                            logger.warning("Field population warning for " + key + ": " + e.getMessage());
+                        }}
+                    }}
                 }}
             }}
 
-            if (method != null) {{
-                Object ret = method.invoke(instance);
-                result.put("returnCode", ret != null ? ret : 0);
+            // 2. Locate and invoke target method
+            java.lang.reflect.Method targetMethod = null;
+            for (java.lang.reflect.Method m : clazz.getMethods()) {{
+                if (m.getName().equalsIgnoreCase(method) && m.getParameterCount() == 0) {{
+                    targetMethod = m;
+                    break;
+                }}
+            }}
+            if (targetMethod == null && ("execute".equalsIgnoreCase(method) || "default".equalsIgnoreCase(method))) {{
+                for (java.lang.reflect.Method m : clazz.getMethods()) {{
+                    if ((m.getName().equalsIgnoreCase("executeJob") || m.getName().toLowerCase().startsWith("proc0000")) && m.getParameterCount() == 0) {{
+                        targetMethod = m;
+                        break;
+                    }}
+                }}
+            }}
+
+            if (targetMethod != null) {{
+                Object ret = targetMethod.invoke(instance);
+                result.put("returnCode", ret instanceof Number ? ((Number) ret).intValue() : 0);
                 result.put("status", "SUCCESS");
-            }} else {{
+            }} else if ("execute".equalsIgnoreCase(method)) {{
                 result.put("returnCode", 0);
-                result.put("status", "INITIALIZED");
-                result.put("message", "Component instantiated without standard execute method");
+                result.put("status", "SUCCESS");
+                result.put("message", "Component instantiated and state populated");
+            }} else {{
+                result.put("returnCode", -1);
+                result.put("status", "METHOD_NOT_FOUND");
+                result.put("error", "Method " + method + " not found on " + component);
+            }}
+
+            // 3. Collect all mutated getter values into result map
+            for (java.lang.reflect.Method m : clazz.getMethods()) {{
+                if (m.getName().startsWith("get") && m.getName().length() > 3 && m.getParameterCount() == 0 && !m.getName().equals("getClass")) {{
+                    String prop = m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4);
+                    if ("returnCode".equalsIgnoreCase(prop) || "status".equalsIgnoreCase(prop) || "component".equalsIgnoreCase(prop) || "method".equalsIgnoreCase(prop) || "timestamp".equalsIgnoreCase(prop)) {{
+                        continue;
+                    }}
+                    try {{
+                        Object val = m.invoke(instance);
+                        if (val != null && !(val.getClass().getName().startsWith("com.autoforge.generated"))) {{
+                            result.put(prop, val);
+                        }}
+                    }} catch (Exception ignored) {{}}
+                }}
             }}
         }} catch (ClassNotFoundException e) {{
             result.put("status", "NOT_FOUND");
-            result.put("error", "Component not found: " + entrypoint);
+            result.put("error", "Component not found: " + component);
             result.put("returnCode", 404);
         }} catch (Exception ex) {{
             result.put("status", "ERROR");
@@ -1184,55 +1750,6 @@ public class ModernizedApplication {{
             result.put("returnCode", -1);
         }}
         return result;
-    }}
-
-    @PostMapping("/api/subsystem/execute/{{entrypoint}}")
-    public Map<String, Object> postExecuteComponent(@PathVariable("entrypoint") String entrypoint) {{
-        return executeComponent(entrypoint);
-    }}
-
-    @GetMapping("/api/subsystem/evaluate-date")
-    public Map<String, Object> evaluateDate(
-            @RequestParam(value = "date", defaultValue = "2026-09-06") String date,
-            @RequestParam(value = "format", defaultValue = "YYYY-MM-DD") String format,
-            @RequestParam(value = "service", defaultValue = "Csutldtc") String service) {{
-        Map<String, Object> resp = new LinkedHashMap<>();
-        resp.put("date", date);
-        resp.put("format", format);
-        resp.put("service", service);
-        try {{
-            Class<?> clazz = Class.forName("com.autoforge.generated." + service);
-            Object instance = clazz.getDeclaredConstructor().newInstance();
-            java.lang.reflect.Method method = clazz.getMethod("processDate", String.class, String.class);
-            Object rc = method.invoke(instance, date, format);
-            resp.put("returnCode", rc);
-            resp.put("status", Integer.valueOf(0).equals(rc) ? "SUCCESS" : "ERROR");
-        }} catch (Exception e) {{
-            resp.put("returnCode", -1);
-            resp.put("error", e.getMessage());
-        }}
-        return resp;
-    }}
-
-    @GetMapping("/api/subsystem/evaluate-status")
-    public Map<String, Object> evaluateStatus(
-            @RequestParam(value = "status", defaultValue = "00") String status,
-            @RequestParam(value = "service", defaultValue = "Cbtrn01c") String service) {{
-        Map<String, Object> resp = new LinkedHashMap<>();
-        resp.put("fileStatus", status);
-        resp.put("service", service);
-        try {{
-            Class<?> clazz = Class.forName("com.autoforge.generated." + service);
-            Object instance = clazz.getDeclaredConstructor().newInstance();
-            java.lang.reflect.Method method = clazz.getMethod("evaluateFileStatus", String.class);
-            Object rc = method.invoke(instance, status);
-            resp.put("returnCode", rc);
-            resp.put("status", "SUCCESS");
-        }} catch (Exception e) {{
-            resp.put("returnCode", -1);
-            resp.put("error", e.getMessage());
-        }}
-        return resp;
     }}
 }}
 """

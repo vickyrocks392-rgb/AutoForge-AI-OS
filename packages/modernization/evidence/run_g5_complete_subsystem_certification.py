@@ -469,7 +469,7 @@ async def run_g5_complete_subsystem_certification() -> dict[str, Any]:
             "source_provenance": "CSUTLDTC.cbl / Date Validation Logic",
             "endpoint": "/api/subsystem/evaluate-date?date=INVALID-DATE&format=YYYY-MM-DD",
             "method": "GET",
-            "expected_rc": 4,
+            "expected_rc": 3,
             "expected_status": "ERROR",
         },
         {

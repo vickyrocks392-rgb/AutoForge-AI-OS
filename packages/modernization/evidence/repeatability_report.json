@@ -1,0 +1,32 @@
+{
+  "run_a": {
+    "run_id": "g5-run-a-fresh",
+    "source_physical_loc": 6356,
+    "source_nloc": 5026,
+    "properly_migrated_nloc": 5026,
+    "duration_seconds": 38.07,
+    "throughput_nloc_per_hour": 475271.9,
+    "golden_matrix_pass_rate": 100.0,
+    "cross_module_pass_rate": 100.0,
+    "defect_count": 0
+  },
+  "run_b": {
+    "run_id": "g5-run-b-fresh",
+    "source_physical_loc": 6356,
+    "source_nloc": 5026,
+    "properly_migrated_nloc": 5026,
+    "duration_seconds": 37.85,
+    "throughput_nloc_per_hour": 478034.3,
+    "golden_matrix_pass_rate": 100.0,
+    "cross_module_pass_rate": 100.0,
+    "defect_count": 0
+  },
+  "statistics": {
+    "mean_throughput_nloc_per_hour": 476653.1,
+    "min_throughput_nloc_per_hour": 475271.9,
+    "max_throughput_nloc_per_hour": 478034.3,
+    "variance_percent": 0.58,
+    "nloc_drift": 0,
+    "repeatability_status": "HIGHLY_REPEATABLE_ZERO_DEFECT"
+  }
+}

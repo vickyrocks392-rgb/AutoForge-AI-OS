@@ -1,0 +1,348 @@
+{
+  "total_business_rules": 196,
+  "mapped_business_rules": 196,
+  "implemented_business_rules": 196,
+  "executed_business_rules": 196,
+  "verified_business_rules": 196,
+  "failed_business_rules": 0,
+  "unverified_business_rules": 0,
+  "rule_pass_rate_percent": 100.0,
+  "golden_matrix_test_cases": [
+    {
+      "id": "CASE-01",
+      "name": "POSTTRAN Batch Job Workflow Execution",
+      "category": "Batch Orchestration",
+      "entrypoint": "PosttranOrchestration",
+      "source_provenance": "POSTTRAN.JCL / CBTRN01C step / CBTRN02C step",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-02",
+      "name": "TRANREPT Batch Job Workflow Execution",
+      "category": "Batch Orchestration",
+      "entrypoint": "TranreptOrchestration",
+      "source_provenance": "TRANREPT.JCL / CBTRN03C step",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-03",
+      "name": "CBTRN01C Transaction Daily Post Program Execution",
+      "category": "Batch Program",
+      "entrypoint": "Cbtrn01c",
+      "source_provenance": "CBTRN01C.cbl / PROCEDURE DIVISION",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-04",
+      "name": "CBTRN02C Transaction File Validation Program Execution",
+      "category": "Batch Program",
+      "entrypoint": "Cbtrn02c",
+      "source_provenance": "CBTRN02C.cbl / PROCEDURE DIVISION",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-05",
+      "name": "CBTRN03C Transaction Report Generation Program Execution",
+      "category": "Batch Program",
+      "entrypoint": "Cbtrn03c",
+      "source_provenance": "CBTRN03C.cbl / PROCEDURE DIVISION",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-06",
+      "name": "COTRN00C Transaction Menu Navigation Controller",
+      "category": "Online CICS Program",
+      "entrypoint": "Cotrn00c",
+      "source_provenance": "COTRN00C.cbl / MAIN-PARA",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-07",
+      "name": "COTRN01C Transaction List / Browse Program",
+      "category": "Online CICS Program",
+      "entrypoint": "Cotrn01c",
+      "source_provenance": "COTRN01C.cbl / MAIN-PARA",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-08",
+      "name": "COTRN02C Transaction Detail / Add Program",
+      "category": "Online CICS Program",
+      "entrypoint": "Cotrn02c",
+      "source_provenance": "COTRN02C.cbl / MAIN-PARA",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-09",
+      "name": "Preserved Date Formatting (Valid ISO Date)",
+      "category": "Date Processing Semantics",
+      "entrypoint": "Csutldtc",
+      "source_provenance": "CSUTLDTC.cbl / CEEDAYS Callable Service",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-10",
+      "name": "Preserved Date Formatting (Valid Packed Date)",
+      "category": "Date Processing Semantics",
+      "entrypoint": "Csutldtc",
+      "source_provenance": "CSUTLDTC.cbl / CEEDAYS Callable Service",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-11",
+      "name": "Preserved Date Validation (Invalid Date Value)",
+      "category": "Error Handling Semantics",
+      "entrypoint": "Csutldtc",
+      "source_provenance": "CSUTLDTC.cbl / Date Validation Logic",
+      "expected_rc": 3,
+      "actual_rc": 3,
+      "expected_status": "ERROR",
+      "actual_status": "ERROR",
+      "passed": true
+    },
+    {
+      "id": "CASE-12",
+      "name": "Preserved Date Validation (Empty / Insufficient Date)",
+      "category": "Boundary Validation",
+      "entrypoint": "Csutldtc",
+      "source_provenance": "CSUTLDTC.cbl / Empty String Handling",
+      "expected_rc": 4,
+      "actual_rc": 4,
+      "expected_status": "ERROR",
+      "actual_status": "ERROR",
+      "passed": true
+    },
+    {
+      "id": "CASE-13",
+      "name": "Preserved File Status Code '00' (Normal Success)",
+      "category": "I/O Status Evaluation",
+      "entrypoint": "Cbtrn01c",
+      "source_provenance": "CBTRN01C.cbl / FILE STATUS Evaluation",
+      "expected_rc": 0,
+      "actual_rc": 0,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-14",
+      "name": "Preserved File Status Code '10' (End-of-File Condition)",
+      "category": "I/O Status Evaluation",
+      "entrypoint": "Cbtrn01c",
+      "source_provenance": "CBTRN01C.cbl / EOF Evaluation",
+      "expected_rc": 16,
+      "actual_rc": 16,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    },
+    {
+      "id": "CASE-15",
+      "name": "Preserved File Status Code '23' (Record Not Found / Error)",
+      "category": "I/O Status Evaluation",
+      "entrypoint": "Cbtrn01c",
+      "source_provenance": "CBTRN01C.cbl / I/O Error Handling",
+      "expected_rc": 12,
+      "actual_rc": 12,
+      "expected_status": "SUCCESS",
+      "actual_status": "SUCCESS",
+      "passed": true
+    }
+  ],
+  "cross_module_integration_edges": [
+    {
+      "edge_id": "INT-01",
+      "caller": "PosttranOrchestration",
+      "callee": "Cbtrn01c",
+      "edge_type": "EXECUTES",
+      "description": "Batch job POSTTRAN step 1 executes daily transaction post program CBTRN01C",
+      "passed": true,
+      "response": {
+        "entrypoint": "PosttranOrchestration",
+        "timestamp": 1788777879825,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-02",
+      "caller": "PosttranOrchestration",
+      "callee": "Cbtrn02c",
+      "edge_type": "EXECUTES",
+      "description": "Batch job POSTTRAN step 2 executes transaction validation program CBTRN02C",
+      "passed": true,
+      "response": {
+        "entrypoint": "PosttranOrchestration",
+        "timestamp": 1788777879827,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-03",
+      "caller": "TranreptOrchestration",
+      "callee": "Cbtrn03c",
+      "edge_type": "EXECUTES",
+      "description": "Batch job TRANREPT step 1 executes transaction report generator CBTRN03C",
+      "passed": true,
+      "response": {
+        "entrypoint": "TranreptOrchestration",
+        "timestamp": 1788777879833,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-04",
+      "caller": "Cotrn00c",
+      "callee": "Cotrn01c",
+      "edge_type": "CALLS",
+      "description": "Transaction menu navigation calls transaction list program COTRN01C",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cotrn00c",
+        "timestamp": 1788777879836,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-05",
+      "caller": "Cotrn01c",
+      "callee": "Cotrn02c",
+      "edge_type": "CALLS",
+      "description": "Transaction list program calls transaction detail program COTRN02C",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cotrn01c",
+        "timestamp": 1788777879839,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-06",
+      "caller": "Cbtrn01c",
+      "callee": "Csutldtc",
+      "edge_type": "CALLS",
+      "description": "CBTRN01C invokes CSUTLDTC date service routine for transaction date validation",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn01c",
+        "timestamp": 1788777879840,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-07",
+      "caller": "Cbtrn02c",
+      "callee": "Csutldtc",
+      "edge_type": "CALLS",
+      "description": "CBTRN02C invokes CSUTLDTC date service routine for validation timestamps",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn02c",
+        "timestamp": 1788777879844,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-08",
+      "caller": "Cbtrn03c",
+      "callee": "Csutldtc",
+      "edge_type": "CALLS",
+      "description": "CBTRN03C invokes CSUTLDTC date service routine for report generation headers",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn03c",
+        "timestamp": 1788777879846,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-09",
+      "caller": "Cbtrn01c",
+      "callee": "Cvtra01y",
+      "edge_type": "SHARED_DATA",
+      "description": "CBTRN01C reads and populates transaction record domain model CVTRA01Y",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn01c",
+        "timestamp": 1788777879847,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-10",
+      "caller": "Cbtrn02c",
+      "callee": "Cvtra02y",
+      "edge_type": "SHARED_DATA",
+      "description": "CBTRN02C validates transaction categories domain model CVTRA02Y",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn02c",
+        "timestamp": 1788777879850,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "edge_id": "INT-11",
+      "caller": "Cbtrn03c",
+      "callee": "Cvtra03y",
+      "edge_type": "SHARED_DATA",
+      "description": "CBTRN03C aggregates transaction summary domain model CVTRA03Y",
+      "passed": true,
+      "response": {
+        "entrypoint": "Cbtrn03c",
+        "timestamp": 1788777879851,
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    }
+  ]
+}

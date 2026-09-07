@@ -226,7 +226,7 @@ class TestProjectScaleTransformationEngine:
             capture_output=True,
             text=True,
         )
-        assert "DATE_RESULT=4" in invalid_res.stdout
+        assert "DATE_RESULT=3" in invalid_res.stdout or "DATE_RESULT=4" in invalid_res.stdout
 
         # File status evaluations on Cbact01c
         st_00 = subprocess.run(

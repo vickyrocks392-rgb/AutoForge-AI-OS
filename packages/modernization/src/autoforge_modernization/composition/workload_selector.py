@@ -290,12 +290,30 @@ class TransformationWorkloadSelector:
         # 3. Determine subsystem functional seed entry points
         if custom_seed_identifiers:
             seeds = [s.upper() for s in custom_seed_identifiers]
-        elif subsystem_name.upper() in ("TRANSACTION_PROCESSING", "TRANSACTION", "TRN"):
-            seeds = ["POSTTRAN", "TRANREPT", "CBTRN01C", "CBTRN02C", "CBTRN03C", "COTRN00C", "COTRN01C", "COTRN02C"]
-        elif subsystem_name.upper() in ("ACCOUNT_MANAGEMENT", "ACCOUNT", "ACT"):
-            seeds = ["READACCT", "CBACT01C", "CBACT02C", "CBACT03C", "CBACT04C", "COACTUPC", "COACTVWC"]
+        elif subsystem_name.upper() in ("ALL", "PROJECT", "ENTIRE", "ROOT"):
+            job_roots = [m.name.upper() for m in full_model.modules.values() if m.module_type in ("job", "main")]
+            seeds = job_roots if job_roots else list(file_by_name.keys())
         else:
-            seeds = [subsystem_name.upper()]
+            tokens = [tok for tok in subsystem_name.upper().split("_") if len(tok) >= 3]
+            # Standard abbreviation expansions
+            if "TRANSACTION" in subsystem_name.upper():
+                tokens.extend(["TRN", "TRAN"])
+            elif "ACCOUNT" in subsystem_name.upper():
+                tokens.extend(["ACT", "ACCT"])
+            elif "CUSTOMER" in subsystem_name.upper():
+                tokens.extend(["CUS", "CUST"])
+            elif "PAYROLL" in subsystem_name.upper():
+                tokens.extend(["PAY", "PAYR"])
+            elif "INVENTORY" in subsystem_name.upper():
+                tokens.extend(["INV", "STOCK"])
+            elif "POLICY" in subsystem_name.upper() or "INSURANCE" in subsystem_name.upper():
+                tokens.extend(["POL", "INS", "CLAIM"])
+
+            matching = [
+                name for name in file_by_name
+                if any(tok in name for tok in tokens)
+            ]
+            seeds = matching if matching else [subsystem_name.upper()]
 
         # 4. Transitive topological dependency expansion until mathematical convergence
         closure_names: set[str] = set()

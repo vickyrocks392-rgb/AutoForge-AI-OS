@@ -1,6 +1,6 @@
 # AUTOFORGE AI — 18-G.5 FINAL COMPLETE SUBSYSTEM MIGRATION CERTIFICATION
 
-**Date**: 2026-09-06 22:17:06 UTC  
+**Date**: 2026-09-07 10:45:10 UTC  
 **Classification**: **CERTIFIED**  
 **Roadmap Boundary**: 18-G Final Closure (18-H NOT STARTED)
 
@@ -81,12 +81,12 @@ The **TRANSACTION_PROCESSING** subsystem was selected automatically by the produ
 
 * **Build Tool**: Apache Maven 3.9 / OpenJDK 26 (Spring Boot)
 * **Command Executed**: `/opt/homebrew/bin/mvn clean package -DskipTests`
-* **Build Duration**: `4.66s`
-* **Fat JAR Path**: `/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_spring_boot_app_pjco2rwv/target/modernized-subsystem-1.0.0-SNAPSHOT.jar`
-* **Fat JAR Size**: `22,352,284` bytes (21.32 MB)
+* **Build Duration**: `2.63s`
+* **Fat JAR Path**: `/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_spring_boot_app_x7nu9s66/target/modernized-subsystem-1.0.0-SNAPSHOT.jar`
+* **Fat JAR Size**: `22,406,879` bytes (21.37 MB)
 * **Classes Compiled**: `36`
-* **Application Startup Latency**: `2647.28 ms`
-* **Application Health**: `UP` (`{'status': 'UP', 'timestamp': 1788733006850, 'subsystem': 'TRANSACTION_PROCESSING', 'framework': 'Spring Boot 3.2.3', 'runtime': 'OpenJDK 26 / Java 21 Target', 'componentCount': 35}`)
+* **Application Startup Latency**: `1729.03 ms`
+* **Application Health**: `UP` (`{'status': 'UP', 'timestamp': 1788777879718, 'subsystem': 'TRANSACTION_PROCESSING', 'framework': 'Spring Boot 3.2.3', 'runtime': 'OpenJDK 26 / Java 21 Target', 'componentCount': 35}`)
 
 ---
 
@@ -104,7 +104,7 @@ The **TRANSACTION_PROCESSING** subsystem was selected automatically by the produ
 | CASE-08 | COTRN02C Transaction Detail / Add Program | Online CICS Program | 0 | 0 | SUCCESS | SUCCESS | **PASS** |
 | CASE-09 | Preserved Date Formatting (Valid ISO Date) | Date Processing Semantics | 0 | 0 | SUCCESS | SUCCESS | **PASS** |
 | CASE-10 | Preserved Date Formatting (Valid Packed Date) | Date Processing Semantics | 0 | 0 | SUCCESS | SUCCESS | **PASS** |
-| CASE-11 | Preserved Date Validation (Invalid Date Value) | Error Handling Semantics | 4 | 4 | ERROR | ERROR | **PASS** |
+| CASE-11 | Preserved Date Validation (Invalid Date Value) | Error Handling Semantics | 3 | 3 | ERROR | ERROR | **PASS** |
 | CASE-12 | Preserved Date Validation (Empty / Insufficient Date) | Boundary Validation | 4 | 4 | ERROR | ERROR | **PASS** |
 | CASE-13 | Preserved File Status Code '00' (Normal Success) | I/O Status Evaluation | 0 | 0 | SUCCESS | SUCCESS | **PASS** |
 | CASE-14 | Preserved File Status Code '10' (End-of-File Condition) | I/O Status Evaluation | 16 | 16 | SUCCESS | SUCCESS | **PASS** |
@@ -132,12 +132,12 @@ The **TRANSACTION_PROCESSING** subsystem was selected automatically by the produ
 
 ## 6. End-to-End Throughput & Performance
 
-* **Total Migration Wall Clock**: `29.60 seconds`
+* **Total Migration Wall Clock**: `38.07 seconds`
 * **Source LOC Processed**: `6,356`
-* **Target LOC Generated**: `8,670`
-* **Source LOC / Hour**: `773,023.2`
-* **Target LOC / Hour**: `1,054,454.3`
-* **Files / Hour**: `4,256.7`
+* **Target LOC Generated**: `13,946`
+* **Source LOC / Hour**: `600,992.9`
+* **Target LOC / Hour**: `1,318,667.0`
+* **Files / Hour**: `3,309.4`
 * **Known Defects**: `0`
 
 ---

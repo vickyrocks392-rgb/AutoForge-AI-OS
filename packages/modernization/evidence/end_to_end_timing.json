@@ -1,0 +1,45 @@
+{
+  "started_at": "2026-09-07T10:44:31.000000Z",
+  "completed_at": "2026-09-07T10:45:09.070000Z",
+  "true_end_to_end_wall_clock_seconds": 38.07,
+  "true_end_to_end_hours": 0.010575,
+  "stage_timings_ms": {
+    "forensics": 676.5354160015704,
+    "discovery_and_closure": 1160.038958005316,
+    "semantic_extraction": 96.95450000435812,
+    "planning": 144.8059579997789,
+    "generation": 92.39229199738475,
+    "maven_build": 2637.601499998709,
+    "application_startup": 2284.77358300006,
+    "behavioral_verification": 55.869499999971595,
+    "integration_verification": 27.14333300536964,
+    "qdrant": 981.004249995749,
+    "distributed_ai": 17594.32299999753,
+    "autonomous_repair": 10905.708040998434,
+    "provenance": 9.266708999348339,
+    "repeatability": 1375.8985000022221
+  },
+  "three_throughput_metrics": {
+    "A_raw_transformation_throughput": {
+      "definition": "source_NLOC / transformation_generation_hours",
+      "source_nloc": 5026,
+      "duration_ms": 92.39229199738475,
+      "duration_hours": 2.5664525554829098e-05,
+      "throughput_nloc_per_hour": 195834518.3
+    },
+    "B_full_end_to_end_throughput": {
+      "definition": "source_NLOC / true_end_to_end_hours (includes discovery, planning, build, startup, live test, RAG, AI, repair)",
+      "source_nloc": 5026,
+      "duration_seconds": 38.07,
+      "duration_hours": 0.010575,
+      "throughput_nloc_per_hour": 475271.9
+    },
+    "C_properly_migrated_throughput": {
+      "definition": "properly_migrated_NLOC / true_fresh_end_to_end_hours",
+      "properly_migrated_nloc": 5026,
+      "duration_seconds": 38.07,
+      "duration_hours": 0.010575,
+      "throughput_nloc_per_hour": 475271.9
+    }
+  }
+}

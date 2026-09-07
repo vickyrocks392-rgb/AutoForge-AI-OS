@@ -1,0 +1,24 @@
+{
+  "status": "CERTIFIED",
+  "workload_name": "PAYROLL_ENTERPRISE",
+  "total_files": 14,
+  "physical_loc": 281,
+  "non_comment_nloc": 226,
+  "properly_migrated_nloc": 226,
+  "behavioral_tests_passed": 8,
+  "total_behavioral_tests": 8,
+  "duration_seconds": 13.013722290997976,
+  "throughput_nloc_per_hour": 62518.623173847365,
+  "timings_ms": {
+    "discovery": 17.34825000312412,
+    "semantic_extraction": 4.779875001986511,
+    "planning": 2.5711669950396754,
+    "generation": 3.2863749947864562,
+    "maven_build": 2789.2918750003446,
+    "runtime_startup": 1799.5313330029603,
+    "behavioral_matrix": 25.73712499724934,
+    "cross_module_pipeline": 12.660458000027575,
+    "distributed_ai_rag": 2773.7500829971395,
+    "defect_repair": 5532.311833005224
+  }
+}

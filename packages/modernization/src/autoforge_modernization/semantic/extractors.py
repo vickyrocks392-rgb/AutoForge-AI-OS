@@ -263,7 +263,28 @@ class SemanticModelExtractor:
                 continue
             body = m_p.group(1)
 
-            for line in body.splitlines():
+            stmt_starters = {
+                "PERFORM", "READ", "WRITE", "REWRITE", "MOVE", "COMPUTE", "ADD", "SUBTRACT",
+                "MULTIPLY", "DIVIDE", "STOP", "GOBACK", "EXIT", "IF", "ELSE", "END-IF",
+                "EVALUATE", "WHEN", "END-EVALUATE", "OPEN", "CLOSE", "DISPLAY", "STRING",
+                "UNSTRING", "INITIALIZE", "SET", "EXEC", "END-EXEC", "CONTINUE", "CALL",
+                "GO", "INSPECT", "NEXT"
+            }
+            raw_lines = [ln.strip() for ln in body.splitlines() if ln.strip() and not ln.strip().startswith(("*", "/"))]
+            assembled_statements: list[str] = []
+            curr_stmt_parts: list[str] = []
+            for raw_ln in raw_lines:
+                words = raw_ln.split()
+                first_tok = words[0].upper().rstrip(".")
+                if first_tok in stmt_starters and curr_stmt_parts:
+                    assembled_statements.append(" ".join(curr_stmt_parts))
+                    curr_stmt_parts = [raw_ln]
+                else:
+                    curr_stmt_parts.append(raw_ln)
+            if curr_stmt_parts:
+                assembled_statements.append(" ".join(curr_stmt_parts))
+
+            for line in assembled_statements:
                 s_ln = line.strip().upper()
                 if not s_ln:
                     continue
@@ -388,7 +409,7 @@ class SemanticModelExtractor:
                     m_move = re.search(r"^MOVE\s+(.+?)\s+TO\s+(.+)$", s_ln, re.IGNORECASE)
                     if m_move:
                         src_expr = m_move.group(1).strip()
-                        targets = [t.strip().rstrip(".") for t in m_move.group(2).split()]
+                        targets = [t.strip().rstrip(".") for t in m_move.group(2).split() if t.strip() and t.strip().upper() != "OF"]
                         proc.operations.append(
                             SemanticOperation(
                                 kind=SemanticOperationKind.ASSIGNMENT,
@@ -475,6 +496,77 @@ class SemanticModelExtractor:
                             )
                         )
 
+                # BRANCH: IF / ELSE / END-IF
+                elif s_ln.startswith("IF "):
+                    m_if = re.search(r"^IF\s+(.+?)(?:\s+THEN)?$", s_ln, re.IGNORECASE)
+                    if m_if:
+                        cond_expr = m_if.group(1).strip().rstrip(".")
+                        proc.operations.append(
+                            SemanticOperation(
+                                kind=SemanticOperationKind.BRANCH,
+                                description=s_ln.rstrip("."),
+                                condition=SemanticCondition(expression=cond_expr),
+                                provenance=SourceProvenance(
+                                    source_file=file_path,
+                                    source_sha256=sha,
+                                    original_construct=s_ln,
+                                ),
+                            )
+                        )
+                elif s_ln == "ELSE" or s_ln.startswith("ELSE "):
+                    proc.operations.append(
+                        SemanticOperation(
+                            kind=SemanticOperationKind.BRANCH,
+                            description=s_ln.rstrip("."),
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                original_construct=s_ln,
+                            ),
+                        )
+                    )
+                elif s_ln == "END-IF" or s_ln.startswith("END-IF"):
+                    proc.operations.append(
+                        SemanticOperation(
+                            kind=SemanticOperationKind.BRANCH,
+                            description=s_ln.rstrip("."),
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                original_construct=s_ln,
+                            ),
+                        )
+                    )
+
+                # BRANCH: EVALUATE / WHEN / END-EVALUATE
+                elif s_ln.startswith("EVALUATE "):
+                    m_ev = re.search(r"^EVALUATE\s+(.+)$", s_ln, re.IGNORECASE)
+                    ev_expr = m_ev.group(1).strip().rstrip(".") if m_ev else ""
+                    proc.operations.append(
+                        SemanticOperation(
+                            kind=SemanticOperationKind.BRANCH,
+                            description=s_ln.rstrip("."),
+                            condition=SemanticCondition(expression=ev_expr),
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                original_construct=s_ln,
+                            ),
+                        )
+                    )
+                elif s_ln.startswith("WHEN "):
+                    proc.operations.append(
+                        SemanticOperation(
+                            kind=SemanticOperationKind.BRANCH,
+                            description=s_ln.rstrip("."),
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                original_construct=s_ln,
+                            ),
+                        )
+                    )
+
                 # STOP RUN / GOBACK / EXIT PROGRAM
                 elif s_ln.startswith("STOP RUN") or s_ln.startswith("GOBACK") or s_ln.startswith("EXIT PROGRAM"):
                     proc.operations.append(
@@ -482,6 +574,23 @@ class SemanticModelExtractor:
                             kind=SemanticOperationKind.RETURN,
                             description=s_ln.rstrip("."),
                             exit_kind="STOP_RUN" if "STOP" in s_ln else "GOBACK",
+                        )
+                    )
+
+                # CALL external program / service
+                elif s_ln.startswith("CALL "):
+                    m_call = re.search(r"^CALL\s+['\"]?([A-Z0-9-]+)['\"]?", s_ln, re.IGNORECASE)
+                    c_tgt = m_call.group(1) if m_call else ""
+                    proc.operations.append(
+                        SemanticOperation(
+                            kind=SemanticOperationKind.EXTERNAL_SERVICE,
+                            description=s_ln.rstrip("."),
+                            target=c_tgt,
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                original_construct=s_ln,
+                            ),
                         )
                     )
 

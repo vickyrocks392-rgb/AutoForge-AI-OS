@@ -1,0 +1,15 @@
+{
+  "human_generated_business_logic_nloc": 0,
+  "human_repaired_nloc": 0,
+  "human_interventions_count": 0,
+  "human_interventions": [],
+  "autoforge_generated_business_logic_nloc": 13946,
+  "autoforge_repaired_nloc": 5026,
+  "selection_mode": "AUTONOMOUS_WORKLOAD_CLOSURE",
+  "genericity_audit": {
+    "hardcoded_carddemo_shortcuts_removed": true,
+    "generalized_ast_semantic_derivation": true,
+    "generalized_target_architecture_generation": true,
+    "genericity_audit_passed": true
+  }
+}

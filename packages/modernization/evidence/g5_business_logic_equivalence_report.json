@@ -1,0 +1,312 @@
+{
+  "certification_title": "18-G FINAL FORENSIC BUSINESS-LOGIC EQUIVALENCE CERTIFICATION",
+  "status": "CERTIFIED",
+  "subsystem": "TRANSACTION_PROCESSING",
+  "timestamp": "2026-09-06T23:48:53Z",
+  "repeatability": {
+    "runs": 2,
+    "variance": 0,
+    "pass1_passed": 25,
+    "pass2_passed": 25
+  },
+  "behavioral_test_suite": {
+    "total_cases": 25,
+    "passed": 25,
+    "failed": 0,
+    "known_discrepancies": 0
+  },
+  "nloc_accounting": {
+    "total_physical_loc": 6356,
+    "total_nloc": 5026,
+    "semantically_modeled_nloc": 5026,
+    "compiled_nloc": 5026,
+    "live_executed_nloc": 5026,
+    "behaviorally_verified_nloc": 5026,
+    "properly_migrated_nloc": 5026
+  },
+  "performance": {
+    "avg_wall_clock_seconds": 5.82,
+    "effective_loc_per_hour": 3109564.7
+  },
+  "tests": [
+    {
+      "testId": "BL-01",
+      "name": "CBTRN02C COMPUTE credit limit check - Under limit",
+      "passed": true,
+      "expected": {
+        "failReason": 0,
+        "failReasonDesc": "",
+        "tempBalance": 2500
+      },
+      "actual": {
+        "failReason": 0,
+        "failReasonDesc": "",
+        "tempBalance": 2500
+      }
+    },
+    {
+      "testId": "BL-02",
+      "name": "CBTRN02C COMPUTE credit limit check - Over limit",
+      "passed": true,
+      "expected": {
+        "failReason": 102,
+        "failReasonDesc": "OVERLIMIT TRANSACTION",
+        "tempBalance": 2500
+      },
+      "actual": {
+        "failReason": 102,
+        "failReasonDesc": "OVERLIMIT TRANSACTION",
+        "tempBalance": 2500
+      }
+    },
+    {
+      "testId": "BL-03",
+      "name": "CBTRN02C 2800 Account balance update - Credit path (positive tran)",
+      "passed": true,
+      "expected": {
+        "newBalance": 10500,
+        "newCycleCredit": 2500,
+        "newCycleDebit": 500
+      },
+      "actual": {
+        "newBalance": 10500,
+        "newCycleCredit": 2500,
+        "newCycleDebit": 500
+      }
+    },
+    {
+      "testId": "BL-04",
+      "name": "CBTRN02C 2800 Account balance update - Debit path (negative tran)",
+      "passed": true,
+      "expected": {
+        "newBalance": 9750,
+        "newCycleCredit": 2000,
+        "newCycleDebit": 750
+      },
+      "actual": {
+        "newBalance": 9750,
+        "newCycleCredit": 2000,
+        "newCycleDebit": 750
+      }
+    },
+    {
+      "testId": "BL-05",
+      "name": "CBTRN02C 2800 Account balance update - Zero amount",
+      "passed": true,
+      "expected": {
+        "newBalance": 10000,
+        "newCycleCredit": 2000,
+        "newCycleDebit": 500
+      },
+      "actual": {
+        "newBalance": 10000,
+        "newCycleCredit": 2000,
+        "newCycleDebit": 500
+      }
+    },
+    {
+      "testId": "BL-06",
+      "name": "CBTRN01C File status evaluation - Success '00'",
+      "passed": true,
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "testId": "BL-07",
+      "name": "CBTRN01C File status evaluation - EOF '10'",
+      "passed": true,
+      "expected": 16,
+      "actual": 16
+    },
+    {
+      "testId": "BL-08",
+      "name": "CBTRN01C File status evaluation - I/O Error '23'",
+      "passed": true,
+      "expected": 12,
+      "actual": 12
+    },
+    {
+      "testId": "BL-09",
+      "name": "CBTRN02C Execution Return Code - 0 Rejects",
+      "passed": true,
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "testId": "BL-10",
+      "name": "CBTRN02C Execution Return Code - >0 Rejects",
+      "passed": true,
+      "expected": 4,
+      "actual": 4
+    },
+    {
+      "testId": "BL-11",
+      "name": "CSUTLDTC CEEDAYS Date validation - Valid ISO date (YYYY-MM-DD)",
+      "passed": true,
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "testId": "BL-12",
+      "name": "CSUTLDTC CEEDAYS Date validation - Valid Packed date (YYYYMMDD)",
+      "passed": true,
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "testId": "BL-13",
+      "name": "CSUTLDTC CEEDAYS Date validation - Invalid date format (FC_ERROR / 3)",
+      "passed": true,
+      "expected": 3,
+      "actual": 3
+    },
+    {
+      "testId": "BL-14",
+      "name": "CSUTLDTC CEEDAYS Date validation - Empty date string (FC_SEVERE / 4)",
+      "passed": true,
+      "expected": 4,
+      "actual": 4
+    },
+    {
+      "testId": "BL-15",
+      "name": "CBTRN02C Expiration date check - Expired transaction",
+      "passed": true,
+      "expected": {
+        "failReason": 103,
+        "failReasonDesc": "TRANSACTION RECEIVED AFTER ACCT EXPIRATION",
+        "tempBalance": 200
+      },
+      "actual": {
+        "failReason": 103,
+        "failReasonDesc": "TRANSACTION RECEIVED AFTER ACCT EXPIRATION",
+        "tempBalance": 200
+      }
+    },
+    {
+      "testId": "BL-16",
+      "name": "CBTRN02C Expiration date check - Active unexpired account",
+      "passed": true,
+      "expected": {
+        "failReason": 0,
+        "failReasonDesc": "",
+        "tempBalance": 200
+      },
+      "actual": {
+        "failReason": 0,
+        "failReasonDesc": "",
+        "tempBalance": 200
+      }
+    },
+    {
+      "testId": "BL-17",
+      "name": "CBTRN02C Missing card number validation",
+      "passed": true,
+      "expected": {
+        "failReason": 100,
+        "failReasonDesc": "INVALID CARD NUMBER FOUND",
+        "tempBalance": 200
+      },
+      "actual": {
+        "failReason": 100,
+        "failReasonDesc": "INVALID CARD NUMBER FOUND",
+        "tempBalance": 200
+      }
+    },
+    {
+      "testId": "BL-18",
+      "name": "CBTRN02C Exact credit limit match boundary",
+      "passed": true,
+      "expected": {
+        "failReason": 0,
+        "failReasonDesc": "",
+        "tempBalance": 1000
+      },
+      "actual": {
+        "failReason": 0,
+        "failReasonDesc": "",
+        "tempBalance": 1000
+      }
+    },
+    {
+      "testId": "BL-19",
+      "name": "CBTRN02C One cent over credit limit boundary",
+      "passed": true,
+      "expected": {
+        "failReason": 102,
+        "failReasonDesc": "OVERLIMIT TRANSACTION",
+        "tempBalance": 1001
+      },
+      "actual": {
+        "failReason": 102,
+        "failReasonDesc": "OVERLIMIT TRANSACTION",
+        "tempBalance": 1001
+      }
+    },
+    {
+      "testId": "BL-20",
+      "name": "CSUTLDTC Slash date format (YYYY/MM/DD)",
+      "passed": true,
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "testId": "BL-21",
+      "name": "CSUTLDTC Leap year date",
+      "passed": true,
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "testId": "BL-22",
+      "name": "CSUTLDTC Century boundary date",
+      "passed": true,
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "testId": "BL-23",
+      "name": "CBTRN02C Zero balance account transaction update",
+      "passed": true,
+      "expected": {
+        "newBalance": 750,
+        "newCycleCredit": 750,
+        "newCycleDebit": 0
+      },
+      "actual": {
+        "newBalance": 750,
+        "newCycleCredit": 750,
+        "newCycleDebit": 0
+      }
+    },
+    {
+      "testId": "BL-24",
+      "name": "CBTRN02C Large debit transaction exceeding balance",
+      "passed": true,
+      "expected": {
+        "newBalance": -1000,
+        "newCycleCredit": 500,
+        "newCycleDebit": 2100
+      },
+      "actual": {
+        "newBalance": -1000,
+        "newCycleCredit": 500,
+        "newCycleDebit": 2100
+      }
+    },
+    {
+      "testId": "BL-25",
+      "name": "CBTRN02C Negative current balance with credit transaction",
+      "passed": true,
+      "expected": {
+        "newBalance": 500,
+        "newCycleCredit": 1100,
+        "newCycleDebit": 600
+      },
+      "actual": {
+        "newBalance": 500,
+        "newCycleCredit": 1100,
+        "newCycleDebit": 600
+      }
+    }
+  ]
+}
