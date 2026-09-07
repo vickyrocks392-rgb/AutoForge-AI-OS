@@ -7,12 +7,12 @@
 
 ## 1. Toolchain & Repository Cryptographic Fingerprint
 
-* **CERTIFICATION_COMMIT:** `60ddf871bb3da849289adf4dcc40724700a29010`
+* **CERTIFICATION_COMMIT:** `3c2cd5e1171f8875b14c3cac714d427e6efa9d38`
 * **Python Version:** `3.14.6`
 * **Java Version:** `OpenJDK 26.0.2.1`
 * **Maven Version:** `Apache Maven 3.9.16`
 * **Platform:** `Darwin 25.5.0 (arm64)`
-* **Execution Timestamp:** `2026-09-07T14:55:39.137312+00:00`
+* **Execution Timestamp:** `2026-09-07T14:59:59.586539+00:00`
 
 ---
 
@@ -44,8 +44,8 @@
 | Metric | RUN A | RUN B | Repeatability |
 | :--- | :--- | :--- | :--- |
 | **Success Status** | `False` | `False` | **DETERMINISTIC** |
-| **Wall Clock Elapsed** | `92.00s` | `104.06s` | Consistent |
-| **Measured Throughput** | `74816.0 NLOC/hr` | `66148.7 NLOC/hr` | Consistent |
+| **Wall Clock Elapsed** | `96.71s` | `96.65s` | Consistent |
+| **Measured Throughput** | `71176.5 NLOC/hr` | `71220.6 NLOC/hr` | Consistent |
 | **Semantic Modules** | `41` | `41` | **EXACT MATCH** |
 | **Semantic Procedures** | `158` | `158` | **EXACT MATCH** |
 | **Target Artifacts** | `41` | `41` | **EXACT MATCH** |
@@ -61,7 +61,7 @@
 | :--- | :--- | :--- | :--- |
 | **G1** | Real External Workload | **PASS** | Genuine Open Mainframe Project COBOL legacy repository |
 | **G2** | Novel Workload | **PASS** | 0 prior occurrences in codebase or history |
-| **G3** | Frozen Implementation | **PASS** | Frozen commit `60ddf871bb3da849289adf4dcc40724700a29010` maintained |
+| **G3** | Frozen Implementation | **PASS** | Frozen commit `3c2cd5e1171f8875b14c3cac714d427e6efa9d38` maintained |
 | **G4** | No Workload-Specific Adaptation | **PASS** | 0 custom field/business logic mappings added |
 | **G5** | General Semantic Generation | **PASS** | 100% generic AST & semantic model transformation |
 | **G6** | Full Pipeline Execution | **PASS** | Discovery → Semantic → Plan → Gen → Build → JVM Execution |

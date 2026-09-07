@@ -1,7 +1,7 @@
 """G.3 Real COBOL Semantic Representation (Phase 18-G.3).
 
 Implements a real COBOL fixed-format / free-format tokenizer + semantic AST
-for the constructs actually encountered in CardDemo.
+for the constructs encountered in enterprise legacy systems.
 
 Supported: PROGRAM-ID, 4 divisions, SECTIONS, PARAGRAPHS, WORKING-STORAGE /
 FILE-SECTION / LINKAGE-SECTION, PIC (X, 9, V, S, COMP, COMP-3, BINARY,

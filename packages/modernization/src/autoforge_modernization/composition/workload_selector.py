@@ -293,21 +293,11 @@ class TransformationWorkloadSelector:
         elif subsystem_name.upper() in ("ALL", "PROJECT", "ENTIRE", "ROOT"):
             job_roots = [m.name.upper() for m in full_model.modules.values() if m.module_type in ("job", "main")]
             seeds = job_roots if job_roots else list(file_by_name.keys())
-        else:
-            tokens = [tok for tok in subsystem_name.upper().split("_") if len(tok) >= 3]
-            # Standard abbreviation expansions
-            if "TRANSACTION" in subsystem_name.upper():
-                tokens.extend(["TRN", "TRAN"])
-            elif "ACCOUNT" in subsystem_name.upper():
-                tokens.extend(["ACT", "ACCT"])
-            elif "CUSTOMER" in subsystem_name.upper():
-                tokens.extend(["CUS", "CUST"])
-            elif "PAYROLL" in subsystem_name.upper():
-                tokens.extend(["PAY", "PAYR"])
-            elif "INVENTORY" in subsystem_name.upper():
-                tokens.extend(["INV", "STOCK"])
-            elif "POLICY" in subsystem_name.upper() or "INSURANCE" in subsystem_name.upper():
-                tokens.extend(["POL", "INS", "CLAIM"])
+            tokens = [tok for tok in re.split(r"[_\s-]+", subsystem_name.upper()) if len(tok) >= 2]
+            for tok in list(tokens):
+                if len(tok) >= 4:
+                    tokens.append(tok[:3])
+                    tokens.append(tok[:4])
 
             matching = [
                 name for name in file_by_name

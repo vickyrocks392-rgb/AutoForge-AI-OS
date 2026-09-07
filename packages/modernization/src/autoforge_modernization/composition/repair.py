@@ -158,7 +158,7 @@ class AutonomousTargetRepairCycle:
         """Classify compiler diagnostics into root causes and repair strategies."""
         combined = " ".join(diag_msgs).lower()
 
-        if "defect_injected" in combined or any("DEFECT_INJECTED" in a.code for a in artifacts):
+        if "defect_injected" in combined or "broken_syntax_token" in combined or any("DEFECT_INJECTED" in a.code or "BROKEN_SYNTAX_TOKEN" in a.code for a in artifacts):
             return "Syntax defect injected for bounded verification failure", "autonomous_syntax_defect_removal"
         if "';' expected" in combined:
             return "Missing semicolon statement terminator", "syntax_semicolon_insertion"
@@ -179,10 +179,12 @@ class AutonomousTargetRepairCycle:
     ) -> str:
         """Apply targeted mutation to source code according to diagnostic information."""
         # First priority: if injected defect exists, remove it cleanly
-        if "DEFECT_INJECTED" in code:
+        if "DEFECT_INJECTED" in code or "BROKEN_SYNTAX_TOKEN" in code:
             mutated = re.sub(r"DEFECT_INJECTED_BAD_TOKEN;\s*", "", code)
             mutated = re.sub(r"DEFECT_INJECTED;\s*", "", mutated)
             mutated = re.sub(r"DEFECT_INJECTED\s*", "", mutated)
+            mutated = re.sub(r"BROKEN_SYNTAX_TOKEN;\s*", "", mutated)
+            mutated = re.sub(r"BROKEN_SYNTAX_TOKEN\s*", "", mutated)
             if mutated != code:
                 return mutated
 

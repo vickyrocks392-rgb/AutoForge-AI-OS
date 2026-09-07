@@ -905,8 +905,13 @@ class SemanticModelExtractor:
                 )
             )
 
+        if not job_name or job_name == "JCL_JOB":
+            job_name = Path(file_path).stem.upper()
+
+        module_name = f"{job_name}_JOB" if not job_name.endswith("_JOB") else job_name
+
         return SemanticModule(
-            name=job_name,
+            name=module_name,
             module_type="job",
             source_technology="JCL",
             source_file_path=file_path,

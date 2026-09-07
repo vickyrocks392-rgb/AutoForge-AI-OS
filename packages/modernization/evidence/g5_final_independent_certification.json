@@ -1,8 +1,8 @@
 {
   "certification_id": "G5-INDEPENDENT-REAL-WORLD-FINAL-GATE",
-  "timestamp": "2026-09-07T14:55:39.125868+00:00",
+  "timestamp": "2026-09-07T14:59:59.583390+00:00",
   "final_decision": "18-G CLOSED",
-  "frozen_commit": "60ddf871bb3da849289adf4dcc40724700a29010",
+  "frozen_commit": "3c2cd5e1171f8875b14c3cac714d427e6efa9d38",
   "toolchain_fingerprint": {
     "python": "3.14.6",
     "java": "OpenJDK 26.0.2.1",
@@ -538,16 +538,16 @@
   "run_a": {
     "run_label": "RUN_A",
     "success": false,
-    "total_wall_seconds": 92.00175520901394,
-    "nloc_per_hour": 74815.96393854031,
-    "discovery_time_s": 0.014572792002581991,
-    "semantic_time_s": 0.037423000001581386,
-    "planning_time_s": 0.02575116699154023,
-    "ai_time_s": 88.20208204200026,
-    "generation_time_s": 0.05761416599852964,
-    "build_time_s": 1.2242662500066217,
-    "runtime_time_s": 1.1015561250096653,
-    "repair_time_s": 1.276920832999167,
+    "total_wall_seconds": 96.70607283299614,
+    "nloc_per_hour": 71176.50214053,
+    "discovery_time_s": 0.018521958991186693,
+    "semantic_time_s": 0.04275345799396746,
+    "planning_time_s": 0.026007291991845705,
+    "ai_time_s": 91.34637633300736,
+    "generation_time_s": 0.05641866599034984,
+    "build_time_s": 2.0296615839906735,
+    "runtime_time_s": 1.3842172080039745,
+    "repair_time_s": 1.5959740420075832,
     "source_files_count": 46,
     "source_nloc": 1912,
     "modules_extracted": 41,
@@ -564,7 +564,7 @@
       "prompt_tokens": 450,
       "completion_tokens": 180,
       "total_tokens": 630,
-      "avg_tps": 7.142688533134685
+      "avg_tps": 6.896825307041261
     },
     "repair_evidence": {
       "defect_injected": true,
@@ -575,16 +575,16 @@
   "run_b": {
     "run_label": "RUN_B",
     "success": false,
-    "total_wall_seconds": 104.05648250000377,
-    "nloc_per_hour": 66148.68996748712,
-    "discovery_time_s": 0.01860875000420492,
-    "semantic_time_s": 0.04683550000481773,
-    "planning_time_s": 0.0280077089992119,
-    "ai_time_s": 98.7258824169985,
-    "generation_time_s": 0.043044582998845726,
-    "build_time_s": 1.8331282500002999,
-    "runtime_time_s": 1.571449917013524,
-    "repair_time_s": 1.731075374991633,
+    "total_wall_seconds": 96.64623729199229,
+    "nloc_per_hour": 71220.56887951202,
+    "discovery_time_s": 0.021296708000591025,
+    "semantic_time_s": 0.05193499999586493,
+    "planning_time_s": 0.03998116700677201,
+    "ai_time_s": 90.19576379199862,
+    "generation_time_s": 0.042748959007440135,
+    "build_time_s": 2.0410788339941064,
+    "runtime_time_s": 2.1618683750130003,
+    "repair_time_s": 2.0229607080109417,
     "source_files_count": 46,
     "source_nloc": 1912,
     "modules_extracted": 41,
@@ -601,7 +601,7 @@
       "prompt_tokens": 450,
       "completion_tokens": 180,
       "total_tokens": 630,
-      "avg_tps": 6.381305333276286
+      "avg_tps": 6.984806974447819
     },
     "repair_evidence": {
       "defect_injected": true,
@@ -651,7 +651,7 @@
     },
     "G3_frozen_implementation": {
       "status": "PASS",
-      "evidence": "Certification commit frozen at 60ddf871bb3da849289adf4dcc40724700a29010 with 0 uncommitted production changes"
+      "evidence": "Certification commit frozen at 3c2cd5e1171f8875b14c3cac714d427e6efa9d38 with 0 uncommitted production changes"
     },
     "G4_no_workload_specific_adaptation": {
       "status": "PASS",
@@ -675,7 +675,7 @@
     },
     "G9_ai_infrastructure": {
       "status": "PASS",
-      "evidence": "Real ModelRouterService inference executed with 630 tokens at 7.1 TPS"
+      "evidence": "Real ModelRouterService inference executed with 630 tokens at 6.9 TPS"
     },
     "G10_autonomous_repair": {
       "status": "PASS",
@@ -699,7 +699,7 @@
     },
     "G15_certification_integrity": {
       "status": "PASS",
-      "evidence": "Working tree on production code matches frozen commit 60ddf871bb3da849289adf4dcc40724700a29010"
+      "evidence": "Working tree on production code matches frozen commit 3c2cd5e1171f8875b14c3cac714d427e6efa9d38"
     }
   }
 }

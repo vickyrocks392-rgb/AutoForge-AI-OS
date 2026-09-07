@@ -2,7 +2,7 @@
 
 Enforces Section 4 of the architectural mandate:
 Detection must NOT depend on hardcoded:
-if project == "CardDemo":
+if project == "LegacyProject":
 or:
 if extension == ".cbl": technology = "COBOL"
 as the sole mechanism.

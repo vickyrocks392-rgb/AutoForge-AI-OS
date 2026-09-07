@@ -252,7 +252,17 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
             cand = os.path.join(java_home, "bin", "javac")
             if os.path.exists(cand) and os.access(cand, os.X_OK):
                 return cand
-        # 4. Check PATH
+        # 4. Check Homebrew / standard OpenJDK locations
+        std_candidates = [
+            Path("/opt/homebrew/opt/openjdk/bin/javac"),
+            *Path("/opt/homebrew/Cellar/openjdk").glob("*/bin/javac"),
+            *Path("/opt/homebrew/Cellar/openjdk").glob("*/libexec/openjdk.jdk/Contents/Home/bin/javac"),
+            Path("/usr/lib/jvm/default-java/bin/javac"),
+        ]
+        for sc in std_candidates:
+            if sc.exists() and os.access(sc, os.X_OK):
+                return str(sc)
+        # 5. Check PATH
         cand = shutil.which("javac")
         return cand
 
@@ -831,9 +841,9 @@ class JCLUnderstandingProvider(VerifiedTechnologyProvider):
         t0 = time.perf_counter()
         jcl_sample = (
             "//JOBTEST  JOB (ACCT),'TEST JCL',CLASS=A,MSGCLASS=X\n"
-            "//STEP1    EXEC PGM=CBACT01C\n"
-            "//INFILE   DD DSN=CARDDEMO.ACCTDATA,DISP=SHR\n"
-            "//OUTFILE  DD DSN=CARDDEMO.OUTDATA,DISP=(NEW,CATLG,DELETE)\n"
+            "//STEP1    EXEC PGM=PROG001\n"
+            "//INFILE   DD DSN=SYSTEM.ACCTDATA,DISP=SHR\n"
+            "//OUTFILE  DD DSN=SYSTEM.OUTDATA,DISP=(NEW,CATLG,DELETE)\n"
         )
         try:
             analyzer = JCLAnalyzer()
@@ -1430,10 +1440,10 @@ class BatchTransactionDependencyProvider(VerifiedTechnologyProvider):
         try:
             graph = DependencyGraph()
             job = graph.node("JOB_DAILY", kind="job")
-            prog1 = graph.node("CBACT01C", kind="program")
-            prog2 = graph.node("CBCUS01C", kind="program")
-            cpy = graph.node("ACCTREC", kind="copybook")
-            dsn = graph.node("CARDDEMO.ACCTDATA", kind="dataset")
+            prog1 = graph.node("PGM001", kind="program")
+            prog2 = graph.node("PGM002", kind="program")
+            cpy = graph.node("REC001", kind="copybook")
+            dsn = graph.node("SYSTEM.ACCTDATA", kind="dataset")
 
             graph.edge(job, prog1, EdgeKind.EXEC_PGM)
             graph.edge(prog1, cpy, EdgeKind.COPY)
