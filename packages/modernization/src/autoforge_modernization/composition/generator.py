@@ -605,6 +605,8 @@ class GenericTargetArtifactGenerator:
 
         for jtype, fname, init_val in fields_to_emit:
             lines.append(f"    private {jtype} {fname} = {init_val};")
+        lines.append("    private int callDepth = 0;")
+        lines.append("    private static final int MAX_CALL_DEPTH = 32;")
         lines.append("")
 
         # Emit default constructor
@@ -627,8 +629,15 @@ class GenericTargetArtifactGenerator:
         lines.append("        return val;")
         lines.append("    }")
         lines.append("")
+        lines.append("    private long getStringLength(String val) {")
+        lines.append("        return val != null ? (long) val.length() : 0L;")
+        lines.append("    }")
+        lines.append("    private long getStringLength(long val) {")
+        lines.append("        return 0L;")
+        lines.append("    }")
+        lines.append("")
 
-        # Getters and setters for dependent components
+        # Getters and setters for dependencies
         for dep in comp_dep_names:
             dep_var = dep[0].lower() + dep[1:]
             lines.append(f"    public {dep} get{dep}() {{")
@@ -681,23 +690,27 @@ class GenericTargetArtifactGenerator:
                 lines.append(f"     * Source kind: {proc.kind}")
                 lines.append("     */")
                 lines.append(f"    public void {mname}() {{")
-                lines.append(f'        logger.info("Executing {proc.name}");')
+                lines.append("        if (this.callDepth >= MAX_CALL_DEPTH) {")
+                lines.append("            return;")
+                lines.append("        }")
+                lines.append("        this.callDepth++;")
+                lines.append("        try {")
+                lines.append(f'            logger.info("Executing {proc.name}");')
 
-                for callee in proc.called_procedures:
-                    c_clean = self._to_camel_case(callee, prefix="proc")
-                    if c_clean in declared_proc_names:
-                        lines.append(f"        this.{c_clean}();")
-                    elif c_clean:
-                        lines.append(f"        // External / conditional procedure call: {callee}")
-
-                cur_indent = "        "
+                cur_indent = "            "
                 block_depth = 0
+                has_else_stack: list[bool] = []
                 for op in proc.operations:
-                    if op.kind == SemanticOperationKind.CALL and op.target in proc.called_procedures:
-                        continue
                     desc_upper = op.description.strip().upper()
                     if desc_upper.startswith("ELSE"):
-                        if block_depth > 0:
+                        while has_else_stack and has_else_stack[-1]:
+                            has_else_stack.pop()
+                            if block_depth > 0:
+                                block_depth -= 1
+                                cur_indent = cur_indent[:-4]
+                                lines.append(f"{cur_indent}}}")
+                        if has_else_stack and not has_else_stack[-1]:
+                            has_else_stack[-1] = True
                             cur_indent = cur_indent[:-4]
                             lines.append(f"{cur_indent}}} else {{")
                             cur_indent += "    "
@@ -705,6 +718,8 @@ class GenericTargetArtifactGenerator:
                             lines.append(f"{cur_indent}// else")
                         continue
                     elif desc_upper.startswith("END-IF"):
+                        if has_else_stack:
+                            has_else_stack.pop()
                         if block_depth > 0:
                             block_depth -= 1
                             cur_indent = cur_indent[:-4]
@@ -716,6 +731,7 @@ class GenericTargetArtifactGenerator:
                         lines.append(sl)
                     if desc_upper.startswith("IF "):
                         block_depth += 1
+                        has_else_stack.append(False)
                         cur_indent += "    "
 
                 while block_depth > 0:
@@ -723,6 +739,9 @@ class GenericTargetArtifactGenerator:
                     cur_indent = cur_indent[:-4]
                     lines.append(f"{cur_indent}}}")
 
+                lines.append("        } finally {")
+                lines.append("            this.callDepth--;")
+                lines.append("        }")
                 lines.append("    }")
                 lines.append("")
 
@@ -1098,7 +1117,13 @@ class GenericTargetArtifactGenerator:
         return cleaned
 
     def _to_camel_case(self, text: str, prefix: str = "item") -> str:
-        text = re.sub(r"\s*\([^)]*\)", "", text)
+        text = re.sub(r"\s*\([^)]*\)", "", text).strip()
+        # Strip trailing scope terminators or noise words
+        text = re.sub(r"\b(END-COMPUTE|END-IF|END-PERFORM|END-EVALUATE|END-READ|END-WRITE|END-SEARCH|THEN|ELSE|OF|IN|FUNCTION)\b", "", text, flags=re.IGNORECASE).strip()
+        text = re.split(r"\s+OF\s+|\s+IN\s+", text, flags=re.IGNORECASE)[0].strip()
+        words = text.split()
+        if words:
+            text = words[0]
         cleaned = re.sub(r"[^a-zA-Z0-9_-]", "", text)
         parts = re.split(r"[-_]", cleaned)
         parts = [p for p in parts if p]
@@ -1123,23 +1148,32 @@ class GenericTargetArtifactGenerator:
 
     def _translate_atomic_condition(self, cond: str, field_type_map: dict[str, str]) -> str:
         cond_s = cond.strip().rstrip(".")
+        cond_s = re.sub(r"\bTHEN\b\s*$", "", cond_s, flags=re.IGNORECASE).strip()
         if not cond_s:
             return "true"
-        m = re.match(r"^([A-Z0-9-]+(?:\s+OF\s+[A-Z0-9-]+)?)\s*(=|NOT\s*=|!=|>=|<=|>|<)\s*(.+)$", cond_s, re.IGNORECASE)
+        cu = cond_s.upper()
+        if cu in ("SPACE", "SPACES", "LOW-VALUES", "LOW-VALUE", "HIGH-VALUES", "HIGH-VALUE", "NULL", "NULLS"):
+            return "false"
+        if cu in ("NOT SPACE", "NOT SPACES", "NOT LOW-VALUES", "NOT LOW-VALUE", "NOT HIGH-VALUES", "NOT HIGH-VALUE", "NOT NULL", "NOT NULLS"):
+            return "true"
+
+        m = re.match(r"^([A-Z0-9-]+(?:\s+(?:OF|IN)\s+[A-Z0-9-]+)?)\s*(=|NOT\s*=|!=|>=|<=|>|<|EQUAL\s+TO|NOT\s+EQUAL\s+TO)\s*(.+)$", cond_s, re.IGNORECASE)
         if m:
             left_raw, op, right = m.groups()
-            left = re.split(r"\s+OF\s+", left_raw.strip(), flags=re.IGNORECASE)[0].strip()
+            left = re.split(r"\s+OF\s+|\s+IN\s+", left_raw.strip(), flags=re.IGNORECASE)[0].strip()
             left_field = self._to_camel_case(left, prefix="field")
-            right_s = right.strip()
+            if left_field not in field_type_map:
+                return "true"
+            right_s = re.sub(r"\bTHEN\b\s*$", "", right.strip(), flags=re.IGNORECASE).strip()
             op_s = op.strip().upper()
             left_type = field_type_map.get(left_field, "String")
 
             # Check string literals
             if (right_s.startswith("'") and right_s.endswith("'")) or (right_s.startswith('"') and right_s.endswith('"')):
                 lit = right_s[1:-1].replace('"', '\\"')
-                if op_s in ("=", "=="):
+                if op_s in ("=", "==", "EQUAL TO"):
                     return f'"{lit}".equals(this.{left_field})'
-                elif op_s in ("NOT =", "!="):
+                elif op_s in ("NOT =", "!=", "NOT EQUAL TO"):
                     return f'!"{lit}".equals(this.{left_field})'
                 elif op_s == ">=":
                     return f'(this.{left_field} != null && this.{left_field}.compareTo("{lit}") >= 0)'
@@ -1153,21 +1187,21 @@ class GenericTargetArtifactGenerator:
             # Check special COBOL literals
             if right_s.upper() in ("ZERO", "ZEROS", "ZEROES"):
                 if left_type == "String":
-                    return f'"0".equals(this.{left_field})' if op_s in ("=", "==") else f'!"0".equals(this.{left_field})'
+                    return f'"0".equals(this.{left_field})' if op_s in ("=", "==", "EQUAL TO") else f'!"0".equals(this.{left_field})'
                 elif left_type == "BigDecimal":
-                    comp_map = {"=": "== 0", "==": "== 0", "!=": "!= 0", "NOT =": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
+                    comp_map = {"=": "== 0", "==": "== 0", "EQUAL TO": "== 0", "!=": "!= 0", "NOT =": "!= 0", "NOT EQUAL TO": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
                     c_expr = comp_map.get(op_s, "== 0")
                     return f"(this.{left_field} != null && this.{left_field}.compareTo(BigDecimal.ZERO) {c_expr})"
-                return f"this.{left_field} == 0L" if op_s in ("=", "==") else f"this.{left_field} != 0L"
-            if right_s.upper() in ("SPACE", "SPACES", "LOW-VALUES", "LOW-VALUE"):
-                return f'"".equals(this.{left_field})' if op_s in ("=", "==") else f'!"".equals(this.{left_field})'
+                return f"this.{left_field} == 0L" if op_s in ("=", "==", "EQUAL TO") else f"this.{left_field} != 0L"
+            if right_s.upper() in ("SPACE", "SPACES", "LOW-VALUES", "LOW-VALUE", "HIGH-VALUES", "HIGH-VALUE", "NULL", "NULLS"):
+                return f'"".equals(this.{left_field})' if op_s in ("=", "==", "EQUAL TO") else f'!"".equals(this.{left_field})'
 
             # Check numeric digits
             if right_s.replace(".", "").lstrip("-").isdigit():
                 if left_type == "String":
-                    if op_s in ("=", "=="):
+                    if op_s in ("=", "==", "EQUAL TO"):
                         return f'"{right_s}".equals(this.{left_field})'
-                    elif op_s in ("NOT =", "!="):
+                    elif op_s in ("NOT =", "!=", "NOT EQUAL TO"):
                         return f'!"{right_s}".equals(this.{left_field})'
                     elif op_s == ">=":
                         return f'(tryParseLong(this.{left_field}) >= {right_s}L)'
@@ -1178,29 +1212,29 @@ class GenericTargetArtifactGenerator:
                     elif op_s == "<":
                         return f'(tryParseLong(this.{left_field}) < {right_s}L)'
                 elif left_type == "BigDecimal":
-                    comp_map = {"=": "== 0", "==": "== 0", "!=": "!= 0", "NOT =": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
+                    comp_map = {"=": "== 0", "==": "== 0", "EQUAL TO": "== 0", "!=": "!= 0", "NOT =": "!= 0", "NOT EQUAL TO": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
                     c_expr = comp_map.get(op_s, "== 0")
                     return f'(this.{left_field} != null && this.{left_field}.compareTo(new BigDecimal("{right_s}")) {c_expr})'
                 else:
-                    java_op = "==" if op_s == "=" else "!=" if "NOT" in op_s or op_s == "!=" else op_s
+                    java_op = "==" if op_s in ("=", "EQUAL TO") else "!=" if "NOT" in op_s or op_s == "!=" else op_s
                     return f"this.{left_field} {java_op} {right_s}L"
 
             # Otherwise right is another field
-            right_clean = re.split(r"\s+OF\s+", right_s, flags=re.IGNORECASE)[0].strip()
+            right_clean = re.split(r"\s+OF\s+|\s+IN\s+", right_s, flags=re.IGNORECASE)[0].strip()
             right_field = self._to_camel_case(right_clean, prefix="field")
+            if right_field not in field_type_map:
+                return "true"
             right_type = field_type_map.get(right_field, "String")
 
-            java_op = "==" if op_s == "=" else "!=" if "NOT" in op_s or op_s == "!=" else op_s
-            # If both sides are BigDecimal
+            java_op = "==" if op_s in ("=", "EQUAL TO") else "!=" if "NOT" in op_s or op_s == "!=" else op_s
             if left_type == "BigDecimal" and right_type == "BigDecimal":
-                comp_map = {"=": "== 0", "==": "== 0", "!=": "!= 0", "NOT =": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
+                comp_map = {"=": "== 0", "==": "== 0", "EQUAL TO": "== 0", "!=": "!= 0", "NOT =": "!= 0", "NOT EQUAL TO": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
                 c_expr = comp_map.get(op_s, "== 0")
                 return f'(this.{left_field} != null && this.{right_field} != null && this.{left_field}.compareTo(this.{right_field}) {c_expr})'
-            # If both sides are String
             elif left_type == "String" and right_type == "String":
-                if op_s in ("=", "=="):
+                if op_s in ("=", "==", "EQUAL TO"):
                     return f'(this.{left_field} != null && this.{left_field}.equals(this.{right_field}))'
-                elif op_s in ("NOT =", "!="):
+                elif op_s in ("NOT =", "!=", "NOT EQUAL TO"):
                     return f'(this.{left_field} == null || !this.{left_field}.equals(this.{right_field}))'
                 elif op_s == ">=":
                     return f'(this.{left_field} != null && this.{right_field} != null && this.{left_field}.compareTo(this.{right_field}) >= 0)'
@@ -1217,10 +1251,21 @@ class GenericTargetArtifactGenerator:
             else:
                 return f"tryParseLong(this.{left_field}) {java_op} this.{right_field}"
 
-        return "true"
+        # If single condition like IF STATE or IF VALID
+        cond_field = self._to_camel_case(cond_s, prefix="field")
+        if cond_field not in field_type_map:
+            return "true"
+        f_type = field_type_map.get(cond_field, "String")
+        if f_type == "boolean":
+            return f"this.{cond_field}"
+        elif f_type == "String":
+            return f'(this.{cond_field} != null && !this.{cond_field}.isEmpty())'
+        else:
+            return f"this.{cond_field} != 0L"
 
     def _translate_condition(self, cond: str, field_type_map: dict[str, str]) -> str:
         cond_clean = re.sub(r"\([0-9]+:[0-9]+\)", "", cond).strip().rstrip(".")
+        cond_clean = re.sub(r"\bTHEN\b\s*$", "", cond_clean, flags=re.IGNORECASE).strip()
         if not cond_clean:
             return "true"
         if " AND " in cond_clean.upper():
@@ -1251,19 +1296,20 @@ class GenericTargetArtifactGenerator:
             return out
 
         if op.kind == SemanticOperationKind.ASSIGNMENT:
+            desc_clean = re.sub(r"\b(END-IF|END-READ|END-WRITE|END-PERFORM|END-EVALUATE|END-COMPUTE)\b", "", desc_clean, flags=re.IGNORECASE).strip()
             m = re.match(r"^MOVE\s+('[^']*'|\"[^\"]*\")\s+TO\s+(.+)$", desc_clean, re.IGNORECASE)
             if not m:
                 m = re.search(r"^MOVE\s+(.+?)\s+TO\s+(.+)$", desc_clean, re.IGNORECASE)
             if m:
                 src_raw = m.group(1).strip()
-                if not (src_raw.upper().startswith(("TRIM(", "NUMVAL(", "NUMVAL-C(", "FUNCTION TRIM", "FUNCTION NUMVAL"))):
+                if not (src_raw.upper().startswith(("TRIM(", "NUMVAL(", "NUMVAL-C(", "FUNCTION TRIM", "FUNCTION NUMVAL", "FUNCTION LOWER-CASE", "FUNCTION UPPER-CASE"))):
                     src_raw = re.sub(r"\s*\([^)]*\)", "", src_raw).strip()
                 src_upper = src_raw.upper()
                 if not (src_raw.startswith(("'", '"'))):
                     if not src_upper.startswith("LENGTH OF"):
-                        src_raw = re.split(r"\s+OF\s+", src_raw, flags=re.IGNORECASE)[0].strip()
+                        src_raw = re.split(r"\s+OF\s+|\s+IN\s+", src_raw, flags=re.IGNORECASE)[0].strip()
                         src_upper = src_raw.upper()
-                cobol_clause_kws = {"NOT", "INVALID", "KEY", "END-READ", "END-WRITE", "END-IF", "END-PERFORM", "END-EVALUATE"}
+                cobol_clause_kws = {"NOT", "INVALID", "KEY", "END-READ", "END-WRITE", "END-IF", "END-PERFORM", "END-EVALUATE", "END-COMPUTE"}
                 dsts: list[str] = []
                 dst_clause = re.sub(r"\s*\([^)]*\)", "", m.group(2).strip())
                 tokens = dst_clause.split()
@@ -1275,7 +1321,7 @@ class GenericTargetArtifactGenerator:
                     if tu in {"CORR", "CORRESPONDING"}:
                         idx += 1
                         continue
-                    clean_dst = re.split(r"\s+OF\s+", tokens[idx].strip(), flags=re.IGNORECASE)[0].rstrip(".")
+                    clean_dst = re.split(r"\s+OF\s+|\s+IN\s+", tokens[idx].strip(), flags=re.IGNORECASE)[0].rstrip(".")
                     if clean_dst and clean_dst.upper() not in {"OF", "IN"}:
                         dsts.append(clean_dst)
                     if idx + 1 < len(tokens) and tokens[idx + 1].strip().upper().rstrip(".") in {"OF", "IN"}:
@@ -1284,6 +1330,8 @@ class GenericTargetArtifactGenerator:
                         idx += 1
                 for dst in dsts:
                     dst_field = self._to_camel_case(dst, prefix="field")
+                    if dst_field not in field_type_map:
+                        continue
                     dst_type = field_type_map.get(dst_field, "String")
                     if dst_type and dst_type[0].isupper() and dst_type not in ("String", "BigDecimal"):
                         continue
@@ -1293,6 +1341,14 @@ class GenericTargetArtifactGenerator:
                             val = 'new java.text.SimpleDateFormat("yyyyMMddHHmmssSSS").format(new java.util.Date())'
                         else:
                             val = 'tryParseLong(new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date()))'
+                    elif "LOWER-CASE" in src_upper or "UPPER-CASE" in src_upper:
+                        inner = re.search(r"(?:LOWER|UPPER)-CASE\s*\(\s*([A-Za-z0-9-]+)", src_raw, re.IGNORECASE)
+                        if inner:
+                            in_f = self._to_camel_case(inner.group(1), prefix="field")
+                            method = "toLowerCase()" if "LOWER" in src_upper else "toUpperCase()"
+                            val = f"(this.{in_f} != null ? this.{in_f}.{method} : \"\")"
+                        else:
+                            val = '""'
                     elif "NUMVAL" in src_upper:
                         inner = re.search(r"NUMVAL(?:-C)?\s*\(\s*([A-Za-z0-9-]+)", src_raw, re.IGNORECASE)
                         if inner:
@@ -1349,29 +1405,33 @@ class GenericTargetArtifactGenerator:
                             val = f"{src_raw}L"
                     else:
                         src_field = self._to_camel_case(src_raw, prefix="field")
-                        src_type = field_type_map.get(src_field, "String")
-                        if src_type and src_type[0].isupper() and src_type not in ("String", "BigDecimal"):
-                            continue
-                        if dst_type == src_type:
-                            val = f"this.{src_field}"
-                        elif dst_type == "String":
-                            val = f"String.valueOf(this.{src_field})"
-                        elif dst_type in ("long", "int"):
-                            val = f"tryParseLong(String.valueOf(this.{src_field}))"
-                        elif dst_type == "boolean":
-                            val = f'Boolean.parseBoolean(String.valueOf(this.{src_field}))'
+                        if src_field not in field_type_map:
+                            val = '""' if dst_type == "String" else "0L"
                         else:
-                            val = f"this.{src_field}"
+                            src_type = field_type_map.get(src_field, "String")
+                            if src_type and src_type[0].isupper() and src_type not in ("String", "BigDecimal"):
+                                continue
+                            if dst_type == src_type:
+                                val = f"this.{src_field}"
+                            elif dst_type == "String":
+                                val = f"String.valueOf(this.{src_field})"
+                            elif dst_type in ("long", "int"):
+                                val = f"tryParseLong(String.valueOf(this.{src_field}))"
+                            elif dst_type == "boolean":
+                                val = f'Boolean.parseBoolean(String.valueOf(this.{src_field}))'
+                            else:
+                                val = f"this.{src_field}"
                     out.append(f"{indent}this.{dst_field} = {val};")
             else:
                 out.append(f"{indent}// Assignment: {desc}")
 
         elif op.kind == SemanticOperationKind.COMPUTATION:
+            desc_clean = re.sub(r"\b(END-COMPUTE|END-IF|END-PERFORM|END-EVALUATE)\b", "", desc_clean, flags=re.IGNORECASE).strip()
             if desc_upper.startswith("COMPUTE "):
                 m = re.search(r"^COMPUTE\s+([A-Z0-9-]+)\s*=\s*(.+)$", desc_clean, re.IGNORECASE)
                 if m:
                     tgt = m.group(1).strip()
-                    expr = m.group(2).strip()
+                    expr = re.sub(r"\b(END-COMPUTE|END-IF)\b", "", m.group(2).strip(), flags=re.IGNORECASE).strip()
                     expr_u = expr.upper()
                     dst_field = self._to_camel_case(tgt, prefix="field")
                     dst_type = field_type_map.get(dst_field, "long")
@@ -1379,24 +1439,48 @@ class GenericTargetArtifactGenerator:
                         inner = re.search(r"NUMVAL(?:-C)?\s*\(\s*([A-Za-z0-9-]+)", expr, re.IGNORECASE)
                         if inner:
                             in_f = self._to_camel_case(inner.group(1), prefix="field")
-                            val_expr = f"tryParseLong(this.{in_f})"
-                        else:
-                            val_expr = "0L"
-                    elif "LENGTH OF" in expr_u:
-                        inner = re.search(r"LENGTH\s+OF\s+([A-Za-z0-9-]+)", expr, re.IGNORECASE)
-                        if inner:
-                            in_f = self._to_camel_case(inner.group(1), prefix="field")
-                            val_expr = f"(this.{in_f} != null ? (long)this.{in_f}.length() : 0L)"
+                            val_expr = f"tryParseLong(this.{in_f})" if in_f in field_type_map else "0L"
                         else:
                             val_expr = "0L"
                     elif "DATE-OF-INTEGER" in expr_u or "INTEGER-OF-DATE" in expr_u:
                         val_expr = 'tryParseLong(new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date()))'
+                    elif "LENGTH" in expr_u:
+                        inner = re.search(r"LENGTH(?:\s+OF|\s*\(\s*(?:FUNCTION\s+TRIM\s*\(\s*)?)\s*([A-Za-z0-9-]+)", expr, re.IGNORECASE)
+                        in_f = self._to_camel_case(inner.group(1), prefix="field") if inner else ""
+                        len_call = f"this.getStringLength(this.{in_f})" if in_f in field_type_map else "0L"
+                        if re.match(r"^(?:FUNCTION\s+)?LENGTH(?:\s+OF\s+[A-Za-z0-9-]+(?:\s*\([^)]+\))?|\s*\(\s*(?:FUNCTION\s+TRIM\s*\(\s*)?[A-Za-z0-9-]+(?:\s*\([^)]+\))?\s*\)?\s*\))\s*$", expr.strip(), re.IGNORECASE):
+                            val_expr = len_call
+                        else:
+                            sub_expr = re.sub(r"(?:FUNCTION\s+)?LENGTH(?:\s+OF\s+[A-Za-z0-9-]+(?:\s*\([^)]+\))?|\s*\(\s*(?:FUNCTION\s+TRIM\s*\(\s*)?[A-Za-z0-9-]+(?:\s*\([^)]+\))?\s*\)?\s*\))", " __LEN_CALL__ ", expr, flags=re.IGNORECASE)
+                            tokens = re.split(r"([()+*/]|\s+-\s+)", sub_expr)
+                            clean_toks = []
+                            for t in tokens:
+                                ts = t.strip()
+                                if not ts or ts.upper() in {"LENGTH", "OF", "TRIM", "FUNCTION", "END-COMPUTE", "END-IF"}:
+                                    continue
+                                if ts == "__LEN_CALL__":
+                                    clean_toks.append(len_call)
+                                elif ts in ("+", "-", "*", "/", "(", ")"):
+                                    clean_toks.append(ts)
+                                elif ts.replace(".", "").lstrip("-").isdigit():
+                                    clean_toks.append(f"{ts}L" if "." not in ts else f"(long){ts}")
+                                else:
+                                    c_f = self._to_camel_case(ts, prefix="field")
+                                    if c_f in field_type_map:
+                                        f_type = field_type_map.get(c_f, "String")
+                                        if f_type == "String":
+                                            clean_toks.append(f"tryParseLong(this.{c_f})")
+                                        else:
+                                            clean_toks.append(f"this.{c_f}")
+                                    else:
+                                        clean_toks.append("0L")
+                            val_expr = " ".join(clean_toks) if clean_toks else len_call
                     else:
                         tokens = re.split(r"([()+*/]|\s+-\s+)", expr)
                         clean_toks = []
                         for t in tokens:
                             ts = t.strip()
-                            if not ts or ts.upper() in {"LENGTH", "OF"}:
+                            if not ts or ts.upper() in {"LENGTH", "OF", "END-COMPUTE", "END-IF"}:
                                 continue
                             if ts in ("+", "-", "*", "/", "(", ")"):
                                 clean_toks.append(ts)
@@ -1407,11 +1491,14 @@ class GenericTargetArtifactGenerator:
                                     clean_toks.append(f"{ts}L")
                             else:
                                 c_f = self._to_camel_case(ts, prefix="field")
-                                f_type = field_type_map.get(c_f, "String")
-                                if f_type == "String":
-                                    clean_toks.append(f"tryParseLong(this.{c_f})")
+                                if c_f in field_type_map:
+                                    f_type = field_type_map.get(c_f, "String")
+                                    if f_type == "String":
+                                        clean_toks.append(f"tryParseLong(this.{c_f})")
+                                    else:
+                                        clean_toks.append(f"this.{c_f}")
                                 else:
-                                    clean_toks.append(f"this.{c_f}")
+                                    clean_toks.append("0L")
                         val_expr = " ".join(clean_toks) if clean_toks else "0L"
 
                     if dst_type == "String":
@@ -1420,6 +1507,19 @@ class GenericTargetArtifactGenerator:
                         out.append(f"{indent}this.{dst_field} = {val_expr};")
                 else:
                     out.append(f"{indent}// Computation: {desc}")
+
+            elif desc_upper.startswith("DIVIDE ") and " GIVING " in desc_upper:
+                m_div = re.search(r"^DIVIDE\s+(.+?)\s+(?:BY|INTO)\s+(.+?)\s+GIVING\s+([A-Z0-9-]+)", desc_clean, re.IGNORECASE)
+                if m_div:
+                    num, den, tgt = m_div.groups()
+                    dst_field = self._to_camel_case(tgt.strip(), prefix="field")
+                    num_f = self._to_camel_case(num.strip(), prefix="field")
+                    den_f = self._to_camel_case(den.strip(), prefix="field")
+                    num_val = f"tryParseLong(this.{num_f})" if field_type_map.get(num_f) == "String" else f"this.{num_f}"
+                    den_val = f"tryParseLong(this.{den_f})" if field_type_map.get(den_f) == "String" else f"this.{den_f}"
+                    out.append(f"{indent}this.{dst_field} = ({den_val} != 0L ? {num_val} / {den_val} : 0L);")
+                else:
+                    out.append(f"{indent}// Divide construct: {desc}")
 
             elif any(desc_upper.startswith(kw) for kw in ("ADD ", "SUBTRACT ", "MULTIPLY ", "DIVIDE ")):
                 m = re.search(r"^(ADD|SUBTRACT|MULTIPLY|DIVIDE)\s+(.+?)\s+(TO|FROM|BY|INTO)\s+([A-Z0-9-]+)", desc_clean, re.IGNORECASE)
@@ -1745,8 +1845,9 @@ public class ModernizedApplication {{
             result.put("error", "Component not found: " + component);
             result.put("returnCode", 404);
         }} catch (Exception ex) {{
+            String rootErr = ex.getCause() != null ? ex.getCause().toString() : ex.toString();
             result.put("status", "ERROR");
-            result.put("error", ex.getMessage());
+            result.put("error", rootErr);
             result.put("returnCode", -1);
         }}
         return result;

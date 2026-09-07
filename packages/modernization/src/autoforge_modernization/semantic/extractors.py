@@ -92,6 +92,80 @@ def _map_pic_to_datatype(pic: str) -> SemanticDataType:
     return dt if dt != SemanticDataType.UNKNOWN else SemanticDataType.STRING
 
 
+def _clean_cobol_source(content: str) -> str:
+    """Strip fixed-format comments (col 7 * or /), line comments, sequence numbers (cols 1-6 and 73-80), and inline *> comments."""
+    clean_lines = []
+    for line in content.splitlines():
+        if len(line) >= 7 and line[6] in ("*", "/"):
+            continue
+        stripped = line
+        if len(stripped) > 72 and stripped[72:].strip().isdigit():
+            stripped = stripped[:72]
+        if len(stripped) >= 7 and stripped[:6].isdigit() and stripped[6] in (" ", "-"):
+            stripped = stripped[7:]
+        stripped = stripped.strip()
+        if not stripped or stripped.isdigit():
+            continue
+        if stripped.startswith(("*", "/")):
+            continue
+        if "*>" in stripped:
+            stripped = stripped.split("*>")[0].strip()
+        if stripped and not stripped.isdigit():
+            clean_lines.append(stripped)
+    return "\n".join(clean_lines)
+
+
+def _split_cobol_statements(body: str) -> list[str]:
+    """Split procedure division body into individual statements handling inline IF, THEN, and scope terminators."""
+    stmt_starters = {
+        "PERFORM", "READ", "WRITE", "REWRITE", "MOVE", "COMPUTE", "ADD", "SUBTRACT",
+        "MULTIPLY", "DIVIDE", "STOP", "GOBACK", "EXIT", "IF", "ELSE", "END-IF",
+        "EVALUATE", "WHEN", "END-EVALUATE", "OPEN", "CLOSE", "DISPLAY", "STRING",
+        "UNSTRING", "INITIALIZE", "SET", "EXEC", "END-EXEC", "CONTINUE", "CALL",
+        "GO", "INSPECT", "NEXT", "SEARCH", "END-SEARCH", "END-COMPUTE", "END-READ",
+        "END-WRITE", "END-PERFORM"
+    }
+    raw_lines = [ln.strip() for ln in body.splitlines() if ln.strip() and not ln.strip().startswith(("*", "/"))]
+    clean_text = " ".join(raw_lines)
+    sentences = re.split(r"\.\s+(?=[A-Z0-9])|\.\s*$", clean_text)
+    statements: list[str] = []
+    for s in sentences:
+        s_clean = s.strip().rstrip(".")
+        if not s_clean:
+            continue
+        tokens = re.findall(r"'[^']*'|\"[^\"]*\"|\S+", s_clean)
+        current_tokens = []
+        for tok in tokens:
+            tu = tok.upper().rstrip(".")
+            if tu in stmt_starters and current_tokens:
+                first_tu = current_tokens[0].upper().rstrip(".")
+                if first_tu == "IF" and tu == "THEN":
+                    current_tokens.append(tok)
+                    statements.append(" ".join(current_tokens))
+                    current_tokens = []
+                    continue
+                if first_tu == "IF" and tu not in ("END-IF", "ELSE"):
+                    statements.append(" ".join(current_tokens))
+                    current_tokens = [tok]
+                    continue
+                if tu.startswith("END-"):
+                    current_tokens.append(tok)
+                    statements.append(" ".join(current_tokens))
+                    current_tokens = []
+                    continue
+                statements.append(" ".join(current_tokens))
+                current_tokens = [tok]
+            elif tu.startswith("END-") and current_tokens:
+                current_tokens.append(tok)
+                statements.append(" ".join(current_tokens))
+                current_tokens = []
+            else:
+                current_tokens.append(tok)
+        if current_tokens:
+            statements.append(" ".join(current_tokens))
+    return [st for st in statements if st.strip()]
+
+
 class SemanticModelExtractor:
     """Extracts TechnologyNeutralSemanticModel from source content using registered analyzers."""
 
@@ -105,11 +179,12 @@ class SemanticModelExtractor:
         file_path: str = "program.cbl",
         project_id: str = "project-default",
     ) -> SemanticModule:
+        clean_content = _clean_cobol_source(content)
         analysis = self.cobol_analyzer.analyze(content, file_path)
         sha = _sha256(content)
 
         # Extract program name
-        m = re.search(r"\bPROGRAM-ID\.?\s*\.?\s*([A-Z0-9-]+)", content, re.IGNORECASE)
+        m = re.search(r"\bPROGRAM-ID\.?\s*\.?\s*([A-Z0-9-]+)", clean_content, re.IGNORECASE)
         if m:
             prog_name = m.group(1).upper()
         else:
@@ -182,7 +257,7 @@ class SemanticModelExtractor:
         file_select_map: dict[str, str] = {}  # internal_name -> ddname/dataset
         for m_sel in re.finditer(
             r"\bSELECT\s+([A-Z0-9-]+)\s+ASSIGN\s+TO\s+([A-Z0-9-.\$#@_]+)",
-            content,
+            clean_content,
             re.IGNORECASE,
         ):
             internal_file = m_sel.group(1).upper()
@@ -190,7 +265,7 @@ class SemanticModelExtractor:
             file_select_map[internal_file] = assigned_to
 
             # Check for file status and access mode in surrounding block
-            tail = content[m_sel.end() : m_sel.end() + 300]
+            tail = clean_content[m_sel.end() : m_sel.end() + 300]
             m_stat = re.search(r"\bFILE\s+STATUS\s+IS\s+([A-Z0-9-]+)", tail, re.IGNORECASE)
             status_fld = m_stat.group(1).upper() if m_stat else ""
             m_org = re.search(r"\bORGANIZATION\s+IS\s+(INDEXED|SEQUENTIAL|RELATIVE)", tail, re.IGNORECASE)
@@ -238,14 +313,14 @@ class SemanticModelExtractor:
                     calls_found.append(tgt)
 
         # Content regex fallback for CALL statements
-        for m_call in re.finditer(r"\bCALL\s+['\"]([A-Z0-9-]+)['\"]", content, re.IGNORECASE):
+        for m_call in re.finditer(r"\bCALL\s+['\"]([A-Z0-9-]+)['\"]", clean_content, re.IGNORECASE):
             c_name = m_call.group(1).upper()
             if c_name not in calls_found:
                 calls_found.append(c_name)
 
         # Extract COPYbook relationships
         copybooks_found: list[str] = []
-        for m_cpy in re.finditer(r"\bCOPY\s+([A-Z0-9_-]+)", content, re.IGNORECASE):
+        for m_cpy in re.finditer(r"\bCOPY\s+([A-Z0-9_-]+)", clean_content, re.IGNORECASE):
             cpy_name = m_cpy.group(1).upper()
             if cpy_name not in copybooks_found:
                 copybooks_found.append(cpy_name)
@@ -258,31 +333,11 @@ class SemanticModelExtractor:
                 rf"\b{re.escape(proc.name)}\.\s*(.*?)(?=\n\s*[A-Z0-9-]+\.|\Z)",
                 re.DOTALL | re.IGNORECASE,
             )
-            m_p = p_pattern.search(content)
+            m_p = p_pattern.search(clean_content)
             if not m_p:
                 continue
             body = m_p.group(1)
-
-            stmt_starters = {
-                "PERFORM", "READ", "WRITE", "REWRITE", "MOVE", "COMPUTE", "ADD", "SUBTRACT",
-                "MULTIPLY", "DIVIDE", "STOP", "GOBACK", "EXIT", "IF", "ELSE", "END-IF",
-                "EVALUATE", "WHEN", "END-EVALUATE", "OPEN", "CLOSE", "DISPLAY", "STRING",
-                "UNSTRING", "INITIALIZE", "SET", "EXEC", "END-EXEC", "CONTINUE", "CALL",
-                "GO", "INSPECT", "NEXT"
-            }
-            raw_lines = [ln.strip() for ln in body.splitlines() if ln.strip() and not ln.strip().startswith(("*", "/"))]
-            assembled_statements: list[str] = []
-            curr_stmt_parts: list[str] = []
-            for raw_ln in raw_lines:
-                words = raw_ln.split()
-                first_tok = words[0].upper().rstrip(".")
-                if first_tok in stmt_starters and curr_stmt_parts:
-                    assembled_statements.append(" ".join(curr_stmt_parts))
-                    curr_stmt_parts = [raw_ln]
-                else:
-                    curr_stmt_parts.append(raw_ln)
-            if curr_stmt_parts:
-                assembled_statements.append(" ".join(curr_stmt_parts))
+            assembled_statements = _split_cobol_statements(body)
 
             for line in assembled_statements:
                 s_ln = line.strip().upper()
@@ -656,99 +711,111 @@ class SemanticModelExtractor:
                 )
             )
 
-        # Extract structured business rules and error paths
+        # Extract structured business rules and error paths from parsed procedure operations
         rules: list[SemanticBusinessRule] = []
+        rule_idx = 0
 
-        # Parse IF statements
-        for idx, m_if in enumerate(re.finditer(r"\bIF\s+([^.\n]+)", content, re.IGNORECASE)):
-            cond = m_if.group(1).strip()
-            cond_upper = cond.upper()
-            if cond_upper in ("END-IF", "EXIT", "CONTINUE"):
-                continue
+        for proc in procedures:
+            for op_idx, op in enumerate(proc.operations):
+                if op.kind == SemanticOperationKind.BRANCH and op.condition and op.condition.expression:
+                    cond = op.condition.expression.strip()
+                    cond_upper = cond.upper()
+                    if cond_upper in ("END-IF", "EXIT", "CONTINUE"):
+                        continue
+                    rule_idx += 1
 
-            # Parse predicate components
-            predicates: list[BusinessRulePredicate] = []
-            ref_fields: list[str] = []
-            actions: list[BusinessRuleAction] = []
+                    predicates: list[BusinessRulePredicate] = []
+                    ref_fields: list[str] = []
+                    actions: list[BusinessRuleAction] = []
 
-            # Check if this condition is a status code check / error condition
-            is_error_check = "STATUS" in cond_upper or "ERROR" in cond_upper or "NOT = '00'" in cond_upper or "NOT EQUAL" in cond_upper or "INVALID KEY" in cond_upper
-
-            # Common COBOL condition patterns:
-            # 1. FIELD = VALUE / FIELD NOT = VALUE / FIELD EQUAL TO ZERO
-            m_pred = re.search(r"([A-Z0-9-]+)\s*(=|NOT\s*=|EQUAL\s+TO|NOT\s+EQUAL\s+TO|>|<|>=|<=)\s*(['\"][^'\"]*['\"]|\S+)", cond, re.IGNORECASE)
-            if m_pred:
-                left = m_pred.group(1).strip().upper()
-                op = m_pred.group(2).strip().upper()
-                right = m_pred.group(3).strip().rstrip(".")
-                ref_fields.append(left)
-                predicates.append(
-                    BusinessRulePredicate(
-                        left_operand=left,
-                        operator="EQUALS" if op in ("=", "EQUAL TO") else "NOT_EQUALS" if "NOT" in op else op,
-                        right_operand=right,
-                    )
-                )
-            elif "EQUAL TO ZERO" in cond_upper or " = ZERO" in cond_upper:
-                f_name = cond.split()[0].upper()
-                ref_fields.append(f_name)
-                predicates.append(
-                    BusinessRulePredicate(
-                        left_operand=f_name,
-                        operator="EQUAL_TO_ZERO",
-                        right_operand="0",
-                    )
-                )
-            else:
-                predicates.append(
-                    BusinessRulePredicate(
-                        left_operand=cond,
-                        operator="EXPRESSION",
-                        right_operand="",
-                    )
-                )
-
-            # Look at immediate subsequent lines for consequence
-            tail = content[m_if.end() : m_if.end() + 450]
-            for act_line in tail.splitlines()[:10]:
-
-                s_act = act_line.strip().upper()
-                if s_act.startswith("MOVE "):
-                    m_m = re.search(r"^MOVE\s+(.+?)\s+TO\s+([A-Z0-9-]+)", s_act, re.IGNORECASE)
-                    if m_m:
-                        actions.append(BusinessRuleAction(target=m_m.group(2).upper(), action_type="MUTATION", expression=m_m.group(1)))
-                elif s_act.startswith("PERFORM "):
-                    target_p = s_act.split()[1].rstrip(".")
-                    actions.append(BusinessRuleAction(target=target_p, action_type="CALL", expression="PERFORM"))
-                    if "ABEND" in target_p or "ERROR" in target_p:
-                        error_handlers.append(
-                            SemanticErrorHandling(
-                                status_field=ref_fields[0] if ref_fields else "UNKNOWN",
-                                expected_status="00",
-                                error_condition=cond,
-                                handler_procedure=target_p,
-                                is_abnormal_termination=True,
-                                provenance=SourceProvenance(source_file=file_path, original_construct=cond),
+                    m_pred = re.search(r"([A-Z0-9-]+)\s*(=|NOT\s*=|EQUAL\s+TO|NOT\s+EQUAL\s+TO|>|<|>=|<=)\s*(['\"][^'\"]*['\"]|\S+)", cond, re.IGNORECASE)
+                    if m_pred:
+                        left = m_pred.group(1).strip().upper()
+                        op_str = m_pred.group(2).strip().upper()
+                        right = m_pred.group(3).strip().rstrip(".")
+                        ref_fields.append(left)
+                        predicates.append(
+                            BusinessRulePredicate(
+                                left_operand=left,
+                                operator="EQUALS" if op_str in ("=", "EQUAL TO") else "NOT_EQUALS" if "NOT" in op_str else op_str,
+                                right_operand=right,
+                            )
+                        )
+                    elif "EQUAL TO ZERO" in cond_upper or " = ZERO" in cond_upper:
+                        f_name = cond.split()[0].upper()
+                        ref_fields.append(f_name)
+                        predicates.append(
+                            BusinessRulePredicate(
+                                left_operand=f_name,
+                                operator="EQUAL_TO_ZERO",
+                                right_operand="0",
+                            )
+                        )
+                    else:
+                        predicates.append(
+                            BusinessRulePredicate(
+                                left_operand=cond,
+                                operator="EXPRESSION",
+                                right_operand="",
                             )
                         )
 
-            rules.append(
-                SemanticBusinessRule(
-                    name=f"Rule_{prog_name}_IF_{idx + 1}",
-                    statement=f"IF {cond}",
-                    conditions=[cond],
-                    predicates=predicates,
-                    referenced_fields=list(set(ref_fields)),
-                    actions=actions,
-                    confidence=0.95 if predicates else 0.8,
-                    resolution_status=ResolutionStatus.RESOLVED,
-                    provenance=SourceProvenance(
-                        source_file=file_path,
-                        source_sha256=sha,
-                        original_construct=f"IF {cond}",
-                    ),
-                )
-            )
+                    # Inspect subsequent operations in the procedure for consequence actions
+                    for next_op in proc.operations[op_idx + 1 : op_idx + 6]:
+                        if next_op.kind == SemanticOperationKind.ASSIGNMENT and next_op.target:
+                            actions.append(BusinessRuleAction(target=next_op.target, action_type="MUTATION", expression=next_op.description))
+                        elif next_op.kind == SemanticOperationKind.CALL and next_op.target:
+                            actions.append(BusinessRuleAction(target=next_op.target, action_type="CALL", expression="PERFORM"))
+                            if "ABEND" in next_op.target.upper() or "ERROR" in next_op.target.upper():
+                                error_handlers.append(
+                                    SemanticErrorHandling(
+                                        status_field=ref_fields[0] if ref_fields else "UNKNOWN",
+                                        expected_status="00",
+                                        error_condition=cond,
+                                        handler_procedure=next_op.target,
+                                        is_abnormal_termination=True,
+                                        provenance=SourceProvenance(source_file=file_path, original_construct=cond),
+                                    )
+                                )
+                        elif next_op.kind == SemanticOperationKind.COMPUTATION and next_op.target:
+                            actions.append(BusinessRuleAction(target=next_op.target, action_type="COMPUTATION", expression=next_op.description))
+
+                    rules.append(
+                        SemanticBusinessRule(
+                            name=f"Rule_{prog_name}_{proc.name}_{rule_idx}",
+                            statement=f"IF {cond}",
+                            conditions=[cond],
+                            predicates=predicates,
+                            referenced_fields=list(set(ref_fields)),
+                            actions=actions,
+                            confidence=0.95 if predicates else 0.8,
+                            resolution_status=ResolutionStatus.RESOLVED,
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                original_construct=f"IF {cond}",
+                            ),
+                        )
+                    )
+                elif op.kind == SemanticOperationKind.COMPUTATION and op.target:
+                    rule_idx += 1
+                    rules.append(
+                        SemanticBusinessRule(
+                            name=f"Rule_{prog_name}_{proc.name}_CALC_{rule_idx}",
+                            statement=op.description,
+                            conditions=[],
+                            predicates=[],
+                            referenced_fields=op.referenced_fields,
+                            actions=[BusinessRuleAction(target=op.target, action_type="COMPUTATION", expression=op.description)],
+                            confidence=0.9,
+                            resolution_status=ResolutionStatus.RESOLVED,
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                original_construct=op.description,
+                            ),
+                        )
+                    )
 
         return SemanticModule(
             name=prog_name,

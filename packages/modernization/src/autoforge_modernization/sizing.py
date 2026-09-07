@@ -140,3 +140,92 @@ class LOCMetrics(BaseModel):
             return False
         diff_pct = abs(self.total_physical_loc - other_count) / self.total_physical_loc * 100
         return diff_pct <= tolerance_percent
+
+
+def calculate_source_nloc_accounting(files: list[Any]) -> dict[str, Any]:
+    """Authoritative, unified NLOC accounting engine adhering to language standards."""
+    import hashlib
+    from pathlib import Path
+
+    file_records = []
+    total_physical_loc = 0
+    total_blank_loc = 0
+    total_comment_loc = 0
+    total_executable_nloc = 0
+    total_declarative_nloc = 0
+
+    for file_item in files:
+        f_path = Path(file_item) if isinstance(file_item, (str, Path)) else Path(getattr(file_item, "path", str(file_item)))
+        content = f_path.read_text(errors="ignore") if f_path.exists() else ""
+        lines = content.splitlines()
+        ext = f_path.suffix.lower()
+
+        phys_loc = len(lines)
+        blank_loc = 0
+        comment_loc = 0
+        exec_nloc = 0
+        decl_nloc = 0
+        in_procedure = False
+
+        for line in lines:
+            s = line.strip()
+            if not s:
+                blank_loc += 1
+                continue
+            if ext in (".cobol", ".cbl", ".cob"):
+                if (len(line) >= 7 and line[6] in ("*", "/")) or s.startswith(("*", "/", "*>")):
+                    comment_loc += 1
+                    continue
+                if "PROCEDURE DIVISION" in line.upper():
+                    in_procedure = True
+                    decl_nloc += 1
+                    continue
+                if in_procedure:
+                    exec_nloc += 1
+                else:
+                    decl_nloc += 1
+            elif ext in (".jcl", ".job"):
+                if s.startswith("//*"):
+                    comment_loc += 1
+                elif s.startswith("//"):
+                    exec_nloc += 1
+                else:
+                    decl_nloc += 1
+            else:
+                if s.startswith(("#", "//", "--", "/*")):
+                    comment_loc += 1
+                else:
+                    exec_nloc += 1
+
+        tot_nloc = exec_nloc + decl_nloc
+        sha = hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+        file_records.append({
+            "file": f_path.name,
+            "path": str(f_path),
+            "physical_loc": phys_loc,
+            "comment_loc": comment_loc,
+            "blank_loc": blank_loc,
+            "executable_nloc": exec_nloc,
+            "declarative_nloc": decl_nloc,
+            "total_nloc": tot_nloc,
+            "sha256": sha,
+        })
+
+        total_physical_loc += phys_loc
+        total_blank_loc += blank_loc
+        total_comment_loc += comment_loc
+        total_executable_nloc += exec_nloc
+        total_declarative_nloc += decl_nloc
+
+    return {
+        "files": file_records,
+        "total_files": len(files),
+        "total_physical_loc": total_physical_loc,
+        "total_blank_loc": total_blank_loc,
+        "total_comment_loc": total_comment_loc,
+        "total_executable_nloc": total_executable_nloc,
+        "total_declarative_nloc": total_declarative_nloc,
+        "total_nloc": total_executable_nloc + total_declarative_nloc,
+    }
+
