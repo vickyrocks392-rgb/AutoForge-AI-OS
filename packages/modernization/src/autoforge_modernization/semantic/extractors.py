@@ -96,7 +96,7 @@ def _clean_cobol_source(content: str) -> str:
     """Strip fixed-format comments (col 7 * or /), line comments, sequence numbers (cols 1-6 and 73-80), and inline *> comments."""
     clean_lines = []
     for line in content.splitlines():
-        if len(line) >= 7 and line[6] in ("*", "/"):
+        if len(line) >= 7 and line[6] in ("*", "/", "D", "d"):
             continue
         stripped = line
         if len(stripped) > 72 and stripped[72:].strip().isdigit():
@@ -107,6 +107,8 @@ def _clean_cobol_source(content: str) -> str:
         if not stripped or stripped.isdigit():
             continue
         if stripped.startswith(("*", "/")):
+            continue
+        if stripped.startswith(("D ", "d ")) and len(line) >= 7 and line[:6].strip() == "":
             continue
         if "*>" in stripped:
             stripped = stripped.split("*>")[0].strip()

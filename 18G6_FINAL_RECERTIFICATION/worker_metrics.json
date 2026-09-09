@@ -1,0 +1,24 @@
+{
+  "workers": {
+    "worker-m1-01": {
+      "calls": 8,
+      "node": "M1",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M"
+    },
+    "worker-m1-02": {
+      "calls": 6,
+      "node": "M1",
+      "model": "ornith-9b-iq3m-4k:latest"
+    },
+    "worker-hp-01": {
+      "calls": 4,
+      "node": "HP",
+      "model": "qwen2.5-coder:3b"
+    },
+    "worker-hp-02": {
+      "calls": 4,
+      "node": "HP",
+      "model": "qwen2.5-coder:3b"
+    }
+  }
+}

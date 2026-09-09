@@ -1,0 +1,115 @@
+{
+  "project_a_oracle_tests": [
+    {
+      "test_id": "BANK_TEST_01_INQUIRY",
+      "rule": "Account Balance Inquiry (INQACC.cbl)",
+      "account_id": "ACC-10023",
+      "source_expected_balance": 2500.0,
+      "target_observed_balance": 2500.0,
+      "status": "PASSED",
+      "oracle_match": true
+    },
+    {
+      "test_id": "BANK_TEST_02_DEBIT_CREDIT",
+      "rule": "Debit / Credit Calculation & Overdraft Check (DBCRFUN.cbl)",
+      "initial_balance": 1000.0,
+      "debit_amount": 250.0,
+      "overdraft_limit": 500.0,
+      "expected_new_balance": 750.0,
+      "target_observed_balance": 750.0,
+      "status": "PASSED",
+      "oracle_match": true
+    },
+    {
+      "test_id": "BANK_TEST_03_DOUBLE_ENTRY_TRANSFER",
+      "rule": "Inter-Account Transfer Double-Entry Invariant (XFRFUN.cbl)",
+      "source_account": "ACC-10023",
+      "dest_account": "ACC-10024",
+      "transfer_amount": 350.0,
+      "source_delta": -350.0,
+      "dest_delta": 350.0,
+      "double_entry_net_zero": true,
+      "status": "PASSED",
+      "oracle_match": true
+    },
+    {
+      "test_id": "BANK_TEST_04_LIMIT_EXCEEDED",
+      "rule": "Daily Maximum Transfer Limit Enforcement (BNK1TFN.cbl)",
+      "amount": 75000.0,
+      "daily_limit": 50000.0,
+      "expected_rejection": "REJECT_DAILY_LIMIT_EXCEEDED",
+      "target_observed_action": "REJECT_DAILY_LIMIT_EXCEEDED",
+      "status": "PASSED",
+      "oracle_match": true
+    },
+    {
+      "test_id": "BANK_TEST_05_BATCH_STATEMENT_JOB",
+      "rule": "Batch Statement Execution via IKJEFT01 (BNKSTMT.jcl)",
+      "orchestrated_step": "STEP1_RUN_BNKSTMT",
+      "datecard": "202606",
+      "sortcode": "123456",
+      "expected_return_code": 0,
+      "target_observed_rc": 0,
+      "status": "PASSED",
+      "oracle_match": true
+    }
+  ],
+  "project_b_runtime_tests": [
+    {
+      "test": "TEST_01_HTTP_HEALTH_PROBE",
+      "endpoint": "/api/health",
+      "method": "GET",
+      "status_code": 200,
+      "response": {
+        "status": "UP",
+        "application": "FastAPI RealWorld Modernized",
+        "mode": "async"
+      },
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_02_HTTP_TAGS_ENDPOINT",
+      "endpoint": "/api/tags",
+      "method": "GET",
+      "status_code": 200,
+      "tags_count": 4,
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_03_HTTP_USER_LOGIN_JWT",
+      "endpoint": "/api/users/login",
+      "method": "POST",
+      "status_code": 200,
+      "jwt_issued": true,
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_04_HTTP_ARTICLE_CREATE_SLUG",
+      "endpoint": "/api/articles",
+      "method": "POST",
+      "status_code": 201,
+      "observed_slug": "autonomous-project-modernization-with-autoforge-ai",
+      "expected_slug": "autonomous-project-modernization-with-autoforge-ai",
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_05_HTTP_USER_PROFILE",
+      "endpoint": "/api/profiles/autoforge_lead",
+      "method": "GET",
+      "status_code": 200,
+      "username": "autoforge_lead",
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_06_HTTP_VALIDATION_ERROR_422",
+      "endpoint": "/api/users/login",
+      "method": "POST",
+      "expected_code": 422,
+      "observed_code": 422,
+      "status": "PASSED"
+    }
+  ],
+  "total_tests_executed": 11,
+  "total_tests_passed": 11,
+  "pass_rate_percentage": 100.0
+}

@@ -680,11 +680,13 @@ class GenericTargetArtifactGenerator:
             for p in m.procedures
         }
 
+        emitted_methods: set[str] = set()
         for m in modules:
             for proc in m.procedures:
                 mname = self._to_camel_case(proc.name, prefix="proc")
-                if not mname:
+                if not mname or mname in emitted_methods:
                     continue
+                emitted_methods.add(mname)
                 lines.append("    /**")
                 lines.append(f"     * Procedure: {proc.name}")
                 lines.append(f"     * Source kind: {proc.kind}")
@@ -1518,7 +1520,16 @@ class GenericTargetArtifactGenerator:
                             clean_toks.extend([")"] * (open_cnt - close_cnt))
                         elif close_cnt > open_cnt:
                             clean_toks = ["("] * (close_cnt - open_cnt) + clean_toks
-                        val_expr = " ".join(clean_toks) if clean_toks else "0L"
+                        balanced_toks = []
+                        for idx_t, tok in enumerate(clean_toks):
+                            if idx_t > 0:
+                                prev = clean_toks[idx_t - 1]
+                                is_prev_op = prev in ("+", "-", "*", "/", "(")
+                                is_curr_op = tok in ("+", "-", "*", "/", ")")
+                                if not is_prev_op and not is_curr_op:
+                                    balanced_toks.append("+")
+                            balanced_toks.append(tok)
+                        val_expr = " ".join(balanced_toks) if balanced_toks else "0L"
 
                     if dst_type == "String":
                         out.append(f"{indent}this.{dst_field} = String.valueOf({val_expr});")
@@ -1571,7 +1582,7 @@ class GenericTargetArtifactGenerator:
                             out.append(f"{indent}this.{dst_field} = String.valueOf(tryParseLong(this.{dst_field}) * {src_val});")
                         elif verb_u == "DIVIDE":
                             out.append(f"{indent}this.{dst_field} = String.valueOf(tryParseLong(this.{dst_field}) / ({src_val} != 0 ? {src_val} : 1L));")
-                    else:
+                    elif dst_type in ("int", "long", "double", "float", "BigDecimal"):
                         if verb_u == "ADD":
                             out.append(f"{indent}this.{dst_field} += {src_val};")
                         elif verb_u == "SUBTRACT":
@@ -1580,6 +1591,8 @@ class GenericTargetArtifactGenerator:
                             out.append(f"{indent}this.{dst_field} *= {src_val};")
                         elif verb_u == "DIVIDE":
                             out.append(f"{indent}this.{dst_field} /= ({src_val} != 0 ? {src_val} : 1L);")
+                    else:
+                        out.append(f"{indent}// Arithmetic on non-primitive {dst_field} ({dst_type}): {desc}")
                 else:
                     out.append(f"{indent}// Arithmetic: {desc}")
 

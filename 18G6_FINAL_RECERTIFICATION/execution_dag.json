@@ -1,0 +1,27 @@
+{
+  "stages_order": [
+    "autonomous_discovery",
+    "workload_closure_selection",
+    "semantic_extraction",
+    "rag_retrieval",
+    "transformation_planning",
+    "target_artifact_generation",
+    "toolchain_compilation",
+    "behavioral_verification",
+    "autonomous_repair_and_bad_repair_rejection",
+    "provenance_recording",
+    "clean_room_purge"
+  ],
+  "parallel_worker_topology": {
+    "M1_workers": [
+      "worker-m1-01 (qwen2.5-coder:7b-instruct-q3_K_M)",
+      "worker-m1-02 (ornith-9b-iq3m-4k:latest)"
+    ],
+    "HP_workers": [
+      "worker-hp-01 (qwen2.5-coder:3b)",
+      "worker-hp-02 (qwen2.5-coder:3b)"
+    ],
+    "embedding_worker": "nomic-embed-text:latest (M1)",
+    "vector_store": "Qdrant (HP Windows over LAN)"
+  }
+}

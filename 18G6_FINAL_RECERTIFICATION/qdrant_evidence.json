@@ -1,0 +1,178 @@
+{
+  "qdrant_endpoint": "http://192.168.1.102:6333",
+  "embedding_model": "nomic-embed-text:latest",
+  "embedding_dimensions": 768,
+  "total_queries_executed": 8,
+  "cross_project_isolation_verified": true,
+  "ephemeral_purge_verified": true,
+  "query_ledger": [
+    {
+      "query_id": "rag-cert_ban-1",
+      "project_id": "cert_bankz_589ffac9",
+      "collection": "project_cert_bankz_5_knowledge",
+      "query": "Bank-of-Z account balance debit credit transaction rules",
+      "embedding_model": "nomic-embed-text:latest",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-76eb18b7-01",
+        "doc-76eb18b7-02"
+      ],
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "Provides domain invariants and syntax resolution context for autonomous repair cycle",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 688.81
+    },
+    {
+      "query_id": "rag-cert_ban-2",
+      "project_id": "cert_bankz_589ffac9",
+      "collection": "project_cert_bankz_5_knowledge",
+      "query": "Bank-of-Z funds transfer inter-account double-entry invariants",
+      "embedding_model": "nomic-embed-text:latest",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-03e249e5-01",
+        "doc-03e249e5-02"
+      ],
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "Provides domain invariants and syntax resolution context for autonomous repair cycle",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 206.42
+    },
+    {
+      "query_id": "rag-cert_ban-3",
+      "project_id": "cert_bankz_589ffac9",
+      "collection": "project_cert_bankz_5_knowledge",
+      "query": "Bank-of-Z customer onboarding record validation constraints",
+      "embedding_model": "nomic-embed-text:latest",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-777540fc-01",
+        "doc-777540fc-02"
+      ],
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "Provides domain invariants and syntax resolution context for autonomous repair cycle",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 99.48
+    },
+    {
+      "query_id": "rag-cert_ban-4",
+      "project_id": "cert_bankz_589ffac9",
+      "collection": "project_cert_bankz_5_knowledge",
+      "query": "Resolve Java compilation syntax defect in modernized Spring banking component",
+      "embedding_model": "nomic-embed-text:latest",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-cb19e1ea-01",
+        "doc-cb19e1ea-02"
+      ],
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "Provides domain invariants and syntax resolution context for autonomous repair cycle",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 1052.3
+    },
+    {
+      "query_id": "rag-cert_fas-1",
+      "project_id": "cert_fastapi_e57f723f",
+      "collection": "project_cert_fastapi_knowledge",
+      "query": "FastAPI RealWorld JWT authentication and security pipeline",
+      "embedding_model": "nomic-embed-text:latest",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-f1735f4e-01",
+        "doc-f1735f4e-02"
+      ],
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "Provides domain invariants and syntax resolution context for autonomous repair cycle",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 342.09
+    },
+    {
+      "query_id": "rag-cert_fas-2",
+      "project_id": "cert_fastapi_e57f723f",
+      "collection": "project_cert_fastapi_knowledge",
+      "query": "FastAPI RealWorld article repository slug generation queries",
+      "embedding_model": "nomic-embed-text:latest",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-6698f0ca-01",
+        "doc-6698f0ca-02"
+      ],
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "Provides domain invariants and syntax resolution context for autonomous repair cycle",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 153.37
+    },
+    {
+      "query_id": "rag-cert_fas-3",
+      "project_id": "cert_fastapi_e57f723f",
+      "collection": "project_cert_fastapi_knowledge",
+      "query": "FastAPI RealWorld user profile follow social relationship",
+      "embedding_model": "nomic-embed-text:latest",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-acf53a37-01",
+        "doc-acf53a37-02"
+      ],
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "Provides domain invariants and syntax resolution context for autonomous repair cycle",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 114.26
+    },
+    {
+      "query_id": "rag-cert_fas-4",
+      "project_id": "cert_fastapi_e57f723f",
+      "collection": "project_cert_fastapi_knowledge",
+      "query": "Resolve Python syntax error and unparseable statement in FastAPI service",
+      "embedding_model": "nomic-embed-text:latest",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-e2edddfd-01",
+        "doc-e2edddfd-02"
+      ],
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "Provides domain invariants and syntax resolution context for autonomous repair cycle",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 1618.99
+    }
+  ]
+}

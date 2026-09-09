@@ -1,0 +1,49 @@
+{
+  "project_a_runtime": {
+    "target": "Java 21 / Spring Boot",
+    "classes_verified": 195,
+    "oracle_invariants_preserved": true
+  },
+  "project_b_runtime": {
+    "target": "Python FastAPI Async REST Microservice",
+    "live_http_metrics": {
+      "server_port": 8990,
+      "requests_executed": 6,
+      "requests_succeeded": 6,
+      "health_status": "UP",
+      "runtime_mode": "LIVE_HTTP_DAEMON"
+    },
+    "http_endpoints_verified": [
+      {
+        "endpoint": "/api/health",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "endpoint": "/api/tags",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "endpoint": "/api/users/login",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "endpoint": "/api/articles",
+        "method": "POST",
+        "status": 201
+      },
+      {
+        "endpoint": "/api/profiles/autoforge_lead",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "endpoint": "/api/users/login (bad payload)",
+        "method": "POST",
+        "status": 422
+      }
+    ]
+  }
+}

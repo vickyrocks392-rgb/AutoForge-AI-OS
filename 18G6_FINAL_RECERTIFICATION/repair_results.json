@@ -1,0 +1,48 @@
+{
+  "project_a_repairs": [
+    {
+      "repair_id": "rep-bankz-1d4067",
+      "defect_type": "SYNTAX_INJECTION",
+      "detected_failure": "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build_zmusqmmp/src/src/main/java/com/autoforge/generated/Abndinfo.java:921: error: i",
+      "diagnosis_rag_query": "Resolve Java compilation syntax defect in modernized Spring banking component",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 1,
+      "recompilation_passed": true,
+      "accepted": true,
+      "rationale": "Toolchain compilation verified and behavioral invariants preserved"
+    },
+    {
+      "repair_id": "rep-bad-bankz-407bd6",
+      "defect_type": "CORRUPT_CANDIDATE",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 2,
+      "recompilation_passed": false,
+      "accepted": false,
+      "rejection_reason": "Toolchain compilation error: syntax and brace mismatch - autonomously rejected"
+    }
+  ],
+  "project_b_repairs": [
+    {
+      "repair_id": "rep-fastapi-3a5623",
+      "defect_type": "SYNTAX_INJECTION",
+      "detected_failure": "1 compilation errors",
+      "diagnosis_rag_query": "Resolve Python syntax error and unparseable statement in FastAPI service",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 1,
+      "recompilation_passed": true,
+      "accepted": true,
+      "rationale": "CPython py_compile verified and bytecode generated cleanly"
+    },
+    {
+      "repair_id": "rep-bad-fastapi-6cfbac",
+      "defect_type": "UNPARSABLE_DEFECT",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 2,
+      "recompilation_passed": false,
+      "accepted": false,
+      "rejection_reason": "Toolchain compilation error: invalid Python syntax - autonomously rejected"
+    }
+  ],
+  "autonomous_repairs_successful": true,
+  "bad_repair_rejection_verified": true
+}

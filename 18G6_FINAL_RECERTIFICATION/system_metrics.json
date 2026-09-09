@@ -1,0 +1,20 @@
+{
+  "total_wall_clock_sec": 235.77,
+  "total_llm_calls": 22,
+  "canonical_fleet": {
+    "M1": {
+      "CODING": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "REASONING": "ornith-9b-iq3m-4k:latest",
+      "EMBEDDING": "nomic-embed-text:latest"
+    },
+    "HP": {
+      "WORKER_CODING": "qwen2.5-coder:3b"
+    }
+  },
+  "total_input_tokens": 1068,
+  "total_output_tokens": 2625,
+  "total_tokens": 3693,
+  "mean_tokens_per_second": 10.05,
+  "m1_mean_tps": 10.18,
+  "hp_mean_tps": 9.83
+}

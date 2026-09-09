@@ -1,0 +1,13 @@
+{
+  "total_calls": 22,
+  "models_verified": [
+    "ornith-9b-iq3m-4k:latest",
+    "qwen2.5-coder:3b",
+    "qwen2.5-coder:7b-instruct-q3_K_M"
+  ],
+  "m1_calls_count": 14,
+  "hp_calls_count": 8,
+  "m1_percentage": 63.6,
+  "hp_percentage": 36.4,
+  "routing_policy": "Capacity-aware dual-node concurrent distribution"
+}

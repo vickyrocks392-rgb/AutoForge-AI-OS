@@ -1,0 +1,87 @@
+{
+  "bank_of_z_graph": {
+    "subsystem": "BANKING_CORE",
+    "closure_status": "COMPLETE",
+    "nodes": [
+      "BNKMENU",
+      "BNK1CAC",
+      "BNK1CCA",
+      "BNK1CCS",
+      "BNK1CRA",
+      "BNK1DAC",
+      "BNK1DCS",
+      "BNK1TFN",
+      "BNK1UAC",
+      "BANKDATA",
+      "BNKSTMT.jcl",
+      "ACCOUNT.cpy",
+      "CUSTOMER.cpy",
+      "PROCTRAN.cpy",
+      "SORTCODE.cpy"
+    ],
+    "edges": [
+      {
+        "from": "BNKMENU",
+        "to": "BNK1CAC",
+        "type": "CALL"
+      },
+      {
+        "from": "BNKMENU",
+        "to": "BNK1CCA",
+        "type": "CALL"
+      },
+      {
+        "from": "BNKMENU",
+        "to": "BNK1TFN",
+        "type": "CALL"
+      },
+      {
+        "from": "BNK1TFN",
+        "to": "PROCTRAN.cpy",
+        "type": "INCLUDES"
+      },
+      {
+        "from": "BNK1CAC",
+        "to": "ACCOUNT.cpy",
+        "type": "INCLUDES"
+      },
+      {
+        "from": "BNK1CRA",
+        "to": "CUSTOMER.cpy",
+        "type": "INCLUDES"
+      },
+      {
+        "from": "BNKSTMT.jcl",
+        "to": "BNKSTMT",
+        "type": "EXECUTES"
+      }
+    ]
+  },
+  "fastapi_graph": {
+    "nodes": [
+      "app.main",
+      "app.api.routes",
+      "app.services.jwt",
+      "app.services.security",
+      "app.db.repositories.articles",
+      "app.models.domain"
+    ],
+    "edges": [
+      {
+        "from": "app.main",
+        "to": "app.api.routes",
+        "type": "import"
+      },
+      {
+        "from": "app.api.routes",
+        "to": "app.services.jwt",
+        "type": "dependency_injection"
+      },
+      {
+        "from": "app.api.routes",
+        "to": "app.db.repositories.articles",
+        "type": "dependency_injection"
+      }
+    ]
+  }
+}

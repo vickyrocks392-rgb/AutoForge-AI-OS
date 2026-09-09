@@ -1,0 +1,26 @@
+{
+  "run_1": {
+    "project_a_bank_of_z": {
+      "toolchain": "OpenJDK 26 javac",
+      "classes_compiled": 195,
+      "compilation_passed": true
+    },
+    "project_b_fastapi": {
+      "toolchain": "CPython py_compile",
+      "pyc_files_generated": 68,
+      "compilation_passed": true
+    }
+  },
+  "run_2_repeatability": {
+    "project_a_bank_of_z": {
+      "toolchain": "OpenJDK 26 javac",
+      "classes_compiled": 195,
+      "compilation_passed": true
+    },
+    "project_b_fastapi": {
+      "toolchain": "CPython py_compile",
+      "pyc_files_generated": 68,
+      "compilation_passed": true
+    }
+  }
+}

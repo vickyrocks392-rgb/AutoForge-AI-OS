@@ -1,0 +1,316 @@
+{
+  "run_1": {
+    "project_a_stages": [
+      {
+        "stage": "autonomous_discovery",
+        "duration_sec": 1.6241,
+        "status": "COMPLETED",
+        "files_scanned": 511,
+        "physical_loc": 335001,
+        "technologies": [
+          "ASSEMBLER",
+          "BMS",
+          "CICS",
+          "COBOL",
+          "COBOL_COPYBOOK",
+          "DB2",
+          "DEPENDENCIES",
+          "DOCKER",
+          "JAVA",
+          "JCL",
+          "NODEJS",
+          "PYTHON",
+          "REST_API",
+          "SHELL",
+          "SPRING_BOOT",
+          "SQL",
+          "TYPESCRIPT"
+        ]
+      },
+      {
+        "stage": "workload_closure_selection",
+        "duration_sec": 0.4269,
+        "status": "COMPLETED",
+        "subsystem": "BANKING_CORE",
+        "closure_proof": "COMPLETE",
+        "files_selected": 25,
+        "physical_loc": 15206,
+        "internal_dependencies": 40,
+        "external_boundaries": 14
+      },
+      {
+        "stage": "semantic_extraction",
+        "duration_sec": 0.1646,
+        "status": "COMPLETED",
+        "modules_extracted": 11,
+        "procedures_extracted": 210,
+        "entities_extracted": 185
+      },
+      {
+        "stage": "rag_retrieval",
+        "duration_sec": 0.9952,
+        "status": "COMPLETED",
+        "queries": 3
+      },
+      {
+        "stage": "transformation_planning",
+        "duration_sec": 0.2621,
+        "status": "COMPLETED",
+        "target_components": 195
+      },
+      {
+        "stage": "target_artifact_generation",
+        "duration_sec": 55.7911,
+        "status": "COMPLETED",
+        "artifacts_generated": 195
+      },
+      {
+        "stage": "toolchain_compilation",
+        "duration_sec": 4.1537,
+        "status": "COMPLETED",
+        "toolchain": "OpenJDK javac (26.0.2.1)",
+        "class_files": 195,
+        "passed": true
+      },
+      {
+        "stage": "behavioral_verification",
+        "duration_sec": 0.0,
+        "status": "COMPLETED",
+        "tests_executed": 5,
+        "tests_passed": 5,
+        "independent_oracle_verified": true
+      },
+      {
+        "stage": "autonomous_repair_and_bad_repair_rejection",
+        "duration_sec": 8.9778,
+        "status": "COMPLETED",
+        "valid_repair_accepted": true,
+        "bad_repair_rejected": true
+      }
+    ],
+    "project_b_stages": [
+      {
+        "stage": "autonomous_discovery",
+        "duration_sec": 0.0516,
+        "status": "COMPLETED",
+        "files_scanned": 116,
+        "physical_loc": 8883,
+        "technologies": [
+          "COBOL_COPYBOOK",
+          "DOCKER",
+          "FASTAPI",
+          "PYTHON",
+          "REST_API",
+          "SHELL",
+          "SQL"
+        ]
+      },
+      {
+        "stage": "semantic_extraction",
+        "duration_sec": 0.0302,
+        "status": "COMPLETED",
+        "modules_extracted": 33,
+        "procedures_extracted": 33,
+        "entities_extracted": 49
+      },
+      {
+        "stage": "rag_retrieval",
+        "duration_sec": 0.6102,
+        "status": "COMPLETED",
+        "queries": 3
+      },
+      {
+        "stage": "transformation_planning",
+        "duration_sec": 0.0152,
+        "status": "COMPLETED",
+        "target_components": 68
+      },
+      {
+        "stage": "target_artifact_generation",
+        "duration_sec": 39.9071,
+        "status": "COMPLETED",
+        "artifacts_generated": 68
+      },
+      {
+        "stage": "toolchain_compilation",
+        "duration_sec": 0.0775,
+        "status": "COMPLETED",
+        "toolchain": "CPython py_compile",
+        "pyc_files": 68,
+        "passed": true
+      },
+      {
+        "stage": "live_http_behavioral_verification",
+        "duration_sec": 0.8325,
+        "status": "COMPLETED",
+        "tests_executed": 6,
+        "tests_passed": 6,
+        "live_http_runtime_verified": true
+      },
+      {
+        "stage": "autonomous_repair_and_bad_repair_rejection",
+        "duration_sec": 1.8117,
+        "status": "COMPLETED",
+        "valid_repair_accepted": true,
+        "bad_repair_rejected": true
+      }
+    ]
+  },
+  "run_2_repeatability": {
+    "project_a_stages": [
+      {
+        "stage": "autonomous_discovery",
+        "duration_sec": 2.2376,
+        "status": "COMPLETED",
+        "files_scanned": 511,
+        "physical_loc": 335001,
+        "technologies": [
+          "ASSEMBLER",
+          "BMS",
+          "CICS",
+          "COBOL",
+          "COBOL_COPYBOOK",
+          "DB2",
+          "DEPENDENCIES",
+          "DOCKER",
+          "JAVA",
+          "JCL",
+          "NODEJS",
+          "PYTHON",
+          "REST_API",
+          "SHELL",
+          "SPRING_BOOT",
+          "SQL",
+          "TYPESCRIPT"
+        ]
+      },
+      {
+        "stage": "workload_closure_selection",
+        "duration_sec": 0.4714,
+        "status": "COMPLETED",
+        "subsystem": "BANKING_CORE",
+        "closure_proof": "COMPLETE",
+        "files_selected": 25,
+        "physical_loc": 15206,
+        "internal_dependencies": 40,
+        "external_boundaries": 14
+      },
+      {
+        "stage": "semantic_extraction",
+        "duration_sec": 0.1877,
+        "status": "COMPLETED",
+        "modules_extracted": 11,
+        "procedures_extracted": 210,
+        "entities_extracted": 185
+      },
+      {
+        "stage": "rag_retrieval",
+        "duration_sec": 1.1172,
+        "status": "COMPLETED",
+        "queries": 3
+      },
+      {
+        "stage": "transformation_planning",
+        "duration_sec": 0.2366,
+        "status": "COMPLETED",
+        "target_components": 195
+      },
+      {
+        "stage": "target_artifact_generation",
+        "duration_sec": 56.8697,
+        "status": "COMPLETED",
+        "artifacts_generated": 195
+      },
+      {
+        "stage": "toolchain_compilation",
+        "duration_sec": 4.1308,
+        "status": "COMPLETED",
+        "toolchain": "OpenJDK javac (26.0.2.1)",
+        "class_files": 195,
+        "passed": true
+      },
+      {
+        "stage": "behavioral_verification",
+        "duration_sec": 0.0,
+        "status": "COMPLETED",
+        "tests_executed": 5,
+        "tests_passed": 5,
+        "independent_oracle_verified": true
+      },
+      {
+        "stage": "autonomous_repair_and_bad_repair_rejection",
+        "duration_sec": 8.7721,
+        "status": "COMPLETED",
+        "valid_repair_accepted": true,
+        "bad_repair_rejected": true
+      }
+    ],
+    "project_b_stages": [
+      {
+        "stage": "autonomous_discovery",
+        "duration_sec": 0.057,
+        "status": "COMPLETED",
+        "files_scanned": 116,
+        "physical_loc": 8883,
+        "technologies": [
+          "COBOL_COPYBOOK",
+          "DOCKER",
+          "FASTAPI",
+          "PYTHON",
+          "REST_API",
+          "SHELL",
+          "SQL"
+        ]
+      },
+      {
+        "stage": "semantic_extraction",
+        "duration_sec": 0.0371,
+        "status": "COMPLETED",
+        "modules_extracted": 33,
+        "procedures_extracted": 33,
+        "entities_extracted": 49
+      },
+      {
+        "stage": "rag_retrieval",
+        "duration_sec": 1.1026,
+        "status": "COMPLETED",
+        "queries": 3
+      },
+      {
+        "stage": "transformation_planning",
+        "duration_sec": 0.0159,
+        "status": "COMPLETED",
+        "target_components": 68
+      },
+      {
+        "stage": "target_artifact_generation",
+        "duration_sec": 41.6935,
+        "status": "COMPLETED",
+        "artifacts_generated": 68
+      },
+      {
+        "stage": "toolchain_compilation",
+        "duration_sec": 0.088,
+        "status": "COMPLETED",
+        "toolchain": "CPython py_compile",
+        "pyc_files": 68,
+        "passed": true
+      },
+      {
+        "stage": "live_http_behavioral_verification",
+        "duration_sec": 0.8266,
+        "status": "COMPLETED",
+        "tests_executed": 6,
+        "tests_passed": 6,
+        "live_http_runtime_verified": true
+      },
+      {
+        "stage": "autonomous_repair_and_bad_repair_rejection",
+        "duration_sec": 1.0741,
+        "status": "COMPLETED",
+        "valid_repair_accepted": true,
+        "bad_repair_rejected": true
+      }
+    ]
+  }
+}

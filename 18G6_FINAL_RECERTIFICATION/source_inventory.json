@@ -1,0 +1,46 @@
+{
+  "project_a_bank_of_z": {
+    "name": "IBM Bank-of-Z",
+    "repository": "https://github.com/IBM/Bank-of-Z",
+    "pinned_commit": "e13539daca1846ccf0d363d97af1dcc6b51fae9c",
+    "total_files_scanned": 511,
+    "total_physical_loc": 335001,
+    "subsystem_files": 25,
+    "subsystem_loc": 15206,
+    "technologies_detected": [
+      "ASSEMBLER",
+      "BMS",
+      "CICS",
+      "COBOL",
+      "COBOL_COPYBOOK",
+      "DB2",
+      "DEPENDENCIES",
+      "DOCKER",
+      "JAVA",
+      "JCL",
+      "NODEJS",
+      "PYTHON",
+      "REST_API",
+      "SHELL",
+      "SPRING_BOOT",
+      "SQL",
+      "TYPESCRIPT"
+    ]
+  },
+  "project_b_fastapi_realworld": {
+    "name": "FastAPI RealWorld Example App",
+    "repository": "https://github.com/nsidnev/fastapi-realworld-example-app",
+    "pinned_commit": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+    "total_files_scanned": 116,
+    "total_physical_loc": 8883,
+    "technologies_detected": [
+      "COBOL_COPYBOOK",
+      "DOCKER",
+      "FASTAPI",
+      "PYTHON",
+      "REST_API",
+      "SHELL",
+      "SQL"
+    ]
+  }
+}

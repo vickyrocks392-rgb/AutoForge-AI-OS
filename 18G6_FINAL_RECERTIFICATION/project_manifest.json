@@ -1,0 +1,56 @@
+{
+  "certification_milestone": "18-G.6",
+  "title": "Real Commercial Project Autonomous Completion Final Recertification",
+  "timestamp": "2026-09-09T02:43:34.938730+00:00",
+  "projects_evaluated": [
+    {
+      "id": "cert_bankz_589ffac9",
+      "name": "IBM Bank-of-Z",
+      "pinned_commit": "e13539daca1846ccf0d363d97af1dcc6b51fae9c",
+      "source_files": 511,
+      "physical_loc": 335001,
+      "subsystem_files": 25,
+      "subsystem_loc": 15206,
+      "technologies": [
+        "ASSEMBLER",
+        "BMS",
+        "CICS",
+        "COBOL",
+        "COBOL_COPYBOOK",
+        "DB2",
+        "DEPENDENCIES",
+        "DOCKER",
+        "JAVA",
+        "JCL",
+        "NODEJS",
+        "PYTHON",
+        "REST_API",
+        "SHELL",
+        "SPRING_BOOT",
+        "SQL",
+        "TYPESCRIPT"
+      ],
+      "wall_time_sec": 72.56
+    },
+    {
+      "id": "cert_fastapi_e57f723f",
+      "name": "FastAPI RealWorld Example App",
+      "pinned_commit": "029eb7781c60d5f563ee8990a0cbfb79b244538c",
+      "source_files": 116,
+      "physical_loc": 8883,
+      "technologies": [
+        "COBOL_COPYBOOK",
+        "DOCKER",
+        "FASTAPI",
+        "PYTHON",
+        "REST_API",
+        "SHELL",
+        "SQL"
+      ],
+      "wall_time_sec": 43.44
+    }
+  ],
+  "total_wall_time_sec": 235.77,
+  "repeatability_verified": true,
+  "certification_level": "LEVEL 2 \u2014 REAL PROJECT AUTONOMY (COMMERCIAL SUB-SYSTEM CERTIFIED)"
+}
