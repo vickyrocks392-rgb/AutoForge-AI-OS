@@ -1,0 +1,21 @@
+{
+  "m1_only": {
+    "run_1_sec": 65.0,
+    "run_2_sec": 65.08,
+    "mean_sec": 65.04,
+    "min_sec": 65.0,
+    "max_sec": 65.08,
+    "variance_sec": 0.08,
+    "mean_nloc_per_hour": 42175.86
+  },
+  "m1_hp_distributed": {
+    "run_1_sec": 49.67,
+    "run_2_sec": 41.23,
+    "mean_sec": 45.45,
+    "min_sec": 41.23,
+    "max_sec": 49.67,
+    "variance_sec": 8.44,
+    "mean_nloc_per_hour": 60883.17
+  },
+  "distributed_speedup": 1.43
+}

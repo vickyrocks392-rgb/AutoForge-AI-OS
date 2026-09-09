@@ -1,0 +1,9 @@
+{
+  "total_modules": 6,
+  "total_entities": 4,
+  "total_procedures": 31,
+  "total_branches": 72,
+  "total_loops": 3,
+  "total_operations": 184,
+  "total_business_rules": 5
+}

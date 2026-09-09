@@ -1,0 +1,68 @@
+{
+  "autonomous_execution": {
+    "files": [
+      "packages/modernization/src/autoforge_modernization/composition/workflow.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  },
+  "dependency_resolution_and_selection": {
+    "files": [
+      "packages/modernization/src/autoforge_modernization/composition/workload_selector.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  },
+  "technology_neutral_semantics": {
+    "files": [
+      "packages/modernization/src/autoforge_modernization/semantic/extractors.py",
+      "packages/modernization/src/autoforge_modernization/semantic/model.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  },
+  "modernization_planning": {
+    "files": [
+      "packages/modernization/src/autoforge_modernization/composition/planner.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  },
+  "target_artifact_generation": {
+    "files": [
+      "packages/modernization/src/autoforge_modernization/composition/generator.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  },
+  "toolchain_verification_javac": {
+    "files": [
+      "packages/modernization/src/autoforge_modernization/composition/verifier.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  },
+  "autonomous_diagnosis_and_repair": {
+    "files": [
+      "packages/modernization/src/autoforge_modernization/composition/repair.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  },
+  "project_lifecycle_and_data_isolation": {
+    "files": [
+      "packages/kernel/src/autoforge_kernel/project_lifecycle.py",
+      "packages/knowledge_platform/src/autoforge_knowledge_platform/rag18/project_isolation.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  },
+  "distributed_multi_worker_ai_inference": {
+    "files": [
+      "packages/ai_infrastructure/src/autoforge_ai_infrastructure/router.py",
+      "packages/workforce/src/autoforge_workforce/model_allocator.py"
+    ],
+    "status": "PROVEN",
+    "production_path": "Active"
+  }
+}

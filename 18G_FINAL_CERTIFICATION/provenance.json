@@ -1,0 +1,14 @@
+{
+  "project_id": "cert_m1_hp_distributed_run_1_94efd4",
+  "timestamp": "2026-09-09T00:52:26.180235+00:00",
+  "mode": "m1_hp_distributed",
+  "source_subsystem": "SETTLE-BATCH-01",
+  "source_files_count": 11,
+  "target_artifacts_count": 73,
+  "llm_calls_count": 6,
+  "rag_queries_count": 3,
+  "compilation_status": "PASSED",
+  "behavioral_tests_status": "5/5 PASSED",
+  "repair_cycle_status": "REPAIRED_AND_VERIFIED",
+  "bad_repair_rejected": true
+}

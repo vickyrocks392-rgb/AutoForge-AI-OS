@@ -1,0 +1,38 @@
+[
+  {
+    "component": "FXCONV01",
+    "node": "local-m1",
+    "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+    "reason": "Capacity-aware dual-node concurrent distribution"
+  },
+  {
+    "component": "FEECALC1",
+    "node": "remote-hp",
+    "model": "qwen2.5-coder:3b",
+    "reason": "Capacity-aware dual-node concurrent distribution"
+  },
+  {
+    "component": "TRNAUDT1",
+    "node": "local-m1",
+    "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+    "reason": "Capacity-aware dual-node concurrent distribution"
+  },
+  {
+    "component": "BALUPDT1",
+    "node": "remote-hp",
+    "model": "qwen2.5-coder:3b",
+    "reason": "Capacity-aware dual-node concurrent distribution"
+  },
+  {
+    "component": "SETLMAS1",
+    "node": "local-m1",
+    "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+    "reason": "Capacity-aware dual-node concurrent distribution"
+  },
+  {
+    "component": "REPRTGEN",
+    "node": "remote-hp",
+    "model": "qwen2.5-coder:3b",
+    "reason": "Capacity-aware dual-node concurrent distribution"
+  }
+]

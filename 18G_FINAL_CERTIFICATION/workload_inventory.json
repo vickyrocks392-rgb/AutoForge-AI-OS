@@ -1,0 +1,41 @@
+{
+  "subsystem_name": "SETTLE-BATCH-01",
+  "total_files": 11,
+  "cbl_files": [
+    "BALUPDT1.cbl",
+    "FEECALC1.cbl",
+    "FXCONV01.cbl",
+    "REPRTGEN.cbl",
+    "SETLMAS1.cbl",
+    "TRNAUDT1.cbl"
+  ],
+  "cpy_files": [
+    "ACCMASTY.cpy",
+    "FEESTRUY.cpy",
+    "SETLCOMY.cpy",
+    "TRNREC0Y.cpy"
+  ],
+  "jcl_files": [
+    "SETLJOB.jcl"
+  ],
+  "dat_files": [
+    "TRNIN.dat"
+  ],
+  "source_physical_loc": 868,
+  "source_nloc": 762,
+  "executable_nloc": 385,
+  "declarative_nloc": 378,
+  "procedures_count": 31,
+  "branches_count": 72,
+  "loops_count": 3,
+  "cross_program_calls": 5,
+  "call_hierarchy": {
+    "SETLMAS1": [
+      "TRNAUDT1",
+      "FXCONV01",
+      "FEECALC1",
+      "BALUPDT1",
+      "REPRTGEN"
+    ]
+  }
+}

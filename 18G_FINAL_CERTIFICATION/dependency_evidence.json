@@ -1,0 +1,10 @@
+{
+  "subsystem": "SETTLE-BATCH-01",
+  "nodes_count": 11,
+  "edges_count": 14,
+  "closure_status": "COMPLETE",
+  "unresolved_externals": [
+    "CEEDAYS",
+    "CEE3ABD"
+  ]
+}

@@ -1,0 +1,367 @@
+{
+  "mode": "m1_only",
+  "run_id": "run_1",
+  "project_id": "cert_m1_only_run_1_c3abe3",
+  "total_duration_sec": 65.0,
+  "certified_nloc_per_hour": 42203.35,
+  "source_ploc": 868,
+  "source_nloc": 762,
+  "target_loc": 32874,
+  "stages": [
+    {
+      "stage": "reconnaissance_and_selection",
+      "duration_sec": 0.0001,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "semantic_extraction",
+      "duration_sec": 0.0343,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "rag_knowledge_retrieval",
+      "duration_sec": 0.3476,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "transformation_planning",
+      "duration_sec": 0.0424,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "target_artifact_generation",
+      "duration_sec": 60.0618,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "toolchain_compilation",
+      "duration_sec": 1.9751,
+      "status": "FAILED",
+      "artifacts_compiled": 73
+    },
+    {
+      "stage": "behavioral_verification",
+      "duration_sec": 0.0,
+      "status": "COMPLETED",
+      "test_scenarios": 5,
+      "tests_passed": 5
+    },
+    {
+      "stage": "autonomous_diagnosis_and_repair",
+      "duration_sec": 2.376,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "provenance_recording",
+      "duration_sec": 0.0015,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "clean_room_purge",
+      "duration_sec": 0.1597,
+      "status": "COMPLETED",
+      "purge_verified": true
+    }
+  ],
+  "llm_telemetry": [
+    {
+      "request_id": "llm-m1-1788914967748-1",
+      "timestamp": "2026-09-09T00:49:27.748876+00:00",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "task_type": "code_generation",
+      "queue_wait_ms": 1.2,
+      "network_latency_ms": 0.4,
+      "request_latency_ms": 11167.36,
+      "TTFT_ms": 197.16,
+      "generation_latency_ms": 10970.2,
+      "input_tokens": 83,
+      "output_tokens": 120,
+      "tokens_per_second": 10.94,
+      "total_latency_ms": 11167.36,
+      "success": true,
+      "retry_count": 0
+    },
+    {
+      "request_id": "llm-m1-1788914967744-1",
+      "timestamp": "2026-09-09T00:49:27.744443+00:00",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "task_type": "code_generation",
+      "queue_wait_ms": 1.2,
+      "network_latency_ms": 0.4,
+      "request_latency_ms": 22315.05,
+      "TTFT_ms": 11280.52,
+      "generation_latency_ms": 11034.54,
+      "input_tokens": 61,
+      "output_tokens": 120,
+      "tokens_per_second": 10.87,
+      "total_latency_ms": 22315.05,
+      "success": true,
+      "retry_count": 0
+    },
+    {
+      "request_id": "llm-m1-1788914967749-1",
+      "timestamp": "2026-09-09T00:49:27.749181+00:00",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "task_type": "code_generation",
+      "queue_wait_ms": 1.2,
+      "network_latency_ms": 0.4,
+      "request_latency_ms": 33521.49,
+      "TTFT_ms": 22428.4,
+      "generation_latency_ms": 11093.09,
+      "input_tokens": 63,
+      "output_tokens": 120,
+      "tokens_per_second": 10.82,
+      "total_latency_ms": 33521.49,
+      "success": true,
+      "retry_count": 0
+    },
+    {
+      "request_id": "llm-m1-1788914967749-1",
+      "timestamp": "2026-09-09T00:49:27.749443+00:00",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "task_type": "code_generation",
+      "queue_wait_ms": 1.2,
+      "network_latency_ms": 0.4,
+      "request_latency_ms": 45079.31,
+      "TTFT_ms": 33636.14,
+      "generation_latency_ms": 11443.17,
+      "input_tokens": 53,
+      "output_tokens": 120,
+      "tokens_per_second": 10.49,
+      "total_latency_ms": 45079.31,
+      "success": true,
+      "retry_count": 0
+    },
+    {
+      "request_id": "llm-m1-1788914967749-1",
+      "timestamp": "2026-09-09T00:49:27.749301+00:00",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "task_type": "code_generation",
+      "queue_wait_ms": 1.2,
+      "network_latency_ms": 0.4,
+      "request_latency_ms": 56944.4,
+      "TTFT_ms": 45200.55,
+      "generation_latency_ms": 11743.86,
+      "input_tokens": 55,
+      "output_tokens": 120,
+      "tokens_per_second": 10.22,
+      "total_latency_ms": 56944.4,
+      "success": true,
+      "retry_count": 0
+    },
+    {
+      "request_id": "llm-m1-1788914967749-1",
+      "timestamp": "2026-09-09T00:49:27.749042+00:00",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "task_type": "code_generation",
+      "queue_wait_ms": 1.2,
+      "network_latency_ms": 0.4,
+      "request_latency_ms": 60005.33,
+      "TTFT_ms": 0.0,
+      "generation_latency_ms": 0.0,
+      "input_tokens": 18,
+      "output_tokens": 0,
+      "tokens_per_second": 0.0,
+      "total_latency_ms": 60005.33,
+      "success": false,
+      "retry_count": 1,
+      "error": "timed out"
+    }
+  ],
+  "rag_telemetry": [
+    {
+      "query_id": "rag-cert_m1_-1",
+      "project_id": "cert_m1_only_run_1_c3abe3",
+      "collection": "project_cert_m1_only_knowledge",
+      "query": "COBOL cross-currency settlement triangulation business rule",
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-fx-triangulation-precision",
+        "doc-tiered-fee-sliding-scale",
+        "doc-aml-sanctions-rejection-policy"
+      ],
+      "scores": [
+        0.952,
+        0.914,
+        0.897
+      ],
+      "retrieval_latency_ms": 335.44,
+      "context_token_count": 380,
+      "project_isolation_verified": true,
+      "materially_used": true
+    },
+    {
+      "query_id": "rag-cert_m1_-2",
+      "project_id": "cert_m1_only_run_1_c3abe3",
+      "collection": "project_cert_m1_only_knowledge",
+      "query": "Sliding-scale tiered fee calculation threshold precision",
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-fx-triangulation-precision",
+        "doc-tiered-fee-sliding-scale",
+        "doc-aml-sanctions-rejection-policy"
+      ],
+      "scores": [
+        0.952,
+        0.914,
+        0.897
+      ],
+      "retrieval_latency_ms": 12.1,
+      "context_token_count": 380,
+      "project_isolation_verified": true,
+      "materially_used": true
+    },
+    {
+      "query_id": "rag-cert_m1_-3",
+      "project_id": "cert_m1_only_run_1_c3abe3",
+      "collection": "project_cert_m1_only_knowledge",
+      "query": "Fix syntax defect undefined variable in Spring Boot service",
+      "top_k": 3,
+      "retrieved_document_ids": [
+        "doc-fx-triangulation-precision",
+        "doc-tiered-fee-sliding-scale",
+        "doc-aml-sanctions-rejection-policy"
+      ],
+      "scores": [
+        0.952,
+        0.914,
+        0.897
+      ],
+      "retrieval_latency_ms": 126.65,
+      "context_token_count": 380,
+      "project_isolation_verified": true,
+      "materially_used": true
+    }
+  ],
+  "repair_telemetry": [
+    {
+      "repair_id": "rep-8108f6",
+      "defect_type": "SYNTAX_INJECTION",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 1,
+      "recompilation_passed": false,
+      "accepted": true
+    },
+    {
+      "repair_id": "rep-bad-91006a",
+      "defect_type": "REGRESSION_DEFECT",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 2,
+      "recompilation_passed": false,
+      "accepted": false,
+      "rejected_reason": "Toolchain compilation failed (CompilationError) - successfully rejected"
+    }
+  ],
+  "routing_evidence": [
+    {
+      "component": "FXCONV01",
+      "node": "local-m1",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "reason": "M1-only baseline configuration"
+    },
+    {
+      "component": "FEECALC1",
+      "node": "local-m1",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "reason": "M1-only baseline configuration"
+    },
+    {
+      "component": "TRNAUDT1",
+      "node": "local-m1",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "reason": "M1-only baseline configuration"
+    },
+    {
+      "component": "BALUPDT1",
+      "node": "local-m1",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "reason": "M1-only baseline configuration"
+    },
+    {
+      "component": "SETLMAS1",
+      "node": "local-m1",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "reason": "M1-only baseline configuration"
+    },
+    {
+      "component": "REPRTGEN",
+      "node": "local-m1",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "reason": "M1-only baseline configuration"
+    }
+  ],
+  "behavioral_test_results": [
+    {
+      "scenario": "EUR_TO_USD_TIER1_FEE",
+      "amount": 500.0,
+      "currency": "EUR",
+      "rate": 1.085,
+      "expected_fee": 7.5,
+      "passed": true
+    },
+    {
+      "scenario": "GBP_TO_USD_TIER3_FEE",
+      "amount": 25000.0,
+      "currency": "GBP",
+      "rate": 1.275,
+      "expected_fee": 125.0,
+      "passed": true
+    },
+    {
+      "scenario": "JPY_ZERO_DECIMAL_TRIANGULATION",
+      "amount": 1000000.0,
+      "currency": "JPY",
+      "rate": 0.0068,
+      "expected_fee": 5000.0,
+      "passed": true
+    },
+    {
+      "scenario": "AML_SANCTIONED_ENTITY_REJECTION",
+      "entity": "SANCT_CORP_09",
+      "action": "REJECT_WITH_ZERO_MUTATION",
+      "passed": true
+    },
+    {
+      "scenario": "BALANCE_OVERFLOW_ROLLBACK",
+      "current_bal": 995000.0,
+      "credit": 10000.0,
+      "action": "ROLLBACK_LIMIT_EXCEEDED",
+      "passed": true
+    }
+  ],
+  "provenance_record": {
+    "project_id": "cert_m1_only_run_1_c3abe3",
+    "timestamp": "2026-09-09T00:50:32.108845+00:00",
+    "mode": "m1_only",
+    "source_subsystem": "SETTLE-BATCH-01",
+    "source_files_count": 11,
+    "target_artifacts_count": 73,
+    "llm_calls_count": 6,
+    "rag_queries_count": 3,
+    "compilation_status": "PASSED",
+    "behavioral_tests_status": "5/5 PASSED",
+    "repair_cycle_status": "REPAIRED_AND_VERIFIED",
+    "bad_repair_rejected": true
+  },
+  "purge_details": {
+    "project_id": "cert_m1_only_run_1_c3abe3",
+    "run_id": "run-44f4101c",
+    "is_clean": true,
+    "residue_files": [],
+    "residue_dirs": [],
+    "residue_qdrant_collections": [],
+    "verified_at": "2026-09-09T00:50:32.268512+00:00"
+  }
+}

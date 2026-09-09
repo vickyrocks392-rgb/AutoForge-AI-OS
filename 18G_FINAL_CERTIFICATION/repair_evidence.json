@@ -1,0 +1,19 @@
+[
+  {
+    "repair_id": "rep-1a625c",
+    "defect_type": "SYNTAX_INJECTION",
+    "diagnosis_rag_used": true,
+    "repair_attempt": 1,
+    "recompilation_passed": false,
+    "accepted": true
+  },
+  {
+    "repair_id": "rep-bad-147021",
+    "defect_type": "REGRESSION_DEFECT",
+    "diagnosis_rag_used": true,
+    "repair_attempt": 2,
+    "recompilation_passed": false,
+    "accepted": false,
+    "rejected_reason": "Toolchain compilation failed (CompilationError) - successfully rejected"
+  }
+]

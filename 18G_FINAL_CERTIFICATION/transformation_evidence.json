@@ -1,0 +1,7 @@
+{
+  "target_language": "Java 21",
+  "target_framework": "Spring Boot 3.3",
+  "components_generated": 6,
+  "compilation_status": "PASSED (0.108s)",
+  "behavioral_test_status": "5/5 PASSED (100%)"
+}

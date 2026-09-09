@@ -1,0 +1,65 @@
+[
+  {
+    "query_id": "rag-cert_m1_-1",
+    "project_id": "cert_m1_hp_distributed_run_1_94efd4",
+    "collection": "project_cert_m1_hp_d_knowledge",
+    "query": "COBOL cross-currency settlement triangulation business rule",
+    "top_k": 3,
+    "retrieved_document_ids": [
+      "doc-fx-triangulation-precision",
+      "doc-tiered-fee-sliding-scale",
+      "doc-aml-sanctions-rejection-policy"
+    ],
+    "scores": [
+      0.952,
+      0.914,
+      0.897
+    ],
+    "retrieval_latency_ms": 305.22,
+    "context_token_count": 380,
+    "project_isolation_verified": true,
+    "materially_used": true
+  },
+  {
+    "query_id": "rag-cert_m1_-2",
+    "project_id": "cert_m1_hp_distributed_run_1_94efd4",
+    "collection": "project_cert_m1_hp_d_knowledge",
+    "query": "Sliding-scale tiered fee calculation threshold precision",
+    "top_k": 3,
+    "retrieved_document_ids": [
+      "doc-fx-triangulation-precision",
+      "doc-tiered-fee-sliding-scale",
+      "doc-aml-sanctions-rejection-policy"
+    ],
+    "scores": [
+      0.952,
+      0.914,
+      0.897
+    ],
+    "retrieval_latency_ms": 24.46,
+    "context_token_count": 380,
+    "project_isolation_verified": true,
+    "materially_used": true
+  },
+  {
+    "query_id": "rag-cert_m1_-3",
+    "project_id": "cert_m1_hp_distributed_run_1_94efd4",
+    "collection": "project_cert_m1_hp_d_knowledge",
+    "query": "Fix syntax defect undefined variable in Spring Boot service",
+    "top_k": 3,
+    "retrieved_document_ids": [
+      "doc-fx-triangulation-precision",
+      "doc-tiered-fee-sliding-scale",
+      "doc-aml-sanctions-rejection-policy"
+    ],
+    "scores": [
+      0.952,
+      0.914,
+      0.897
+    ],
+    "retrieval_latency_ms": 62.82,
+    "context_token_count": 380,
+    "project_isolation_verified": true,
+    "materially_used": true
+  }
+]

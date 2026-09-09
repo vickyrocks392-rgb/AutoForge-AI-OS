@@ -1,0 +1,35 @@
+{
+  "subsystem": "SETTLE-BATCH-01",
+  "rules": [
+    {
+      "id": "RULE-FX-01",
+      "name": "Cross-Currency Triangulation",
+      "logic": "Convert non-USD currencies (EUR, GBP, JPY) to base USD via triangulation with 6 decimal place precision.",
+      "verified": true
+    },
+    {
+      "id": "RULE-FEE-01",
+      "name": "Tiered Sliding Scale Fee Calculation",
+      "logic": "Amounts <= $1,000 incur 1.5% fee; $1,001-$10,000 incur 1.0%; > $10,000 incur 0.5% volume discount fee.",
+      "verified": true
+    },
+    {
+      "id": "RULE-AML-01",
+      "name": "AML Sanctioned Entity Blacklist Verification",
+      "logic": "Transactions involving sanctioned entities (e.g. SANCT_CORP_09) are immediately rejected with zero balance mutation.",
+      "verified": true
+    },
+    {
+      "id": "RULE-BAL-01",
+      "name": "Account Balance Maximum Overflow Protection",
+      "logic": "Account credits that exceed $1,000,000 maximum threshold trigger immediate transaction rollback.",
+      "verified": true
+    },
+    {
+      "id": "RULE-REP-01",
+      "name": "Settlement Batch Ledger Report Generation",
+      "logic": "Aggregates settled credits, debits, rejected counts, and total fee revenue into formatted report lines.",
+      "verified": true
+    }
+  ]
+}

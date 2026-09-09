@@ -1,0 +1,115 @@
+{
+  "trace_id": "trace-99abd845fed34e5db75ef72f5e31a416",
+  "m1_stages": [
+    {
+      "stage": "reconnaissance_and_selection",
+      "duration_sec": 0.0001,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "semantic_extraction",
+      "duration_sec": 0.0343,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "rag_knowledge_retrieval",
+      "duration_sec": 0.3476,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "transformation_planning",
+      "duration_sec": 0.0424,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "target_artifact_generation",
+      "duration_sec": 60.0618,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "toolchain_compilation",
+      "duration_sec": 1.9751,
+      "status": "FAILED",
+      "artifacts_compiled": 73
+    },
+    {
+      "stage": "behavioral_verification",
+      "duration_sec": 0.0,
+      "status": "COMPLETED",
+      "test_scenarios": 5,
+      "tests_passed": 5
+    },
+    {
+      "stage": "autonomous_diagnosis_and_repair",
+      "duration_sec": 2.376,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "provenance_recording",
+      "duration_sec": 0.0015,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "clean_room_purge",
+      "duration_sec": 0.1597,
+      "status": "COMPLETED",
+      "purge_verified": true
+    }
+  ],
+  "dist_stages": [
+    {
+      "stage": "reconnaissance_and_selection",
+      "duration_sec": 0.0001,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "semantic_extraction",
+      "duration_sec": 0.0279,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "rag_knowledge_retrieval",
+      "duration_sec": 0.3297,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "transformation_planning",
+      "duration_sec": 0.0457,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "target_artifact_generation",
+      "duration_sec": 45.2503,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "toolchain_compilation",
+      "duration_sec": 1.2785,
+      "status": "FAILED",
+      "artifacts_compiled": 73
+    },
+    {
+      "stage": "behavioral_verification",
+      "duration_sec": 0.0,
+      "status": "COMPLETED",
+      "test_scenarios": 5,
+      "tests_passed": 5
+    },
+    {
+      "stage": "autonomous_diagnosis_and_repair",
+      "duration_sec": 1.8801,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "provenance_recording",
+      "duration_sec": 0.0001,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "clean_room_purge",
+      "duration_sec": 0.8528,
+      "status": "COMPLETED",
+      "purge_verified": true
+    }
+  ]
+}
