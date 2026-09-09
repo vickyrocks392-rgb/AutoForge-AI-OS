@@ -59,8 +59,8 @@ AutoForge itself performed the entire discovery, reconnaissance, dependency clos
   - Secondary Distributed Coding Worker: `qwen2.5-coder:3b`
   - Vector DB: Qdrant (`http://192.168.1.102:6333`)
 * **Total AI Invocations Across Runs**: **22 calls**
-* **Total Tokens Processed**: **3693 tokens** (1068 prompt / 2625 generated)
-* **Mean Inference Throughput**: **10.05 tokens/sec**
+* **Total Tokens Processed**: **3398 tokens** (998 prompt / 2400 generated)
+* **Mean Inference Throughput**: **9.30 tokens/sec**
 * **Distributed Routing**: 14 M1 calls (63.6%) / 8 HP calls (36.4%)
 
 ---

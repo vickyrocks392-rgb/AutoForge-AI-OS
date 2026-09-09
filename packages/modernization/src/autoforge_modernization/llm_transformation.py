@@ -29,7 +29,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 DEFAULT_OLLAMA_BASE_URL = "http://127.0.0.1:11434"
-DEFAULT_MODEL = "qwen2.5-coder:7b"
+DEFAULT_MODEL = "qwen2.5-coder:7b-instruct-q3_K_M"
 
 
 def _utc_now() -> datetime:

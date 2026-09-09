@@ -1,5 +1,5 @@
 {
-  "total_wall_clock_sec": 235.77,
+  "total_wall_clock_sec": 229.02,
   "total_llm_calls": 22,
   "canonical_fleet": {
     "M1": {
@@ -11,10 +11,10 @@
       "WORKER_CODING": "qwen2.5-coder:3b"
     }
   },
-  "total_input_tokens": 1068,
-  "total_output_tokens": 2625,
-  "total_tokens": 3693,
-  "mean_tokens_per_second": 10.05,
-  "m1_mean_tps": 10.18,
-  "hp_mean_tps": 9.83
+  "total_input_tokens": 998,
+  "total_output_tokens": 2400,
+  "total_tokens": 3398,
+  "mean_tokens_per_second": 9.3,
+  "m1_mean_tps": 10.42,
+  "hp_mean_tps": 7.34
 }

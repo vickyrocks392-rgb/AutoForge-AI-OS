@@ -3,7 +3,7 @@
     "project_a_stages": [
       {
         "stage": "autonomous_discovery",
-        "duration_sec": 1.6241,
+        "duration_sec": 1.5926,
         "status": "COMPLETED",
         "files_scanned": 511,
         "physical_loc": 335001,
@@ -29,7 +29,7 @@
       },
       {
         "stage": "workload_closure_selection",
-        "duration_sec": 0.4269,
+        "duration_sec": 0.3896,
         "status": "COMPLETED",
         "subsystem": "BANKING_CORE",
         "closure_proof": "COMPLETE",
@@ -40,7 +40,7 @@
       },
       {
         "stage": "semantic_extraction",
-        "duration_sec": 0.1646,
+        "duration_sec": 0.1565,
         "status": "COMPLETED",
         "modules_extracted": 11,
         "procedures_extracted": 210,
@@ -48,25 +48,25 @@
       },
       {
         "stage": "rag_retrieval",
-        "duration_sec": 0.9952,
+        "duration_sec": 1.7392,
         "status": "COMPLETED",
         "queries": 3
       },
       {
         "stage": "transformation_planning",
-        "duration_sec": 0.2621,
+        "duration_sec": 0.2537,
         "status": "COMPLETED",
         "target_components": 195
       },
       {
         "stage": "target_artifact_generation",
-        "duration_sec": 55.7911,
+        "duration_sec": 54.4957,
         "status": "COMPLETED",
         "artifacts_generated": 195
       },
       {
         "stage": "toolchain_compilation",
-        "duration_sec": 4.1537,
+        "duration_sec": 3.3937,
         "status": "COMPLETED",
         "toolchain": "OpenJDK javac (26.0.2.1)",
         "class_files": 195,
@@ -82,7 +82,7 @@
       },
       {
         "stage": "autonomous_repair_and_bad_repair_rejection",
-        "duration_sec": 8.9778,
+        "duration_sec": 7.3384,
         "status": "COMPLETED",
         "valid_repair_accepted": true,
         "bad_repair_rejected": true
@@ -91,7 +91,7 @@
     "project_b_stages": [
       {
         "stage": "autonomous_discovery",
-        "duration_sec": 0.0516,
+        "duration_sec": 0.044,
         "status": "COMPLETED",
         "files_scanned": 116,
         "physical_loc": 8883,
@@ -107,7 +107,7 @@
       },
       {
         "stage": "semantic_extraction",
-        "duration_sec": 0.0302,
+        "duration_sec": 0.0234,
         "status": "COMPLETED",
         "modules_extracted": 33,
         "procedures_extracted": 33,
@@ -115,25 +115,25 @@
       },
       {
         "stage": "rag_retrieval",
-        "duration_sec": 0.6102,
+        "duration_sec": 0.7285,
         "status": "COMPLETED",
         "queries": 3
       },
       {
         "stage": "transformation_planning",
-        "duration_sec": 0.0152,
+        "duration_sec": 0.0291,
         "status": "COMPLETED",
         "target_components": 68
       },
       {
         "stage": "target_artifact_generation",
-        "duration_sec": 39.9071,
+        "duration_sec": 40.0103,
         "status": "COMPLETED",
         "artifacts_generated": 68
       },
       {
         "stage": "toolchain_compilation",
-        "duration_sec": 0.0775,
+        "duration_sec": 0.0697,
         "status": "COMPLETED",
         "toolchain": "CPython py_compile",
         "pyc_files": 68,
@@ -141,7 +141,7 @@
       },
       {
         "stage": "live_http_behavioral_verification",
-        "duration_sec": 0.8325,
+        "duration_sec": 0.3311,
         "status": "COMPLETED",
         "tests_executed": 6,
         "tests_passed": 6,
@@ -149,7 +149,7 @@
       },
       {
         "stage": "autonomous_repair_and_bad_repair_rejection",
-        "duration_sec": 1.8117,
+        "duration_sec": 1.1722,
         "status": "COMPLETED",
         "valid_repair_accepted": true,
         "bad_repair_rejected": true
@@ -160,7 +160,7 @@
     "project_a_stages": [
       {
         "stage": "autonomous_discovery",
-        "duration_sec": 2.2376,
+        "duration_sec": 1.6834,
         "status": "COMPLETED",
         "files_scanned": 511,
         "physical_loc": 335001,
@@ -186,7 +186,7 @@
       },
       {
         "stage": "workload_closure_selection",
-        "duration_sec": 0.4714,
+        "duration_sec": 0.394,
         "status": "COMPLETED",
         "subsystem": "BANKING_CORE",
         "closure_proof": "COMPLETE",
@@ -197,7 +197,7 @@
       },
       {
         "stage": "semantic_extraction",
-        "duration_sec": 0.1877,
+        "duration_sec": 0.1759,
         "status": "COMPLETED",
         "modules_extracted": 11,
         "procedures_extracted": 210,
@@ -205,25 +205,25 @@
       },
       {
         "stage": "rag_retrieval",
-        "duration_sec": 1.1172,
+        "duration_sec": 0.1573,
         "status": "COMPLETED",
         "queries": 3
       },
       {
         "stage": "transformation_planning",
-        "duration_sec": 0.2366,
+        "duration_sec": 0.2104,
         "status": "COMPLETED",
         "target_components": 195
       },
       {
         "stage": "target_artifact_generation",
-        "duration_sec": 56.8697,
+        "duration_sec": 54.0595,
         "status": "COMPLETED",
         "artifacts_generated": 195
       },
       {
         "stage": "toolchain_compilation",
-        "duration_sec": 4.1308,
+        "duration_sec": 3.6585,
         "status": "COMPLETED",
         "toolchain": "OpenJDK javac (26.0.2.1)",
         "class_files": 195,
@@ -239,7 +239,7 @@
       },
       {
         "stage": "autonomous_repair_and_bad_repair_rejection",
-        "duration_sec": 8.7721,
+        "duration_sec": 9.5477,
         "status": "COMPLETED",
         "valid_repair_accepted": true,
         "bad_repair_rejected": true
@@ -248,7 +248,7 @@
     "project_b_stages": [
       {
         "stage": "autonomous_discovery",
-        "duration_sec": 0.057,
+        "duration_sec": 0.0499,
         "status": "COMPLETED",
         "files_scanned": 116,
         "physical_loc": 8883,
@@ -264,7 +264,7 @@
       },
       {
         "stage": "semantic_extraction",
-        "duration_sec": 0.0371,
+        "duration_sec": 0.0292,
         "status": "COMPLETED",
         "modules_extracted": 33,
         "procedures_extracted": 33,
@@ -272,25 +272,25 @@
       },
       {
         "stage": "rag_retrieval",
-        "duration_sec": 1.1026,
+        "duration_sec": 0.8815,
         "status": "COMPLETED",
         "queries": 3
       },
       {
         "stage": "transformation_planning",
-        "duration_sec": 0.0159,
+        "duration_sec": 0.0235,
         "status": "COMPLETED",
         "target_components": 68
       },
       {
         "stage": "target_artifact_generation",
-        "duration_sec": 41.6935,
+        "duration_sec": 40.2871,
         "status": "COMPLETED",
         "artifacts_generated": 68
       },
       {
         "stage": "toolchain_compilation",
-        "duration_sec": 0.088,
+        "duration_sec": 0.0707,
         "status": "COMPLETED",
         "toolchain": "CPython py_compile",
         "pyc_files": 68,
@@ -298,7 +298,7 @@
       },
       {
         "stage": "live_http_behavioral_verification",
-        "duration_sec": 0.8266,
+        "duration_sec": 0.8337,
         "status": "COMPLETED",
         "tests_executed": 6,
         "tests_passed": 6,
@@ -306,7 +306,7 @@
       },
       {
         "stage": "autonomous_repair_and_bad_repair_rejection",
-        "duration_sec": 1.0741,
+        "duration_sec": 1.2678,
         "status": "COMPLETED",
         "valid_repair_accepted": true,
         "bad_repair_rejected": true
