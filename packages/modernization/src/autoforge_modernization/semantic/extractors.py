@@ -137,6 +137,12 @@ def _split_cobol_statements(body: str) -> list[str]:
         current_tokens = []
         for tok in tokens:
             tu = tok.upper().rstrip(".")
+            if tu.startswith("END-") or tu == "ELSE":
+                if current_tokens:
+                    statements.append(" ".join(current_tokens))
+                    current_tokens = []
+                statements.append(tok)
+                continue
             if tu in stmt_starters and current_tokens:
                 first_tu = current_tokens[0].upper().rstrip(".")
                 if first_tu == "IF" and tu == "THEN":
@@ -144,21 +150,8 @@ def _split_cobol_statements(body: str) -> list[str]:
                     statements.append(" ".join(current_tokens))
                     current_tokens = []
                     continue
-                if first_tu == "IF" and tu not in ("END-IF", "ELSE"):
-                    statements.append(" ".join(current_tokens))
-                    current_tokens = [tok]
-                    continue
-                if tu.startswith("END-"):
-                    current_tokens.append(tok)
-                    statements.append(" ".join(current_tokens))
-                    current_tokens = []
-                    continue
                 statements.append(" ".join(current_tokens))
                 current_tokens = [tok]
-            elif tu.startswith("END-") and current_tokens:
-                current_tokens.append(tok)
-                statements.append(" ".join(current_tokens))
-                current_tokens = []
             else:
                 current_tokens.append(tok)
         if current_tokens:
@@ -908,7 +901,7 @@ class SemanticModelExtractor:
         if not job_name or job_name == "JCL_JOB":
             job_name = Path(file_path).stem.upper()
 
-        module_name = f"{job_name}_JOB" if not job_name.endswith("_JOB") else job_name
+        module_name = job_name
 
         return SemanticModule(
             name=module_name,
@@ -1091,6 +1084,8 @@ class ProjectSemanticExtractor:
 
             elif ext == ".jcl":
                 job_mod = self.single_extractor.extract_from_jcl(content, file_path=rel_path, project_id=project_id)
+                if job_mod.name in model.modules:
+                    job_mod.name = f"{job_mod.name}_JOB"
                 model.add_module(job_mod)
                 for io in job_mod.io_operations:
                     model.add_io_operation(io)

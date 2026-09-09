@@ -579,10 +579,10 @@ class GenericTargetArtifactGenerator:
                         if clean_name in string_assigned_fields:
                             jtype = "String"
                             init_val = '""'
-                        elif any(k in cand_u for k in ("DESC", "NAME", "MSG", "MESSAGE", "TEXT", "TITLE", "DATE", "TIME", "ALPHA", "FLG", "FLAG")):
+                        elif any(k in cand_u for k in ("DESC", "NAME", "MSG", "MESSAGE", "TEXT", "TITLE", "DATE", "TIME", "ALPHA", "FLG", "FLAG", "STATUS")):
                             jtype = "String"
-                            init_val = '""'
-                        elif any(k in cand_u for k in ("COUNT", "STATUS", "REASON", "RESULT", "RC", "NUM", "LILLIAN", "SEVERITY", "AMT", "BAL", "LIMIT", "CREDIT", "DEBIT", "RATE", "PAY", "HOURS", "DED", "TAX", "GROSS", "NET", "HEADCOUNT", "FICA", "TOTAL", "CYCLE", "AVG")):
+                            init_val = '"00"' if "STATUS" in cand_u else '""'
+                        elif any(k in cand_u for k in ("COUNT", "REASON", "RESULT", "RC", "NUM", "LILLIAN", "SEVERITY", "AMT", "BAL", "LIMIT", "CREDIT", "DEBIT", "RATE", "PAY", "HOURS", "DED", "TAX", "GROSS", "NET", "HEADCOUNT", "FICA", "TOTAL", "CYCLE", "AVG")):
                             jtype = "long"
                             init_val = "0L"
                         else:
@@ -779,14 +779,9 @@ class GenericTargetArtifactGenerator:
 
         for f_name in seen_fields:
             f_type = field_type_map.get(f_name, "String")
-            if f_name.lower().endswith(("rejectcount", "errorcount", "failcount", "invalidcount")):
+            if f_name.lower() in ("returncode", "rc", "statuscode", "wsreturncode"):
                 if f_type == "String":
-                    lines.append(f'        if (this.{f_name} != null && !"0".equals(this.{f_name}) && !this.{f_name}.isEmpty()) return 4;')
-                else:
-                    lines.append(f"        if (this.{f_name} > 0) return 4;")
-            elif f_name.lower() in ("returncode", "rc", "statuscode", "wsreturncode"):
-                if f_type == "String":
-                    lines.append(f'        if (this.{f_name} != null && !this.{f_name}.isEmpty() && !"0".equals(this.{f_name}) && !"00".equals(this.{f_name}) && !"0000".equals(this.{f_name})) {{ try {{ return Integer.parseInt(this.{f_name}); }} catch (Exception e) {{ return 4; }} }}')
+                    lines.append(f'        if (this.{f_name} != null && !this.{f_name}.trim().isEmpty() && !"0".equals(this.{f_name}.trim()) && !"00".equals(this.{f_name}.trim()) && !"0000".equals(this.{f_name}.trim())) {{ try {{ int parsed = Integer.parseInt(this.{f_name}.trim()); if (parsed != 0) return parsed; }} catch (Exception ignored) {{}} }}')
                 else:
                     lines.append(f"        if (this.{f_name} != 0) return (int) this.{f_name};")
 
@@ -1192,7 +1187,12 @@ class GenericTargetArtifactGenerator:
                     comp_map = {"=": "== 0", "==": "== 0", "EQUAL TO": "== 0", "!=": "!= 0", "NOT =": "!= 0", "NOT EQUAL TO": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
                     c_expr = comp_map.get(op_s, "== 0")
                     return f"(this.{left_field} != null && this.{left_field}.compareTo(BigDecimal.ZERO) {c_expr})"
-                return f"this.{left_field} == 0L" if op_s in ("=", "==", "EQUAL TO") else f"this.{left_field} != 0L"
+                elif left_type in ("long", "int", "short", "byte"):
+                    return f"this.{left_field} == 0L" if op_s in ("=", "==", "EQUAL TO") else f"this.{left_field} != 0L"
+                elif left_type == "boolean":
+                    return f"!this.{left_field}" if op_s in ("=", "==", "EQUAL TO") else f"this.{left_field}"
+                else:
+                    return f'("0".equals(String.valueOf(this.{left_field})) || "00".equals(String.valueOf(this.{left_field})))' if op_s in ("=", "==", "EQUAL TO") else f'!"0".equals(String.valueOf(this.{left_field})) && !"00".equals(String.valueOf(this.{left_field}))'
             if right_s.upper() in ("SPACE", "SPACES", "LOW-VALUES", "LOW-VALUE", "HIGH-VALUES", "HIGH-VALUE", "NULL", "NULLS"):
                 return f'"".equals(this.{left_field})' if op_s in ("=", "==", "EQUAL TO") else f'!"".equals(this.{left_field})'
 
@@ -1215,9 +1215,14 @@ class GenericTargetArtifactGenerator:
                     comp_map = {"=": "== 0", "==": "== 0", "EQUAL TO": "== 0", "!=": "!= 0", "NOT =": "!= 0", "NOT EQUAL TO": "!= 0", ">=": ">= 0", "<=": "<= 0", ">": "> 0", "<": "< 0"}
                     c_expr = comp_map.get(op_s, "== 0")
                     return f'(this.{left_field} != null && this.{left_field}.compareTo(new BigDecimal("{right_s}")) {c_expr})'
-                else:
+                elif left_type in ("long", "int", "short", "byte"):
                     java_op = "==" if op_s in ("=", "EQUAL TO") else "!=" if "NOT" in op_s or op_s == "!=" else op_s
                     return f"this.{left_field} {java_op} {right_s}L"
+                elif left_type == "boolean":
+                    val_b = (right_s == "1")
+                    return f"this.{left_field} == {str(val_b).lower()}"
+                else:
+                    return f'"{right_s}".equals(String.valueOf(this.{left_field}))' if op_s in ("=", "==", "EQUAL TO") else f'!"{right_s}".equals(String.valueOf(this.{left_field}))'
 
             # Otherwise right is another field
             right_clean = re.split(r"\s+OF\s+|\s+IN\s+", right_s, flags=re.IGNORECASE)[0].strip()
@@ -1260,8 +1265,10 @@ class GenericTargetArtifactGenerator:
             return f"this.{cond_field}"
         elif f_type == "String":
             return f'(this.{cond_field} != null && !this.{cond_field}.isEmpty())'
-        else:
+        elif f_type in ("long", "int", "short", "byte"):
             return f"this.{cond_field} != 0L"
+        else:
+            return f"this.{cond_field} != null"
 
     def _translate_condition(self, cond: str, field_type_map: dict[str, str]) -> str:
         cond_clean = re.sub(r"\([0-9]+:[0-9]+\)", "", cond).strip().rstrip(".")

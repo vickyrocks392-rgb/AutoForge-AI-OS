@@ -252,19 +252,36 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
             cand = os.path.join(java_home, "bin", "javac")
             if os.path.exists(cand) and os.access(cand, os.X_OK):
                 return cand
-        # 4. Check Homebrew / standard OpenJDK locations
-        std_candidates = [
-            Path("/opt/homebrew/opt/openjdk/bin/javac"),
-            *Path("/opt/homebrew/Cellar/openjdk").glob("*/bin/javac"),
-            *Path("/opt/homebrew/Cellar/openjdk").glob("*/libexec/openjdk.jdk/Contents/Home/bin/javac"),
-            Path("/usr/lib/jvm/default-java/bin/javac"),
+        return None
+
+    def _find_real_java(self) -> str | None:
+        if self._managed_java_home:
+            cand = self._managed_java_home / "bin" / "java"
+            if cand.exists() and os.access(cand, os.X_OK):
+                return str(cand)
+        af_home = os.environ.get("AUTOFORGE_JAVA_HOME")
+        if af_home:
+            cand = Path(af_home) / "bin" / "java"
+            if cand.exists() and os.access(cand, os.X_OK):
+                return str(cand)
+        java_home = os.environ.get("JAVA_HOME")
+        if java_home:
+            cand = os.path.join(java_home, "bin", "java")
+            if os.path.exists(cand) and os.access(cand, os.X_OK):
+                return cand
+        candidate_roots = [
+            Path("/opt/homebrew/opt/openjdk"),
+            Path("/usr/local/opt/openjdk"),
+            Path("/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home"),
+            Path("/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home"),
+            Path("/usr/lib/jvm/java-21-openjdk-amd64"),
+            Path("/usr/lib/jvm/default-java"),
         ]
-        for sc in std_candidates:
-            if sc.exists() and os.access(sc, os.X_OK):
-                return str(sc)
-        # 5. Check PATH
-        cand = shutil.which("javac")
-        return cand
+        for root in candidate_roots:
+            cand_java = root / "bin" / "java"
+            if cand_java.exists() and os.access(cand_java, os.X_OK):
+                return str(cand_java)
+        return None
 
     def is_tool_discovered(self) -> bool:
         return self._find_real_javac() is not None

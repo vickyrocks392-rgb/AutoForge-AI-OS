@@ -23,6 +23,8 @@ async def test_18_g_independent_real_world_certification():
     """Validates that all 15 Gates (G1 to G15) PASS on the external Open Mainframe Project workload."""
     repo_root = Path(__file__).resolve().parents[3]
     workload_root = repo_root / ".autoforge" / "external_workloads" / "cobol-programming-course" / "COBOL Programming Course #2 - Learning COBOL" / "Labs"
+    if not workload_root.exists():
+        pytest.skip(f"External workload not present at {workload_root}")
     source_files = sorted(workload_root.glob("cbl/*.cobol")) + sorted(workload_root.glob("jcl/*.jcl"))
 
     assert len(source_files) >= 40, f"Expected at least 40 source files in external workload, got {len(source_files)}"

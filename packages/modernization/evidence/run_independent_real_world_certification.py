@@ -367,17 +367,19 @@ async def execute_certification_run(
         t0_repair = time.perf_counter()
         repair_cycle = AutonomousTargetRepairCycle(verifier=verifier)
         
-        # Valid defect injection & autonomous repair
-        corrupted_artifacts = [
-            type(generated_artifacts[0])(
-                component_name=generated_artifacts[0].component_name,
-                artifact_id=generated_artifacts[0].artifact_id,
-                relative_path=generated_artifacts[0].relative_path,
-                target_language=generated_artifacts[0].target_language,
-                code="BROKEN_SYNTAX_TOKEN;\n" + generated_artifacts[0].code,
-            )
-        ] if generated_artifacts else []
-        if corrupted_artifacts and corrupted_artifacts[0]:
+        # Valid defect injection & autonomous repair (missing statement terminator)
+        if generated_artifacts:
+            original_code = generated_artifacts[0].code
+            corrupted_code = original_code.replace(";", "", 1)
+            corrupted_artifacts = [
+                type(generated_artifacts[0])(
+                    component_name=generated_artifacts[0].component_name,
+                    artifact_id=generated_artifacts[0].artifact_id,
+                    relative_path=generated_artifacts[0].relative_path,
+                    target_language=generated_artifacts[0].target_language,
+                    code=corrupted_code,
+                )
+            ]
             initial_v = verifier.verify(corrupted_artifacts, target_spec)
             repaired_arts, repair_outcome, re_v = repair_cycle.repair_cycle(
                 corrupted_artifacts, initial_v, target_spec

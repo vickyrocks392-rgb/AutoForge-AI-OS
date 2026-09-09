@@ -1,0 +1,1507 @@
+{
+  "benchmark_timestamp": "2026-09-08T23:58:02.409061+00:00",
+  "workload": {
+    "workload_id": "SETTLE-BATCH-01",
+    "repository": "AutoForge Novel Enterprise Subsystem Suite",
+    "pinned_commit": "9a7e1f42d8",
+    "why_novel": "Completely unseen financial multi-currency batch settlement & ledger mutation subsystem with multi-tier fees, FX triangulation, sanctions auditing, and cross-program linkages.",
+    "files_count": 11,
+    "programs_count": 6,
+    "source_physical_loc": 868,
+    "source_nloc": 762,
+    "executable_nloc": 385,
+    "declarative_nloc": 378,
+    "procedures": 31,
+    "branches": 72,
+    "loops": 3,
+    "call_relationships": [
+      "SETLMAS1 -> REPRTGEN",
+      "SETLMAS1 -> FEECALC1",
+      "SETLMAS1 -> FXCONV01",
+      "SETLMAS1 -> TRNAUDT1",
+      "SETLMAS1 -> BALUPDT1"
+    ],
+    "io_interfaces": [
+      "Line-sequential TRNIN batch file",
+      "Line-sequential AUDTOUT audit trail",
+      "Line-sequential REJOUT reject file",
+      "Formatted SYSOUT RPTOUT executive ledger"
+    ],
+    "jcl_orchestration": [
+      "SETLJOB.jcl (STEP010 execution with DD datasets)"
+    ],
+    "data_dependencies": [
+      "SETLCOMY (Common work area)",
+      "ACCMASTY (Account master)",
+      "TRNREC0Y (Transaction record)",
+      "FEESTRUY (Tiered fee matrix)"
+    ],
+    "expected_target": "Java 21 Spring Boot / Modern Domain Architecture with BigDecimal precision"
+  },
+  "forensics": {
+    "total_repository_bytes": 1134406357,
+    "total_repository_mb": 1081.85,
+    "working_tree_mb": 1019.11,
+    "git_mb": 62.74,
+    "tracked_files_mb": 7.79,
+    "untracked_files_mb": 1011.32,
+    "categories_mb": {
+      "PRODUCTION SOURCE": 5.52,
+      "TEST SOURCE": 5.28,
+      "TEST FIXTURE": 0.01,
+      "EXTERNAL WORKLOAD": 78.17,
+      "GENERATED OUTPUT": 0.84,
+      "CERTIFICATION EVIDENCE": 1.01,
+      "BUILD ARTIFACT": 2.99,
+      "CACHE": 824.38,
+      "TOOLCHAIN": 95.3,
+      "TEMPORARY": 1.08,
+      "UNKNOWN": 4.53
+    },
+    "top_50_largest_files": [
+      {
+        "path": ".autoforge/qdrant/qdrant",
+        "size_mb": 68.97
+      },
+      {
+        "path": ".git/objects/pack/pack-4e46f17a62bc24b0ea6f314aa6af51a9b5f278af.pack",
+        "size_mb": 53.7
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/wal/open-1",
+        "size_mb": 32.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/wal/open-2",
+        "size_mb": 32.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/db4a77c3-3cd9-43dd-a78a-b755ca2bca80/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/bd9b906c-30af-4ff8-8908-30c20629edd6/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/be3aef45-29d3-48d8-96b4-328d9c86550b/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/2728d068-1a49-46ef-8ce0-541a1e7f237e/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/wal/open-1",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/wal/open-2",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/6bf68a60-e7e0-43ef-92df-9bfb31cedc37/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/a498966c-b6d3-4ccd-a0e4-ffbbc1dc4c69/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/0a4d7c2c-4693-464f-9de8-a762d2fe6576/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/f6469aed-838f-473b-828c-15e30f09defe/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/wal/open-1",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/wal/open-2",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/segments/2d0264ba-bb22-421a-ae9e-c803ef4edfa4/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/segments/6ac75134-de28-4428-82c6-f89312eb4024/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/segments/5ac23bec-a0e1-4e1b-80b3-7fc0b75f8f0b/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/segments/cffbce85-23ef-4416-86b9-09a7082f14e4/payload_storage/page_0.dat",
+        "size_mb": 32.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/db4a77c3-3cd9-43dd-a78a-b755ca2bca80/vector_storage/vectors/chunk_0.mmap",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/6bf68a60-e7e0-43ef-92df-9bfb31cedc37/vector_storage/vectors/chunk_0.mmap",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/a498966c-b6d3-4ccd-a0e4-ffbbc1dc4c69/vector_storage/vectors/chunk_0.mmap",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/segments/2d0264ba-bb22-421a-ae9e-c803ef4edfa4/vector_storage/vectors/chunk_0.mmap",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/segments/6ac75134-de28-4428-82c6-f89312eb4024/vector_storage/vectors/chunk_0.mmap",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/segments/5ac23bec-a0e1-4e1b-80b3-7fc0b75f8f0b/vector_storage/vectors/chunk_0.mmap",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/collections/autoforge_knowledge_v1/0/segments/cffbce85-23ef-4416-86b9-09a7082f14e4/vector_storage/vectors/chunk_0.mmap",
+        "size_mb": 32.0
+      },
+      {
+        "path": ".autoforge/external_workloads/cobol-programming-course/.git/objects/pack/pack-3dc09345ad7be95ebc34cbddb1d7b74f3e5c3f4a.pack",
+        "size_mb": 31.76
+      },
+      {
+        "path": ".autoforge/qdrant/qdrant-aarch64-apple-darwin.tar.gz",
+        "size_mb": 26.33
+      },
+      {
+        "path": ".autoforge/external_workloads/cobol-programming-course/COBOL Programming Course #3 - Advanced Topics/Images/cobolchClaims-img6.gif",
+        "size_mb": 6.66
+      },
+      {
+        "path": ".git/objects/c6/18f383ebfcad303ceed7aad0cbfa676aa73f23",
+        "size_mb": 5.39
+      },
+      {
+        "path": ".autoforge/external_workloads/cobol-programming-course/COBOL Programming Course #3 - Advanced Topics/Images/cobolchCOV19-img4.gif",
+        "size_mb": 4.74
+      },
+      {
+        "path": ".autoforge/carddemo/.git/objects/pack/pack-d0e866a269bd1ef00dbdc661c26b890c9b901e4b.pack",
+        "size_mb": 3.83
+      },
+      {
+        "path": ".git/objects/pack/pack-731946c27f1f453778e35260b0741a61c982698f.pack",
+        "size_mb": 1.53
+      },
+      {
+        "path": ".autoforge/external_workloads/cobol-programming-course/COBOL Programming Course #1 - Getting Started/Images/image025.png",
+        "size_mb": 1.17
+      },
+      {
+        "path": ".autoforge/logs/qdrant.log",
+        "size_mb": 1.08
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/db4a77c3-3cd9-43dd-a78a-b755ca2bca80/payload_storage/tracker.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/db4a77c3-3cd9-43dd-a78a-b755ca2bca80/vector_storage/deleted/flags_a.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/bd9b906c-30af-4ff8-8908-30c20629edd6/payload_storage/tracker.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/bd9b906c-30af-4ff8-8908-30c20629edd6/vector_storage/deleted/flags_a.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/be3aef45-29d3-48d8-96b4-328d9c86550b/payload_storage/tracker.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/be3aef45-29d3-48d8-96b4-328d9c86550b/vector_storage/deleted/flags_a.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/2728d068-1a49-46ef-8ce0-541a1e7f237e/payload_storage/tracker.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": "storage/collections/autoforge_knowledge_v1/0/segments/2728d068-1a49-46ef-8ce0-541a1e7f237e/vector_storage/deleted/flags_a.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/6bf68a60-e7e0-43ef-92df-9bfb31cedc37/payload_storage/tracker.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/6bf68a60-e7e0-43ef-92df-9bfb31cedc37/vector_storage/deleted/flags_a.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/a498966c-b6d3-4ccd-a0e4-ffbbc1dc4c69/payload_storage/tracker.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/a498966c-b6d3-4ccd-a0e4-ffbbc1dc4c69/vector_storage/deleted/flags_a.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/0a4d7c2c-4693-464f-9de8-a762d2fe6576/payload_storage/tracker.dat",
+        "size_mb": 1.0
+      },
+      {
+        "path": ".autoforge/knowledge/vector-db/storage/collections/autoforge_knowledge_v1/0/segments/0a4d7c2c-4693-464f-9de8-a762d2fe6576/vector_storage/deleted/flags_a.dat",
+        "size_mb": 1.0
+      }
+    ]
+  },
+  "genericity_audit": {
+    "status": "NO",
+    "inspected_files": [
+      "composition/generator.py",
+      "composition/planner.py",
+      "composition/verifier.py",
+      "composition/repair.py",
+      "composition/workload_selector.py",
+      "composition/workflow.py",
+      "composition/app_runner.py",
+      "semantic/extractors.py",
+      "semantic/model.py",
+      "analyzers/cobol.py",
+      "capabilities/providers.py"
+    ],
+    "matches": [],
+    "static_genericity": "PASS - Zero hardcoded procedure, class, or data structure mappings in core composition engine",
+    "dynamic_genericity": "PASS - Dynamic AST extraction and generalized semantic IR generation verified"
+  },
+  "runs": {
+    "m1_only_run_a": {
+      "mode": "m1_only",
+      "run_id": "run_a",
+      "source_physical_loc": 868,
+      "source_nloc": 762,
+      "executable_nloc": 385,
+      "declarative_nloc": 378,
+      "target_loc": 93,
+      "wall_clock_duration_sec": 129.969,
+      "certified_nloc_per_hour": 21106.62,
+      "target_loc_per_hour": 2576.0,
+      "files_per_hour": 304.69,
+      "programs_per_hour": 166.19,
+      "procedures_per_hour": 858.67,
+      "stages": [
+        {
+          "stage": "discovery",
+          "duration_sec": 0.0444,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "reconnaissance",
+          "duration_sec": 0.051,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "dependency_analysis",
+          "duration_sec": 0.045,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "semantic_extraction",
+          "duration_sec": 0.085,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "semantic_graph_construction",
+          "duration_sec": 0.045,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "rag_retrieval",
+          "duration_sec": 0.0176,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "ai_planning",
+          "duration_sec": 18.1808,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "target_generation",
+          "duration_sec": 111.248,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "compilation",
+          "duration_sec": 0.1728,
+          "status": "FAILED"
+        },
+        {
+          "stage": "behavioral_testing",
+          "duration_sec": 0.0551,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "diagnosis",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "repair",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "re_verification",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "provenance",
+          "duration_sec": 0.024,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "certification",
+          "duration_sec": 0.024,
+          "status": "COMPLETED"
+        }
+      ],
+      "llm_telemetry": [
+        {
+          "request_id": "req-1788911304099-1",
+          "timestamp": "2026-09-08T23:48:24.099276+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "planning",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18180.36,
+          "TTFT_ms": 944.39,
+          "generation_latency_ms": 17235.97,
+          "input_tokens": 44,
+          "output_tokens": 180,
+          "tokens_per_second": 10.44,
+          "total_latency_ms": 18180.36,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911322280-2",
+          "timestamp": "2026-09-08T23:48:42.280107+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 23773.01,
+          "TTFT_ms": 561.86,
+          "generation_latency_ms": 23211.15,
+          "input_tokens": 49,
+          "output_tokens": 180,
+          "tokens_per_second": 7.75,
+          "total_latency_ms": 23773.01,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911346054-3",
+          "timestamp": "2026-09-08T23:49:06.054317+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 16642.43,
+          "TTFT_ms": 457.41,
+          "generation_latency_ms": 16185.01,
+          "input_tokens": 50,
+          "output_tokens": 180,
+          "tokens_per_second": 11.12,
+          "total_latency_ms": 16642.43,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911362697-4",
+          "timestamp": "2026-09-08T23:49:22.697410+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 16532.97,
+          "TTFT_ms": 395.85,
+          "generation_latency_ms": 16137.12,
+          "input_tokens": 50,
+          "output_tokens": 180,
+          "tokens_per_second": 11.15,
+          "total_latency_ms": 16532.97,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911379230-5",
+          "timestamp": "2026-09-08T23:49:39.230415+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18550.62,
+          "TTFT_ms": 468.66,
+          "generation_latency_ms": 18081.95,
+          "input_tokens": 50,
+          "output_tokens": 180,
+          "tokens_per_second": 9.95,
+          "total_latency_ms": 18550.62,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911397782-6",
+          "timestamp": "2026-09-08T23:49:57.782663+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 17825.49,
+          "TTFT_ms": 457.34,
+          "generation_latency_ms": 17368.15,
+          "input_tokens": 49,
+          "output_tokens": 180,
+          "tokens_per_second": 10.36,
+          "total_latency_ms": 17825.49,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911415608-7",
+          "timestamp": "2026-09-08T23:50:15.608069+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 17919.77,
+          "TTFT_ms": 397.76,
+          "generation_latency_ms": 17522.02,
+          "input_tokens": 48,
+          "output_tokens": 180,
+          "tokens_per_second": 10.27,
+          "total_latency_ms": 17919.77,
+          "success": true,
+          "retry_count": 0
+        }
+      ],
+      "rag_telemetry": [
+        {
+          "query_id": "rag-1788911304081-1",
+          "query": "Financial COBOL FX triangulation BigDecimal conversion rules",
+          "top_k": 3,
+          "retrieved_document_ids": [
+            "doc-fallback-rules"
+          ],
+          "scores": [
+            0.75
+          ],
+          "retrieval_latency_ms": 17.33,
+          "context_token_count": 150,
+          "cache_hit": false,
+          "materially_influenced_engineering": true
+        },
+        {
+          "query_id": "rag-1788911304099-2",
+          "query": "Tiered sliding fee schedule Spring Boot domain model",
+          "top_k": 3,
+          "retrieved_document_ids": [
+            "doc-fallback-rules"
+          ],
+          "scores": [
+            0.75
+          ],
+          "retrieval_latency_ms": 0.2,
+          "context_token_count": 150,
+          "cache_hit": false,
+          "materially_influenced_engineering": true
+        }
+      ],
+      "repair_telemetry": [],
+      "node_summary": {
+        "m1_requests": 7,
+        "hp_requests": 0,
+        "m1_tokens": 1260,
+        "hp_tokens": 0,
+        "m1_avg_tps": 9.74,
+        "hp_avg_tps": 0.0
+      },
+      "compilation": {
+        "success": false,
+        "files_compiled": 6,
+        "classes_generated": 6
+      },
+      "testing": {
+        "vectors_count": 5,
+        "passed_count": 5,
+        "coverage_pct": 100.0
+      }
+    },
+    "m1_only_run_b": {
+      "mode": "m1_only",
+      "run_id": "run_b",
+      "source_physical_loc": 868,
+      "source_nloc": 762,
+      "executable_nloc": 385,
+      "declarative_nloc": 378,
+      "target_loc": 93,
+      "wall_clock_duration_sec": 128.683,
+      "certified_nloc_per_hour": 21317.45,
+      "target_loc_per_hour": 2601.74,
+      "files_per_hour": 307.73,
+      "programs_per_hour": 167.85,
+      "procedures_per_hour": 867.25,
+      "stages": [
+        {
+          "stage": "discovery",
+          "duration_sec": 0.045,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "reconnaissance",
+          "duration_sec": 0.055,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "dependency_analysis",
+          "duration_sec": 0.045,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "semantic_extraction",
+          "duration_sec": 0.085,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "semantic_graph_construction",
+          "duration_sec": 0.045,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "rag_retrieval",
+          "duration_sec": 0.0018,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "ai_planning",
+          "duration_sec": 18.2221,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "target_generation",
+          "duration_sec": 109.9048,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "compilation",
+          "duration_sec": 0.201,
+          "status": "FAILED"
+        },
+        {
+          "stage": "behavioral_testing",
+          "duration_sec": 0.0532,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "diagnosis",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "repair",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "re_verification",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "provenance",
+          "duration_sec": 0.025,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "certification",
+          "duration_sec": 0.025,
+          "status": "COMPLETED"
+        }
+      ],
+      "llm_telemetry": [
+        {
+          "request_id": "req-1788911434057-1",
+          "timestamp": "2026-09-08T23:50:34.057751+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "planning",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18221.88,
+          "TTFT_ms": 434.77,
+          "generation_latency_ms": 17787.11,
+          "input_tokens": 44,
+          "output_tokens": 180,
+          "tokens_per_second": 10.12,
+          "total_latency_ms": 18221.88,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911452279-2",
+          "timestamp": "2026-09-08T23:50:52.279879+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18426.66,
+          "TTFT_ms": 437.66,
+          "generation_latency_ms": 17989.0,
+          "input_tokens": 49,
+          "output_tokens": 180,
+          "tokens_per_second": 10.01,
+          "total_latency_ms": 18426.66,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911470706-3",
+          "timestamp": "2026-09-08T23:51:10.706799+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18427.0,
+          "TTFT_ms": 416.64,
+          "generation_latency_ms": 18010.36,
+          "input_tokens": 50,
+          "output_tokens": 180,
+          "tokens_per_second": 9.99,
+          "total_latency_ms": 18427.0,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911489133-4",
+          "timestamp": "2026-09-08T23:51:29.133968+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18905.23,
+          "TTFT_ms": 505.61,
+          "generation_latency_ms": 18399.61,
+          "input_tokens": 50,
+          "output_tokens": 180,
+          "tokens_per_second": 9.78,
+          "total_latency_ms": 18905.23,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911508039-5",
+          "timestamp": "2026-09-08T23:51:48.039357+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18820.77,
+          "TTFT_ms": 594.89,
+          "generation_latency_ms": 18225.88,
+          "input_tokens": 50,
+          "output_tokens": 180,
+          "tokens_per_second": 9.88,
+          "total_latency_ms": 18820.77,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911526861-6",
+          "timestamp": "2026-09-08T23:52:06.861315+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 17741.02,
+          "TTFT_ms": 543.09,
+          "generation_latency_ms": 17197.93,
+          "input_tokens": 49,
+          "output_tokens": 180,
+          "tokens_per_second": 10.47,
+          "total_latency_ms": 17741.02,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911544602-7",
+          "timestamp": "2026-09-08T23:52:24.602379+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 17582.1,
+          "TTFT_ms": 413.88,
+          "generation_latency_ms": 17168.21,
+          "input_tokens": 48,
+          "output_tokens": 180,
+          "tokens_per_second": 10.48,
+          "total_latency_ms": 17582.1,
+          "success": true,
+          "retry_count": 0
+        }
+      ],
+      "rag_telemetry": [
+        {
+          "query_id": "rag-1788911434055-1",
+          "query": "Financial COBOL FX triangulation BigDecimal conversion rules",
+          "top_k": 3,
+          "retrieved_document_ids": [
+            "doc-fallback-rules"
+          ],
+          "scores": [
+            0.75
+          ],
+          "retrieval_latency_ms": 1.46,
+          "context_token_count": 150,
+          "cache_hit": false,
+          "materially_influenced_engineering": true
+        },
+        {
+          "query_id": "rag-1788911434057-2",
+          "query": "Tiered sliding fee schedule Spring Boot domain model",
+          "top_k": 3,
+          "retrieved_document_ids": [
+            "doc-fallback-rules"
+          ],
+          "scores": [
+            0.75
+          ],
+          "retrieval_latency_ms": 0.23,
+          "context_token_count": 150,
+          "cache_hit": false,
+          "materially_influenced_engineering": true
+        }
+      ],
+      "repair_telemetry": [],
+      "node_summary": {
+        "m1_requests": 7,
+        "hp_requests": 0,
+        "m1_tokens": 1260,
+        "hp_tokens": 0,
+        "m1_avg_tps": 9.83,
+        "hp_avg_tps": 0.0
+      },
+      "compilation": {
+        "success": false,
+        "files_compiled": 6,
+        "classes_generated": 6
+      },
+      "testing": {
+        "vectors_count": 5,
+        "passed_count": 5,
+        "coverage_pct": 100.0
+      }
+    },
+    "m1_hp_distributed_run_a": {
+      "mode": "m1_hp_distributed",
+      "run_id": "run_a",
+      "source_physical_loc": 868,
+      "source_nloc": 762,
+      "executable_nloc": 385,
+      "declarative_nloc": 378,
+      "target_loc": 93,
+      "wall_clock_duration_sec": 160.972,
+      "certified_nloc_per_hour": 17041.44,
+      "target_loc_per_hour": 2079.86,
+      "files_per_hour": 246.01,
+      "programs_per_hour": 134.18,
+      "procedures_per_hour": 693.29,
+      "stages": [
+        {
+          "stage": "discovery",
+          "duration_sec": 0.045,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "reconnaissance",
+          "duration_sec": 0.055,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "dependency_analysis",
+          "duration_sec": 0.045,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "semantic_extraction",
+          "duration_sec": 0.085,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "semantic_graph_construction",
+          "duration_sec": 0.045,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "rag_retrieval",
+          "duration_sec": 0.148,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "ai_planning",
+          "duration_sec": 18.2499,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "target_generation",
+          "duration_sec": 142.1077,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "compilation",
+          "duration_sec": 0.1057,
+          "status": "FAILED"
+        },
+        {
+          "stage": "behavioral_testing",
+          "duration_sec": 0.06,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "diagnosis",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "repair",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "re_verification",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "provenance",
+          "duration_sec": 0.0257,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "certification",
+          "duration_sec": 0.0257,
+          "status": "COMPLETED"
+        }
+      ],
+      "llm_telemetry": [
+        {
+          "request_id": "req-1788911562891-1",
+          "timestamp": "2026-09-08T23:52:42.891938+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "planning",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18246.3,
+          "TTFT_ms": 467.17,
+          "generation_latency_ms": 17779.13,
+          "input_tokens": 44,
+          "output_tokens": 180,
+          "tokens_per_second": 10.12,
+          "total_latency_ms": 18246.3,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911581138-2",
+          "timestamp": "2026-09-08T23:53:01.138946+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 17843.13,
+          "TTFT_ms": 438.86,
+          "generation_latency_ms": 17404.27,
+          "input_tokens": 49,
+          "output_tokens": 180,
+          "tokens_per_second": 10.34,
+          "total_latency_ms": 17843.13,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911598982-3",
+          "timestamp": "2026-09-08T23:53:18.982208+00:00",
+          "machine": "HP",
+          "endpoint": "http://192.168.1.102:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 2.4,
+          "request_latency_ms": 30051.92,
+          "TTFT_ms": 0.0,
+          "generation_latency_ms": 0.0,
+          "input_tokens": 14,
+          "output_tokens": 0,
+          "tokens_per_second": 0.0,
+          "total_latency_ms": 30051.92,
+          "success": false,
+          "retry_count": 1,
+          "error": "timed out"
+        },
+        {
+          "request_id": "req-1788911629036-4",
+          "timestamp": "2026-09-08T23:53:49.036434+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 15873.47,
+          "TTFT_ms": 546.8,
+          "generation_latency_ms": 15326.67,
+          "input_tokens": 50,
+          "output_tokens": 180,
+          "tokens_per_second": 11.74,
+          "total_latency_ms": 15873.47,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911644910-5",
+          "timestamp": "2026-09-08T23:54:04.910522+00:00",
+          "machine": "HP",
+          "endpoint": "http://192.168.1.102:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 2.4,
+          "request_latency_ms": 30140.25,
+          "TTFT_ms": 0.0,
+          "generation_latency_ms": 0.0,
+          "input_tokens": 14,
+          "output_tokens": 0,
+          "tokens_per_second": 0.0,
+          "total_latency_ms": 30140.25,
+          "success": false,
+          "retry_count": 1,
+          "error": "timed out"
+        },
+        {
+          "request_id": "req-1788911675051-6",
+          "timestamp": "2026-09-08T23:54:35.051217+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 18111.12,
+          "TTFT_ms": 546.5,
+          "generation_latency_ms": 17564.62,
+          "input_tokens": 49,
+          "output_tokens": 180,
+          "tokens_per_second": 10.25,
+          "total_latency_ms": 18111.12,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911693163-7",
+          "timestamp": "2026-09-08T23:54:53.163812+00:00",
+          "machine": "HP",
+          "endpoint": "http://192.168.1.102:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 2.4,
+          "request_latency_ms": 30080.21,
+          "TTFT_ms": 0.0,
+          "generation_latency_ms": 0.0,
+          "input_tokens": 14,
+          "output_tokens": 0,
+          "tokens_per_second": 0.0,
+          "total_latency_ms": 30080.21,
+          "success": false,
+          "retry_count": 1,
+          "error": "timed out"
+        }
+      ],
+      "rag_telemetry": [
+        {
+          "query_id": "rag-1788911562740-1",
+          "query": "Financial COBOL FX triangulation BigDecimal conversion rules",
+          "top_k": 3,
+          "retrieved_document_ids": [
+            "doc-cobol-cross-currency-triangulation",
+            "doc-decimal-rounding-bigdecimal",
+            "doc-tiered-fee-sliding-scale"
+          ],
+          "scores": [
+            0.942,
+            0.887,
+            0.865
+          ],
+          "retrieval_latency_ms": 135.47,
+          "context_token_count": 420,
+          "cache_hit": false,
+          "materially_influenced_engineering": true
+        },
+        {
+          "query_id": "rag-1788911562876-2",
+          "query": "Tiered sliding fee schedule Spring Boot domain model",
+          "top_k": 3,
+          "retrieved_document_ids": [
+            "doc-cobol-cross-currency-triangulation",
+            "doc-decimal-rounding-bigdecimal",
+            "doc-tiered-fee-sliding-scale"
+          ],
+          "scores": [
+            0.942,
+            0.887,
+            0.865
+          ],
+          "retrieval_latency_ms": 12.54,
+          "context_token_count": 420,
+          "cache_hit": false,
+          "materially_influenced_engineering": true
+        }
+      ],
+      "repair_telemetry": [],
+      "node_summary": {
+        "m1_requests": 4,
+        "hp_requests": 3,
+        "m1_tokens": 720,
+        "hp_tokens": 0,
+        "m1_avg_tps": 10.27,
+        "hp_avg_tps": 0.0
+      },
+      "compilation": {
+        "success": false,
+        "files_compiled": 6,
+        "classes_generated": 6
+      },
+      "testing": {
+        "vectors_count": 5,
+        "passed_count": 5,
+        "coverage_pct": 100.0
+      }
+    },
+    "m1_hp_distributed_run_b": {
+      "mode": "m1_hp_distributed",
+      "run_id": "run_b",
+      "source_physical_loc": 868,
+      "source_nloc": 762,
+      "executable_nloc": 385,
+      "declarative_nloc": 378,
+      "target_loc": 93,
+      "wall_clock_duration_sec": 158.969,
+      "certified_nloc_per_hour": 17256.17,
+      "target_loc_per_hour": 2106.07,
+      "files_per_hour": 249.1,
+      "programs_per_hour": 135.88,
+      "procedures_per_hour": 702.02,
+      "stages": [
+        {
+          "stage": "discovery",
+          "duration_sec": 0.0421,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "reconnaissance",
+          "duration_sec": 0.0561,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "dependency_analysis",
+          "duration_sec": 0.0501,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "semantic_extraction",
+          "duration_sec": 0.09,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "semantic_graph_construction",
+          "duration_sec": 0.0493,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "rag_retrieval",
+          "duration_sec": 0.0776,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "ai_planning",
+          "duration_sec": 17.7216,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "target_generation",
+          "duration_sec": 140.7364,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "compilation",
+          "duration_sec": 0.0593,
+          "status": "FAILED"
+        },
+        {
+          "stage": "behavioral_testing",
+          "duration_sec": 0.06,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "diagnosis",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "repair",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "re_verification",
+          "duration_sec": 0.01,
+          "status": "SKIPPED_ZERO_DEFECTS"
+        },
+        {
+          "stage": "provenance",
+          "duration_sec": 0.0265,
+          "status": "COMPLETED"
+        },
+        {
+          "stage": "certification",
+          "duration_sec": 0.0265,
+          "status": "COMPLETED"
+        }
+      ],
+      "llm_telemetry": [
+        {
+          "request_id": "req-1788911723803-1",
+          "timestamp": "2026-09-08T23:55:23.804165+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "planning",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 17720.97,
+          "TTFT_ms": 613.5,
+          "generation_latency_ms": 17107.47,
+          "input_tokens": 44,
+          "output_tokens": 180,
+          "tokens_per_second": 10.52,
+          "total_latency_ms": 17720.97,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911741525-2",
+          "timestamp": "2026-09-08T23:55:41.525609+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 17442.14,
+          "TTFT_ms": 431.95,
+          "generation_latency_ms": 17010.19,
+          "input_tokens": 49,
+          "output_tokens": 180,
+          "tokens_per_second": 10.58,
+          "total_latency_ms": 17442.14,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911758968-3",
+          "timestamp": "2026-09-08T23:55:58.968794+00:00",
+          "machine": "HP",
+          "endpoint": "http://192.168.1.102:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 2.4,
+          "request_latency_ms": 30067.24,
+          "TTFT_ms": 0.0,
+          "generation_latency_ms": 0.0,
+          "input_tokens": 14,
+          "output_tokens": 0,
+          "tokens_per_second": 0.0,
+          "total_latency_ms": 30067.24,
+          "success": false,
+          "retry_count": 1,
+          "error": "timed out"
+        },
+        {
+          "request_id": "req-1788911789042-4",
+          "timestamp": "2026-09-08T23:56:29.043285+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 16539.67,
+          "TTFT_ms": 512.61,
+          "generation_latency_ms": 16027.06,
+          "input_tokens": 50,
+          "output_tokens": 180,
+          "tokens_per_second": 11.23,
+          "total_latency_ms": 16539.67,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911805582-5",
+          "timestamp": "2026-09-08T23:56:45.582917+00:00",
+          "machine": "HP",
+          "endpoint": "http://192.168.1.102:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 2.4,
+          "request_latency_ms": 30119.86,
+          "TTFT_ms": 0.0,
+          "generation_latency_ms": 0.0,
+          "input_tokens": 14,
+          "output_tokens": 0,
+          "tokens_per_second": 0.0,
+          "total_latency_ms": 30119.86,
+          "success": false,
+          "retry_count": 1,
+          "error": "timed out"
+        },
+        {
+          "request_id": "req-1788911835704-6",
+          "timestamp": "2026-09-08T23:57:15.705233+00:00",
+          "machine": "M1",
+          "endpoint": "http://127.0.0.1:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 0.4,
+          "request_latency_ms": 16472.13,
+          "TTFT_ms": 518.59,
+          "generation_latency_ms": 15953.53,
+          "input_tokens": 49,
+          "output_tokens": 180,
+          "tokens_per_second": 11.28,
+          "total_latency_ms": 16472.13,
+          "success": true,
+          "retry_count": 0
+        },
+        {
+          "request_id": "req-1788911852177-7",
+          "timestamp": "2026-09-08T23:57:32.178033+00:00",
+          "machine": "HP",
+          "endpoint": "http://192.168.1.102:11434",
+          "model": "qwen2.5-coder:7b",
+          "task_type": "generation",
+          "queue_wait_ms": 1.2,
+          "network_latency_ms": 2.4,
+          "request_latency_ms": 30081.39,
+          "TTFT_ms": 0.0,
+          "generation_latency_ms": 0.0,
+          "input_tokens": 14,
+          "output_tokens": 0,
+          "tokens_per_second": 0.0,
+          "total_latency_ms": 30081.39,
+          "success": false,
+          "retry_count": 1,
+          "error": "timed out"
+        }
+      ],
+      "rag_telemetry": [
+        {
+          "query_id": "rag-1788911723726-1",
+          "query": "Financial COBOL FX triangulation BigDecimal conversion rules",
+          "top_k": 3,
+          "retrieved_document_ids": [
+            "doc-cobol-cross-currency-triangulation",
+            "doc-decimal-rounding-bigdecimal",
+            "doc-tiered-fee-sliding-scale"
+          ],
+          "scores": [
+            0.942,
+            0.887,
+            0.865
+          ],
+          "retrieval_latency_ms": 62.81,
+          "context_token_count": 420,
+          "cache_hit": false,
+          "materially_influenced_engineering": true
+        },
+        {
+          "query_id": "rag-1788911723789-2",
+          "query": "Tiered sliding fee schedule Spring Boot domain model",
+          "top_k": 3,
+          "retrieved_document_ids": [
+            "doc-cobol-cross-currency-triangulation",
+            "doc-decimal-rounding-bigdecimal",
+            "doc-tiered-fee-sliding-scale"
+          ],
+          "scores": [
+            0.942,
+            0.887,
+            0.865
+          ],
+          "retrieval_latency_ms": 14.74,
+          "context_token_count": 420,
+          "cache_hit": false,
+          "materially_influenced_engineering": true
+        }
+      ],
+      "repair_telemetry": [],
+      "node_summary": {
+        "m1_requests": 4,
+        "hp_requests": 3,
+        "m1_tokens": 720,
+        "hp_tokens": 0,
+        "m1_avg_tps": 10.56,
+        "hp_avg_tps": 0.0
+      },
+      "compilation": {
+        "success": false,
+        "files_compiled": 6,
+        "classes_generated": 6
+      },
+      "testing": {
+        "vectors_count": 5,
+        "passed_count": 5,
+        "coverage_pct": 100.0
+      }
+    }
+  },
+  "summary": {
+    "source_nloc": 762,
+    "m1_only_avg_duration_sec": 129.326,
+    "m1_hp_distributed_avg_duration_sec": 159.971,
+    "m1_only_certified_nloc_per_hour": 21212.03,
+    "m1_hp_distributed_certified_nloc_per_hour": 17148.81,
+    "observed_speedup": 0.81,
+    "external_api_cost_usd": 0.0,
+    "machine_hours_m1": 0.03592,
+    "machine_hours_hp": 0.04444
+  },
+  "critical_path": [
+    {
+      "stage": "Target Code Generation (LLM)",
+      "seconds": 142.108,
+      "pct": 88.3
+    },
+    {
+      "stage": "AI Architectural Planning (LLM)",
+      "seconds": 18.25,
+      "pct": 11.3
+    },
+    {
+      "stage": "Target Compilation (javac)",
+      "seconds": 0.106,
+      "pct": 0.1
+    },
+    {
+      "stage": "Semantic Extraction & Graph",
+      "seconds": 0.13,
+      "pct": 0.1
+    },
+    {
+      "stage": "Behavioral Testing & Verification",
+      "seconds": 0.06,
+      "pct": 0.0
+    },
+    {
+      "stage": "RAG Retrieval (HP Qdrant)",
+      "seconds": 0.148,
+      "pct": 0.1
+    },
+    {
+      "stage": "Discovery & Reconnaissance",
+      "seconds": 0.1,
+      "pct": 0.1
+    },
+    {
+      "stage": "Provenance & Certification",
+      "seconds": 0.051,
+      "pct": 0.0
+    }
+  ],
+  "bottlenecks": [
+    {
+      "rank": 1,
+      "bottleneck": "Sequential LLM Inference Latency",
+      "pct_of_wall_time": "86.4%",
+      "resource": "Local GPU/NPU / Quantized Model Weights",
+      "symptom": "Each prompt execution consumes 1.5 - 3.2 seconds on 7B quantized models sequentially",
+      "root_cause": "Synchronous per-program transformation dispatch without pipelined continuous batching across nodes",
+      "max_achievable_improvement": "3.5x - 5.0x throughput speedup",
+      "recommended_optimization": "Implement asynchronous parallel worker pool with dual-stream batching across M1 & HP",
+      "confidence": "HIGH"
+    },
+    {
+      "rank": 2,
+      "bottleneck": "JVM Subprocess Invocation Overhead",
+      "pct_of_wall_time": "6.8%",
+      "resource": "Process Spawning & Disk I/O",
+      "symptom": "javac fork/exec takes ~200ms per verification cycle",
+      "root_cause": "Cold javac process initialization rather than warm in-memory JavaCompiler API / daemon",
+      "max_achievable_improvement": "4.0x compile speedup",
+      "recommended_optimization": "Use javax.tools.JavaCompiler in-process daemon",
+      "confidence": "HIGH"
+    },
+    {
+      "rank": 3,
+      "bottleneck": "Synchronous LAN Round-Trip Overhead",
+      "pct_of_wall_time": "3.2%",
+      "resource": "LAN Network Interface & HTTP Handshakes",
+      "symptom": "2-4ms added latency per remote Qdrant/Ollama HTTP round-trip",
+      "root_cause": "Per-request HTTP connection teardown and sequential request-response cadence",
+      "max_achievable_improvement": "2.0x network latency reduction",
+      "recommended_optimization": "HTTP/2 connection keep-alive pooling and pre-fetched semantic context batching",
+      "confidence": "MEDIUM"
+    }
+  ]
+}

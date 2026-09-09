@@ -20,7 +20,7 @@ class COBOLAnalyzer(TechnologyAnalyzer):
         sec_pat = re.compile(r"^" + seq_area + r"(\w[\w-]*)\s+SECTION\s*\.", re.IGNORECASE)
         # Paragraph: word at col 8 (after 7-char area), followed by period
         para_pat = re.compile(r"^" + seq_area + r"(\w[\w-]*)\s*\.\s*$", re.IGNORECASE)
-        data_pat = re.compile(r"^" + seq_area + r"(01|05|77|88)\s+([\w-]+)")
+        data_pat = re.compile(r"^" + seq_area + r"(\d{1,2})\s+([\w-]+)")
         copy_pat = re.compile(r"\b(?:COPY|COPYBOOK)\s+([\'\"]?)([\w.-]+)\1", re.IGNORECASE)
         sel_pat = re.compile(r"^" + seq_area + r"SELECT\s+(\w[\w-]*)", re.IGNORECASE)
         perf_pat = re.compile(r"\bPERFORM\s+(\w[\w-]*)(?:\s+(?:THRU|THROUGH)\s+(\w[\w-]*))?", re.IGNORECASE)
@@ -57,7 +57,20 @@ class COBOLAnalyzer(TechnologyAnalyzer):
             if in_div == "DATA":
                 m = data_pat.match(ls)
                 if m:
-                    result.findings.append(AnalysisFinding(kind=FindingKind.DATA_DECLARATION, name=m.group(2), location=f"L{lineno}", detail={"level": m.group(1)}, evidence=self._ev(ls, lineno)))
+                    lvl_str = m.group(1)
+                    var_name = m.group(2)
+                    pic_m = re.search(r"\bPIC\s+([^\s.]+)", ls, re.IGNORECASE)
+                    val_m = re.search(r"\bVALUE\s+([^\s.]+)", ls, re.IGNORECASE)
+                    redef_m = re.search(r"\bREDEFINES\s+([^\s.]+)", ls, re.IGNORECASE)
+                    occurs_m = re.search(r"\bOCCURS\s+(\d+)", ls, re.IGNORECASE)
+                    det = {
+                        "level": int(lvl_str) if lvl_str.isdigit() else 1,
+                        "pic": pic_m.group(1) if pic_m else "",
+                        "value": val_m.group(1) if val_m else None,
+                        "redefines": redef_m.group(1) if redef_m else None,
+                        "occurs": int(occurs_m.group(1)) if occurs_m else None,
+                    }
+                    result.findings.append(AnalysisFinding(kind=FindingKind.DATA_DECLARATION, name=var_name, location=f"L{lineno}", detail=det, evidence=self._ev(ls, lineno)))
                     continue
             m = copy_pat.search(ls)
             if m:

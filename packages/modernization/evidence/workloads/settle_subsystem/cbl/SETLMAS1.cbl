@@ -1,0 +1,256 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SETLMAS1.
+      ******************************************************************
+      * SETLMAS1: MASTER FINANCIAL SETTLEMENT BATCH PROCESSOR          *
+      * NOVEL ENTERPRISE CAPACITY BENCHMARK WORKLOAD                   *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT TRN-FILE ASSIGN TO 'TRNIN'
+               ORGANIZATION IS LINE SEQUENTIAL
+               FILE STATUS IS WS-TRN-STATUS.
+           SELECT AUDIT-FILE ASSIGN TO 'AUDTOUT'
+               ORGANIZATION IS LINE SEQUENTIAL
+               FILE STATUS IS WS-AUDIT-STATUS.
+           SELECT REPORT-FILE ASSIGN TO 'RPTOUT'
+               ORGANIZATION IS LINE SEQUENTIAL
+               FILE STATUS IS WS-RPT-STATUS.
+           SELECT REJECT-FILE ASSIGN TO 'REJOUT'
+               ORGANIZATION IS LINE SEQUENTIAL
+               FILE STATUS IS WS-REJ-STATUS.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  TRN-FILE.
+       01  TRN-FILE-RECORD             PIC X(250).
+       FD  AUDIT-FILE.
+       01  AUDIT-FILE-RECORD           PIC X(300).
+       FD  REPORT-FILE.
+       01  REPORT-FILE-RECORD          PIC X(132).
+       FD  REJECT-FILE.
+       01  REJECT-FILE-RECORD          PIC X(250).
+
+       WORKING-STORAGE SECTION.
+           COPY SETLCOMY.
+           COPY ACCMASTY.
+           COPY TRNREC0Y.
+           COPY FEESTRUY.
+
+       01  WS-FILE-STATUSES.
+           05  WS-TRN-STATUS           PIC X(2) VALUE '00'.
+           05  WS-AUDIT-STATUS         PIC X(2) VALUE '00'.
+           05  WS-RPT-STATUS           PIC X(2) VALUE '00'.
+           05  WS-REJ-STATUS           PIC X(2) VALUE '00'.
+
+       01  WS-FLAGS.
+           05  WS-EOF-TRN              PIC X(1) VALUE 'N'.
+               88  EOF-TRN-YES         VALUE 'Y'.
+               88  EOF-TRN-NO          VALUE 'N'.
+           05  WS-TXN-VALID-FLAG       PIC X(1) VALUE 'Y'.
+               88  TXN-IS-VALID        VALUE 'Y'.
+               88  TXN-IS-INVALID      VALUE 'N'.
+           05  WS-BATCH-OPEN-FLAG      PIC X(1) VALUE 'N'.
+
+       01  WS-CALL-INTERFACES.
+           05  WS-AUDIT-ERR-CODE       PIC X(4) VALUE SPACES.
+           05  WS-AUDIT-ERR-MSG        PIC X(60) VALUE SPACES.
+           05  WS-CALC-FEE-AMT         PIC S9(7)V99 VALUE ZEROES.
+           05  WS-CONV-SETTLE-AMT      PIC S9(11)V99 VALUE ZEROES.
+           05  WS-CONV-SPREAD-AMT      PIC S9(7)V99 VALUE ZEROES.
+           05  WS-CONV-RATE            PIC 9(5)V9(6) VALUE ZEROES.
+           05  WS-BAL-UPDATE-STATUS    PIC X(2) VALUE '00'.
+
+       01  WS-STATISTICAL-COUNTERS.
+           05  WS-CNT-XFER             PIC 9(6) VALUE ZEROES.
+           05  WS-CNT-PMNT             PIC 9(6) VALUE ZEROES.
+           05  WS-CNT-SETL             PIC 9(6) VALUE ZEROES.
+           05  WS-CNT-FREV             PIC 9(6) VALUE ZEROES.
+           05  WS-AMT-XFER             PIC S9(11)V99 VALUE ZEROES.
+           05  WS-AMT-PMNT             PIC S9(11)V99 VALUE ZEROES.
+           05  WS-AMT-SETL             PIC S9(11)V99 VALUE ZEROES.
+           05  WS-AMT-FREV             PIC S9(11)V99 VALUE ZEROES.
+
+       PROCEDURE DIVISION.
+       0000-MAIN-LOGIC.
+           PERFORM 1000-INITIALIZE-SYSTEM
+           PERFORM 2000-PROCESS-TRANSACTIONS
+               UNTIL EOF-TRN-YES
+           PERFORM 3000-FINALIZE-BATCH
+           STOP RUN.
+
+       1000-INITIALIZE-SYSTEM.
+           ACCEPT WS-SYSTEM-DATE FROM DATE YYYYMMDD
+           ACCEPT WS-SYSTEM-TIME FROM TIME
+           MOVE 'USD' TO WS-BASE-CURRENCY
+           MOVE '00'  TO WS-BATCH-STATUS
+           MOVE ZEROES TO WS-TOTAL-RECORDS-READ
+           MOVE ZEROES TO WS-TOTAL-PROCESSED
+           MOVE ZEROES TO WS-TOTAL-REJECTED
+           MOVE ZEROES TO WS-TOTAL-SETTLED-AMT
+           MOVE ZEROES TO WS-TOTAL-FEE-AMT
+           MOVE ZEROES TO WS-TOTAL-FX-SPREAD-AMT
+           MOVE ZEROES TO WS-AUDIT-TRAIL-SEQ
+           MOVE ZEROES TO WS-CNT-XFER
+           MOVE ZEROES TO WS-CNT-PMNT
+           MOVE ZEROES TO WS-CNT-SETL
+           MOVE ZEROES TO WS-CNT-FREV
+           MOVE ZEROES TO WS-AMT-XFER
+           MOVE ZEROES TO WS-AMT-PMNT
+           MOVE ZEROES TO WS-AMT-SETL
+           MOVE ZEROES TO WS-AMT-FREV
+           OPEN INPUT TRN-FILE
+           IF WS-TRN-STATUS NOT = '00'
+               MOVE '12' TO WS-BATCH-STATUS
+               DISPLAY 'FATAL: CANNOT OPEN INPUT TRANSACTION FILE '
+                   WS-TRN-STATUS
+               STOP RUN
+           END-IF
+           OPEN OUTPUT AUDIT-FILE
+           OPEN OUTPUT REPORT-FILE
+           OPEN OUTPUT REJECT-FILE
+           MOVE 'Y' TO WS-BATCH-OPEN-FLAG
+           PERFORM 1100-READ-NEXT-TRANSACTION.
+
+       1100-READ-NEXT-TRANSACTION.
+           READ TRN-FILE
+               AT END
+                   MOVE 'Y' TO WS-EOF-TRN
+               NOT AT END
+                   ADD 1 TO WS-TOTAL-RECORDS-READ
+                   PERFORM 1200-PARSE-INCOMING-RECORD
+           END-READ.
+
+       1200-PARSE-INCOMING-RECORD.
+           MOVE SPACES TO TRANSACTION-RECORD
+           UNSTRING TRN-FILE-RECORD DELIMITED BY ','
+               INTO TRN-TXN-ID
+                    TRN-SOURCE-ACCOUNT
+                    TRN-TARGET-ACCOUNT
+                    TRN-TXN-TYPE
+                    TRN-ORIG-CURRENCY
+                    TRN-ORIG-AMOUNT
+                    TRN-SETTLE-CURRENCY
+                    TRN-VALUE-DATE
+                    TRN-DESCRIPTION.
+
+       2000-PROCESS-TRANSACTIONS.
+           MOVE 'Y' TO WS-TXN-VALID-FLAG
+           MOVE SPACES TO WS-AUDIT-ERR-CODE
+           MOVE SPACES TO WS-AUDIT-ERR-MSG
+           MOVE ZEROES TO WS-CALC-FEE-AMT
+           MOVE ZEROES TO WS-CONV-SETTLE-AMT
+           MOVE ZEROES TO WS-CONV-SPREAD-AMT
+           MOVE ZEROES TO WS-CONV-RATE
+           MOVE '00'   TO WS-BAL-UPDATE-STATUS
+
+      * STEP 1: AUDIT & COMPLIANCE VERIFICATION SUBPROGRAM
+           CALL 'TRNAUDT1' USING BY CONTENT TRANSACTION-RECORD
+                                 BY REFERENCE WS-TXN-VALID-FLAG
+                                 BY REFERENCE WS-AUDIT-ERR-CODE
+                                 BY REFERENCE WS-AUDIT-ERR-MSG
+
+           IF TXN-IS-VALID
+               PERFORM 2100-PERFORM-CURRENCY-CONVERSION
+               PERFORM 2200-PERFORM-FEE-ASSESSMENT
+               PERFORM 2300-PERFORM-LEDGER-MUTATION
+               IF WS-BAL-UPDATE-STATUS = '00'
+                   PERFORM 2400-ACCUMULATE-STATISTICS
+               ELSE
+                   PERFORM 2500-HANDLE-SETTLEMENT-REJECTION
+               END-IF
+           ELSE
+               PERFORM 2500-HANDLE-SETTLEMENT-REJECTION
+           END-IF
+
+           PERFORM 2600-WRITE-AUDIT-ENTRY
+           PERFORM 1100-READ-NEXT-TRANSACTION.
+
+       2100-PERFORM-CURRENCY-CONVERSION.
+           IF TRN-ORIG-CURRENCY NOT = TRN-SETTLE-CURRENCY
+               CALL 'FXCONV01' USING BY CONTENT TRN-ORIG-CURRENCY
+                                     BY CONTENT TRN-SETTLE-CURRENCY
+                                     BY CONTENT TRN-ORIG-AMOUNT
+                                     BY REFERENCE WS-CONV-SETTLE-AMT
+                                     BY REFERENCE WS-CONV-SPREAD-AMT
+                                     BY REFERENCE WS-CONV-RATE
+               MOVE WS-CONV-SETTLE-AMT TO TRN-SETTLE-AMOUNT
+               MOVE WS-CONV-SPREAD-AMT TO TRN-SPREAD-AMOUNT
+               MOVE WS-CONV-RATE       TO TRN-EXCHANGE-RATE
+           ELSE
+               MOVE TRN-ORIG-AMOUNT TO TRN-SETTLE-AMOUNT
+               MOVE 1.000000        TO TRN-EXCHANGE-RATE
+               MOVE ZEROES          TO TRN-SPREAD-AMOUNT
+           END-IF.
+
+       2200-PERFORM-FEE-ASSESSMENT.
+           CALL 'FEECALC1' USING BY CONTENT TRN-SOURCE-ACCOUNT
+                                 BY CONTENT TRN-TXN-TYPE
+                                 BY CONTENT TRN-SETTLE-AMOUNT
+                                 BY REFERENCE WS-CALC-FEE-AMT
+           MOVE WS-CALC-FEE-AMT TO TRN-FEE-AMOUNT.
+
+       2300-PERFORM-LEDGER-MUTATION.
+           CALL 'BALUPDT1' USING BY CONTENT TRN-SOURCE-ACCOUNT
+                                 BY CONTENT TRN-TARGET-ACCOUNT
+                                 BY CONTENT TRN-SETTLE-AMOUNT
+                                 BY CONTENT TRN-FEE-AMOUNT
+                                 BY REFERENCE WS-BAL-UPDATE-STATUS.
+
+       2400-ACCUMULATE-STATISTICS.
+           MOVE '01' TO TRN-TXN-STATUS
+           MOVE SPACES TO TRN-ERROR-CODE
+           ADD 1 TO WS-TOTAL-PROCESSED
+           ADD TRN-SETTLE-AMOUNT TO WS-TOTAL-SETTLED-AMT
+           ADD TRN-FEE-AMOUNT    TO WS-TOTAL-FEE-AMT
+           ADD TRN-SPREAD-AMOUNT TO WS-TOTAL-FX-SPREAD-AMT
+           EVALUATE TRN-TXN-TYPE
+               WHEN 'XFER'
+                   ADD 1 TO WS-CNT-XFER
+                   ADD TRN-SETTLE-AMOUNT TO WS-AMT-XFER
+               WHEN 'PMNT'
+                   ADD 1 TO WS-CNT-PMNT
+                   ADD TRN-SETTLE-AMOUNT TO WS-AMT-PMNT
+               WHEN 'SETL'
+                   ADD 1 TO WS-CNT-SETL
+                   ADD TRN-SETTLE-AMOUNT TO WS-AMT-SETL
+               WHEN 'FREV'
+                   ADD 1 TO WS-CNT-FREV
+                   ADD TRN-SETTLE-AMOUNT TO WS-AMT-FREV
+           END-EVALUATE.
+
+       2500-HANDLE-SETTLEMENT-REJECTION.
+           MOVE '99' TO TRN-TXN-STATUS
+           IF WS-AUDIT-ERR-CODE NOT = SPACES
+               MOVE WS-AUDIT-ERR-CODE TO TRN-ERROR-CODE
+           ELSE
+               MOVE 'EBAL' TO TRN-ERROR-CODE
+           END-IF
+           ADD 1 TO WS-TOTAL-REJECTED
+           MOVE TRN-FILE-RECORD TO REJECT-FILE-RECORD
+           WRITE REJECT-FILE-RECORD.
+
+       2600-WRITE-AUDIT-ENTRY.
+           ADD 1 TO WS-AUDIT-TRAIL-SEQ
+           STRING WS-AUDIT-TRAIL-SEQ DELIMITED BY SIZE
+                  ',' TRN-TXN-ID DELIMITED BY SIZE
+                  ',' TRN-SOURCE-ACCOUNT DELIMITED BY SIZE
+                  ',' TRN-TARGET-ACCOUNT DELIMITED BY SIZE
+                  ',' TRN-TXN-TYPE DELIMITED BY SIZE
+                  ',' TRN-TXN-STATUS DELIMITED BY SIZE
+                  ',' TRN-SETTLE-AMOUNT DELIMITED BY SIZE
+                  ',' TRN-FEE-AMOUNT DELIMITED BY SIZE
+                  ',' TRN-SPREAD-AMOUNT DELIMITED BY SIZE
+                  ',' TRN-ERROR-CODE DELIMITED BY SIZE
+                  INTO AUDIT-FILE-RECORD
+           WRITE AUDIT-FILE-RECORD.
+
+       3000-FINALIZE-BATCH.
+           IF WS-TOTAL-REJECTED > ZEROES
+               MOVE '04' TO WS-BATCH-STATUS
+           END-IF
+           CALL 'REPRTGEN' USING BY CONTENT WS-SETTLEMENT-COMMON
+           CLOSE TRN-FILE
+           CLOSE AUDIT-FILE
+           CLOSE REPORT-FILE
+           CLOSE REJECT-FILE.

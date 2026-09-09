@@ -1,0 +1,3 @@
+machine,cpu_utilization_pct,ram_utilization_gb,load_avg,inference_duty_pct,network_lan_mbps
+Apple M1 Mac,34.2,11.4,2.15,85.0,12.4
+HP Host (Windows),42.8,14.8,1.95,78.0,12.4

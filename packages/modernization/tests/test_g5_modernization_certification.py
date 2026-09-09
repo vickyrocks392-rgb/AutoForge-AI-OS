@@ -61,9 +61,9 @@ from autoforge_modernization.repair_cycle import RepairStatus
 from autoforge_modernization.semantic.extractors import ProjectSemanticExtractor
 from autoforge_modernization.target.specification import TargetSpecification
 
-HP_QDRANT_URL = os.environ.get("AUTOFORGE_QDRANT_URL", "http://192.168.1.104:6333")
+HP_QDRANT_URL = os.environ.get("AUTOFORGE_QDRANT_URL", "http://192.168.1.102:6333")
 M1_OLLAMA_URL = os.environ.get("AUTOFORGE_M1_OLLAMA_URL", "http://127.0.0.1:11434")
-HP_OLLAMA_URL = os.environ.get("AUTOFORGE_HP_OLLAMA_URL", "http://192.168.1.104:11434")
+HP_OLLAMA_URL = os.environ.get("AUTOFORGE_HP_OLLAMA_URL", "http://192.168.1.102:11434")
 
 
 @pytest.fixture(scope="module")
@@ -71,7 +71,7 @@ def carddemo_root() -> Path:
     repo_root = Path(__file__).resolve().parents[3]
     p = repo_root / ".autoforge" / "carddemo" / "app"
     if not p.exists():
-        pytest.skip(f"CardDemo not present at {p}")
+        pytest.skip(f"CardDemo workload not present at {p}")
     return p
 
 
@@ -313,6 +313,6 @@ class TestG5ModernizationCertification:
         assert bad_res.passed is False
 
         # 2. Catch offline Qdrant
-        dead_store = QdrantKnowledgeStore(url="http://192.168.1.104:9999", collection_name="dead")
+        dead_store = QdrantKnowledgeStore(url="http://192.168.1.102:9999", collection_name="dead")
         with pytest.raises(VectorStoreUnavailableError):
             await dead_store.initialize()

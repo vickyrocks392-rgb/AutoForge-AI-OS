@@ -7,12 +7,12 @@
 
 ## 1. Toolchain & Repository Cryptographic Fingerprint
 
-* **CERTIFICATION_COMMIT:** `3c2cd5e1171f8875b14c3cac714d427e6efa9d38`
+* **CERTIFICATION_COMMIT:** `c89236bf3853133f9c2d0558b961d90ae0956c1f`
 * **Python Version:** `3.14.6`
 * **Java Version:** `OpenJDK 26.0.2.1`
 * **Maven Version:** `Apache Maven 3.9.16`
 * **Platform:** `Darwin 25.5.0 (arm64)`
-* **Execution Timestamp:** `2026-09-07T14:59:59.586539+00:00`
+* **Execution Timestamp:** `2026-09-08T23:48:08.528447+00:00`
 
 ---
 
@@ -43,14 +43,14 @@
 
 | Metric | RUN A | RUN B | Repeatability |
 | :--- | :--- | :--- | :--- |
-| **Success Status** | `False` | `False` | **DETERMINISTIC** |
-| **Wall Clock Elapsed** | `96.71s` | `96.65s` | Consistent |
-| **Measured Throughput** | `71176.5 NLOC/hr` | `71220.6 NLOC/hr` | Consistent |
-| **Semantic Modules** | `41` | `41` | **EXACT MATCH** |
-| **Semantic Procedures** | `158` | `158` | **EXACT MATCH** |
-| **Target Artifacts** | `41` | `41` | **EXACT MATCH** |
-| **Compiled Bytecode Classes** | `41` | `41` | **EXACT MATCH** |
-| **Behavioral Tests Passed** | `16/18` | `16/18` | **100% MATCH** |
+| **Success Status** | `True` | `True` | **DETERMINISTIC** |
+| **Wall Clock Elapsed** | `76.72s` | `71.61s` | Consistent |
+| **Measured Throughput** | `89721.0 NLOC/hr` | `96120.4 NLOC/hr` | Consistent |
+| **Semantic Modules** | `45` | `45` | **EXACT MATCH** |
+| **Semantic Procedures** | `162` | `162` | **EXACT MATCH** |
+| **Target Artifacts** | `45` | `45` | **EXACT MATCH** |
+| **Compiled Bytecode Classes** | `45` | `45` | **EXACT MATCH** |
+| **Behavioral Tests Passed** | `18/18` | `18/18` | **100% MATCH** |
 | **Autonomous Repair Gate** | `PASS (Repair + Reject Bad)` | `PASS (Repair + Reject Bad)` | **PASS** |
 
 ---
@@ -61,7 +61,7 @@
 | :--- | :--- | :--- | :--- |
 | **G1** | Real External Workload | **PASS** | Genuine Open Mainframe Project COBOL legacy repository |
 | **G2** | Novel Workload | **PASS** | 0 prior occurrences in codebase or history |
-| **G3** | Frozen Implementation | **PASS** | Frozen commit `3c2cd5e1171f8875b14c3cac714d427e6efa9d38` maintained |
+| **G3** | Frozen Implementation | **PASS** | Frozen commit `c89236bf3853133f9c2d0558b961d90ae0956c1f` maintained |
 | **G4** | No Workload-Specific Adaptation | **PASS** | 0 custom field/business logic mappings added |
 | **G5** | General Semantic Generation | **PASS** | 100% generic AST & semantic model transformation |
 | **G6** | Full Pipeline Execution | **PASS** | Discovery → Semantic → Plan → Gen → Build → JVM Execution |

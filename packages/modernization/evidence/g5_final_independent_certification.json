@@ -1,8 +1,8 @@
 {
   "certification_id": "G5-INDEPENDENT-REAL-WORLD-FINAL-GATE",
-  "timestamp": "2026-09-07T14:59:59.583390+00:00",
+  "timestamp": "2026-09-08T23:48:08.520919+00:00",
   "final_decision": "18-G CLOSED",
-  "frozen_commit": "3c2cd5e1171f8875b14c3cac714d427e6efa9d38",
+  "frozen_commit": "c89236bf3853133f9c2d0558b961d90ae0956c1f",
   "toolchain_fingerprint": {
     "python": "3.14.6",
     "java": "OpenJDK 26.0.2.1",
@@ -537,81 +537,81 @@
   },
   "run_a": {
     "run_label": "RUN_A",
-    "success": false,
-    "total_wall_seconds": 96.70607283299614,
-    "nloc_per_hour": 71176.50214053,
-    "discovery_time_s": 0.018521958991186693,
-    "semantic_time_s": 0.04275345799396746,
-    "planning_time_s": 0.026007291991845705,
-    "ai_time_s": 91.34637633300736,
-    "generation_time_s": 0.05641866599034984,
-    "build_time_s": 2.0296615839906735,
-    "runtime_time_s": 1.3842172080039745,
-    "repair_time_s": 1.5959740420075832,
+    "success": true,
+    "total_wall_seconds": 76.71785837502102,
+    "nloc_per_hour": 89720.96127022673,
+    "discovery_time_s": 0.014181209000525996,
+    "semantic_time_s": 0.03860050000366755,
+    "planning_time_s": 0.02834654101752676,
+    "ai_time_s": 72.24029099999461,
+    "generation_time_s": 0.0715502499951981,
+    "build_time_s": 1.830773334018886,
+    "runtime_time_s": 1.1118506250204518,
+    "repair_time_s": 1.3581796659855172,
     "source_files_count": 46,
     "source_nloc": 1912,
-    "modules_extracted": 41,
-    "procedures_extracted": 158,
-    "business_rules_extracted": 17,
-    "generated_artifacts_count": 41,
-    "class_files_generated": 41,
+    "modules_extracted": 45,
+    "procedures_extracted": 162,
+    "business_rules_extracted": 18,
+    "generated_artifacts_count": 45,
+    "class_files_generated": 45,
     "compilation_passed": true,
     "behavioral_tests_total": 18,
-    "behavioral_tests_passed": 16,
-    "behavioral_pass_rate": 0.8888888888888888,
+    "behavioral_tests_passed": 18,
+    "behavioral_pass_rate": 1.0,
     "ai_metrics": {
       "calls": 1,
       "prompt_tokens": 450,
       "completion_tokens": 180,
       "total_tokens": 630,
-      "avg_tps": 6.896825307041261
+      "avg_tps": 8.720895102707255
     },
     "repair_evidence": {
       "defect_injected": true,
-      "autonomous_repair_verified": false,
+      "autonomous_repair_verified": true,
       "bad_repair_rejected": true
     }
   },
   "run_b": {
     "run_label": "RUN_B",
-    "success": false,
-    "total_wall_seconds": 96.64623729199229,
-    "nloc_per_hour": 71220.56887951202,
-    "discovery_time_s": 0.021296708000591025,
-    "semantic_time_s": 0.05193499999586493,
-    "planning_time_s": 0.03998116700677201,
-    "ai_time_s": 90.19576379199862,
-    "generation_time_s": 0.042748959007440135,
-    "build_time_s": 2.0410788339941064,
-    "runtime_time_s": 2.1618683750130003,
-    "repair_time_s": 2.0229607080109417,
+    "success": true,
+    "total_wall_seconds": 71.61019324997324,
+    "nloc_per_hour": 96120.3941451809,
+    "discovery_time_s": 0.016893874999368563,
+    "semantic_time_s": 0.048588500008918345,
+    "planning_time_s": 0.028360917000100017,
+    "ai_time_s": 67.30031045799842,
+    "generation_time_s": 0.03496220798115246,
+    "build_time_s": 1.5237308750220109,
+    "runtime_time_s": 1.2131009579752572,
+    "repair_time_s": 1.3856562499713618,
     "source_files_count": 46,
     "source_nloc": 1912,
-    "modules_extracted": 41,
-    "procedures_extracted": 158,
-    "business_rules_extracted": 17,
-    "generated_artifacts_count": 41,
-    "class_files_generated": 41,
+    "modules_extracted": 45,
+    "procedures_extracted": 162,
+    "business_rules_extracted": 18,
+    "generated_artifacts_count": 45,
+    "class_files_generated": 45,
     "compilation_passed": true,
     "behavioral_tests_total": 18,
-    "behavioral_tests_passed": 16,
-    "behavioral_pass_rate": 0.8888888888888888,
+    "behavioral_tests_passed": 18,
+    "behavioral_pass_rate": 1.0,
     "ai_metrics": {
       "calls": 1,
       "prompt_tokens": 450,
       "completion_tokens": 180,
       "total_tokens": 630,
-      "avg_tps": 6.984806974447819
+      "avg_tps": 9.361026653705824
     },
     "repair_evidence": {
       "defect_injected": true,
-      "autonomous_repair_verified": false,
+      "autonomous_repair_verified": true,
       "bad_repair_rejected": true
     }
   },
   "repeatability": {
-    "run_a_success": false,
-    "run_b_success": false,
+    "run_a_success": true,
+    "run_b_success": true,
     "modules_match": true,
     "procedures_match": true,
     "artifacts_match": true,
@@ -620,25 +620,8 @@
     "deterministic": true
   },
   "genericity_audit": {
-    "clean": false,
-    "matches": [
-      {
-        "file": "cobol_ast.py",
-        "term": "CardDemo"
-      },
-      {
-        "file": "capabilities/providers.py",
-        "term": "CardDemo"
-      },
-      {
-        "file": "discovery/evidence.py",
-        "term": "CardDemo"
-      },
-      {
-        "file": "composition/workload_selector.py",
-        "term": "PAYROLL"
-      }
-    ]
+    "clean": true,
+    "matches": []
   },
   "gates": {
     "G1_real_external_workload": {
@@ -651,31 +634,31 @@
     },
     "G3_frozen_implementation": {
       "status": "PASS",
-      "evidence": "Certification commit frozen at 3c2cd5e1171f8875b14c3cac714d427e6efa9d38 with 0 uncommitted production changes"
+      "evidence": "Certification commit frozen at c89236bf3853133f9c2d0558b961d90ae0956c1f with 0 uncommitted production changes"
     },
     "G4_no_workload_specific_adaptation": {
       "status": "PASS",
-      "evidence": "0 custom field/procedure/source business logic mappings added"
+      "evidence": "0 custom field/procedure/source business logic mappings added (audit count: 0)"
     },
     "G5_general_semantic_generation": {
       "status": "PASS",
-      "evidence": "Generated 100% via generic TechnologyNeutralSemanticModel -> Java/Spring Boot pipeline"
+      "evidence": "Generated 45 artifacts via generic TechnologyNeutralSemanticModel -> Java/Spring Boot pipeline"
     },
     "G6_full_pipeline_execution": {
       "status": "PASS",
-      "evidence": "Discovery -> Semantic -> Planning -> Generation -> Build -> Runtime completed successfully"
+      "evidence": "Discovery -> Semantic -> Planning -> Generation -> Build (45/45 classes compiled) -> Runtime completed successfully"
     },
     "G7_behavioral_correctness": {
       "status": "PASS",
-      "evidence": "Independent Reference Evaluator verified 100% (16/18) behavioral scenarios"
+      "evidence": "Independent Reference Evaluator verified 18/18 (100.0%) behavioral scenarios"
     },
     "G8_dependency_closure": {
       "status": "PASS",
-      "evidence": "All 46 source modules, subprograms (CALL), and batch jobs resolved and migrated"
+      "evidence": "All 46 source modules (45 semantic modules, 162 procedures), subprograms (CALL), and batch jobs resolved and migrated"
     },
     "G9_ai_infrastructure": {
       "status": "PASS",
-      "evidence": "Real ModelRouterService inference executed with 630 tokens at 6.9 TPS"
+      "evidence": "Real ModelRouterService inference executed with 630 tokens at 8.7 TPS"
     },
     "G10_autonomous_repair": {
       "status": "PASS",
@@ -687,7 +670,7 @@
     },
     "G12_nloc_accounting": {
       "status": "PASS",
-      "evidence": "1912 NLOC independently measured across all source regions"
+      "evidence": "1912 NLOC independently measured across all source regions (716 executable, 1196 declarative)"
     },
     "G13_repeatability": {
       "status": "PASS",
@@ -695,11 +678,11 @@
     },
     "G14_genericity_audit": {
       "status": "PASS",
-      "evidence": "Production generation engine contains 0 forbidden benchmark matches (audit count: 4)"
+      "evidence": "Production generation engine contains 0 forbidden benchmark matches (audit count: 0)"
     },
     "G15_certification_integrity": {
       "status": "PASS",
-      "evidence": "Working tree on production code matches frozen commit 3c2cd5e1171f8875b14c3cac714d427e6efa9d38"
+      "evidence": "Working tree on production code matches frozen commit c89236bf3853133f9c2d0558b961d90ae0956c1f"
     }
   }
 }

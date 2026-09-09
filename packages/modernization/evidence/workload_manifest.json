@@ -1,0 +1,108 @@
+{
+  "workload_card": {
+    "workload_id": "SETTLE-BATCH-01",
+    "repository": "AutoForge Novel Enterprise Subsystem Suite",
+    "pinned_commit": "9a7e1f42d8",
+    "why_novel": "Completely unseen financial multi-currency batch settlement & ledger mutation subsystem with multi-tier fees, FX triangulation, sanctions auditing, and cross-program linkages.",
+    "files_count": 11,
+    "programs_count": 6,
+    "source_physical_loc": 868,
+    "source_nloc": 762,
+    "executable_nloc": 385,
+    "declarative_nloc": 378,
+    "procedures": 31,
+    "branches": 72,
+    "loops": 3,
+    "call_relationships": [
+      "SETLMAS1 -> REPRTGEN",
+      "SETLMAS1 -> FEECALC1",
+      "SETLMAS1 -> FXCONV01",
+      "SETLMAS1 -> TRNAUDT1",
+      "SETLMAS1 -> BALUPDT1"
+    ],
+    "io_interfaces": [
+      "Line-sequential TRNIN batch file",
+      "Line-sequential AUDTOUT audit trail",
+      "Line-sequential REJOUT reject file",
+      "Formatted SYSOUT RPTOUT executive ledger"
+    ],
+    "jcl_orchestration": [
+      "SETLJOB.jcl (STEP010 execution with DD datasets)"
+    ],
+    "data_dependencies": [
+      "SETLCOMY (Common work area)",
+      "ACCMASTY (Account master)",
+      "TRNREC0Y (Transaction record)",
+      "FEESTRUY (Tiered fee matrix)"
+    ],
+    "expected_target": "Java 21 Spring Boot / Modern Domain Architecture with BigDecimal precision"
+  },
+  "files": [
+    {
+      "name": "BALUPDT1.cbl",
+      "type": "CBL",
+      "physical_loc": 69,
+      "source_nloc": 58
+    },
+    {
+      "name": "FEECALC1.cbl",
+      "type": "CBL",
+      "physical_loc": 139,
+      "source_nloc": 126
+    },
+    {
+      "name": "FXCONV01.cbl",
+      "type": "CBL",
+      "physical_loc": 118,
+      "source_nloc": 105
+    },
+    {
+      "name": "REPRTGEN.cbl",
+      "type": "CBL",
+      "physical_loc": 53,
+      "source_nloc": 44
+    },
+    {
+      "name": "SETLMAS1.cbl",
+      "type": "CBL",
+      "physical_loc": 256,
+      "source_nloc": 230
+    },
+    {
+      "name": "TRNAUDT1.cbl",
+      "type": "CBL",
+      "physical_loc": 143,
+      "source_nloc": 129
+    },
+    {
+      "name": "ACCMASTY.cpy",
+      "type": "CPY",
+      "physical_loc": 25,
+      "source_nloc": 22
+    },
+    {
+      "name": "FEESTRUY.cpy",
+      "type": "CPY",
+      "physical_loc": 12,
+      "source_nloc": 9
+    },
+    {
+      "name": "SETLCOMY.cpy",
+      "type": "CPY",
+      "physical_loc": 19,
+      "source_nloc": 16
+    },
+    {
+      "name": "TRNREC0Y.cpy",
+      "type": "CPY",
+      "physical_loc": 26,
+      "source_nloc": 23
+    },
+    {
+      "name": "SETLJOB.jcl",
+      "type": "JCL",
+      "physical_loc": 8,
+      "source_nloc": 0
+    }
+  ]
+}

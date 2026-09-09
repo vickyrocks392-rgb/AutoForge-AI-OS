@@ -98,7 +98,7 @@ class AutonomousTargetRepairCycle:
             # 2. Produce code mutation
             mutated_any = False
             for art in current_artifacts:
-                mutated_code = self._apply_repair_mutation(art.code, diagnostics, diagnosis)
+                mutated_code = self._apply_repair_mutation(art.code, diagnostics, diagnosis, artifact_path=art.relative_path)
                 if mutated_code != art.code:
                     art.code = mutated_code
                     art.sha256 = ""  # Will recompute in model
@@ -158,14 +158,16 @@ class AutonomousTargetRepairCycle:
         """Classify compiler diagnostics into root causes and repair strategies."""
         combined = " ".join(diag_msgs).lower()
 
-        if "defect_injected" in combined or "broken_syntax_token" in combined or any("DEFECT_INJECTED" in a.code or "BROKEN_SYNTAX_TOKEN" in a.code for a in artifacts):
-            return "Syntax defect injected for bounded verification failure", "autonomous_syntax_defect_removal"
+        if "class, interface, enum, or record expected" in combined or "illegal start of type" in combined or "<identifier> expected" in combined or "not a statement" in combined:
+            return "Stray syntax token outside class declaration", "stray_token_removal"
         if "';' expected" in combined:
             return "Missing semicolon statement terminator", "syntax_semicolon_insertion"
         if "cannot find symbol" in combined:
             return "Unresolved symbol or missing import", "symbol_resolution_and_import"
         if "incompatible types" in combined:
             return "Type mismatch in variable assignment or return", "type_coercion_cast"
+        if "unclosed string literal" in combined:
+            return "Unclosed string literal delimiter", "string_literal_closure"
         if "unbalanced" in combined or "illegal start of expression" in combined:
             return "Malformed expression or unbalanced delimiter", "structural_delimiter_balancing"
 
@@ -176,31 +178,31 @@ class AutonomousTargetRepairCycle:
         code: str,
         diagnostics: list[Any],
         diagnosis: str,
+        artifact_path: str = "",
     ) -> str:
         """Apply targeted mutation to source code according to diagnostic information."""
-        # First priority: if injected defect exists, remove it cleanly
-        if "DEFECT_INJECTED" in code or "BROKEN_SYNTAX_TOKEN" in code:
-            mutated = re.sub(r"DEFECT_INJECTED_BAD_TOKEN;\s*", "", code)
-            mutated = re.sub(r"DEFECT_INJECTED;\s*", "", mutated)
-            mutated = re.sub(r"DEFECT_INJECTED\s*", "", mutated)
-            mutated = re.sub(r"BROKEN_SYNTAX_TOKEN;\s*", "", mutated)
-            mutated = re.sub(r"BROKEN_SYNTAX_TOKEN\s*", "", mutated)
-            if mutated != code:
-                return mutated
-
         lines = code.splitlines()
 
         for diag in diagnostics:
             # Check if location specifies line: e.g. "Generated.java:45"
             loc = getattr(diag, "location", "")
             target_lineno: int | None = None
-            if loc and ":" in loc:
-                try:
-                    target_lineno = int(loc.split(":")[-1])
-                except ValueError:
-                    pass
+            if loc:
+                loc_file = loc.split(":")[0]
+                if artifact_path and loc_file and not artifact_path.endswith(loc_file):
+                    continue
+                if ":" in loc:
+                    try:
+                        target_lineno = int(loc.split(":")[-1])
+                    except ValueError:
+                        pass
 
             msg = getattr(diag, "message", "").lower()
+
+            if ("class, interface" in msg or "illegal start of type" in msg or "not a statement" in msg or "<identifier> expected" in msg) and target_lineno and 1 <= target_lineno <= len(lines):
+                # Remove stray invalid line before package or outside class
+                del lines[target_lineno - 1]
+                return "\n".join(lines)
 
             if "';' expected" in msg and target_lineno and 1 <= target_lineno <= len(lines):
                 idx = target_lineno - 1
@@ -217,5 +219,12 @@ class AutonomousTargetRepairCycle:
                 # Missing import for BigDecimal
                 if "import java.math.BigDecimal;" not in code:
                     return "import java.math.BigDecimal;\n" + code
+
+            if "unclosed string literal" in msg and target_lineno and 1 <= target_lineno <= len(lines):
+                idx = target_lineno - 1
+                ln = lines[idx]
+                if ln.count('"') % 2 != 0:
+                    lines[idx] = ln + '";' if not ln.endswith(";") else ln[:-1] + '";'
+                    return "\n".join(lines)
 
         return "\n".join(lines)

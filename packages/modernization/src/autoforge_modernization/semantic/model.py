@@ -404,6 +404,15 @@ class TechnologyNeutralSemanticModel(BaseModel):
     created_at: datetime = Field(default_factory=_utc_now)
 
     def add_module(self, module: SemanticModule) -> None:
+        if module.name in self.modules:
+            existing = self.modules[module.name]
+            if existing.source_technology != module.source_technology:
+                if module.source_technology == "JCL":
+                    module.name = f"{module.name}_JOB"
+                elif existing.source_technology == "JCL":
+                    existing.name = f"{existing.name}_JOB"
+                    del self.modules[module.name]
+                    self.modules[existing.name] = existing
         self.modules[module.name] = module
 
     def get_module(self, name: str) -> SemanticModule | None:

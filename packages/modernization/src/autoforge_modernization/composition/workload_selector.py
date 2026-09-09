@@ -293,11 +293,16 @@ class TransformationWorkloadSelector:
         elif subsystem_name.upper() in ("ALL", "PROJECT", "ENTIRE", "ROOT"):
             job_roots = [m.name.upper() for m in full_model.modules.values() if m.module_type in ("job", "main")]
             seeds = job_roots if job_roots else list(file_by_name.keys())
+        else:
             tokens = [tok for tok in re.split(r"[_\s-]+", subsystem_name.upper()) if len(tok) >= 2]
             for tok in list(tokens):
                 if len(tok) >= 4:
                     tokens.append(tok[:3])
                     tokens.append(tok[:4])
+                v_strip = "".join(c for c in tok if c not in "AEIOU")
+                if len(v_strip) >= 3:
+                    tokens.append(v_strip[:3])
+                    tokens.append(v_strip[:4])
 
             matching = [
                 name for name in file_by_name

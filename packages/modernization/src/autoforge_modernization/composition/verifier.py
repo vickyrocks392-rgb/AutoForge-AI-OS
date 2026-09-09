@@ -76,6 +76,18 @@ class TargetToolchainVerifier:
     def __init__(self, provider_registry: ProviderRegistry | None = None) -> None:
         self.provider_registry = provider_registry or ProviderRegistry()
 
+    def find_real_java(self) -> str | None:
+        provider = self.provider_registry.get("provider-openjdk")
+        if not provider or not isinstance(provider, OpenJDKProvider):
+            provider = OpenJDKProvider()
+        return provider._find_real_java()
+
+    def find_real_javac(self) -> str | None:
+        provider = self.provider_registry.get("provider-openjdk")
+        if not provider or not isinstance(provider, OpenJDKProvider):
+            provider = OpenJDKProvider()
+        return provider._find_real_javac()
+
     def verify(
         self,
         artifacts: list[GeneratedArtifact],

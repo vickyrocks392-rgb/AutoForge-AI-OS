@@ -1,0 +1,2 @@
+failure,diagnostic,diagnosis_latency_sec,repair_latency_sec,candidate_count,candidate_accepted,compiler_result,behavioral_result
+NONE,ZERO_DEFECT_COMPILATION,0.0,0.0,0,True,SUCCESS,PASS

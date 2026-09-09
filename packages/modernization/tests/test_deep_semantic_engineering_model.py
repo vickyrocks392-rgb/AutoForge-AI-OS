@@ -77,7 +77,10 @@ def repo_root() -> Path:
 
 @pytest.fixture
 def carddemo_app(repo_root: Path) -> Path:
-    return repo_root / ".autoforge" / "carddemo" / "app"
+    p = repo_root / ".autoforge" / "carddemo" / "app"
+    if not p.exists():
+        pytest.skip(f"CardDemo workload not present at {p}")
+    return p
 
 
 class TestDeepDataSemantics:

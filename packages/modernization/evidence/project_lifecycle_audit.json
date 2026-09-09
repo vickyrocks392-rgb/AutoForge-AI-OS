@@ -1,0 +1,52 @@
+{
+  "project_id": "audit-proj-896560",
+  "run_id": "run-3562c72f",
+  "persistence_policy": "ephemeral",
+  "clean_room_pre_check": true,
+  "latencies_ms": {
+    "project_initialization": 1.6,
+    "qdrant_initialization": 244.94,
+    "purge_execution": 40.4,
+    "purge_verification": 10.28
+  },
+  "final_state": "completed",
+  "is_clean_post_purge": true,
+  "audit_trail": [
+    {
+      "timestamp": "2026-09-09T00:21:35.907878+00:00",
+      "project_id": "audit-proj-896560",
+      "action": "CREATE",
+      "state": "created"
+    },
+    {
+      "timestamp": "2026-09-09T00:21:35.907912+00:00",
+      "project_id": "audit-proj-896560",
+      "action": "INITIALIZE",
+      "state": "initializing"
+    },
+    {
+      "timestamp": "2026-09-09T00:21:35.909099+00:00",
+      "project_id": "audit-proj-896560",
+      "action": "ACTIVATE",
+      "state": "active"
+    },
+    {
+      "timestamp": "2026-09-09T00:21:36.154060+00:00",
+      "project_id": "audit-proj-896560",
+      "action": "COMPLETED",
+      "state": "completed"
+    },
+    {
+      "timestamp": "2026-09-09T00:21:36.154095+00:00",
+      "project_id": "audit-proj-896560",
+      "action": "PURGE",
+      "state": "purging"
+    },
+    {
+      "timestamp": "2026-09-09T00:21:36.194411+00:00",
+      "project_id": "audit-proj-896560",
+      "action": "PURGED",
+      "state": "purged"
+    }
+  ]
+}

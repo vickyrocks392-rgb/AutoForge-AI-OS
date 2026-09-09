@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import os
 from pathlib import Path
 import subprocess
 import time
@@ -44,11 +45,23 @@ from autoforge_modernization.semantic.extractors import ProjectSemanticExtractor
 from autoforge_modernization.target.specification import TargetSpecification
 
 CARDDEMO_ROOT = Path(__file__).resolve().parents[3] / ".autoforge" / "carddemo"
-HP_QDRANT_URL = "http://192.168.1.104:6333"
+HP_QDRANT_URL = os.environ.get("AUTOFORGE_QDRANT_URL", "http://192.168.1.102:6333")
+HP_OLLAMA_URL = os.environ.get("AUTOFORGE_HP_OLLAMA_URL", "http://192.168.1.102:11434")
+
+
+@pytest.fixture
+def carddemo_app() -> Path:
+    repo_root = Path(__file__).resolve().parents[3]
+    p = repo_root / ".autoforge" / "carddemo" / "app"
+    if not p.exists():
+        pytest.skip(f"CardDemo workload not present at {p}")
+    return p
 
 
 @pytest.fixture(scope="module")
 def subsystem_closure_proof():
+    if not CARDDEMO_ROOT.exists():
+        pytest.skip("CardDemo root missing")
     selector = TransformationWorkloadSelector()
     _, proof = selector.select_coherent_subsystem_closure(CARDDEMO_ROOT, "TRANSACTION_PROCESSING")
     return proof
