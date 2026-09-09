@@ -1,0 +1,224 @@
+{
+  "timestamp": "2026-09-09T02:13:55.000000+00:00",
+  "purification_status": "COMPLETED_LOCKED",
+  "topology": {
+    "m1_endpoint": "http://127.0.0.1:11434",
+    "hp_endpoint": "http://192.168.1.102:11434",
+    "hp_qdrant_endpoint": "http://192.168.1.102:6333"
+  },
+  "fleet_summary": {
+    "initial_total_models": 22,
+    "final_total_models": 4,
+    "initial_storage_gb": 72.72,
+    "final_storage_gb": 9.71,
+    "total_storage_reclaimed_gb": 63.01,
+    "m1_models_before": 10,
+    "m1_models_after": 3,
+    "m1_storage_before_gb": 33.98,
+    "m1_storage_after_gb": 7.91,
+    "m1_reclaimed_gb": 26.07,
+    "hp_models_before": 12,
+    "hp_models_after": 1,
+    "hp_storage_before_gb": 38.73,
+    "hp_storage_after_gb": 1.80,
+    "hp_reclaimed_gb": 36.93
+  },
+  "pre_purification_inventory": {
+    "M1": [
+      "qwen2.5-coder:7b-instruct-q3_K_M",
+      "ornith-9b-iq3m-4k:latest",
+      "nomic-embed-text:latest",
+      "deepseek-coder:6.7b-instruct",
+      "llama3.2:3b",
+      "maxwell1500/ornith-9b:IQ3_M",
+      "qwen2.5-coder:7b",
+      "ornith:9b",
+      "qwen3:4b",
+      "llama3.1:8b"
+    ],
+    "HP": [
+      "qwen2.5-coder:3b",
+      "deepseek-coder:6.7b-instruct-q3_K_M",
+      "qwen2.5-coder:7b-instruct-q3_K_M",
+      "ornith-9b-iq3m-4k:latest",
+      "llama3.2:3b",
+      "deepseek-coder:6.7b-instruct-q2_K",
+      "deepseek-coder:6.7b-instruct",
+      "qwen2.5-coder:7b-instruct-q2_K",
+      "qwen2.5-coder:7b",
+      "starcoder2:7b",
+      "yi-6b-4k:latest",
+      "hf.co/SamPurkis/Yi-6B-GGUF:Q4_K_M",
+      "maxwell1500/ornith-9b:IQ3_M"
+    ]
+  },
+  "locked_canonical_fleet": {
+    "M1": [
+      {
+        "name": "qwen2.5-coder:7b-instruct-q3_K_M",
+        "role": "PRIMARY_CODING_ENGINE",
+        "size_gb": 3.55,
+        "quantization": "Q3_K_M",
+        "status": "ACTIVE_PRODUCTION"
+      },
+      {
+        "name": "ornith-9b-iq3m-4k:latest",
+        "role": "ARCHITECTURAL_REASONING_ENGINE",
+        "size_gb": 4.11,
+        "quantization": "IQ3_M",
+        "status": "ACTIVE_PRODUCTION"
+      },
+      {
+        "name": "nomic-embed-text:latest",
+        "role": "VECTOR_EMBEDDING_ENGINE",
+        "size_gb": 0.25,
+        "quantization": "F16",
+        "status": "ACTIVE_PRODUCTION"
+      }
+    ],
+    "HP": [
+      {
+        "name": "qwen2.5-coder:3b",
+        "role": "SECONDARY_DISTRIBUTED_CODING_WORKER",
+        "size_gb": 1.80,
+        "quantization": "Q4_K_M",
+        "status": "ACTIVE_PRODUCTION"
+      }
+    ]
+  },
+  "deleted_models": {
+    "M1": [
+      {"name": "deepseek-coder:6.7b-instruct", "size_gb": 3.56, "reason": "Speculative alternative model not in 4-model production fleet"},
+      {"name": "llama3.2:3b", "size_gb": 1.88, "reason": "Speculative test model not in 4-model production fleet"},
+      {"name": "maxwell1500/ornith-9b:IQ3_M", "size_gb": 4.11, "reason": "Duplicate alias of ornith-9b-iq3m-4k:latest"},
+      {"name": "qwen2.5-coder:7b", "size_gb": 4.70, "reason": "Unquantized duplicate of qwen2.5-coder:7b-instruct-q3_K_M"},
+      {"name": "ornith:9b", "size_gb": 5.20, "reason": "Unquantized duplicate of ornith-9b-iq3m-4k:latest"},
+      {"name": "qwen3:4b", "size_gb": 2.50, "reason": "Zero references in AutoForge codebase"},
+      {"name": "llama3.1:8b", "size_gb": 4.12, "reason": "Unneeded heavy model"}
+    ],
+    "HP": [
+      {"name": "deepseek-coder:6.7b-instruct-q3_K_M", "size_gb": 3.07, "reason": "Speculative alternative model not in 4-model production fleet"},
+      {"name": "qwen2.5-coder:7b-instruct-q3_K_M", "size_gb": 3.55, "reason": "Speculative symmetric model (HP role is 3b)"},
+      {"name": "ornith-9b-iq3m-4k:latest", "size_gb": 4.11, "reason": "Speculative reasoning model (M1 holds reasoning role)"},
+      {"name": "llama3.2:3b", "size_gb": 1.88, "reason": "Speculative helper model not in 4-model production fleet"},
+      {"name": "deepseek-coder:6.7b-instruct-q2_K", "size_gb": 2.60, "reason": "Lower quality duplicate quant"},
+      {"name": "deepseek-coder:6.7b-instruct", "size_gb": 3.56, "reason": "Unquantized duplicate"},
+      {"name": "qwen2.5-coder:7b-instruct-q2_K", "size_gb": 2.90, "reason": "Lower quality duplicate quant"},
+      {"name": "qwen2.5-coder:7b", "size_gb": 4.70, "reason": "Unquantized duplicate"},
+      {"name": "starcoder2:7b", "size_gb": 4.10, "reason": "Zero references in AutoForge codebase"},
+      {"name": "yi-6b-4k:latest", "size_gb": 3.60, "reason": "Zero references in AutoForge codebase"},
+      {"name": "hf.co/SamPurkis/Yi-6B-GGUF:Q4_K_M", "size_gb": 3.60, "reason": "Zero references in AutoForge codebase (duplicate alias)"},
+      {"name": "maxwell1500/ornith-9b:IQ3_M", "size_gb": 4.11, "reason": "Duplicate alias of ornith-9b-iq3m-4k:latest"}
+    ]
+  },
+  "retained_non_canonical_models": [],
+  "live_verifications": {
+    "m1_qwen_7b": {
+      "success": true,
+      "duration_sec": 2.94,
+      "tokens": 25,
+      "tps": 8.50,
+      "response_snippet": "```python\ndef factorial(n): return 1 if n == 0 else n * factorial(n-1)\n```"
+    },
+    "m1_ornith_9b": {
+      "success": true,
+      "duration_sec": 11.74,
+      "tokens": 50,
+      "tps": 4.26,
+      "response_snippet": "The user is asking about the core principles of idempotency in distributed systems. This is a concep"
+    },
+    "hp_qwen_3b": {
+      "success": true,
+      "duration_sec": 6.36,
+      "tokens": 50,
+      "tps": 7.86,
+      "response_snippet": "Certainly! Here's a 1-line Python function to compute the factorial of a number:\n\n```python\nfactoria"
+    },
+    "m1_nomic_embed_text": {
+      "success": true,
+      "dimension": 768,
+      "duration_sec": 1.167,
+      "sample_vector": [
+        0.0157062616199255,
+        0.6695500612258911,
+        -2.7889387607574463,
+        -1.2959526777267456,
+        0.5259158611297607
+      ]
+    },
+    "hp_qdrant": {
+      "reachable": true,
+      "collections_count": 10,
+      "collections": [
+        "autoforge_global_knowledge",
+        "project_proj_alpha_fb4eb9_knowledge",
+        "project_proj_beta_eb759a_knowledge",
+        "project_proj_scoped_5a4cab_knowledge",
+        "project_test_ephemeral_3dae15_knowledge",
+        "test_subsystem_qdrant_1788913463",
+        "test_subsystem_qdrant_1788913471",
+        "test_subsystem_qdrant_1788913544",
+        "test_subsystem_qdrant_1788915217",
+        "test_subsystem_qdrant_1788917664"
+      ]
+    }
+  },
+  "distributed_smoke_test": {
+    "wall_clock_sec": 14.04,
+    "worker_count": 4,
+    "m1_workers": 2,
+    "hp_workers": 2,
+    "total_tokens": 200,
+    "effective_aggregate_tps": 14.25,
+    "worker_results": [
+      {
+        "worker_id": "m1-worker-1",
+        "endpoint": "http://127.0.0.1:11434",
+        "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+        "tokens": 50,
+        "duration_sec": 9.13,
+        "tps": 5.48,
+        "success": true,
+        "response": "Sure! To calculate the Value Added Tax (VAT) on a given pric"
+      },
+      {
+        "worker_id": "m1-worker-2",
+        "endpoint": "http://127.0.0.1:11434",
+        "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+        "tokens": 50,
+        "duration_sec": 13.92,
+        "tps": 3.59,
+        "success": true,
+        "response": " It looks like you're trying to define a function to calcula"
+      },
+      {
+        "worker_id": "hp-worker-1",
+        "endpoint": "http://192.168.1.102:11434",
+        "model": "qwen2.5-coder:3b",
+        "tokens": 50,
+        "duration_sec": 6.16,
+        "tps": 8.12,
+        "success": true,
+        "response": "It looks like you're trying to create a function to calculat"
+      },
+      {
+        "worker_id": "hp-worker-2",
+        "endpoint": "http://192.168.1.102:11434",
+        "model": "qwen2.5-coder:3b",
+        "tokens": 50,
+        "duration_sec": 11.02,
+        "tps": 4.54,
+        "success": true,
+        "response": "It looks like you're trying to define a function called `san"
+      }
+    ]
+  },
+  "routing_verification": {
+    "coding_workload_m1": "qwen2.5-coder-7b (qwen2.5-coder:7b-instruct-q3_K_M)",
+    "coding_workload_hp": "qwen2.5-coder-3b (qwen2.5-coder:3b)",
+    "reasoning_workload_m1": "ornith-9b (ornith-9b-iq3m-4k:latest)",
+    "embedding_workload_m1": "nomic-embed-text (nomic-embed-text:latest)",
+    "dangling_references": 0,
+    "status": "VERIFIED_PASS"
+  }
+}

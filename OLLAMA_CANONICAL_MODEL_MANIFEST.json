@@ -1,0 +1,54 @@
+{
+  "manifest_version": "1.0.0",
+  "description": "Authoritative AutoForge AI Production Model Manifest",
+  "fleet_size": 4,
+  "nodes": {
+    "M1": {
+      "host_type": "Apple Silicon (macOS)",
+      "endpoint": "http://127.0.0.1:11434",
+      "role": "Primary Orchestration & Inference Node",
+      "models": [
+        {
+          "canonical_role": "PRIMARY_CODING_ENGINE",
+          "model_id": "qwen2.5-coder-7b",
+          "ollama_tag": "qwen2.5-coder:7b-instruct-q3_K_M",
+          "quantization": "Q3_K_M",
+          "purpose": "Primary code generation, translation, repair, and AST modernization",
+          "required": true
+        },
+        {
+          "canonical_role": "ARCHITECTURAL_REASONING_ENGINE",
+          "model_id": "ornith-9b",
+          "ollama_tag": "ornith-9b-iq3m-4k:latest",
+          "quantization": "IQ3_M",
+          "purpose": "High-order architectural planning, dependency resolution, and multi-file reasoning",
+          "required": true
+        },
+        {
+          "canonical_role": "VECTOR_EMBEDDING_ENGINE",
+          "model_id": "nomic-embed-text",
+          "ollama_tag": "nomic-embed-text:latest",
+          "quantization": "F16",
+          "purpose": "768-dimensional dense vector embedding generation for Qdrant RAG ingestion and retrieval",
+          "required": true
+        }
+      ]
+    },
+    "HP": {
+      "host_type": "Windows Host (x86_64)",
+      "endpoint": "http://192.168.1.102:11434",
+      "qdrant_endpoint": "http://192.168.1.102:6333",
+      "role": "Secondary Distributed Inference & Vector Storage Node",
+      "models": [
+        {
+          "canonical_role": "SECONDARY_DISTRIBUTED_CODING_WORKER",
+          "model_id": "qwen2.5-coder-3b",
+          "ollama_tag": "qwen2.5-coder:3b",
+          "quantization": "Q4_K_M",
+          "purpose": "Fast distributed code generation, helper worker execution, and concurrent workload distribution",
+          "required": true
+        }
+      ]
+    }
+  }
+}
