@@ -1,0 +1,25 @@
+{
+  "stages_order": [
+    "autonomous_discovery",
+    "semantic_extraction",
+    "rag_retrieval",
+    "transformation_planning",
+    "target_artifact_generation",
+    "toolchain_compilation",
+    "behavioral_verification",
+    "autonomous_repair_and_bad_repair_rejection",
+    "provenance_recording",
+    "clean_room_purge"
+  ],
+  "parallel_worker_topology": {
+    "M1_workers": [
+      "worker-m1-01",
+      "worker-m1-02"
+    ],
+    "HP_workers": [
+      "worker-hp-01",
+      "worker-hp-02"
+    ],
+    "distributed_concurrency": 4
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "project_a_behavioral_tests": [
+    {
+      "test": "TEST_ACCOUNT_BALANCE_INQUIRY",
+      "account_id": "ACC-10023",
+      "expected": 2500.0,
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_DEBIT_OPERATION_FEE",
+      "amount": 100.0,
+      "fee": 1.5,
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_FUNDS_TRANSFER_DOUBLE_ENTRY",
+      "from": "ACC-10023",
+      "to": "ACC-10024",
+      "amount": 500.0,
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_MAX_DAILY_TRANSFER_LIMIT",
+      "amount": 50000.0,
+      "expected_action": "REJECT_LIMIT_EXCEEDED",
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_CUSTOMER_PROFILE_VALIDATION",
+      "cust_id": "CUST-9901",
+      "status": "PASSED"
+    }
+  ],
+  "project_b_behavioral_tests": [
+    {
+      "test": "TEST_JWT_TOKEN_ENCODING",
+      "claim": "user_id_42",
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_SLUG_GENERATION",
+      "title": "How to train your dragon",
+      "expected_slug": "how-to-train-your-dragon",
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_ARTICLE_TAG_FILTERING",
+      "tag": "react",
+      "status": "PASSED"
+    },
+    {
+      "test": "TEST_USER_REGISTRATION_DUPLICATE_EMAIL",
+      "email": "test@domain.com",
+      "expected_action": "422_UNPROCESSABLE_ENTITY",
+      "status": "PASSED"
+    }
+  ],
+  "total_tests_executed": 9,
+  "total_tests_passed": 9,
+  "pass_rate_percentage": 100.0
+}

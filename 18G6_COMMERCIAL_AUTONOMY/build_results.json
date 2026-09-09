@@ -1,0 +1,12 @@
+{
+  "project_a_bank_of_z": {
+    "toolchain": "OpenJDK 26 javac",
+    "classes_compiled": 107,
+    "compilation_passed": true
+  },
+  "project_b_fastapi": {
+    "toolchain": "CPython py_compile",
+    "pyc_files_generated": 9,
+    "compilation_passed": true
+  }
+}

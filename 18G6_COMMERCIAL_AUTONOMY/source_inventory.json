@@ -1,0 +1,40 @@
+{
+  "project_a": {
+    "name": "IBM Bank-of-Z",
+    "total_files": 511,
+    "total_loc": 335001,
+    "technologies": [
+      "ASSEMBLER",
+      "BMS",
+      "CICS",
+      "COBOL",
+      "COBOL_COPYBOOK",
+      "DB2",
+      "DEPENDENCIES",
+      "DOCKER",
+      "JAVA",
+      "JCL",
+      "NODEJS",
+      "PYTHON",
+      "REST_API",
+      "SHELL",
+      "SPRING_BOOT",
+      "SQL",
+      "TYPESCRIPT"
+    ]
+  },
+  "project_b": {
+    "name": "FastAPI RealWorld Example App",
+    "total_files": 116,
+    "total_loc": 8883,
+    "technologies": [
+      "COBOL_COPYBOOK",
+      "DOCKER",
+      "FASTAPI",
+      "PYTHON",
+      "REST_API",
+      "SHELL",
+      "SQL"
+    ]
+  }
+}

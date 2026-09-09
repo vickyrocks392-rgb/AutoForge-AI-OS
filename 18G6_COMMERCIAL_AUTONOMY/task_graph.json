@@ -1,0 +1,77 @@
+{
+  "total_tasks_scheduled": 9,
+  "routing_schedule": [
+    {
+      "component": "AccountService",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "worker": "worker-m1-01",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    },
+    {
+      "component": "TransferService",
+      "machine": "HP",
+      "endpoint": "http://192.168.1.102:11434",
+      "model": "qwen2.5-coder:3b",
+      "worker": "worker-hp-01",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    },
+    {
+      "component": "CustomerService",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "ornith-9b-iq3m-4k:latest",
+      "worker": "worker-m1-02",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    },
+    {
+      "component": "AuditController",
+      "machine": "HP",
+      "endpoint": "http://192.168.1.102:11434",
+      "model": "qwen2.5-coder:3b",
+      "worker": "worker-hp-02",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    },
+    {
+      "component": "BankSecurityConfig",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "worker": "worker-m1-01",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    },
+    {
+      "component": "SecurityService",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "worker": "worker-m1-01",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    },
+    {
+      "component": "ArticleRepository",
+      "machine": "HP",
+      "endpoint": "http://192.168.1.102:11434",
+      "model": "qwen2.5-coder:3b",
+      "worker": "worker-hp-01",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    },
+    {
+      "component": "CommentRouter",
+      "machine": "HP",
+      "endpoint": "http://192.168.1.102:11434",
+      "model": "qwen2.5-coder:3b",
+      "worker": "worker-hp-02",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    },
+    {
+      "component": "UserProfileModel",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "ornith-9b-iq3m-4k:latest",
+      "worker": "worker-m1-02",
+      "reason": "Capacity-aware dual-node concurrent distribution"
+    }
+  ]
+}

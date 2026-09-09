@@ -1,0 +1,20 @@
+{
+  "workers": {
+    "worker-m1-01": {
+      "calls": 3,
+      "node": "M1"
+    },
+    "worker-m1-02": {
+      "calls": 2,
+      "node": "M1"
+    },
+    "worker-hp-01": {
+      "calls": 2,
+      "node": "HP"
+    },
+    "worker-hp-02": {
+      "calls": 2,
+      "node": "HP"
+    }
+  }
+}

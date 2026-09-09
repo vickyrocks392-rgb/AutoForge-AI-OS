@@ -1,0 +1,32 @@
+{
+  "project_a_bank_of_z": {
+    "source_architecture": "IBM Mainframe z/OS CICS / COBOL / Copybooks / BMS Maps / JCL Batch",
+    "target_architecture": "Java 21 / Spring Boot Microservice with REST Controllers",
+    "functional_requirements": [
+      "Preserve account balance retrieval and debit/credit ledger operations",
+      "Preserve inter-account fund transfer double-entry invariants",
+      "Preserve customer onboarding profile validation rules",
+      "Preserve daily maximum transaction limit enforcement"
+    ],
+    "non_functional_requirements": [
+      "Zero human engineering intervention during intake, transformation, and delivery",
+      "Strict project namespace vector isolation on Qdrant",
+      "Host OpenJDK javac toolchain verification",
+      "Autonomous defect diagnosis, RAG-assisted repair, and bad repair rejection"
+    ]
+  },
+  "project_b_fastapi": {
+    "source_architecture": "Python 3 / FastAPI / Pydantic / asyncpg RealWorld Architecture",
+    "target_architecture": "Modern Verified Async Microservice Specification",
+    "functional_requirements": [
+      "Preserve JWT token validation and password security service",
+      "Preserve article slug generation and repository queries",
+      "Preserve user profile following and social relationship graphs"
+    ],
+    "non_functional_requirements": [
+      "Zero human engineering intervention",
+      "Host CPython py_compile bytecode verification",
+      "Autonomous defect repair and corrupt candidate rejection"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "human_engineering_interventions": 0,
+  "human_production_loc": 0,
+  "human_test_loc": 0,
+  "human_config_loc": 0,
+  "human_manual_fixes": 0,
+  "human_artifact_edits": 0,
+  "manual_dependency_resolutions": 0,
+  "manual_debugging_actions": 0,
+  "certified_autonomous": true
+}

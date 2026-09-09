@@ -1,0 +1,138 @@
+{
+  "project_a_stages": [
+    {
+      "stage": "autonomous_discovery",
+      "duration_sec": 1.6567,
+      "status": "COMPLETED",
+      "files_scanned": 511,
+      "physical_loc": 335001,
+      "technologies": [
+        "ASSEMBLER",
+        "BMS",
+        "CICS",
+        "COBOL",
+        "COBOL_COPYBOOK",
+        "DB2",
+        "DEPENDENCIES",
+        "DOCKER",
+        "JAVA",
+        "JCL",
+        "NODEJS",
+        "PYTHON",
+        "REST_API",
+        "SHELL",
+        "SPRING_BOOT",
+        "SQL",
+        "TYPESCRIPT"
+      ]
+    },
+    {
+      "stage": "semantic_extraction",
+      "duration_sec": 0.0787,
+      "status": "COMPLETED",
+      "modules_extracted": 8,
+      "procedures_extracted": 123
+    },
+    {
+      "stage": "rag_retrieval",
+      "duration_sec": 0.5911,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "transformation_planning",
+      "duration_sec": 0.0649,
+      "status": "COMPLETED",
+      "target_components": 107
+    },
+    {
+      "stage": "target_artifact_generation",
+      "duration_sec": 35.073,
+      "status": "COMPLETED",
+      "artifacts_generated": 107
+    },
+    {
+      "stage": "toolchain_compilation",
+      "duration_sec": 1.7203,
+      "status": "COMPLETED",
+      "toolchain": "OpenJDK javac (26.0.2.1)",
+      "class_files": 107,
+      "passed": true
+    },
+    {
+      "stage": "behavioral_verification",
+      "duration_sec": 0.0,
+      "status": "COMPLETED",
+      "tests_executed": 5,
+      "tests_passed": 5
+    },
+    {
+      "stage": "autonomous_repair_and_bad_repair_rejection",
+      "duration_sec": 2.3226,
+      "status": "COMPLETED",
+      "bad_repair_rejected": true
+    }
+  ],
+  "project_b_stages": [
+    {
+      "stage": "autonomous_discovery",
+      "duration_sec": 0.0654,
+      "status": "COMPLETED",
+      "files_scanned": 116,
+      "physical_loc": 8883,
+      "technologies": [
+        "COBOL_COPYBOOK",
+        "DOCKER",
+        "FASTAPI",
+        "PYTHON",
+        "REST_API",
+        "SHELL",
+        "SQL"
+      ]
+    },
+    {
+      "stage": "semantic_extraction",
+      "duration_sec": 0.0085,
+      "status": "COMPLETED",
+      "modules_extracted": 7,
+      "procedures_extracted": 7
+    },
+    {
+      "stage": "rag_retrieval",
+      "duration_sec": 0.3371,
+      "status": "COMPLETED"
+    },
+    {
+      "stage": "transformation_planning",
+      "duration_sec": 0.0053,
+      "status": "COMPLETED",
+      "target_components": 9
+    },
+    {
+      "stage": "target_artifact_generation",
+      "duration_sec": 23.8861,
+      "status": "COMPLETED",
+      "artifacts_generated": 9
+    },
+    {
+      "stage": "toolchain_compilation",
+      "duration_sec": 0.0245,
+      "status": "COMPLETED",
+      "toolchain": "CPython py_compile",
+      "pyc_files": 9,
+      "passed": true
+    },
+    {
+      "stage": "behavioral_verification",
+      "duration_sec": 0.0,
+      "status": "COMPLETED",
+      "tests_executed": 4,
+      "tests_passed": 4
+    },
+    {
+      "stage": "autonomous_repair_and_bad_repair_rejection",
+      "duration_sec": 0.2656,
+      "status": "COMPLETED",
+      "bad_repair_rejected": true
+    }
+  ]
+}

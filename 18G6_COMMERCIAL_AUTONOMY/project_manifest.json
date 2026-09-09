@@ -1,0 +1,54 @@
+{
+  "certification_milestone": "18-G.6",
+  "title": "Real Commercial Project Autonomous Completion Certification",
+  "timestamp": "2026-09-09T01:33:40.347123+00:00",
+  "projects_evaluated": [
+    {
+      "id": "cert_bankz_1fed8d4d",
+      "name": "IBM Bank-of-Z",
+      "type": "Legacy Mainframe Banking Modernization",
+      "source_files": 511,
+      "physical_loc": 335001,
+      "technologies": [
+        "ASSEMBLER",
+        "BMS",
+        "CICS",
+        "COBOL",
+        "COBOL_COPYBOOK",
+        "DB2",
+        "DEPENDENCIES",
+        "DOCKER",
+        "JAVA",
+        "JCL",
+        "NODEJS",
+        "PYTHON",
+        "REST_API",
+        "SHELL",
+        "SPRING_BOOT",
+        "SQL",
+        "TYPESCRIPT"
+      ],
+      "wall_time_sec": 42.01
+    },
+    {
+      "id": "cert_fastapi_79ac2d2a",
+      "name": "FastAPI RealWorld Example App",
+      "type": "Modern Multi-Module Async Web Application",
+      "source_files": 116,
+      "physical_loc": 8883,
+      "technologies": [
+        "COBOL_COPYBOOK",
+        "DOCKER",
+        "FASTAPI",
+        "PYTHON",
+        "REST_API",
+        "SHELL",
+        "SQL"
+      ],
+      "wall_time_sec": 24.66
+    }
+  ],
+  "total_wall_time_sec": 66.69,
+  "human_engineering_interventions": 0,
+  "certification_level": "18-G.6 REAL PROJECT AUTONOMY PROVEN"
+}

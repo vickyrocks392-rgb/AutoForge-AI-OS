@@ -1,0 +1,8 @@
+{
+  "total_calls": 9,
+  "m1_calls_count": 5,
+  "hp_calls_count": 4,
+  "m1_percentage": 55.6,
+  "hp_percentage": 44.4,
+  "routing_policy": "Capacity-aware dual-node concurrent distribution"
+}

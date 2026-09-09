@@ -1,0 +1,42 @@
+{
+  "project_a_repairs": [
+    {
+      "repair_id": "rep-bankz-3ff7fe",
+      "defect_type": "SYNTAX_INJECTION",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 1,
+      "recompilation_passed": true,
+      "accepted": true
+    },
+    {
+      "repair_id": "rep-bad-bankz-005b24",
+      "defect_type": "CORRUPT_CANDIDATE",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 2,
+      "recompilation_passed": false,
+      "accepted": false,
+      "rejection_reason": "Toolchain compilation error: syntax and brace mismatch - autonomously rejected"
+    }
+  ],
+  "project_b_repairs": [
+    {
+      "repair_id": "rep-fastapi-113c01",
+      "defect_type": "SYNTAX_INJECTION",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 1,
+      "recompilation_passed": true,
+      "accepted": true
+    },
+    {
+      "repair_id": "rep-bad-fastapi-103eee",
+      "defect_type": "UNPARSABLE_DEFECT",
+      "diagnosis_rag_used": true,
+      "repair_attempt": 2,
+      "recompilation_passed": false,
+      "accepted": false,
+      "rejection_reason": "Toolchain compilation error: invalid Python syntax - autonomously rejected"
+    }
+  ],
+  "autonomous_repairs_successful": true,
+  "bad_repair_rejection_verified": true
+}

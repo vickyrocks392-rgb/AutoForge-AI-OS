@@ -1,0 +1,75 @@
+{
+  "bank_of_z_graph": {
+    "nodes": [
+      "BNKMENU",
+      "INQACCS",
+      "UPDACC",
+      "XFRFUN",
+      "CREACC",
+      "DBCRFUN",
+      "DELACC",
+      "UPDCUST",
+      "ACCOUNT.cpy",
+      "CUSTOMER.cpy"
+    ],
+    "edges": [
+      {
+        "from": "BNKMENU",
+        "to": "INQACCS",
+        "type": "CALL"
+      },
+      {
+        "from": "BNKMENU",
+        "to": "XFRFUN",
+        "type": "CALL"
+      },
+      {
+        "from": "XFRFUN",
+        "to": "UPDACC",
+        "type": "CALL"
+      },
+      {
+        "from": "UPDACC",
+        "to": "DBCRFUN",
+        "type": "CALL"
+      },
+      {
+        "from": "INQACCS",
+        "to": "ACCOUNT.cpy",
+        "type": "COPY"
+      },
+      {
+        "from": "CREACC",
+        "to": "CUSTOMER.cpy",
+        "type": "COPY"
+      }
+    ]
+  },
+  "fastapi_graph": {
+    "nodes": [
+      "app.main",
+      "app.api.routes",
+      "app.services.jwt",
+      "app.services.security",
+      "app.db.repositories.articles",
+      "app.models.domain"
+    ],
+    "edges": [
+      {
+        "from": "app.main",
+        "to": "app.api.routes",
+        "type": "import"
+      },
+      {
+        "from": "app.api.routes",
+        "to": "app.services.jwt",
+        "type": "dependency_injection"
+      },
+      {
+        "from": "app.api.routes",
+        "to": "app.db.repositories.articles",
+        "type": "dependency_injection"
+      }
+    ]
+  }
+}

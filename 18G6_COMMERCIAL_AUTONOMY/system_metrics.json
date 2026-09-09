@@ -1,0 +1,10 @@
+{
+  "total_wall_clock_sec": 66.69,
+  "total_llm_calls": 9,
+  "total_input_tokens": 424,
+  "total_output_tokens": 900,
+  "total_tokens": 1324,
+  "mean_tokens_per_second": 10.13,
+  "m1_mean_tps": 10.53,
+  "hp_mean_tps": 9.62
+}
