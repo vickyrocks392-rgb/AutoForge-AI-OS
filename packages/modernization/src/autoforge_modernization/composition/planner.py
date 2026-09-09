@@ -665,6 +665,7 @@ class GenericTransformationPlanner:
                 if src_node and dst_node and dst_node.kind in ("COPYBOOK", "RECORD", "DATASET_SCHEMA"):
                     shared_entity_users.setdefault(dst_node.name, []).append(src_node.name)
 
+        seen_case_insensitive: dict[str, str] = {}
         for ent_name, ent in semantic_model.entities.items():
             users = list(set(shared_entity_users.get(ent_name, [])))
             # If multiple users or standard entity, assign explicit shared domain model
@@ -673,6 +674,20 @@ class GenericTransformationPlanner:
                 safe_ent_name = "SharedEntity"
             if safe_ent_name[0].isdigit():
                 safe_ent_name = f"Entity{safe_ent_name}"
+
+            # Ensure case-insensitive uniqueness across file systems (e.g. macOS / Windows)
+            key_lower = safe_ent_name.lower()
+            if key_lower in seen_case_insensitive:
+                safe_ent_name = seen_case_insensitive[key_lower]
+            else:
+                seen_case_insensitive[key_lower] = safe_ent_name
+
+            existing_node = target_component_graph.get_component(safe_ent_name)
+            if existing_node:
+                for u in (users or [ent_name]):
+                    if u not in existing_node.source_module_names:
+                        existing_node.source_module_names.append(u)
+                continue
 
             is_multi_module_shared = len(users) > 1 or (len(semantic_model.modules) > 2 and bool(ent.fields))
             ownership = "SHARED_DOMAIN_MODEL" if is_multi_module_shared else "EMBEDDED_RECORD_SCHEMA"

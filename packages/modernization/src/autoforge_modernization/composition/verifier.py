@@ -86,7 +86,11 @@ class TargetToolchainVerifier:
         provider = self.provider_registry.get("provider-openjdk")
         if not provider or not isinstance(provider, OpenJDKProvider):
             provider = OpenJDKProvider()
-        return provider._find_real_javac()
+        javac = provider._find_real_javac()
+        if not javac:
+            provider.acquire_or_prepare()
+            javac = provider._find_real_javac()
+        return javac
 
     def verify(
         self,

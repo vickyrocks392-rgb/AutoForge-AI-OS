@@ -1481,6 +1481,12 @@ class GenericTargetArtifactGenerator:
                                             clean_toks.append(f"this.{c_f}")
                                     else:
                                         clean_toks.append("0L")
+                            open_cnt = clean_toks.count("(")
+                            close_cnt = clean_toks.count(")")
+                            if open_cnt > close_cnt:
+                                clean_toks.extend([")"] * (open_cnt - close_cnt))
+                            elif close_cnt > open_cnt:
+                                clean_toks = ["("] * (close_cnt - open_cnt) + clean_toks
                             val_expr = " ".join(clean_toks) if clean_toks else len_call
                     else:
                         tokens = re.split(r"([()+*/]|\s+-\s+)", expr)
@@ -1506,12 +1512,20 @@ class GenericTargetArtifactGenerator:
                                         clean_toks.append(f"this.{c_f}")
                                 else:
                                     clean_toks.append("0L")
+                        open_cnt = clean_toks.count("(")
+                        close_cnt = clean_toks.count(")")
+                        if open_cnt > close_cnt:
+                            clean_toks.extend([")"] * (open_cnt - close_cnt))
+                        elif close_cnt > open_cnt:
+                            clean_toks = ["("] * (close_cnt - open_cnt) + clean_toks
                         val_expr = " ".join(clean_toks) if clean_toks else "0L"
 
                     if dst_type == "String":
                         out.append(f"{indent}this.{dst_field} = String.valueOf({val_expr});")
-                    else:
+                    elif dst_type in ("int", "long", "double", "float", "BigDecimal"):
                         out.append(f"{indent}this.{dst_field} = {val_expr};")
+                    else:
+                        out.append(f"{indent}// Complex record assignment: this.{dst_field} ({dst_type}) updated with {val_expr}")
                 else:
                     out.append(f"{indent}// Computation: {desc}")
 

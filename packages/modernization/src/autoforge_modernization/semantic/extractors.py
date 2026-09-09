@@ -1032,6 +1032,106 @@ class SemanticModelExtractor:
             )
         return entities
 
+    def extract_from_python(
+        self,
+        content: str,
+        file_path: str = "module.py",
+        project_id: str = "default",
+    ) -> SemanticModule:
+        """Extract Python AST into TechnologyNeutral SemanticModule, procedures, and entities."""
+        import ast
+        mod_name = Path(file_path).stem.upper()
+        sha = _sha256(content)
+        procedures: list[SemanticProcedure] = []
+        entities: list[SemanticEntity] = []
+        deps: list[str] = []
+
+        try:
+            tree = ast.parse(content, filename=file_path)
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    proc_name = node.name.upper()
+                    procedures.append(
+                        SemanticProcedure(
+                            name=proc_name,
+                            description=f"Python function {node.name}",
+                            operations=[
+                                SemanticOperation(
+                                    kind=SemanticOperationKind.COMPUTE,
+                                    target=proc_name,
+                                    description=f"Execute {node.name}",
+                                )
+                            ],
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                line_start=node.lineno,
+                                line_end=getattr(node, "end_lineno", node.lineno),
+                                original_construct=f"def {node.name}",
+                            ),
+                        )
+                    )
+                elif isinstance(node, ast.ClassDef):
+                    ent_name = node.name.upper()
+                    fields = []
+                    for item in node.body:
+                        if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                            fields.append(
+                                SemanticField(
+                                    name=item.target.id,
+                                    data_type=SemanticDataType.STRING,
+                                    provenance=SourceProvenance(
+                                        source_file=file_path,
+                                        source_sha256=sha,
+                                        line_start=item.lineno,
+                                        original_construct=item.target.id,
+                                    ),
+                                )
+                            )
+                    entities.append(
+                        SemanticEntity(
+                            name=ent_name,
+                            entity_type="class",
+                            fields=fields,
+                            source_technology="PYTHON",
+                            provenance=SourceProvenance(
+                                source_file=file_path,
+                                source_sha256=sha,
+                                line_start=node.lineno,
+                                line_end=getattr(node, "end_lineno", node.lineno),
+                                original_construct=f"class {node.name}",
+                            ),
+                        )
+                    )
+                elif isinstance(node, ast.Import):
+                    for alias in node.names:
+                        deps.append(alias.name)
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    deps.append(node.module)
+        except Exception:
+            pass
+
+        if not procedures:
+            procedures.append(
+                SemanticProcedure(
+                    name=f"{mod_name}_EXEC",
+                    description=f"Python module execution for {mod_name}",
+                    operations=[],
+                    provenance=SourceProvenance(source_file=file_path, source_sha256=sha),
+                )
+            )
+
+        return SemanticModule(
+            name=mod_name,
+            source_file_path=file_path,
+            source_technology="PYTHON",
+            module_type="service",
+            procedures=procedures,
+            entities=entities,
+            external_dependencies=list(set(deps)),
+            provenance=SourceProvenance(source_file=file_path, source_sha256=sha),
+        )
+
 
 class ProjectSemanticExtractor:
     """Multi-file cross-technology semantic extractor and graph synthesizer."""
@@ -1053,7 +1153,7 @@ class ProjectSemanticExtractor:
         # Collect files if not explicitly provided
         if file_paths is None:
             file_paths = []
-            for ext in ("*.cbl", "*.CBL", "*.cob", "*.jcl", "*.JCL", "*.cpy", "*.CPY", "*.bms", "*.BMS", "*.sql", "*.ddl"):
+            for ext in ("*.cbl", "*.CBL", "*.cob", "*.jcl", "*.JCL", "*.cpy", "*.CPY", "*.bms", "*.BMS", "*.sql", "*.ddl", "*.py"):
                 file_paths.extend(root.rglob(ext))
 
         # Pass 1: Parse individual files into modules / entities
@@ -1104,6 +1204,12 @@ class ProjectSemanticExtractor:
                 sql_ents = self.single_extractor.extract_from_sql(content, file_path=rel_path)
                 for se in sql_ents:
                     model.add_entity(se)
+
+            elif ext == ".py":
+                py_mod = self.single_extractor.extract_from_python(content, file_path=rel_path, project_id=project_id)
+                model.add_module(py_mod)
+                for ent in py_mod.entities:
+                    model.add_entity(ent)
 
         # Pass 2 & 3: Cross-File Linking & Graph Composition
         graph = model.semantic_graph

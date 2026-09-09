@@ -1,0 +1,154 @@
+{
+  "timestamp": "2026-09-09T01:05:16.701133+00:00",
+  "summary": {
+    "m1_models_before": 10,
+    "m1_models_after": 5,
+    "m1_storage_before_gb": 33.98,
+    "m1_storage_after_gb": 13.36,
+    "m1_reclaimed_gb": 20.62,
+    "hp_models_before": 12,
+    "hp_models_after": 5,
+    "hp_storage_before_gb": 38.73,
+    "hp_storage_after_gb": 14.41,
+    "hp_reclaimed_gb": 24.32,
+    "total_reclaimed_gb": 44.95
+  },
+  "m1_models": [
+    {
+      "name": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "size_gb": 3.55,
+      "parameter_size": "7.6B",
+      "quantization": "Q3_K_M",
+      "family": "qwen2",
+      "classification": "ACTIVE_PRODUCTION",
+      "purpose": "Primary code generation and translation engine on Apple Silicon M1"
+    },
+    {
+      "name": "deepseek-coder:6.7b-instruct",
+      "size_gb": 3.56,
+      "parameter_size": "7B",
+      "quantization": "Q4_0",
+      "family": "llama",
+      "classification": "PLANNED_OPTIMIZATION",
+      "purpose": "Alternative coding model for multi-model ensemble & optimization benchmarks"
+    },
+    {
+      "name": "ornith-9b-iq3m-4k:latest",
+      "size_gb": 4.11,
+      "parameter_size": "9.0B",
+      "quantization": "IQ3_M",
+      "family": "qwen35",
+      "classification": "ACTIVE_PRODUCTION",
+      "purpose": "Canonical architectural reasoning and planning model on M1 (4k context optimized)"
+    },
+    {
+      "name": "nomic-embed-text:latest",
+      "size_gb": 0.26,
+      "parameter_size": "137M",
+      "quantization": "F16",
+      "family": "nomic-bert",
+      "classification": "ACTIVE_PRODUCTION",
+      "purpose": "Canonical 768-dimensional embedding model for Qdrant RAG ingestion & search"
+    },
+    {
+      "name": "llama3.2:3b",
+      "size_gb": 1.88,
+      "parameter_size": "3.2B",
+      "quantization": "Q4_K_M",
+      "family": "llama",
+      "classification": "ACTIVE_TEST",
+      "purpose": "Fast test execution, structured schema extraction, and lightweight classification"
+    }
+  ],
+  "hp_models": [
+    {
+      "name": "qwen2.5-coder:3b",
+      "size_gb": 1.8,
+      "parameter_size": "3.1B",
+      "quantization": "Q4_K_M",
+      "family": "qwen2",
+      "classification": "ACTIVE_PRODUCTION",
+      "purpose": "Canonical secondary/faster distributed code generation on HP Windows host"
+    },
+    {
+      "name": "deepseek-coder:6.7b-instruct-q3_K_M",
+      "size_gb": 3.07,
+      "parameter_size": "7B",
+      "quantization": "Q3_K_M",
+      "family": "llama",
+      "classification": "PLANNED_OPTIMIZATION",
+      "purpose": "Alternative quantized coding engine on HP host"
+    },
+    {
+      "name": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "size_gb": 3.55,
+      "parameter_size": "7.6B",
+      "quantization": "Q3_K_M",
+      "family": "qwen2",
+      "classification": "PLANNED_OPTIMIZATION",
+      "purpose": "Dual-7B symmetric distributed coding optimization experiments"
+    },
+    {
+      "name": "ornith-9b-iq3m-4k:latest",
+      "size_gb": 4.11,
+      "parameter_size": "9.0B",
+      "quantization": "IQ3_M",
+      "family": "qwen35",
+      "classification": "PLANNED_OPTIMIZATION",
+      "purpose": "Distributed architectural reasoning model on HP host"
+    },
+    {
+      "name": "llama3.2:3b",
+      "size_gb": 1.88,
+      "parameter_size": "3.2B",
+      "quantization": "Q4_K_M",
+      "family": "llama",
+      "classification": "PLANNED_OPTIMIZATION",
+      "purpose": "Fast routing and auxiliary classification on HP host"
+    }
+  ],
+  "deleted_models": {
+    "M1": [
+      "maxwell1500/ornith-9b:IQ3_M",
+      "qwen2.5-coder:7b",
+      "ornith:9b",
+      "qwen3:4b",
+      "llama3.1:8b"
+    ],
+    "HP": [
+      "deepseek-coder:6.7b-instruct-q2_K",
+      "deepseek-coder:6.7b-instruct",
+      "qwen2.5-coder:7b-instruct-q2_K",
+      "qwen2.5-coder:7b",
+      "yi-6b-4k:latest",
+      "hf.co/SamPurkis/Yi-6B-GGUF:Q4_K_M",
+      "maxwell1500/ornith-9b:IQ3_M"
+    ]
+  },
+  "canonical_models": [
+    {
+      "machine": "M1 (Apple Silicon)",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "purpose": "Primary code generation and modernization engine",
+      "status": "ACTIVE_PRODUCTION"
+    },
+    {
+      "machine": "M1 (Apple Silicon)",
+      "model": "ornith-9b-iq3m-4k:latest",
+      "purpose": "Canonical architectural reasoning and planning",
+      "status": "ACTIVE_PRODUCTION"
+    },
+    {
+      "machine": "M1 (Apple Silicon)",
+      "model": "nomic-embed-text:latest",
+      "purpose": "768-dimensional local vector embedding for RAG",
+      "status": "ACTIVE_PRODUCTION"
+    },
+    {
+      "machine": "HP (Windows Host)",
+      "model": "qwen2.5-coder:3b",
+      "purpose": "Secondary/faster distributed inference over LAN",
+      "status": "ACTIVE_PRODUCTION"
+    }
+  ]
+}
