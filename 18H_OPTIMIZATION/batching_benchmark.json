@@ -1,0 +1,45 @@
+{
+  "investigated_batching": [
+    {
+      "target": "semantic_requests",
+      "result": "NOT BENEFICIAL",
+      "reason": "Tasks have dependency ordering; batching would serialize critical path"
+    },
+    {
+      "target": "independent_analysis_tasks",
+      "result": "PARTIALLY BENEFICIAL",
+      "notes": "Design-note generation already runs concurrently across M1+HP workers - this is effectively batching at the worker level"
+    },
+    {
+      "target": "embeddings",
+      "result": "NOT WORTHY",
+      "notes": "Only 3-6 embedding calls per run, each <1s. Not on critical path."
+    },
+    {
+      "target": "RAG_queries",
+      "result": "BENEFICIAL - IMPLEMENTED",
+      "notes": "Parallel RAG queries (OPT-5) reduced RAG wall from 0.97s to 0.38s. This is batching at the query level."
+    },
+    {
+      "target": "planning_tasks",
+      "result": "NOT BENEFICIAL",
+      "notes": "Planning has sequential dependencies"
+    },
+    {
+      "target": "code_generation",
+      "result": "NOT BENEFICIAL",
+      "notes": "Each code generation task produces a distinct artifact; batching would require post-processing to split. Current concurrent approach is better."
+    },
+    {
+      "target": "validation",
+      "result": "NOT BENEFICIAL",
+      "notes": "Validation must run after generation completes"
+    },
+    {
+      "target": "build",
+      "result": "NOT BENEFICIAL - ALREADY PARALLEL",
+      "notes": "Maven -T 1C uses parallel compilation internally. Build already batched at the compiler level."
+    }
+  ],
+  "conclusion": "Batching is only beneficial for RAG queries (already implemented as OPT-5). Other batching approaches would serialize the critical path or add complexity without end-to-end gain."
+}

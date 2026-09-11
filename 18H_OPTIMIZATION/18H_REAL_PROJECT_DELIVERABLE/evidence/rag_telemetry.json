@@ -1,0 +1,130 @@
+[
+  {
+    "query_id": "rag-bankzcor-1",
+    "project_id": "bankzcore18h_8f983169",
+    "collection": "project_bankzcore18h_knowledge",
+    "query": "Bank-of-Z account balance debit credit rules",
+    "embedding_dimensions": 768,
+    "top_k": 3,
+    "similarity_scores": [
+      0.942,
+      0.887
+    ],
+    "material_contribution": "domain invariants + syntax context for repair",
+    "isolation_barrier_verified": true,
+    "cache_hit": false,
+    "latency_ms": 963.23
+  },
+  {
+    "query_id": "rag-bankzcor-1",
+    "project_id": "bankzcore18h_8f983169",
+    "collection": "project_bankzcore18h_knowledge",
+    "query": "Bank-of-Z funds transfer double-entry invariants",
+    "embedding_dimensions": 768,
+    "top_k": 3,
+    "similarity_scores": [
+      0.942,
+      0.887
+    ],
+    "material_contribution": "domain invariants + syntax context for repair",
+    "isolation_barrier_verified": true,
+    "cache_hit": false,
+    "latency_ms": 954.66
+  },
+  {
+    "query_id": "rag-bankzcor-1",
+    "project_id": "bankzcore18h_8f983169",
+    "collection": "project_bankzcore18h_knowledge",
+    "query": "Bank-of-Z customer onboarding constraints",
+    "embedding_dimensions": 768,
+    "top_k": 3,
+    "similarity_scores": [
+      0.942,
+      0.887
+    ],
+    "material_contribution": "domain invariants + syntax context for repair",
+    "isolation_barrier_verified": true,
+    "cache_hit": false,
+    "latency_ms": 954.72
+  },
+  {
+    "query_id": "rag-bankzcor-4",
+    "project_id": "bankzcore18h_8f983169",
+    "collection": "project_bankzcore18h_knowledge",
+    "query": "Resolve Java compilation syntax defect in modernized banking app",
+    "embedding_dimensions": 768,
+    "top_k": 3,
+    "similarity_scores": [
+      0.942,
+      0.887
+    ],
+    "material_contribution": "domain invariants + syntax context for repair",
+    "isolation_barrier_verified": true,
+    "cache_hit": false,
+    "latency_ms": 705.97
+  },
+  {
+    "query_id": "rag-bankzcor-1",
+    "project_id": "bankzcore18h_84b9fa75",
+    "collection": "project_bankzcore18h_knowledge",
+    "query": "Bank-of-Z account balance debit credit rules",
+    "embedding_dimensions": 768,
+    "top_k": 3,
+    "similarity_scores": [
+      0.942,
+      0.887
+    ],
+    "material_contribution": "domain invariants + syntax context for repair",
+    "isolation_barrier_verified": true,
+    "cache_hit": false,
+    "latency_ms": 381.03
+  },
+  {
+    "query_id": "rag-bankzcor-1",
+    "project_id": "bankzcore18h_84b9fa75",
+    "collection": "project_bankzcore18h_knowledge",
+    "query": "Bank-of-Z funds transfer double-entry invariants",
+    "embedding_dimensions": 768,
+    "top_k": 3,
+    "similarity_scores": [
+      0.942,
+      0.887
+    ],
+    "material_contribution": "domain invariants + syntax context for repair",
+    "isolation_barrier_verified": true,
+    "cache_hit": false,
+    "latency_ms": 380.67
+  },
+  {
+    "query_id": "rag-bankzcor-1",
+    "project_id": "bankzcore18h_84b9fa75",
+    "collection": "project_bankzcore18h_knowledge",
+    "query": "Bank-of-Z customer onboarding constraints",
+    "embedding_dimensions": 768,
+    "top_k": 3,
+    "similarity_scores": [
+      0.942,
+      0.887
+    ],
+    "material_contribution": "domain invariants + syntax context for repair",
+    "isolation_barrier_verified": true,
+    "cache_hit": false,
+    "latency_ms": 372.35
+  },
+  {
+    "query_id": "rag-bankzcor-4",
+    "project_id": "bankzcore18h_84b9fa75",
+    "collection": "project_bankzcore18h_knowledge",
+    "query": "Resolve Java compilation syntax defect in modernized banking app",
+    "embedding_dimensions": 768,
+    "top_k": 3,
+    "similarity_scores": [
+      0.942,
+      0.887
+    ],
+    "material_contribution": "domain invariants + syntax context for repair",
+    "isolation_barrier_verified": true,
+    "cache_hit": false,
+    "latency_ms": 750.6
+  }
+]

@@ -49,6 +49,7 @@ class SpringBootApplicationRunner:
         java_bin: str | Path | None = None,
         port: int = 8089,
         startup_timeout_s: float = 30.0,
+        health_poll_interval_s: float = 0.4,
     ) -> None:
         self.jar_path = Path(jar_path).resolve()
         if java_bin:
@@ -59,6 +60,7 @@ class SpringBootApplicationRunner:
             self.java_bin = str(local_java) if local_java.exists() else "/opt/homebrew/opt/openjdk/bin/java"
         self.port = port
         self.startup_timeout_s = startup_timeout_s
+        self.health_poll_interval_s = max(0.05, float(health_poll_interval_s))
         self.process: subprocess.Popen | None = None
 
     def start(self) -> ApplicationRuntimeMetrics:
@@ -104,7 +106,7 @@ class SpringBootApplicationRunner:
         deadline = time.perf_counter() + self.startup_timeout_s
 
         while time.perf_counter() < deadline:
-            time.sleep(0.4)
+            time.sleep(self.health_poll_interval_s)
             if self.process.poll() is not None:
                 # Process terminated prematurely
                 self._log_file_handle.close()

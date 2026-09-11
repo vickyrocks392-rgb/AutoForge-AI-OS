@@ -1,0 +1,42 @@
+{
+  "cache_implemented": false,
+  "cache_type_investigated": "Semantic result caching for reusable reasoning results",
+  "cacheable_candidates": [
+    {
+      "candidate": "Identical semantic structures",
+      "cacheable": true,
+      "note": "Same project + same commit = same semantics. But 18-H runs are on same project so caching would help. However, semantic extraction is already deterministic and fast (0.16s). Caching would save <0.2s per run. Not worth complexity."
+    },
+    {
+      "candidate": "Identical dependency analysis",
+      "cacheable": true,
+      "note": "Dependency analysis is deterministic. Already fast (0.4s). Caching saves <0.4s. Not worth it."
+    },
+    {
+      "candidate": "Stable project facts",
+      "cacheable": true,
+      "note": "Project facts (511 files, 335001 LOC, BANKING_CORE) are stable for same commit. But discovery is already fast (1.7s). Caching saves <1.7s. Marginal."
+    },
+    {
+      "candidate": "Repeated RAG-derived context",
+      "cacheable": true,
+      "note": "RAG queries for same project+commit return same results. However, RAG is already parallel and fast (0.38-0.97s). Caching saves <1s. Not worth the complexity + staleness risk."
+    },
+    {
+      "candidate": "Repeated transformation mappings",
+      "cacheable": true,
+      "note": "Same source commit produces same transformation plan. But planning is fast (0.23-0.25s). Caching saves <0.25s."
+    },
+    {
+      "candidate": "Deterministic planning inputs",
+      "cacheable": true,
+      "note": "Planning inputs are deterministic. Already fast. Caching saves <0.25s."
+    }
+  ],
+  "cache_hit_rate_predicted": "Would be high for same-project re-runs (100% for deterministic stages). But deterministic stages are already sub-second.",
+  "latency_saved_if_implemented": "< 3s per run (sum of all deterministic stage times: 1.7+0.4+0.16+0.25 = 2.5s). Not worth the complexity.",
+  "tokens_saved_if_implemented": "Minimal - deterministic stages don't use LLM tokens. RAG caching would save embedding compute but embeddings are already fast.",
+  "staleness_risk": "HIGH - cache keys must incorporate project ID + commit hash + subsystem. Any mismatch causes stale cache. Project isolation must be perfect.",
+  "conclusion": "Semantic caching is NOT implemented because: (1) All deterministic stages are already sub-second, (2) Caching savings < 3s per run, (3) Staleness risk is high, (4) Complexity cost exceeds benefit. The only potential value would be caching LLM inference results (design notes) but those are already produced in 68-71s and caching would require perfect key matching + risk serving stale design notes.",
+  "recommendation": "Do NOT implement semantic caching. The critical path is dominated by LLM inference (68-71s), not deterministic stages (2.5s total). Caching deterministic stages saves < 5% of wall clock. Focus optimization effort on inference TTFT and concurrency instead."
+}

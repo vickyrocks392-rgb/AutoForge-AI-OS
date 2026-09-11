@@ -1,0 +1,65 @@
+[
+  {
+    "endpoint": "http://127.0.0.1:11434",
+    "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+    "machine": "M1",
+    "warm_load_ms": 707.9,
+    "result": "SUCCESS"
+  },
+  {
+    "endpoint": "http://127.0.0.1:11434",
+    "model": "ornith-9b-iq3m-4k:latest",
+    "machine": "M1",
+    "warm_load_ms": 5959.5,
+    "result": "SUCCESS"
+  },
+  {
+    "endpoint": "http://192.168.1.102:11434",
+    "model": "qwen2.5-coder:3b",
+    "machine": "HP",
+    "warm_load_ms": 535.9,
+    "result": "SUCCESS"
+  },
+  {
+    "endpoint": "http://127.0.0.1:11434",
+    "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+    "machine": "M1",
+    "warm_load_ms": 3542.5,
+    "result": "SUCCESS"
+  },
+  {
+    "endpoint": "http://127.0.0.1:11434",
+    "model": "ornith-9b-iq3m-4k:latest",
+    "machine": "M1",
+    "warm_load_ms": 5005.6,
+    "result": "SUCCESS"
+  },
+  {
+    "endpoint": "http://192.168.1.102:11434",
+    "model": "qwen2.5-coder:3b",
+    "machine": "HP",
+    "warm_load_ms": 380.9,
+    "result": "SUCCESS"
+  },
+  {
+    "endpoint": "http://127.0.0.1:11434",
+    "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+    "machine": "M1",
+    "warm_load_ms": 323.7,
+    "result": "SUCCESS"
+  },
+  {
+    "endpoint": "http://127.0.0.1:11434",
+    "model": "ornith-9b-iq3m-4k:latest",
+    "machine": "M1",
+    "warm_load_ms": 5231.8,
+    "result": "SUCCESS"
+  },
+  {
+    "endpoint": "http://192.168.1.102:11434",
+    "model": "qwen2.5-coder:3b",
+    "machine": "HP",
+    "warm_load_ms": 496.9,
+    "result": "SUCCESS"
+  }
+]

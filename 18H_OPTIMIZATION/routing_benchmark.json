@@ -1,0 +1,57 @@
+{
+  "fleet": {
+    "M1": {
+      "host": "127.0.0.1:11434",
+      "models": [
+        "qwen2.5-coder:7b-instruct-q3_K_M",
+        "ornith-9b-iq3m-4k:latest",
+        "nomic-embed-text:latest"
+      ]
+    },
+    "HP": {
+      "host": "192.168.1.102:11434",
+      "models": [
+        "qwen2.5-coder:3b"
+      ],
+      "qdrant": "192.168.1.102:6333"
+    }
+  },
+  "task_classification": {
+    "semantic_extraction": "ornith-9b (M1) - fast TTFT, good reasoning",
+    "planning": "ornith-9b (M1) - architectural reasoning",
+    "transformation_reasoning": "qwen7b (M1) - primary coding engine",
+    "diagnosis": "ornith-9b (M1) - reasoning",
+    "repair": "ornith-9b (M1) + RAG",
+    "review": "qwen3b (HP) - cheap secondary",
+    "summarization": "qwen3b (HP) - cheap",
+    "rag_synthesis": "qwen3b (HP) - distributed"
+  },
+  "routing_policy": "Capacity-aware dual-node concurrent distribution",
+  "m1_calls": 6,
+  "hp_calls": 6,
+  "m1_pct": 50.0,
+  "hp_pct": 50.0,
+  "model_tTFT_warm_ms": {
+    "qwen2.5-coder:7b-instruct-q3_K_M": {
+      "p50": 46000,
+      "p95": 55000,
+      "note": "Primary coding engine - higher TTFT but acceptable for code gen"
+    },
+    "ornith-9b-iq3m-4k:latest": {
+      "p50": 1200,
+      "p95": 18500,
+      "note": "Architectural reasoning - best TTFT for reasoning tasks"
+    },
+    "qwen2.5-coder:3b": {
+      "p50": 700,
+      "p95": 17600,
+      "note": "Cheap secondary - excellent TTFT when warm, penalty on cold arrival"
+    }
+  },
+  "model_tps": {
+    "qwen2.5-coder:7b-instruct-q3_K_M": 10.5,
+    "ornith-9b-iq3m-4k:latest": 9.9,
+    "qwen2.5-coder:3b": 10.1
+  },
+  "conclusion": "Routing optimized: cheap/fast models for cheap tasks (HP qwen3b for secondary coding, summarization), fast-TTFT model for reasoning (M1 ornith-9b), primary coding on M1 qwen7b. No model expansion needed."
+}

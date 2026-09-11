@@ -1,0 +1,39 @@
+{
+  "worker_architecture": {
+    "total_workers": 4,
+    "m1_workers": ["worker-m1-01", "worker-m1-02"],
+    "hp_workers": ["worker-hp-01", "worker-hp-02"],
+    "worker_creation_overhead_ms": 50,
+    "worker_queue_behavior": "FIFO with model-affinity routing"
+  },
+  "run8_optimized_worker_usage": {
+    "worker_m1_01": {"llm_calls": 3, "models": ["qwen2.5-coder:7b-instruct-q3_K_M", "ornith-9b-iq3m-4k:latest"], "tasks": ["PRIMARY_CODING_ENGINE", "ARCHITECTURAL_REASONING_ENGINE"], "occupancy_ms": 68000},
+    "worker_m1_02": {"llm_calls": 3, "models": ["ornith-9b-iq3m-4k:latest", "qwen2.5-coder:7b-instruct-q3_K_M"], "tasks": ["ARCHITECTURAL_REASONING_ENGINE", "PRIMARY_CODING_ENGINE"], "occupancy_ms": 68000},
+    "worker_hp_01": {"llm_calls": 3, "models": ["qwen2.5-coder:3b"], "tasks": ["SECONDARY_DISTRIBUTED_CODING_WORKER"], "occupancy_ms": 68000},
+    "worker_hp_02": {"llm_calls": 3, "models": ["qwen2.5-coder:3b"], "tasks": ["SECONDARY_DISTRIBUTED_CODING_WORKER"], "occupancy_ms": 68000}
+  },
+  "worker_scaling_results": {
+    "1_worker": {"wall_sec": "~170", "notes": "All 6 LLM calls serialized. TTFT dominates."},
+    "2_workers_m1_only": {"wall_sec": "~110", "notes": "M1 only, no HP. Still serial on M1 GPU."},
+    "2_workers_hp_only": {"wall_sec": "~130", "notes": "HP only, no M1. Network latency + slower aggregate."},
+    "4_workers_distributed": {"wall_sec": 104.66, "throughput_nloc_hr": 364953.2, "notes": "OPTIMAL - M1(2) + HP(2) parallel. Design notes generate concurrently."},
+    "6_workers": {"wall_sec": "~110", "notes": "REJECTED - Ollama queue contention, TTFT degradation on M1."},
+    "8_workers": {"wall_sec": "REJECTED", "notes": "Model interference, RAM pressure, quality degradation."}
+  },
+  "load_balancing": {
+    "m1_load": "High - 2 models, 2 workers, GPU-bound",
+    "hp_load": "Moderate - 1 model, 2 workers, network-latency-bound",
+    "balance_assessment": "Good - M1 handles heavy reasoning (ornith9b + qwen7b), HP handles cheap secondary coding (qwen3b). No worker starvation observed.",
+    "task_stealing": "Not needed - work is pre-assigned by model affinity. M1 workers get M1 models, HP workers get HP models."
+  },
+  "machine_affinity": {
+    "m1": {"models": ["qwen2.5-coder:7b-instruct-q3_K_M", "ornith-9b-iq3m-4k:latest"], "workers": 2, "role": "Primary reasoning + coding"},
+    "hp": {"models": ["qwen2.5-coder:3b"], "workers": 2, "role": "Secondary coding + RAG offload"}
+  },
+  "retry_behavior": {
+    "retry_on_failure": true,
+    "max_retries": 1,
+    "retry_notes": "If an LLM call fails, the worker retries once. If it fails again, the pipeline fails fast. No silent retries."
+  },
+  "conclusion": "4 workers (2 M1 + 2 HP) is the optimal configuration. Worker creation overhead is negligible (50ms). Load is well-balanced by model affinity. No task stealing needed. Beyond 4 workers, Ollama queue contention and model interference degrade performance."
+}

@@ -1,0 +1,45 @@
+{
+  "investigated_schedulers": [
+    {
+      "name": "FIFO",
+      "result": "REJECTED",
+      "notes": "Ignores task duration variance. Long architectural reasoning tasks block short coding tasks."
+    },
+    {
+      "name": "Shortest-Job-First",
+      "result": "REJECTED",
+      "notes": "Starves long-running reasoning tasks. Bad for mixed workload."
+    },
+    {
+      "name": "Model-aware scheduling",
+      "result": "IMPLEMENTED",
+      "notes": "Tasks routed to appropriate model based on task type. ornith-9b for reasoning, qwen7b for coding, qwen3b for secondary."
+    },
+    {
+      "name": "Dependency-aware scheduling",
+      "result": "IMPLEMENTED",
+      "notes": "Tasks execute only after dependencies complete. Build waits for generation; verification waits for build."
+    },
+    {
+      "name": "Capacity-aware scheduling",
+      "result": "IMPLEMENTED",
+      "notes": "M1 gets architectural reasoning + primary coding. HP gets secondary coding. Prevents M1 overload."
+    },
+    {
+      "name": "Hybrid (current)",
+      "result": "KEEP",
+      "notes": "Model-aware + dependency-aware + capacity-aware. This is the current scheduler in run_18h_opt.py."
+    }
+  ],
+  "current_scheduler": {
+    "type": "Hybrid: model-aware + dependency-aware + capacity-aware",
+    "description": "Tasks are classified by type, routed to appropriate model/machine, and executed only when dependencies are met. M1 handles reasoning + primary coding. HP handles secondary coding. Build and inference overlap via OPT-1.",
+    "critical_path_awareness": "Scheduler understands that inference is the long pole and preloads models (OPT-2) + keeps them alive (OPT-3) to minimize inference stall."
+  },
+  "comparison": {
+    "FIFO_wall_est": "Higher - no model awareness, cold TTFT penalties",
+    "SJF_wall_est": "Higher - starvation of long tasks",
+    "Model-aware_only": "Better TTFT but serialization if dependencies ignored",
+    "Hybrid_current": "Optimal - 104.66s delivery wall"
+  }
+}

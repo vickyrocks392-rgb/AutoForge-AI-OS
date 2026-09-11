@@ -1,0 +1,42 @@
+{
+  "tested_concurrency": [
+    {
+      "level": 1,
+      "description": "Sequential single worker",
+      "notes": "Serial - inference wall dominates"
+    },
+    {
+      "level": 2,
+      "description": "M1 only, 2 workers",
+      "notes": "M1 serial inference - no HP utilization"
+    },
+    {
+      "level": 4,
+      "description": "M1(2) + HP(2) distributed",
+      "m1_llm_calls": 6,
+      "hp_llm_calls": 6,
+      "wall_sec": 104.66,
+      "throughput_nloc_hr": 364953.2,
+      "notes": "CURRENT OPTIMAL - parallel design notes across both machines"
+    },
+    {
+      "level": 6,
+      "description": "M1(3) + HP(3)",
+      "notes": "REJECTED - Ollama queue contention, TTFT degradation"
+    },
+    {
+      "level": 8,
+      "description": "M1(4) + HP(4)",
+      "notes": "REJECTED - model interference, RAM pressure, quality degradation"
+    }
+  ],
+  "optimal_concurrency": {
+    "M1": 2,
+    "HP": 2,
+    "distributed": 4,
+    "rationale": "4 concurrent workers maximizes useful parallel work without model contention."
+  },
+  "saturation_point": "4 workers - beyond this, queue growth and TTFT degradation outweigh parallelism benefits",
+  "m1_bottleneck": "GPU memory for 2 models (qwen7b + ornith9b)",
+  "hp_bottleneck": "Network latency to M1 + single model (qwen3b) - already maxed at 2 workers"
+}

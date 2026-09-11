@@ -1,0 +1,35 @@
+{
+  "gate": "18-H HEAVY OPTIMIZATION",
+  "timestamp": "2026-09-09T22:53:23.176461+00:00",
+  "source": {
+    "repo": "https://github.com/IBM/Bank-of-Z",
+    "commit": "e13539daca1846ccf0d363d97af1dcc6b51fae9c",
+    "total_files": 511,
+    "total_loc": 335001
+  },
+  "subsystem": {
+    "name": "BANKING_CORE",
+    "files": 25,
+    "loc": 15206,
+    "nloc": 10610
+  },
+  "package": {
+    "jar": "/Users/kalachanddash/Documents/18H_OPTIMIZATION/18H_REAL_PROJECT_DELIVERABLE/package/modernized-subsystem-1.0.0-SNAPSHOT.jar",
+    "jar_bytes": 24539266,
+    "sha256": "0e7b57868d9295c3f4fb0f7b0a66bd95007e3c9b5c2d28f83c0a61e5735cd914"
+  },
+  "telemetry": {
+    "total_wall_sec": 206.81,
+    "delivery_wall_sec": 104.66,
+    "warm_preload_wall_sec": 7.21,
+    "llm_calls": 12,
+    "in_tokens": 638,
+    "out_tokens": 1920,
+    "mean_tps": 10.16,
+    "mean_ttft_ms": 21804.9
+  },
+  "nloc_per_hour": {
+    "source_total_wall": 184691.3,
+    "source_delivery_inclusive": 364953.2
+  }
+}

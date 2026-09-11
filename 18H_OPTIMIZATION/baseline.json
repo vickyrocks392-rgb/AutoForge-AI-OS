@@ -1,0 +1,266 @@
+{
+  "frozen_baseline": {
+    "label": "18-G Run-8 / 18-G.6 Commercial Autonomy Baseline",
+    "frozen_commit": "12b4a91",
+    "preserved_deliverable": "18G_REAL_PROJECT_DELIVERABLE",
+    "workload": {
+      "repo": "https://github.com/IBM/Bank-of-Z",
+      "commit": "e13539daca1846ccf0d363d97af1dcc6b51fae9c",
+      "total_files": 511,
+      "total_loc": 335001,
+      "subsystem": "BANKING_CORE",
+      "subsystem_files": 25,
+      "subsystem_physical_loc": 15206,
+      "subsystem_source_nloc": 10610,
+      "internal_dependencies": 40,
+      "external_boundaries": 14
+    },
+    "fleet": {
+      "m1": {
+        "host": "127.0.0.1:11434",
+        "models": [
+          "qwen2.5-coder:7b-instruct-q3_K_M",
+          "ornith-9b-iq3m-4k:latest",
+          "nomic-embed-text:latest"
+        ]
+      },
+      "hp": {
+        "host": "192.168.1.102:11434",
+        "models": [
+          "qwen2.5-coder:3b"
+        ],
+        "qdrant": "192.168.1.102:6333"
+      }
+    },
+    "run8_observed": {
+      "label": "18-G Run-8 (delivery-inclusive)",
+      "source_nloc": 10610,
+      "end_to_end_wall_sec": 116.85,
+      "source_nloc_per_hour_delivery_inclusive": 326880.6,
+      "run1_nloc_per_hour": 340155,
+      "run2_nloc_per_hour": 371195,
+      "peak_concurrency": 6,
+      "mean_concurrency": 2.957,
+      "aggregate_tps": 11.37,
+      "m1_tps": 10.21,
+      "hp_tps": 10.09,
+      "llm_calls": 9,
+      "in_tokens": 424,
+      "out_tokens": 900,
+      "mean_tts_ms": null
+    },
+    "commercial_planning_baseline": {
+      "label": "Conservative 18-G commercial planning rate (50% safety margin on observed)",
+      "source_nloc_per_hour": 170077.5,
+      "derivation": "50% of 340,155 observed Run-1 rate"
+    },
+    "primary_bottleneck": "LLM reasoning latency / TTFT (time-to-first-token)",
+    "verification_standard": {
+      "build": "Maven clean package -DskipTests -B -q -T 1C",
+      "tests": "9 behavioral tests 100% pass",
+      "runtime": "Spring Boot on port 8092 clean env",
+      "repair": "Syntax injection + bad repair rejection",
+      "packaging": "fat jar 24.5MB",
+      "provenance": "7-stage immutable audit trail",
+      "purge": "clean-room state purge verified"
+    }
+  },
+  "18h_run1_observed": {
+    "label": "18-H OPT Run 1 (single run, optimizations applied)",
+    "source_nloc": 10610,
+    "wall_sec": 93.65,
+    "source_nloc_per_hour": 40853.7,
+    "llm_calls": 6,
+    "in_tokens": 333,
+    "out_tokens": 960,
+    "mean_tps": 10.05,
+    "mean_ttft_ms": 17659.0,
+    "build_sec": 5.93,
+    "inference_sec": 68.29,
+    "overlap_saved_sec": 5.93,
+    "repair_sec": 11.97,
+    "verification_sec": 0.37,
+    "behaviors_passed": 9,
+    "classes": 196,
+    "jar_bytes": 24539266,
+    "optimizations_applied": [
+      "OPT-1 build || inference overlap",
+      "OPT-2 warm model preload (keep_alive=-1)",
+      "OPT-3 keep-alive inference calls",
+      "OPT-4 Maven -B -q -T 1C",
+      "OPT-5 parallel RAG",
+      "OPT-6 0.1s health polling"
+    ]
+  },
+  "18h_run2_observed": {
+    "label": "18-H OPT Run 2 (single run, optimizations applied)",
+    "source_nloc": 10610,
+    "wall_sec": 102.1,
+    "source_nloc_per_hour": 37361.8,
+    "llm_calls": 6,
+    "in_tokens": 305,
+    "out_tokens": 960,
+    "mean_tps": 10.19,
+    "mean_ttft_ms": 17959.0,
+    "build_sec": 8.65,
+    "inference_sec": 71.02,
+    "overlap_saved_sec": 8.65,
+    "repair_sec": 16.71,
+    "verification_sec": 3.14,
+    "behaviors_passed": 9,
+    "classes": 196,
+    "jar_bytes": 24539266,
+    "optimizations_applied": [
+      "OPT-1 build || inference overlap",
+      "OPT-2 warm model preload (keep_alive=-1)",
+      "OPT-3 keep-alive inference calls",
+      "OPT-4 Maven -B -q -T 1C",
+      "OPT-5 parallel RAG",
+      "OPT-6 0.1s health polling"
+    ]
+  },
+  "18h_full_delivery_observed": {
+    "label": "18-H Optimized Full Delivery (Run 1 + Run 2 + Package + Clean Env + Restart)",
+    "source_nloc": 10610,
+    "total_wall_sec": 206.81,
+    "delivery_wall_sec": 104.66,
+    "warm_preload_wall_sec": 7.21,
+    "run1_wall_sec": 93.65,
+    "run2_wall_sec": 102.1,
+    "package_wall_sec": 0.03,
+    "clean_env_wall_sec": 3.77,
+    "source_nloc_per_hour_total_wall": 184691.3,
+    "source_nloc_per_hour_delivery_inclusive": 364953.2,
+    "llm_calls_total": 12,
+    "in_tokens_total": 638,
+    "out_tokens_total": 1920,
+    "mean_tps": 10.16,
+    "mean_ttft_ms": 21804.9,
+    "aggregate_tps": 10.15,
+    "peak_concurrency": 3,
+    "m1_tps_mean": 10.18,
+    "hp_tps_mean": 10.07,
+    "rag_queries_total": 6,
+    "rag_latency_ms_mean": 963.2,
+    "repair_attempts": 4,
+    "valid_repairs_accepted": 2,
+    "bad_repairs_rejected": 2
+  },
+  "18h_vs_18g_comparison": {
+    "label": "End-to-end comparison: 18-H optimized vs 18-G baseline",
+    "metric": "VERIFIED END-TO-END SOURCE NLOC/HOUR",
+    "baseline_18g_observed": {
+      "delivery_inclusive_nloc_per_hour": 326880.6,
+      "wall_sec": 116.85,
+      "llm_calls": 9,
+      "in_tokens": 424,
+      "out_tokens": 900,
+      "aggregate_tps": 11.37,
+      "mean_ttft_ms": null,
+      "peak_concurrency": 6
+    },
+    "optimized_18h_observed": {
+      "delivery_inclusive_nloc_per_hour": 364953.2,
+      "total_wall_sec": 206.81,
+      "delivery_wall_sec": 104.66,
+      "llm_calls": 12,
+      "in_tokens": 638,
+      "out_tokens": 1920,
+      "aggregate_tps": 10.15,
+      "mean_ttft_ms": 21804.9,
+      "peak_concurrency": 3
+    },
+    "comparison_notes": {
+      "delivery_wall_improvement": "104.66s vs 116.85s = 10.4% faster delivery wall",
+      "total_wall_regression": "206.81s vs 116.85s = 77% slower total wall (includes second full run + clean env + restart verification)",
+      "delivery_nloc_improvement": "364,953.2 vs 326,880.6 = 11.7% improvement in delivery-inclusive NLOC/hour",
+      "llm_call_increase": "12 vs 9 calls: 18-H uses higher-fidelity design-note format requiring 2 calls per artifact (plan + implement) vs 18-G single-call generation",
+      "token_increase": "1920 output vs 900: higher-fidelity artifacts",
+      "ttft_regression": "21,805ms mean vs 18-G unknown: 18-H runs include cold-start queuing after warm preload expiry; HP qwen3b shows 17.6s TTFT spikes",
+      "concurrency_reduction": "peak 3 vs 6: 18-H currently uses 3 concurrent workers (M1:2 + HP:1 effective) vs 18-G peak 6"
+    }
+  },
+  "18h_secondary_metrics": {
+    "ai_efficiency": {
+      "tokens_per_source_nloc": 0.24,
+      "llm_calls_per_source_nloc": 0.00113,
+      "output_tokens_per_source_nloc": 0.181
+    },
+    "inference": {
+      "aggregate_tps": 10.15,
+      "m1_tps_mean": 10.18,
+      "hp_tps_mean": 10.07,
+      "mean_ttft_ms": 21804.9,
+      "p50_ttft_ms_est": 13900,
+      "p95_ttft_ms_est": 39000,
+      "cold_ttft_hp_3b_ms": 17603.9,
+      "warm_ttft_hp_3b_ms": 703.6,
+      "cold_ttft_m1_ornith_ms": 18561.8,
+      "warm_ttft_m1_ornith_ms": 1014.2
+    },
+    "scheduling": {
+      "worker_utilization_pct": 72,
+      "queue_wait_est_ms": 8000,
+      "idle_time_pct": 28,
+      "critical_path_efficiency_pct": 55
+    },
+    "rag": {
+      "queries_per_source_nloc": 0.000565,
+      "retrieval_latency_ms_mean": 963.2,
+      "cache_hit_rate_pct": 0,
+      "top_k": 3
+    },
+    "resource": {
+      "cpu_per_nloc": null,
+      "ram_mb_per_nloc": null,
+      "m1_java_cpu_mean_pct": 50.5,
+      "m1_java_rss_max_mb": 704.5,
+      "m1_ollama_cpu_mean_pct": 0.88,
+      "m1_ollama_rss_max_mb": 40.8
+    }
+  },
+  "optimization_evidence_summary": {
+    "highest_impact_bottleneck": "TTFT variance, especially HP qwen2.5-coder:3b cold starts (17.6s TTFT) and M1 ornith-9b cold starts (18.6s TTFT)",
+    "second_bottleneck": "LLM call count: 18-H uses 12 calls vs 18-G 9 calls due to plan+implement two-phase design-note generation",
+    "third_bottleneck": "Concurrency: only 3 concurrent workers used vs 18-G peak 6; M1 hosting 2 models causes contention",
+    "effective_optimizations": [
+      {
+        "optimization": "OPT-1 build || inference overlap",
+        "wall_saved_per_run_sec": 5.93,
+        "mechanism": "Maven build runs concurrently with first inference wave; serialized sum 74.24s vs wall 68.31s"
+      },
+      {
+        "optimization": "OPT-2 warm model preload",
+        "wall_sec": 7.21,
+        "mechanism": "Pre-load all 3 fleet models into VRAM before run start; ornith-9b takes 5-7s to load"
+      },
+      {
+        "optimization": "OPT-3 keep-alive inference calls",
+        "mechanism": "Ollama keep_alive=-1 keeps models loaded between calls; warm TTFT = 700-1000ms vs cold TTFT = 17-18s"
+      },
+      {
+        "optimization": "OPT-4 Maven -B -q -T 1C",
+        "build_sec": 5.93,
+        "mechanism": "Batch mode, quiet, single-thread-per-core parallelism"
+      },
+      {
+        "optimization": "OPT-5 parallel RAG",
+        "rag_latency_ms": 963.2,
+        "mechanism": "3 RAG queries executed concurrently over LAN to HP Qdrant"
+      },
+      {
+        "optimization": "OPT-6 0.1s health polling",
+        "mechanism": "Faster spring-boot readiness detection vs 1s polling"
+      }
+    ],
+    "remaining_optimization_opportunities": [
+      "Reduce LLM call count: merge plan+implement into single-call where safe (saves 3 calls/run = ~50s)",
+      "Increase concurrency to 6: utilize both M1 workers + 2 HP workers fully",
+      "Stagger HP qwen3b calls to avoid TTFT spikes (17.6s cold appears when HP is congested)",
+      "Move ornith-9b reasoning to HP if HP has VRAM capacity (frees M1 for qwen7b coding)",
+      "Semantic cache for repeated design patterns across runs (cache hit would eliminate ~50% of inference)",
+      "Reduce prompt context: current prompts are minimal already (~40-84 input tokens)",
+      "Deterministic synthesis of boilerplate DTOs, config, adapters (currently minimal extraction is fast at 0.16s)"
+    ]
+  }
+}

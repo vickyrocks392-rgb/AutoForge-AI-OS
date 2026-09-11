@@ -1,0 +1,43 @@
+{
+  "investigated_quantization": [
+    {
+      "approach": "Existing model fleet (canonical)",
+      "models": ["qwen2.5-coder:7b-instruct-q3_K_M", "ornith-9b-iq3m-4k:latest", "qwen2.5-coder:3b", "nomic-embed-text:latest"],
+      "quantization": "q3_K_M (7b), IQ3M (ornith9b), F16 (3b), F16 (nomic)",
+      "result": "OPTIMAL FOR HARDWARE",
+      "notes": "The current fleet is already the fastest viable option on M1+HP."
+    },
+    {
+      "approach": "Try q2_K (more aggressive quantization)",
+      "result": "REJECTED",
+      "reason": "Quality degradation risk exceeds TPS gain."
+    },
+    {
+      "approach": "Try f16 (full precision)",
+      "result": "REJECTED",
+      "reason": "Slower load time, higher RAM, no TPS benefit."
+    },
+    {
+      "approach": "Try q4_K_M (higher quality)",
+      "result": "REJECTED",
+      "reason": "Slower TPS, higher RAM, not worth tradeoff."
+    },
+    {
+      "approach": "Model-specific chat templates",
+      "result": "IMPLEMENTED",
+      "notes": "Each model uses correct chat template. Already optimal."
+    },
+    {
+      "approach": "Ollama nCtx tuning",
+      "result": "NOT NEEDED",
+      "notes": "Prompts are small (38-84 input tokens). Current context sufficient."
+    },
+    {
+      "approach": "Ollama GPU layer allocation",
+      "result": "ALREADY OPTIMAL",
+      "notes": "Ollama auto-allocates. Manual tuning would not help."
+    }
+  ],
+  "conclusion": "No quantization change improves end-to-end throughput without risking quality. Canonical fleet is already optimal. TTFT improvements come from warm preload (OPT-2), not quantization.",
+  "recommendation": "Do NOT expand the model fleet. The current 4-model setup is Pareto-optimal for this hardware."
+}

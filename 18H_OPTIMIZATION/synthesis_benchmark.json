@@ -1,0 +1,57 @@
+{
+  "deterministic_synthesis_analysis": {
+    "description": "Analysis of where deterministic synthesis replaces LLM work in the AutoForge pipeline.",
+    "stages_and_synthesis_type": [
+      {"stage": "autonomous_discovery", "type": "deterministic", "llm_needed": false, "notes": "File scanning, LOC counting, technology detection. Pure deterministic."},
+      {"stage": "workload_closure_selection", "type": "deterministic", "llm_needed": false, "notes": "Dependency graph traversal, subsystem selection. Deterministic."},
+      {"stage": "semantic_extraction", "type": "deterministic", "llm_needed": false, "notes": "AST parsing, procedure extraction, entity extraction. Deterministic."},
+      {"stage": "rag_retrieval", "type": "deterministic", "llm_needed": false, "notes": "Embedding generation + Qdrant query. Deterministic mechanics, LLM-free."},
+      {"stage": "transformation_planning", "type": "llm", "llm_needed": true, "notes": "Planning 195 target components requires architectural reasoning. LLM."},
+      {"stage": "maven_build", "type": "deterministic", "llm_needed": false, "notes": "Maven compilation. Deterministic toolchain."},
+      {"stage": "code_generation_design_notes", "type": "llm", "llm_needed": true, "notes": "6 LLM calls generate design notes. This is the reasoning layer."},
+      {"stage": "artifact_synthesis", "type": "deterministic", "llm_needed": false, "notes": "Design notes synthesized into Spring Boot artifacts by deterministic machinery."},
+      {"stage": "behavioral_verification", "type": "deterministic", "llm_needed": false, "notes": "HTTP endpoint testing. Deterministic."},
+      {"stage": "repair_diagnosis", "type": "llm", "llm_needed": true, "notes": "Diagnosis requires reasoning about compilation errors. LLM + RAG."},
+      {"stage": "repair_application", "type": "deterministic", "llm_needed": false, "notes": "Applying the repair patch is deterministic. LLM provides the content."},
+      {"stage": "provenance", "type": "deterministic", "llm_needed": false, "notes": "Audit trail recording. Deterministic."},
+      {"stage": "purge", "type": "deterministic", "llm_needed": false, "notes": "Resource cleanup. Deterministic."}
+    ]
+  },
+  "llm_to_deterministic_ratio": {
+    "total_stages": 13,
+    "llm_stages": 4,
+    "deterministic_stages": 9,
+    "llm_time_share_of_critical_path": "73% (inference 68.3s + repair 12s = 80.3s of 93.1s critical path)",
+    "deterministic_time_share_of_critical_path": "27%"
+  },
+  "areas_where_deterministic_synthesis_shines": [
+    {"area": "File discovery and scanning", "llm_replaced": "100%", "notes": "No LLM needed for discovering 511 files and 335001 LOC."},
+    {"area": "Dependency analysis", "llm_replaced": "100%", "notes": "Dependency graph computed deterministically."},
+    {"area": "Semantic extraction (AST parsing)", "llm_replaced": "100%", "notes": "Procedures, modules, entities extracted by deterministic parsers."},
+    {"area": "Build toolchain", "llm_replaced": "100%", "notes": "Maven/javac is deterministic."},
+    {"area": "Artifact synthesis from design notes", "llm_replaced": "80%+", "notes": "LLM provides semantic content; deterministic machinery produces Java files, DTOs, interfaces, configs."},
+    {"area": "Test scaffolding", "llm_replaced": "100%", "notes": "Behavioral tests are deterministic HTTP calls."},
+    {"area": "Packaging metadata", "llm_replaced": "100%", "notes": "JAR packaging is deterministic."},
+    {"area": "Provenance recording", "llm_replaced": "100%", "notes": "Audit trail is deterministic."}
+  ],
+  "areas_where_llm_is_genuinely_required": [
+    {"area": "Transformation planning", "reason": "Planning 195 target components requires architectural reasoning."},
+    {"area": "Design note generation", "reason": "Each design note captures semantic intent requiring domain understanding."},
+    {"area": "Repair diagnosis", "reason": "Understanding compilation failure requires code semantics reasoning."},
+    {"area": "RAG query construction", "reason": "Constructing the right retrieval query requires understanding information needs."}
+  ],
+  "synthesis_throughput": {
+    "deterministic_stages_total_wall_sec": 8.24,
+    "llm_stages_total_wall_sec": 80.27,
+    "ratio": "LLM takes 9.7x more wall time than deterministic stages",
+    "conclusion": "The architecture correctly puts LLM effort into the small number of reasoning stages and uses deterministic synthesis for the bulk of artifact generation."
+  },
+  "opportunities_for_more_deterministic_synthesis": [
+    {"opportunity": "DTO/interface generation", "status": "ALREADY DETERMINISTIC"},
+    {"opportunity": "Configuration generation", "status": "ALREADY DETERMINISTIC"},
+    {"opportunity": "Mapping generation", "status": "ALREADY DETERMINISTIC"},
+    {"opportunity": "Boilerplate reduction", "status": "ALREADY MINIMAL"},
+    {"opportunity": "Test generation", "status": "REJECTED - behavioral tests must verify actual runtime behavior"}
+  ],
+  "conclusion": "AutoForge already maximizes deterministic synthesis. The LLM is used only where genuine reasoning is required. No further deterministic synthesis opportunities exist without compromising correctness."
+}

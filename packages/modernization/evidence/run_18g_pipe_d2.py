@@ -57,9 +57,13 @@ async def pipe_inference(mod, pid, stages, routing, llm_sink, prov_sink, arts, s
     ai_res = await asyncio.gather(*[one(t) for t in tasks])
     failed = [r["telemetry"] for r in ai_res if r["telemetry"]["result"] != "SUCCESS"]
     assert not failed, "fleet inference failures: %s" % failed[:3]
+    ai_note_lines = [len(r["response"].splitlines()) for r in ai_res]
+    ai_note_chars = [len(r["response"].encode("utf-8")) for r in ai_res]
     stages.append({"stage": "concurrent_distributed_inference",
                    "duration_sec": round(time.perf_counter() - t0, 4),
-                   "status": "COMPLETED", "llm_calls": len(ai_res)})
+                   "status": "COMPLETED", "llm_calls": len(ai_res),
+                   "ai_note_lines": sum(ai_note_lines),
+                   "ai_note_chars": sum(ai_note_chars)})
     for a in arts:
         prov_sink.append({"artifact_id": a.artifact_id, "project_id": pid,
                           "component_name": a.component_name,
@@ -83,6 +87,30 @@ async def pipe_inference(mod, pid, stages, routing, llm_sink, prov_sink, arts, s
 
 def pipe_build(mod, pid, stages, arts, spec):
     t0 = time.perf_counter()
+
+    # 18-G commercial telemetry: measure actual target source before lifecycle purge.
+    def _tgt_metrics(a):
+        lines = a.code.splitlines()
+        phys = len(lines)
+        nloc = sum(1 for l in lines
+                   if l.strip() and not l.strip().startswith(("*", "//", "#")))
+        return {"relative_path": a.relative_path, "component": a.component_name,
+                "language": a.target_language, "physical_loc": phys, "nloc": nloc,
+                "bytes": len(a.code.encode("utf-8"))}
+
+    tgt = [_tgt_metrics(a) for a in arts]
+    tgt_java = [m for m in tgt if m["relative_path"].endswith(".java")]
+    target_metrics = {
+        "artifacts": len(tgt),
+        "physical_loc": sum(m["physical_loc"] for m in tgt),
+        "nloc": sum(m["nloc"] for m in tgt),
+        "java_artifacts": len(tgt_java),
+        "java_physical_loc": sum(m["physical_loc"] for m in tgt_java),
+        "java_nloc": sum(m["nloc"] for m in tgt_java),
+        "bytes": sum(m["bytes"] for m in tgt),
+        "per_artifact": tgt,
+    }
+
     verifier = mod["Verifier"]()
     bdir = mod["Path"](tempfile.mkdtemp(prefix="autoforge_18g_build_"))
     mvn = verifier.verify_maven(arts, spec, build_directory=bdir)
@@ -91,7 +119,8 @@ def pipe_build(mod, pid, stages, arts, spec):
                    "status": "COMPLETED" if mvn.passed else "FAILED",
                    "toolchain": mvn.toolchain_used, "command": mvn.command_executed,
                    "fat_jar": mvn.fat_jar_path, "fat_jar_bytes": mvn.fat_jar_size_bytes,
-                   "classes": mvn.class_count, "build_directory": mvn.build_directory})
+                   "classes": mvn.class_count, "build_directory": mvn.build_directory,
+                   "target_source_metrics": target_metrics})
     assert mvn.passed, "Maven build failed: " + (mvn.output_snippet or "")[-3000:]
     assert mvn.fat_jar_size_bytes > 10 * 1024 * 1024
     return verifier, mvn

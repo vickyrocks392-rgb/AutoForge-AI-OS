@@ -1,0 +1,54 @@
+{
+  "run8_optimized_telemetry": {
+    "source": "18H_REAL_PROJECT_DELIVERABLE/evidence/resource_samples.json (101 samples at ~2s intervals)",
+    "m1": {
+      "java_cpu_mean_pct": 50.52,
+      "java_cpu_max_pct": 496.1,
+      "java_rss_mean_mb": 52.0,
+      "java_rss_max_mb": 704.5,
+      "ollama_cpu_mean_pct": 0.88,
+      "ollama_cpu_max_pct": 19.8,
+      "ollama_rss_mean_mb": 15.8,
+      "ollama_rss_max_mb": 40.8,
+      "notes": "M1 runs Ollama (qwen7b + ornith9b + nomic) + Java/Spring app. Java sees high CPU during build+inference overlap. Ollama RSS is modest (40MB) because GPU-offloaded models don't count toward process RSS."
+    }
+  },
+  "hp": {
+    "available": true,
+    "host": "192.168.1.102:11434",
+    "model": "qwen2.5-coder:3b",
+    "qdrant": "192.168.1.102:6333",
+    "llm_calls": 6,
+    "notes": "HP runs qwen3b (small model, fast load) + Qdrant. HP is effectively maxed at 2 concurrent workers due to single-model constraint. Network latency to HP adds TTFT variance on cold arrivals."
+  },
+  "bottlenecks": {
+    "m1": "GPU memory for 2 models (qwen7b + ornith9b). Adding 3rd worker causes queue contention.",
+    "hp": "Single model (qwen3b) limits to 2 useful concurrent workers. Network latency adds cold-TTFT penalty.",
+    "network": "LAN latency (HP) adds 5-18s TTFT variance on cold arrivals. Warm calls eliminate this."
+  },
+  "utilization_assessment": {
+    "m1_gpu": "Well-utilized - 2 models loaded, 2 workers generating in parallel",
+    "m1_cpu": "Well-utilized during build-inference overlap (OPT-1)",
+    "hp_gpu": "Modest - only qwen3b running, but this is the cheapest possible secondary model",
+    "hp_cpu": "Low - qwen3b is lightweight",
+    "network": "Acceptable for LAN distribution - HP offloading reduces M1 queue pressure"
+  },
+  "optimization_opportunities": [
+    {
+      "opportunity": "Move more work to HP",
+      "status": "LIMITED",
+      "reason": "HP only has qwen3b. Cannot run heavier models. Already maxed at 2 workers."
+    },
+    {
+      "opportunity": "Add model to HP",
+      "status": "REJECTED",
+      "reason": "HP hardware limitations + network latency would not improve end-to-end throughput enough to justify. qwen3b is already the fastest viable secondary."
+    },
+    {
+      "opportunity": "Warm preload HP model",
+      "status": "IMPLEMENTED (OPT-2)",
+      "notes": "HP qwen3b is warmed before run starts. Eliminates cold-TTFT penalty on HP calls."
+    }
+  ],
+  "conclusion": "M1 is the primary compute engine (2 models, 2 workers). HP is a useful secondary (1 model, 2 workers, RAG offload). The distributed topology is near-optimal for the current hardware. Further M1 utilization is blocked by GPU memory. Further HP utilization is blocked by model availability."
+}

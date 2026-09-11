@@ -257,6 +257,7 @@ class TargetToolchainVerifier:
         artifacts: list[GeneratedArtifact],
         target_spec: TargetSpecification,
         build_directory: Path | None = None,
+        mvn_extra_flags: list[str] | None = None,
     ) -> MavenVerificationResult:
         """Verify and package a complete Maven / Spring Boot application using host Maven."""
         t0 = time.perf_counter()
@@ -280,6 +281,8 @@ class TargetToolchainVerifier:
             env["PATH"] = f"{local_java_home / 'bin'}:{env.get('PATH', '')}"
 
         cmd = [mvn_bin, "clean", "package", "-DskipTests"]
+        if mvn_extra_flags:
+            cmd += [str(f) for f in mvn_extra_flags]
         proc = subprocess.run(cmd, cwd=str(workdir), env=env, capture_output=True, text=True)
         elapsed = (time.perf_counter() - t0) * 1000.0
 

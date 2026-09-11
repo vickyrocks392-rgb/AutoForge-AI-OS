@@ -1,0 +1,403 @@
+{
+  "pid": "bankzcore18h_8f983169",
+  "run_label": "1",
+  "http_port": 8091,
+  "wall": 93.64,
+  "stages": [
+    {
+      "stage": "autonomous_discovery",
+      "duration_sec": 1.7445,
+      "status": "COMPLETED",
+      "files_scanned": 511,
+      "physical_loc": 335001,
+      "technologies": [
+        "ASSEMBLER",
+        "BMS",
+        "CICS",
+        "COBOL",
+        "COBOL_COPYBOOK",
+        "DB2",
+        "DEPENDENCIES",
+        "DOCKER",
+        "JAVA",
+        "JCL",
+        "NODEJS",
+        "PYTHON",
+        "REST_API",
+        "SHELL",
+        "SPRING_BOOT",
+        "SQL",
+        "TYPESCRIPT"
+      ]
+    },
+    {
+      "stage": "workload_closure_selection",
+      "duration_sec": 0.4015,
+      "status": "COMPLETED",
+      "subsystem": "BANKING_CORE",
+      "closure_proof": "COMPLETE",
+      "files_selected": 25,
+      "physical_loc": 15206,
+      "nloc": 10610,
+      "internal_dependencies": 40,
+      "external_boundaries": 14
+    },
+    {
+      "stage": "semantic_extraction",
+      "duration_sec": 0.1603,
+      "status": "COMPLETED",
+      "modules_extracted": 11,
+      "procedures_extracted": 210,
+      "entities_extracted": 185
+    },
+    {
+      "stage": "rag_retrieval",
+      "duration_sec": 0.9712,
+      "status": "COMPLETED",
+      "queries": 3,
+      "optimized": "parallel_queries"
+    },
+    {
+      "stage": "transformation_planning",
+      "duration_sec": 0.2457,
+      "status": "COMPLETED",
+      "target_components": 195
+    },
+    {
+      "stage": "maven_build_package",
+      "duration_sec": 5.9316,
+      "status": "COMPLETED",
+      "toolchain": "Apache Maven 3.9 / OpenJDK 26 (Spring Boot)",
+      "command": "/opt/homebrew/bin/mvn clean package -DskipTests -B -q -T 1C",
+      "fat_jar": "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_18h_build_ldtgud0d/target/modernized-subsystem-1.0.0-SNAPSHOT.jar",
+      "fat_jar_bytes": 24539266,
+      "classes": 196,
+      "build_directory": "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_18h_build_ldtgud0d",
+      "optimized": "B_q_T1C_flags"
+    },
+    {
+      "stage": "concurrent_distributed_inference",
+      "duration_sec": 68.2902,
+      "status": "COMPLETED",
+      "llm_calls": 6,
+      "ai_note_lines": 70,
+      "ai_note_chars": 4649,
+      "optimized": "keep_alive_warm_calls"
+    },
+    {
+      "stage": "build_inference_overlap",
+      "duration_sec": 68.3123,
+      "status": "COMPLETED",
+      "serialized_sum": 74.2439,
+      "wall_saved_sec": 5.9316,
+      "optimized": "OPT1_build_parallel_inference"
+    },
+    {
+      "stage": "live_runtime_behavioral_verification",
+      "duration_sec": 0.3709,
+      "status": "COMPLETED",
+      "tests_executed": 9,
+      "tests_passed": 9,
+      "runtime_log_lines": 0
+    },
+    {
+      "stage": "autonomous_repair_and_regression",
+      "duration_sec": 11.9743,
+      "status": "COMPLETED",
+      "valid_repair_accepted": true,
+      "bad_repair_rejected": true,
+      "regression_classes": 196
+    }
+  ],
+  "routing": [
+    {
+      "component": "AccountServiceInquiry",
+      "role": "PRIMARY_CODING_ENGINE",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "worker": "worker-m1-01"
+    },
+    {
+      "component": "TransferDoubleEntry",
+      "role": "SECONDARY_DISTRIBUTED_CODING_WORKER",
+      "machine": "HP",
+      "endpoint": "http://192.168.1.102:11434",
+      "model": "qwen2.5-coder:3b",
+      "worker": "worker-hp-01"
+    },
+    {
+      "component": "CustomerOnboarding",
+      "role": "ARCHITECTURAL_REASONING_ENGINE",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "ornith-9b-iq3m-4k:latest",
+      "worker": "worker-m1-02"
+    },
+    {
+      "component": "AuditApiDesign",
+      "role": "SECONDARY_DISTRIBUTED_CODING_WORKER",
+      "machine": "HP",
+      "endpoint": "http://192.168.1.102:11434",
+      "model": "qwen2.5-coder:3b",
+      "worker": "worker-hp-02"
+    },
+    {
+      "component": "BatchOrchestration",
+      "role": "ARCHITECTURAL_REASONING_ENGINE",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "ornith-9b-iq3m-4k:latest",
+      "worker": "worker-m1-02"
+    },
+    {
+      "component": "SecurityPolicy",
+      "role": "PRIMARY_CODING_ENGINE",
+      "machine": "M1",
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "qwen2.5-coder:7b-instruct-q3_K_M",
+      "worker": "worker-m1-01"
+    }
+  ],
+  "rag": [
+    {
+      "query_id": "rag-bankzcor-1",
+      "project_id": "bankzcore18h_8f983169",
+      "collection": "project_bankzcore18h_knowledge",
+      "query": "Bank-of-Z account balance debit credit rules",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "domain invariants + syntax context for repair",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 963.23
+    },
+    {
+      "query_id": "rag-bankzcor-1",
+      "project_id": "bankzcore18h_8f983169",
+      "collection": "project_bankzcore18h_knowledge",
+      "query": "Bank-of-Z funds transfer double-entry invariants",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "domain invariants + syntax context for repair",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 954.66
+    },
+    {
+      "query_id": "rag-bankzcor-1",
+      "project_id": "bankzcore18h_8f983169",
+      "collection": "project_bankzcore18h_knowledge",
+      "query": "Bank-of-Z customer onboarding constraints",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "domain invariants + syntax context for repair",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 954.72
+    },
+    {
+      "query_id": "rag-bankzcor-4",
+      "project_id": "bankzcore18h_8f983169",
+      "collection": "project_bankzcore18h_knowledge",
+      "query": "Resolve Java compilation syntax defect in modernized banking app",
+      "embedding_dimensions": 768,
+      "top_k": 3,
+      "similarity_scores": [
+        0.942,
+        0.887
+      ],
+      "material_contribution": "domain invariants + syntax context for repair",
+      "isolation_barrier_verified": true,
+      "cache_hit": false,
+      "latency_ms": 705.97
+    }
+  ],
+  "rep": [
+    {
+      "repair_id": "rep-18g-4d28cc",
+      "defect_type": "SYNTAX_INJECTION",
+      "detected_failure": "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_target_build__n9vmw5m/src/src/main/java/com/autoforge/generated/Abndinfo.java:921: error: class, interface, enum, or record expected\nSystem.o",
+      "diagnosis": "Stray syntax token outside class declaration",
+      "strategy": "stray_token_removal",
+      "diagnosis_rag_query": "Resolve Java compilation syntax defect in modernized banking app",
+      "diagnosis_rag_used": true,
+      "repair_attempts": 1,
+      "recompilation_passed": true,
+      "accepted": true,
+      "final_toolchain": "OpenJDK javac (26.0.2.1)"
+    },
+    {
+      "repair_id": "rep-bad-18g-a738f3",
+      "defect_type": "CORRUPT_CANDIDATE",
+      "diagnosis_rag_used": true,
+      "recompilation_passed": false,
+      "accepted": false,
+      "rejection_reason": "Maven toolchain rejected corrupt candidate"
+    }
+  ],
+  "inv_files": 511,
+  "inv_loc": 335001,
+  "sub_files": 25,
+  "sub_loc": 15206,
+  "sub_nloc": 10610,
+  "sel_paths": [
+    "cics/copy/ABNDINFO.cpy",
+    "cics/copy/ACCOUNT.cpy",
+    "cics/copy/ACCTCTRL.cpy",
+    "cics/cobol/BANKDATA.cbl",
+    "cics/copy/BANKMAP.cpy",
+    "cics/cobol/BNK1CAC.cbl",
+    "cics/cobol/BNK1CCA.cbl",
+    "cics/cobol/BNK1CCS.cbl",
+    "cics/cobol/BNK1CRA.cbl",
+    "cics/cobol/BNK1DAC.cbl",
+    "cics/cobol/BNK1DCS.cbl",
+    "cics/copy/BNK1DDM.cpy",
+    "cics/cobol/BNK1TFN.cbl",
+    "cics/cobol/BNK1UAC.cbl",
+    "cics/cobol/BNKMENU.cbl",
+    "batch/jcl/BNKSTMT.jcl",
+    "cics/copy/CUSTCTRL.cpy",
+    "cics/copy/CUSTOMER.cpy",
+    "cics/copy/DELCUS.cpy",
+    "cics/copy/INQACC.cpy",
+    "cics/copy/INQACCCU.cpy",
+    "cics/copy/INQCUSTZ.cpy",
+    "cics/copy/PROCTRAN.cpy",
+    "cics/copy/SORTCODE.cpy",
+    "cics/copy/UPDCUST.cpy"
+  ],
+  "modules": 11,
+  "procs": 210,
+  "entities": 185,
+  "planned": 195,
+  "n_arts": 198,
+  "classes": 196,
+  "jar": "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_18h_build_ldtgud0d/target/modernized-subsystem-1.0.0-SNAPSHOT.jar",
+  "jar_bytes": 24539266,
+  "bdir": "/var/folders/8x/tjn4s3yn7fl_jshrn2_w4gw00000gn/T/autoforge_18h_build_ldtgud0d",
+  "behavior": [
+    {
+      "test_id": "BEH_01_REGISTRY",
+      "rule": "registry completeness",
+      "status": "PASSED",
+      "total": 195,
+      "planned": 195
+    },
+    {
+      "test_id": "BEH_02_DATE_HAPPY",
+      "rule": "date happy path",
+      "status": "PASSED",
+      "observed": {
+        "status": "SUCCESS",
+        "returnCode": 0,
+        "valid": true,
+        "inputDate": "2026-09-06",
+        "formattedDate": "20260906"
+      }
+    },
+    {
+      "test_id": "BEH_03_DATE_INVALID",
+      "rule": "date invalid rejection",
+      "status": "PASSED",
+      "observed": {
+        "status": "ERROR",
+        "returnCode": 4,
+        "valid": false,
+        "reason": "Invalid date format or value: BAD-DATE"
+      }
+    },
+    {
+      "test_id": "BEH_04_STATUS_OK",
+      "rule": "status 00 branch",
+      "status": "PASSED",
+      "observed": {
+        "fileStatus": "00",
+        "returnCode": 0,
+        "description": "SUCCESS"
+      }
+    },
+    {
+      "test_id": "BEH_05_STATUS_ERR",
+      "rule": "status error branch",
+      "status": "PASSED",
+      "observed": {
+        "fileStatus": "99",
+        "returnCode": 12,
+        "description": "FILE_ERROR"
+      }
+    },
+    {
+      "test_id": "BEH_06_BATCH_STEP",
+      "rule": "batch orchestration execution",
+      "status": "PASSED",
+      "observed": {
+        "component": "BnkstmtOrchestration",
+        "returnCode": 0,
+        "status": "SUCCESS"
+      }
+    },
+    {
+      "test_id": "BEH_07_TRANSFER_EXEC",
+      "rule": "BNK1TFN execution",
+      "status": "PASSED",
+      "observed": "SUCCESS"
+    },
+    {
+      "test_id": "BEH_08_UNKNOWN_404",
+      "rule": "unknown component 404 contract",
+      "status": "PASSED",
+      "observed_status": 200,
+      "observed_body": {
+        "status": "NOT_FOUND",
+        "returnCode": 404,
+        "error": "Component not found: NO_SUCH_COMPONENT"
+      }
+    },
+    {
+      "test_id": "BEH_09_EXEC_MATRIX",
+      "rule": "exec matrix",
+      "status": "PASSED",
+      "passed_entries": "7/7",
+      "encountering_failures": []
+    }
+  ],
+  "runtime": {
+    "application_name": "modernized-subsystem-1.0.0-SNAPSHOT",
+    "framework": "Spring Boot 3.2.3",
+    "java_version": "26.0.2.1",
+    "port": 8091,
+    "started": true,
+    "startup_duration_ms": 224.45,
+    "health_status": "UP",
+    "readiness_response": {
+      "status": "UP",
+      "timestamp": 1788994054550,
+      "subsystem": "TRANSACTION_PROCESSING",
+      "framework": "Spring Boot 3.2.3",
+      "runtime": "OpenJDK 26 / Java 21 Target",
+      "componentCount": 195
+    },
+    "peak_memory_mb": 572.53,
+    "process_exit_code": null,
+    "runtime_duration_s": 0.0,
+    "requests_executed": 0,
+    "crashes": 0,
+    "runtime_logs_sample": ""
+  },
+  "purged": true,
+  "prov_links": 7
+}

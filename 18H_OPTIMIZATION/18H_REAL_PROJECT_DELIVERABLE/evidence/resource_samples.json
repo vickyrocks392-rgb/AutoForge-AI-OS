@@ -1,0 +1,1612 @@
+[
+  {
+    "ts": "2026-09-09T22:46:05.944444+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.5
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 0.7
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:07.997827+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.6,
+        "rss_mb": 28.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:10.269612+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 8.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:12.300873+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.8,
+        "rss_mb": 37.7
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:14.348511+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 10.7
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:16.400670+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.2,
+        "rss_mb": 3.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 1.9,
+        "rss_mb": 22.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:18.437311+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 23.2
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:20.482376+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.1,
+        "rss_mb": 3.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 17.3,
+        "rss_mb": 31.2
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:22.786892+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.1,
+        "rss_mb": 2.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 9.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:24.826904+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.4,
+        "rss_mb": 6.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 19.8,
+        "rss_mb": 39.2
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:26.854095+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.7,
+        "rss_mb": 40.8
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 22.3,
+        "rss_mb": 56.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:28.883406+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 40.6
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 347.4,
+        "rss_mb": 324.1
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:30.933437+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.7
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 11.0
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 424.8,
+        "rss_mb": 479.7
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:32.962470+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 11.1
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:35.005824+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 11.3
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:37.058535+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 4.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:39.104838+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 5.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:41.146903+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:43.190178+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 6.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:45.234798+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 19.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:47.278564+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 19.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:49.322325+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 18.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:51.365874+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 18.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:53.410873+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 18.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:55.455446+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 18.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:57.498042+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 11.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:46:59.540466+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 11.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:01.569463+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.4,
+        "rss_mb": 17.3
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:03.595916+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 17.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:05.638468+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:07.680023+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 31.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:09.721061+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:11.764229+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:13.807070+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:15.849835+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 31.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:17.891171+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 31.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:19.934771+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 31.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:21.976839+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:24.021713+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:26.064386+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 31.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:28.106314+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:30.148346+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:32.192199+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 31.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:34.234656+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 31.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:36.275128+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 72.5
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 1.7,
+        "rss_mb": 26.7
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:38.304074+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 71.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 14.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:40.327236+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 10.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 13.5
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 234.5,
+        "rss_mb": 117.1
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:42.348646+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 10.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 13.5
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 235.6,
+        "rss_mb": 102.7
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:44.376364+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 10.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 13.5
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 496.1,
+        "rss_mb": 466.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:46.405578+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 12.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 8.9
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 416.4,
+        "rss_mb": 681.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:48.433007+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 12.2
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 409.3,
+        "rss_mb": 295.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 8.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:50.461800+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 12.4
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 399.6,
+        "rss_mb": 330.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 8.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:52.486562+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 12.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 8.9
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:54.514401+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 12.4
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 18.3,
+        "rss_mb": 31.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:56.698042+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.1,
+        "rss_mb": 3.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 10.1
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:47:58.746551+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.5
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 17.9,
+        "rss_mb": 37.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:00.799642+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.2
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.7,
+        "rss_mb": 35.9
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 22.1,
+        "rss_mb": 60.3
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:02.841160+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 12.2
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 316.8,
+        "rss_mb": 241.3
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:04.890994+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.1,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 12.3
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 462.9,
+        "rss_mb": 477.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:06.952953+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 10.8
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 453.5,
+        "rss_mb": 704.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:08.995335+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 10.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:11.037439+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.3,
+        "rss_mb": 11.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:13.079022+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 11.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:15.122436+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 11.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:17.165864+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 1.0,
+        "rss_mb": 15.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:19.213977+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 15.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:21.257519+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 15.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:23.289625+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 12.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:25.369321+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 3.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:27.433752+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.5
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:29.504569+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 4.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:31.655176+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 3.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:33.731192+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.7
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:35.767877+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.9,
+        "rss_mb": 15.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:37.817567+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 10.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:39.878578+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.6
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 24.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:41.944245+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 6.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:43.992584+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 6.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:46.046329+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 6.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:48.099391+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 7.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:50.153348+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 7.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:52.207672+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 7.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:54.267700+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 7.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:56.330950+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.8
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 10.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:48:58.390494+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.5
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 9.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:00.442960+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.7
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.2,
+        "rss_mb": 7.1
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:02.494767+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 7.0
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:04.545227+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 7.1
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:06.597466+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.2
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 7.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:08.648091+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.2
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 7.7
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:10.704296+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.2
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.1,
+        "rss_mb": 7.8
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:12.756536+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.1
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 8.2
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 397.9,
+        "rss_mb": 184.1
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:14.800988+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.1,
+        "rss_mb": 5.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.5
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:16.837136+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.5
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 9.1
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:18.887058+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 3.7
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.2
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:20.916491+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.3
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.2
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 347.4,
+        "rss_mb": 198.3
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:22.950568+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.5
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.2
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 243.6,
+        "rss_mb": 120.7
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:49:24.993291+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 6.5
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 5.2
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 453.9,
+        "rss_mb": 420.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:53:17.632961+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 2.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 0.7
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 163.5,
+        "rss_mb": 168.4
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:53:19.834405+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.1,
+        "rss_mb": 3.9
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 0.7
+      },
+      {
+        "proc": "java",
+        "cpu_pct": 213.5,
+        "rss_mb": 102.6
+      }
+    ]
+  },
+  {
+    "ts": "2026-09-09T22:53:21.914858+00:00",
+    "rows": [
+      {
+        "proc": "java",
+        "cpu_pct": 0.0,
+        "rss_mb": 4.0
+      },
+      {
+        "proc": "ollama",
+        "cpu_pct": 0.0,
+        "rss_mb": 0.7
+      }
+    ]
+  }
+]
