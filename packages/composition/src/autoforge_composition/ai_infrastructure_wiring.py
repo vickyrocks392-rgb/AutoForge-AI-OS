@@ -64,22 +64,44 @@ def bind_default_provider_adapters(
     executor_registry: ExecutorRegistry,
     *,
     ollama_base_url: str = "http://127.0.0.1:11434",
+    node_endpoints: dict[str, str] | None = None,
     secrets_manager: Any | None = None,
 ) -> None:
-    """Bind standard local and cloud provider adapters to ExecutorRegistry."""
-    # 1. Local M1 Ollama
+    """Bind standard local and cloud provider adapters to ExecutorRegistry.
+
+    ``node_endpoints`` optionally maps a provider id (``local-m1``,
+    ``local-hp``, or any additional LAN node such as ``local-mac-mini-m6``)
+    to its own Ollama base URL, so each node can expose an independent
+    LAN endpoint. When a provider has no explicit entry it falls back to
+    ``ollama_base_url``, preserving the original single-URL default exactly.
+    """
+    endpoints = dict(node_endpoints or {})
+
+    # 1. Local M1 Ollama (independent endpoint when configured)
     local_m1_adapter = OllamaProviderAdapter(
         provider_id="local-m1",
-        base_url=ollama_base_url,
+        base_url=endpoints.get("local-m1", ollama_base_url),
     )
     executor_registry.bind("local-m1", local_m1_adapter)
 
-    # 2. Local HP Ollama
+    # 2. Local HP Ollama (independent endpoint when configured)
     local_hp_adapter = OllamaProviderAdapter(
         provider_id="local-hp",
-        base_url=ollama_base_url,
+        base_url=endpoints.get("local-hp", ollama_base_url),
     )
     executor_registry.bind("local-hp", local_hp_adapter)
+
+    # 2a. Any additional LAN nodes provided (e.g. a third local Mac Mini node).
+    #     Missing entries keep the single-URL default; no topology is created
+    #     unless the caller explicitly configures one.
+    for provider_id in sorted(endpoints):
+        if provider_id in ("local-m1", "local-hp"):
+            continue
+        extra_adapter = OllamaProviderAdapter(
+            provider_id=provider_id,
+            base_url=endpoints[provider_id],
+        )
+        executor_registry.bind(provider_id, extra_adapter)
 
     # 3. OpenAI-compatible
     openai_adapter = OpenAICompatibleProviderAdapter(
@@ -99,6 +121,7 @@ def build_ai_infrastructure(
     include_workforce_models: bool = False,
     bind_adapters: bool = False,
     ollama_base_url: str = "http://127.0.0.1:11434",
+    node_endpoints: dict[str, str] | None = None,
     secrets_manager: Any | None = None,
 ) -> AIInfrastructureServices:
     """Construct the AI Infrastructure Platform.
@@ -111,7 +134,10 @@ def build_ai_infrastructure(
         sleeper: Optional callable for async sleep.
         include_workforce_models: If True, registers canonical workforce models alongside reference catalog.
         bind_adapters: If True, binds standard provider adapters (Ollama, OpenAI-compatible).
-        ollama_base_url: Base URL for local Ollama instance.
+        ollama_base_url: Base URL for local Ollama instances (fallback when a node has no explicit endpoint).
+        node_endpoints: Optional mapping of provider id (e.g. ``local-m1``, ``local-hp``,
+            ``local-mac-mini-m6``) to that node's own Ollama base URL, enabling an
+            independent endpoint per LAN inference node.
         secrets_manager: Optional SecretsManager for cloud adapter credentials.
 
     Returns:
@@ -132,6 +158,7 @@ def build_ai_infrastructure(
         bind_default_provider_adapters(
             executor_registry,
             ollama_base_url=ollama_base_url,
+            node_endpoints=node_endpoints,
             secrets_manager=secrets_manager,
         )
 
