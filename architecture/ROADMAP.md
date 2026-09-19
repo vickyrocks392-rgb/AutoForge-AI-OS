@@ -764,7 +764,487 @@ Handling Unfamiliar Legacy Codebases:
 • Mandatory human approval gates for all consequential modernization decisions
 
 Outcome:
-✓ Autonomous Engineering Frozen
+✓ Autonomous Engineering Foundation Established
+
+------------------------------------------------------------
+
+============================================================
+PHASE 18 SUBPHASE EXECUTION STRUCTURE & ROADMAP
+============================================================
+
+The canonical execution of Phase 18 progresses through explicit, sequentially ordered subphases:
+
+### Completed Foundational Subphases (18-A through 18-F):
+• **18-A — Routing Semantics & Verification (Complete)**: Specialized worker routing verification in isolation.
+• **18-B — Live Orchestrated Greenfield Routing & Verification (Complete)**: Greenfield orchestrator workflow with live Ollama daemon.
+• **18-C — Greenfield Pipeline Execution Engine & Loops (Complete)**: EngineeringWorker lifecycle and deterministic execution loops.
+• **18-D — Scoped Local Qdrant RAG Integration (Complete)**: Offline local Qdrant vector retrieval for engineering context.
+• **18-E — Deterministic Evaluation, Diagnosis & Repair Loop (Complete)**: Closed-loop diagnosis, repair plan synthesis, and file mutation verification.
+• **18-F — Bounded Autonomous Transformation Proof (Complete)**: Initial 5-file bounded modernization slice.
+
+---
+
+### 18-G — Legacy Modernization — COMPLETE (EXISTING COMMERCIAL CAPABILITY)
+• **Scope**: Specialized enterprise legacy modernization engine.
+• **Evidence**: Tested and certified across real 511-file mixed-language enterprise workload (`IBM Bank-of-Z` BANKING_CORE / `aws-samples/carddemo`).
+• **Certification**: Officially achieved **18-G.6 REAL COMMERCIAL PROJECT AUTONOMOUS COMPLETION CERTIFICATION (LEVEL 2 — REAL PROJECT AUTONOMY PROVEN)**.
+• **Certified Pipeline**:
+  Discovery → Workload Closure → Semantic Extraction → Dependency Analysis → Architecture Reconstruction → Transformation Planning → Deterministic Synthesis → Build/Package → Runtime Verification → Behavioral Verification → Repair → Regression Verification → Evidence/Provenance.
+• **Commercial Status**: Serves as Offering #4 in the AutoForge Commercial Portfolio ($1,000+).
+• **CRITICAL INVARIANT**: ALREADY BUILT AND CERTIFIED. Do NOT create a duplicate modernization implementation phase.
+
+---
+
+### 18-H — AI Runtime / Heavy Optimization / Multi-Node Readiness — CURRENTLY FROZEN UNTIL M6 ARRIVAL
+• **Scope**: Heavy performance optimization and multi-node hardware fabric readiness audit.
+• **Empirical Performance**: Certified at 364,953.2 source NLOC/hour delivery rate; 104.66s delivery wall clock.
+• **Fabric Preparation**: 3-node inference topology prepared (`local-m1` + `local-hp` + `local-mac-mini-m6` configuration seam in `run_18h2_nodes.py`).
+• **Status**: FROZEN pending physical arrival, setup, and benchmarking of the M6 hardware node.
+
+---
+
+### 18-COMMERCIAL — Commercial AI Engineering Services — NEW PLANNED PHASE
+
+**Purpose**:
+Turn AutoForge's already-built AI engineering infrastructure into four concrete, independently sellable engineering services that can be delivered on Fiverr / as subcontracting work without waiting for the future 3-node inference experiment.
+
+These services directly compose the existing AutoForge architecture rather than becoming separate agent systems or disconnected products.
+
+The existing Legacy Code Modernization capability remains the fifth commercial offering and continues to live under 18-G.
+
+#### Five-Service Commercial Portfolio:
+1. **RAG Knowledge Assistant** — Target: $750–$1,000+
+2. **Custom AI Agent** — Target: $1,000+
+3. **AI Automation** — Target: $750–$1,000+
+4. **Legacy Code Modernization** — Target: $1,000+ (EXISTING 18-G CAPABILITY — CERTIFIED)
+5. **Code Migration / Refactoring** — Target: $1,000+
+
+#### AutoForge Primitives Composition Invariant:
+These are commercial offerings, not five separate software architectures. They all compose existing AutoForge primitives:
+• Kernel (`packages/kernel`)
+• Strategic Engine & Orchestration (`packages/orchestration`)
+• Workflow Engine & DAG Scheduler (`packages/workflows`)
+• Execution Engine & Engineering Loop (`packages/execution`)
+• Review Engine & Quality Gates (`packages/review`)
+• Artifact Manager, Lineage & Provenance (`packages/artifacts`)
+• Runtime State Manager & Checkpoints (`packages/runtime`)
+• Event Bus & Platform (`packages/event_platform`, `packages/events`)
+• Knowledge Engine & Retrieval (`packages/knowledge_platform`)
+• Memory Engine (Working, Project, Semantic) (`packages/memory`)
+• Learning Engine boundary (`packages/learning`, strictly gated)
+• Model Router & Policies (`packages/ai_infrastructure`)
+• Model Allocator & Capacity Manager (`packages/workforce`)
+• 23-Worker Specialized AI Workforce (`packages/workforce`)
+• Local RAG & Vector Storage (Qdrant)
+• Tool execution & external connectors (`packages/connectors`, `packages/tools`)
+• Deterministic transformation & synthesis
+• Verification, test execution & regression checking
+• Repair loops & root-cause diagnosis
+• Provenance, evidence logging & audit trail
+
+---
+
+### Phase 18-COMMERCIAL Cross-Cutting Architecture
+
+All commercial Power Engines (18-COMMERCIAL-A through D) and the existing Legacy Modernization Engine (18-G) strictly adhere to the following first-class cross-cutting architectural contracts:
+
+#### 1. Core Automation Principle: "Autonomy by Default, Human Intervention by Exception"
+The foundational product principle across all AutoForge commercial engines is:
+**AUTOFORGE SHOULD COMPLETE CUSTOMER WORK WITH THE MINIMUM POSSIBLE HUMAN INTERFERENCE.**
+A customer should never have to manually guide AutoForge through every step. Each Power Engine operates autonomously by default throughout its entire execution lifecycle.
+
+Human-in-the-loop (HITL) intervention is explicitly **NOT** the default workflow. The roadmap rejects micromanagement workflows ("AI proposes → human clicks approve for every tiny step"). Human intervention occurs ONLY when a defined risk condition, uncertainty boundary, security authorization, or irreversible external action requires human approval. Everything else executes autonomously to completion.
+
+#### 2. Shared Autonomous Execution & Human-in-the-Loop (HITL) Safety Framework
+A cross-cutting architectural framework shared across all Power Engines:
+• **Autonomous Execution Conditions**: AutoForge proceeds automatically when:
+  - Required inputs, documents, or repositories are available and validated.
+  - The planned action is within established workspace and security policies.
+  - Confidence and risk metrics satisfy platform acceptance thresholds.
+  - Required tools and external connectors are pre-authorized.
+  - Execution is fully reversible, idempotent, or safely sandboxed.
+  - Verification gates pass (compilation, automated tests, contract checks).
+  - No explicit approval-only condition is triggered.
+• **Continuous Risk Detection**: Continuous detection monitors for:
+  - Destructive filesystem, database, or cloud operations.
+  - Irreversible external actions or third-party state mutations.
+  - Production-impacting changes to live systems or infrastructure.
+  - Credential, secret, or security-sensitive boundary access.
+  - Financial, contractual, or licensing-sensitive operations.
+  - Ambiguous or conflicting customer requirements.
+  - Insufficient source evidence or incomplete semantic models.
+  - Low-confidence transformations or repair plans.
+  - Unresolved verification failures or regressions exceeding retry bounds.
+  - Policy violations or unsafe generated artifacts.
+  - Unexpected external side effects or unauthorized network emissions.
+  - Scope expansion beyond customer authorization.
+• **Extensible Detector Architecture**: Risk detectors are implemented as modular, composable inspection rules rather than a hardcoded static list. Additional domain-specific detectors can be registered dynamically.
+
+#### 3. HITL as a Gated Wait State (`WAITING_FOR_HUMAN_APPROVAL`)
+When a risk detector or authorization boundary triggers, AutoForge does not abort or fail:
+• **State Transition**: The workflow transitions into an explicit observable state: `WAITING_FOR_HUMAN_APPROVAL`.
+• **Preserved Execution State**: The workflow durably captures and preserves:
+  - Current execution state, active stage, and DAG position.
+  - Full execution plan and pending task hierarchy.
+  - Generated intermediate artifacts and source/target working trees.
+  - Complete forensic evidence ledger and telemetry references.
+  - Precise reason for escalation and risk classification.
+  - Proposed action and evaluated alternatives (with trade-offs).
+  - Required approval scope and boundary parameters.
+• **Post-Decision Flow**:
+  - **Approval Granted**: `RESUME → EXECUTE → VERIFY → CONTINUE AUTONOMOUSLY`.
+  - **Approval Rejected**: `REJECT → REPLAN / ABORT / SAFE-ROLLBACK` (policy-governed).
+• **Architectural Dependency on Phase 18-J**: This wait-and-resume capability depends conceptually on the future **Phase 18-J (Durable Execution + Resume + Idempotency)** for process-restart survival, distributed checkpointing, and idempotent replay. *(Durable execution is NOT implemented here; the architectural dependency is explicitly recorded).*
+
+#### 4. Minimal and High-Value Human Approval Policy
+The roadmap explicitly rejects unnecessary HITL prompts that degrade autonomy:
+• **Explicitly Rejected Micro-Approvals**:
+  - NO "Approve every generated file."
+  - NO "Approve every tool call."
+  - NO "Approve every planning step."
+  - NO "Approve every worker dispatch."
+• **High-Value Escalation Examples**:
+  - *"AutoForge detected that this action would modify production infrastructure. Approval required."*
+  - *"AutoForge detected unresolved behavioral divergence between legacy batch output and modernized target. Human decision required."*
+  - *"AutoForge requires authorization to access external customer database."*
+The operator intervenes only at meaningful decision boundaries; AutoForge handles everything else autonomously.
+
+#### 5. Risk & Approval Engine & Canonical Event Model
+A shared cross-cutting platform component responsible for governance determination (not task execution):
+• **Responsibilities**:
+  - Determine whether an action is safe for autonomous execution.
+  - Verify authorization credentials and scope boundaries.
+  - Classify risk type, severity level, and evidence chain.
+  - Formulate precise approval requests with explicit scope boundaries.
+  - Validate safety invariants before permitting workflow resumption.
+• **Canonical Event Stream**: Integrates directly with the platform event bus and emits/consumes canonical events:
+  - `RISK_DETECTED` — Specific risk detector triggered with evidence payload.
+  - `APPROVAL_REQUIRED` — Workflow halted; `WAITING_FOR_HUMAN_APPROVAL` engaged.
+  - `APPROVAL_GRANTED` — Authorized operator signed off on proposed scope.
+  - `APPROVAL_REJECTED` — Operator rejected proposal with recorded rationale.
+  - `EXECUTION_BLOCKED` — Execution suspended at safety boundary.
+  - `EXECUTION_RESUMED` — Execution restored following approved escalation.
+  - `SAFE_ABORT_REQUESTED` — Clean shutdown without orphan processes or state corruption.
+  - `SAFE_ROLLBACK_REQUESTED` — Reversal of unverified mutations to last verified checkpoint.
+
+#### 6. Live Engineering Workspace / Transformation Studio
+A first-class AutoForge product capability (internal working name: **TRANSFORMATION STUDIO** or **LIVE ENGINEERING WORKSPACE**):
+• **Core Philosophy**: A live, event-driven window into real autonomous engineering—NOT a canned dashboard with synthetic animations. Every visual element is fed directly from the canonical event stream.
+• **VS Code + Cline-Like Engineering Experience**: An integrated, high-fidelity developer workspace where the operator watches AutoForge engineer the project autonomously:
+  - **Project Explorer & File Tree**: Live view of repository files, newly created files, and modified trees.
+  - **Live Code Editor**: Real-time syntax-highlighted editor displaying code as it is generated, refactored, or repaired.
+  - **Integrated Terminal / Output**: Live streaming build, compilation, test runner, and CLI outputs.
+  - **Worker Activity Panel**: Active worker dispatch status, capability requirements, and assigned model/node.
+  - **Workflow & Task DAG Visualizer**: Real-time stage progression and dependency execution status.
+  - **Canonical Event Stream**: Filterable log of platform, execution, and risk events.
+  - **Build & Test Verification Status**: Granular compile logs, test pass/fail counts, and coverage metrics.
+  - **Artifact & Evidence Browser**: Full access to intermediate and final artifacts with cryptographic hashes.
+  - **Risk & Approval Panel**: Clear visualization of pending escalations, risk evidence, and one-click action controls.
+  - **Execution Timeline & Telemetry**: Wall clock, critical path duration, token velocity, and TTFT metrics.
+
+#### 7. Dual-Pane Experience & Multi-Engine Live Observability
+• **Dual-Pane Source/Target View for Legacy Modernization (18-G)**:
+  - **Left Pane (Source / Legacy)**: Legacy codebases (COBOL, JCL, Copybooks, BMS, SQL, IMS, Assembler).
+  - **Right Pane (Target / Modernized)**: Generated modern target code (Java, Spring Boot, TypeScript, Python, etc.).
+  - **Granular Real-Time Event Progress**:
+    `FILE DISCOVERED → FILE ANALYZED → SYMBOLS EXTRACTED → DEPENDENCY IDENTIFIED → BUSINESS RULE RECONSTRUCTED → TRANSFORMATION PLANNED → TARGET ARTIFACT GENERATED → BUILD STARTED → BUILD PASSED → TEST STARTED → BEHAVIORAL COMPARISON → DIVERGENCE DETECTED → REPAIR STARTED → REPAIR COMPLETED → VERIFICATION PASSED`.
+• **Live Observability Adapted for All Power Engines**:
+  - **RAG Knowledge Assistant**: Documents Ingested → Document Parsing → Semantic Chunking → Embedding Generation → Vector Indexing → Query Retrieval → Context Construction → LLM Answer Generation → Answer & Citation Verification.
+  - **Custom AI Agent**: Goal Decomposition → Strategic Plan → Worker Allocation → Tool Execution → Working/Project Memory Access → Artifact Synthesis → Deterministic Verification → Autonomous Completion.
+  - **AI Automation**: Input Document/Data Intake → AI Classification/Extraction → Deterministic Transformation → Tool/API Execution → Schema Validation → Final Structured Output.
+  - **Code Migration / Refactoring**: Source Repository Analysis → Semantic AST Extraction → Transformation Planning → Target Code Generation → Target Build → Test Execution → Behavioral Parity Comparison → Closed-Loop Repair.
+
+#### 8. Synchronized Semantic Lineage (Source ↔ Target)
+The Transformation Studio establishes bidirectional semantic traceability between legacy/source artifacts and modernized/refactored targets:
+• **Lineage Granularities**:
+  - File-to-file lineage (e.g., `CBTRN01C.cbl` ↔ `TransactionProcessor.java`).
+  - Symbol & declaration lineage (e.g., `01 WS-TRAN-REC` ↔ `TransactionRecordDTO`).
+  - Procedure/function lineage (e.g., `PROCESS-CARD-PAYMENT` ↔ `CardPaymentService.process()`).
+  - Business-rule lineage (e.g., `BR-CARD-004: Interest Rate Calculation` ↔ `InterestRateCalculator.compute()`).
+  - Dependency & integration lineage (e.g., VSAM KSDS file reads ↔ Spring Data JPA repository queries).
+  - Transformation provenance (source file/line ranges, transformation rule, worker ID, model ID).
+  - Verification evidence linked directly to lineage nodes (test case ID, equivalence run ID).
+
+#### 9. Live Diff & Behavioral Verification Surface
+• Visual side-by-side diffs showing exactly what AutoForge altered, generated, or repaired.
+• Immediate visual reporting of compilation errors, behavioral parity checks, and test regressions.
+• Interactive inspection of diagnostic root causes and synthesized repair plans.
+• **Architectural Invariant**: The UI is strictly an observability surface over the real platform runtime; it never performs execution or state manipulation on its own.
+
+#### 10. Customer Deliverable Package Contract
+Every commercial Power Engine must produce a complete, production-grade, customer-deliverable project folder:
+• **Not Merely Code Snippets**: Deliverables represent complete, turnkey project packages ready for customer deployment or integration.
+• **Workload-Specific Packaging Structure** (tailored by the specific Power Engine):
+  - `source/` — Customer source files or input documents.
+  - `generated/` — Target modernized code, agents, automation scripts, or assistant configurations.
+  - `tests/` — Generated unit, integration, and regression test suites.
+  - `docs/` — Architecture documentation, API specifications, runbooks, and operator manuals.
+  - `configuration/` — Environment variables, Dockerfiles, compose specs, and dependency manifests.
+  - `scripts/` — Build, run, migration, and verification automation scripts.
+  - `artifacts/` — Compiled binaries, fat JARs, distributions, or serialized knowledge indexes.
+  - `evidence/` — Execution traces, benchmark results, and verification records.
+  - `verification/` — Test execution logs, behavioral parity comparisons, and coverage reports.
+  - `provenance/` — Cryptographic manifests, worker/model attribution, and transformation ledgers.
+  - `README.md` — Comprehensive project summary, setup instructions, usage guide, and assumptions.
+  - `DELIVERY_REPORT.md` — Final executive delivery summary with verification scorecards.
+
+#### 11. User-Configurable Output Management (`AUTOFORGE_OUTPUT_ROOT`)
+A shared Output / Delivery Manager contract allowing the user to control destination paths:
+• **Environment & Configurable Root**: Supported via `AUTOFORGE_OUTPUT_ROOT` with OS-portable path resolution (macOS, Linux, Windows).
+• **Configurable Packaging Options**:
+  - Project-specific delivery subfolder naming (`<project-id>-delivery/`).
+  - Timestamped delivery archives (`<project-id>-delivery-<timestamp>/`).
+  - Toggleable inclusions: execution logs, raw evidence, source artifacts, test recordings, verification reports.
+
+#### 12. Automated Final Delivery Pipeline
+The complete, uninterrupted end-to-end commercial lifecycle:
+```
+CUSTOMER REQUEST
+      ↓
+POWER ENGINE INTAKE
+      ↓
+AUTONOMOUS EXECUTION (Analyze → Plan → Implement)
+      ↓
+CONTINUOUS RISK DETECTION
+      ↓
+HITL GATE (Only if high-risk boundary triggered)
+      ↓
+DETERMINISTIC VERIFICATION (Build, Test, Equivalence)
+      ↓
+CLOSED-LOOP REPAIR (Automatic root-cause diagnosis & re-verification)
+      ↓
+FINAL VERIFICATION SIGN-OFF
+      ↓
+DELIVERY PACKAGE GENERATION (Workload-specific structure)
+      ↓
+CUSTOMER OUTPUT DIRECTORY (Configured by AUTOFORGE_OUTPUT_ROOT)
+      ↓
+FINAL DELIVERY REPORT (Executive summary & verification scorecard)
+```
+
+#### 13. Canonical Power Engine Lifecycle Contract
+All commercial Power Engines implement the standard 11-stage autonomous execution lifecycle:
+```
+INTAKE → UNDERSTAND/ANALYZE → PLAN → EXECUTE → OBSERVE → VERIFY → DIAGNOSE → REPAIR → RE-VERIFY → PACKAGE → DELIVER
+```
+Augmented with safety hooks:
+```
+[STAGE EXECUTION] → [RISK CHECK] ──(Risk/Boundary Detected)──→ [WAITING_FOR_HUMAN_APPROVAL]
+                                                │
+                                    (Approval Granted)
+                                                ↓
+                                             [RESUME]
+```
+
+---
+
+#### 18-COMMERCIAL-A — RAG Knowledge Assistant
+• **Target Fiverr Price**: $750–$1,000+
+• **Purpose**: Deliver production-quality knowledge assistants over customer-provided documents, repositories, technical material, or organizational knowledge.
+• **Expected Capability Surface**:
+  - Document ingestion
+  - PDF / document parsing
+  - Code / document ingestion
+  - Chunking strategies
+  - Embeddings generation
+  - Vector storage (Qdrant / local persistence)
+  - Semantic retrieval
+  - Top-k retrieval & ranking
+  - Similarity thresholds
+  - Context construction & window management
+  - LLM answer generation
+  - Conversational interaction & turn management
+  - Source / provenance citations & references
+  - Persistent knowledge stores
+  - Retrieval evaluation & precision metrics
+  - Answer verification & hallucination guardrails
+  - Local / private deployment where applicable
+• **Potential Customer Deliverables**:
+  - Company knowledge assistant
+  - Documentation assistant
+  - PDF knowledge assistant
+  - Technical knowledge assistant
+  - Research assistant
+  - Codebase knowledge assistant
+  - Internal knowledge chatbot
+• **Status**: COMPLETE & FULLY CERTIFIED.
+• **Cross-Cutting Extraction**: The Shared Customer Delivery & Deployment Platform (`autoforge_power_engines.delivery`) has been cleanly extracted as a universal AutoForge capability. All future commercial Power Engines compose this platform.
+
+---
+
+#### Shared Customer Delivery & Deployment Platform (Universal Cross-Cutting Capability)
+• **Architectural Role**: "Build customer delivery and deployment once. Every Power Engine composes it."
+• **Decoupled Architecture**:
+  - Power Engines own the workload-specific logic (e.g. RAG index, Agent tool runtime, Automation scheduler, Migration AST).
+  - The shared platform owns the delivery/deployment mechanics (`CustomerDeploymentSpec`, `ServiceDefinition`, container orchestration, persistent volumes, launchers, management CLI, health verification, and boundary sanitization).
+• **Universal Capabilities Provided to All Power Engines**:
+  - `Deploy.command` (macOS one-click desktop launcher)
+  - `deploy.sh` (Linux/macOS POSIX one-command fallback with auto-detection & zero-data-loss local fallback)
+  - `Deploy.bat` (Windows one-click launcher)
+  - `manage.sh` (lifecycle management CLI: `start`, `stop`, `restart`, `status`, `logs`)
+  - `docker-compose.yml` (multi-service topology, private bridge networking, localhost-only public bindings)
+  - `Dockerfile` (non-root `appuser:appuser` container security)
+  - `data/` (strict persistent volume segregation outside containers surviving updates)
+  - `scripts/health_check.py` (composable diagnostic health check framework)
+  - `README.md` (standardized 15-section customer guide)
+  - `DELIVERY_REPORT.md` (executive delivery scorecard & verification evidence)
+  - `ProprietaryBoundarySanitizer` (enforces 0 AutoForge internal code leakage across export boundary)
+• **Consumed By**:
+  - 18-COMMERCIAL-A: RAG Knowledge Power Engine (Certified)
+  - 18-COMMERCIAL-B: Custom AI Agent Power Engine (Ready via architectural fixture)
+  - 18-COMMERCIAL-C: AI Automation Power Engine (Ready via architectural fixture)
+  - 18-COMMERCIAL-D: Code Migration / Refactoring Power Engine (Ready via architectural fixture)
+  - 18-G: Legacy Modernization Engine where applicable
+  - All future commercial Power Engines
+
+---
+
+#### 18-COMMERCIAL-B — Custom AI Agent
+• **Target Fiverr Price**: $1,000+
+• **Purpose**: Deliver custom goal-oriented AI agents using AutoForge's existing agent / workforce architecture.
+• **Expected Capability Surface**:
+  - Goal interpretation & intent analysis
+  - Task decomposition & DAG creation
+  - Strategic planning
+  - Specialized AI workers (from the 23-worker workforce)
+  - Worker-specific model requirements
+  - Dynamic model routing & policy enforcement
+  - Capacity-aware allocation & slot reservation
+  - Tool calling & external execution
+  - Working & project memory
+  - RAG / knowledge retrieval integration
+  - Multi-step autonomous execution
+  - State tracking & transition logging
+  - Failure detection & classification
+  - Retries & automated recovery
+  - Verification & quality gate evaluation
+  - Result synthesis & summary generation
+  - Artifact generation & cataloging
+  - Structured outputs & JSON schema enforcement
+  - Provider abstraction (Ollama, cloud fallback)
+  - Local-first execution
+• **Potential Customer Deliverables**:
+  - Research agent
+  - Coding agent
+  - Documentation agent
+  - Customer-support agent
+  - Analysis agent
+  - Repository agent
+  - Domain-specific autonomous workflow agent
+• **Execution Boundary**: Do NOT implement yet.
+
+---
+
+#### 18-COMMERCIAL-C — AI Automation
+• **Target Fiverr Price**: $750–$1,000+
+• **Purpose**: Deliver complete AI-powered business workflows combining AI reasoning with deterministic execution.
+• **Canonical Execution Pattern**:
+  `INPUT → AI REASONING → DETERMINISTIC PROCESSING → TOOL/API EXECUTION → VALIDATION → OUTPUT`
+• **Expected Capability Surface**:
+  - Workflow orchestration & DAG sequencing
+  - AI decision points & branching logic
+  - Document processing & parsing
+  - Text & data classification
+  - Structured information extraction
+  - Deterministic data transformation
+  - API integrations & webhooks
+  - Tool execution & sandboxed scripts
+  - Data processing pipelines
+  - Conditional workflows & fallbacks
+  - Parallel tasks & concurrency control
+  - Deterministic validation & schema checks
+  - Retry & error handling policies
+  - Structured outputs & data serialization
+  - Report & document generation
+• **Potential Customer Deliverables**:
+  - Document-processing automation
+  - Lead-processing automation
+  - Resume-processing automation
+  - Research automation
+  - Email classification & triage
+  - Data extraction & enrichment
+  - Report generation pipelines
+  - Data migration workflows
+  - Business-process automation
+• **Execution Boundary**: Do NOT implement yet.
+
+---
+
+#### 18-COMMERCIAL-D — Code Migration / Refactoring
+• **Target Fiverr Price**: $1,000+
+• **Purpose**: Generalize AutoForge's deterministic transformation and verification capabilities beyond the already-established legacy modernization service.
+• **Critical Boundary Distinction**:
+  This is NOT a replacement for 18-G. 18-G remains the specialized enterprise Legacy Code Modernization capability (COBOL/JCL/VSAM/CICS → modern targets). 18-COMMERCIAL-D is the broader code transformation, refactoring, and framework migration service.
+• **Expected Capability Surface**:
+  - **Language migration**:
+    * Validated language-to-language transformations
+    * Syntax and semantic migration
+    * Compatibility transformation
+  - **Framework migration**:
+    * Framework upgrades (e.g., major version leaps)
+    * Dependency migrations
+    * API migrations & deprecation remediation
+    * Architectural migrations
+  - **Refactoring**:
+    * Monolith → modular structures
+    * Structural refactoring & package decoupling
+    * Duplicate-code reduction & deduplication
+    * API restructuring & contract modernization
+    * Repository restructuring
+    * Modernization of established code patterns
+  - **Engineering generation**:
+    * Test suite generation & expansion
+    * Documentation & API specification generation
+    * API generation & scaffold synthesis
+    * Configuration generation (CI/CD, Docker, IaC)
+  - **Verification**:
+    * Build verification & compilation checks
+    * Test execution & coverage assessment
+    * Regression detection & test comparison
+    * Behavioral comparison & parity checking
+    * Targeted repair loops on test failure
+    * Final artifact validation & manifest generation
+• **CRITICAL INVARIANT**:
+  Do NOT claim arbitrary language/framework pairs are supported until they are empirically validated. The service must expose only transformation pairs that AutoForge can actually execute, compile, and verify.
+• **Execution Boundary**: Do NOT implement yet.
+
+---
+
+### Remaining Autonomous Engineering Hardening & Certification Subphases:
+
+### 18-I — Generated Workload Containerization + Sandboxing
+• Confined container/sandbox execution for generated workloads, tests, and target artifacts.
+• Strict workspace isolation, filesystem confinement, and resource limits.
+
+### 18-J — Durable Execution + Resume + Idempotency
+• Process-restart survival for orchestrator workflows.
+• Idempotent replay, state checkpoints, crash recovery, and resume boundaries.
+
+### 18-K — Runtime + Packaging + Delivery
+• Target delivery pipelines, production artifact packaging, fat JAR/bundle synthesis, and staging verification.
+
+### 18-L — Full Autonomous Engineering Certification
+• End-to-end certification of greenfield and legacy autonomous engineering across the complete platform.
+• Formal sign-off and gate closure prior to Phase 19.
+
+---
+
+### Canonical Phase Ordering & Boundaries:
+```
+18-G           — Legacy Modernization (COMPLETE — Existing Commercial Offering)
+18-H           — AI Runtime / Heavy Optimization (FROZEN pending M6 arrival)
+18-COMMERCIAL  — Commercial AI Engineering Services (NEW PLANNED PHASE)
+  ├── 18-COMMERCIAL-A — RAG Knowledge Assistant ($750–$1,000+)
+  ├── 18-COMMERCIAL-B — Custom AI Agent ($1,000+)
+  ├── 18-COMMERCIAL-C — AI Automation ($750–$1,000+)
+  └── 18-COMMERCIAL-D — Code Migration / Refactoring ($1,000+)
+18-I           — Generated Workload Containerization + Sandboxing
+18-J           — Durable Execution + Resume + Idempotency
+18-K           — Runtime + Packaging + Delivery
+18-L           — Full Autonomous Engineering Certification
+      ↓
+PHASE 19       — Continuous Learning & Self-Improvement (STRICTLY ONLY AFTER 18-L)
+```
 
 ------------------------------------------------------------
 
@@ -1023,8 +1503,8 @@ The canonical 25-phase roadmap directly reconciles and expands the original 22-p
 | Phase 15 | Security Platform | Phase 15 | Security & Governance Platform | Expanded to cover governance, HITL gates, sandboxing, secrets |
 | Phase 16 | MVP Integration | Phase 16 | AutoForge Product Experience | Top-level UI & human interface; MVP capabilities partitioned logically |
 | — | — | Phase 17 | AI Runtime & Real Model Integration | Connects Phase 13 policies/allocations to real inference engines |
-| Phase 17 | Autonomous Engineering | Phase 18 | Autonomous Engineering & Modernization | Integrates workforce with full OS; Greenfield & Legacy pipelines |
-| Phase 18 | Continuous Learning | Phase 19 | Continuous Learning & Self-Improvement | Self-learning engine, reflection, strictly gated safety pipeline |
+| Phase 17 | Autonomous Engineering | Phase 18 | Autonomous Engineering & Modernization | Integrates workforce with full OS; Subphases: 18-A..18-F (Foundation), 18-G (Modernization - Certified), 18-H (Optimization - Frozen), 18-COMMERCIAL (A-D Commercial Services), 18-I..18-L (Hardening/Cert) |
+| Phase 18 | Continuous Learning | Phase 19 | Continuous Learning & Self-Improvement | Self-learning engine, reflection, strictly gated safety pipeline (Only after 18-L) |
 | — | — | Phase 20 | Modernization Service MVP | Commercial service MVP; initial commercial go-to-market engine |
 | — | — | Phase 21 | Desktop Application & Distribution | Local-first desktop packaging, distribution, multi-node desktop |
 | Phase 19 | Developer Platform | Phase 22 | Developer / Extension Platform | Plugin, connector, worker SDKs, marketplace foundation |
@@ -1051,11 +1531,23 @@ Phase 16: AutoForge Product Experience (UI, Engineering Experience, Visualizers)
       ↓
 Phase 17: Real AI Runtime (Live Local/Cloud Inference Adapters, Hardware Topology)
       ↓
-Phase 18: Autonomous Engineering & Modernization (Full Greenfield & Legacy Pipelines)
+Phase 18: Autonomous Engineering & Modernization
+  ├── 18-A..18-F: Foundation, Greenfield, RAG, Repair Loop (Complete)
+  ├── 18-G: Legacy Modernization (Complete — Existing Commercial Offering #4)
+  ├── 18-H: AI Runtime / Heavy Optimization / Multi-Node Readiness (Frozen pending M6)
+  ├── 18-COMMERCIAL: Commercial AI Engineering Services (New Planned Phase)
+  │     ├── 18-COMMERCIAL-A: RAG Knowledge Assistant ($750–$1,000+)
+  │     ├── 18-COMMERCIAL-B: Custom AI Agent ($1,000+)
+  │     ├── 18-COMMERCIAL-C: AI Automation ($750–$1,000+)
+  │     └── 18-COMMERCIAL-D: Code Migration / Refactoring ($1,000+)
+  ├── 18-I: Generated Workload Containerization + Sandboxing
+  ├── 18-J: Durable Execution + Resume + Idempotency
+  ├── 18-K: Runtime + Packaging + Delivery
+  └── 18-L: Full Autonomous Engineering Certification
       ↓
-Phase 19: Continuous Learning & Self-Improvement (Gated Safety Learning Pipeline)
+Phase 19: Continuous Learning & Self-Improvement (Gated Safety Learning Pipeline — Strictly Only After 18-L)
       ↓
-Phase 20: Modernization Service MVP (Commercial Legacy Modernization Offering)
+Phase 20: Modernization Service MVP (Enterprise Commercial Packaging)
       ↓
 Phase 21: Desktop Application & Distribution (Local-First Desktop Packaging)
       ↓
@@ -1074,28 +1566,62 @@ Phase 25: Production Release (Hardening, Verification, v1.0 Release)
 BUSINESS ARCHITECTURE & GO-TO-MARKET ALIGNMENT
 ============================================================
 
-AutoForge AI OS distinguishes strictly between the internal operating platform and the commercial market offering:
+AutoForge AI OS distinguishes strictly between the internal operating platform and the commercial market offerings:
 
 1. **AutoForge AI OS (Internal Technology Platform)**:
    The comprehensive autonomous software engineering operating system, kernel, workforce, and execution runtime developed across Phases 1–25.
 
-2. **Modernization Service (Initial Commercial Go-To-Market Offering)**:
-   We sell legacy modernization as a high-value commercial service to enterprise clients. AutoForge AI OS serves as our proprietary internal modernization engine.
+2. **Commercial AI Engineering Services Portfolio (Sellable Go-To-Market Offerings)**:
+   AutoForge's already-built AI engineering infrastructure powers five concrete, independently sellable engineering services delivered on Fiverr, as subcontracting work, and for enterprise engagements:
+
+   1. **RAG Knowledge Assistant** ($750–$1,000+) — Subphase 18-COMMERCIAL-A
+      - Production knowledge assistants over customer documents, codebases, technical material, or internal knowledge.
+   2. **Custom AI Agent** ($1,000+) — Subphase 18-COMMERCIAL-B
+      - Goal-oriented custom AI agents composing specialized workers, tools, and local-first execution.
+   3. **AI Automation** ($750–$1,000+) — Subphase 18-COMMERCIAL-C
+      - Complete business workflows combining AI reasoning with deterministic processing and tool APIs.
+   4. **Legacy Code Modernization** ($1,000+) — Existing Subphase 18-G (Complete & Certified)
+      - Specialized enterprise legacy modernization (COBOL/JCL/VSAM/CICS → Java/Spring/cloud targets).
+   5. **Code Migration / Refactoring** ($1,000+) — Subphase 18-COMMERCIAL-D
+      - Broad code transformation, language/framework upgrades, and verified structural refactoring.
+
+   **AutoForge Primitives Composition Invariant**:
+   These are commercial offerings, not five separate software architectures. They all compose existing AutoForge primitives:
+   • Kernel (`packages/kernel`)
+   • Strategic Engine & Orchestration (`packages/orchestration`)
+   • Workflow Engine & DAG Scheduler (`packages/workflows`)
+   • Execution Engine & Engineering Loop (`packages/execution`)
+   • Review Engine & Quality Gates (`packages/review`)
+   • Artifact Manager, Lineage & Provenance (`packages/artifacts`)
+   • Runtime State Manager & Checkpoints (`packages/runtime`)
+   • Event Bus & Platform (`packages/event_platform`, `packages/events`)
+   • Knowledge Engine & Retrieval (`packages/knowledge_platform`)
+   • Memory Engine (`packages/memory`)
+   • Learning Engine boundary (`packages/learning`, strictly gated)
+   • Model Router & Policies (`packages/ai_infrastructure`)
+   • Model Allocator & Capacity Manager (`packages/workforce`)
+   • 23-Worker Specialized AI Workforce (`packages/workforce`)
+   • Local RAG & Vector Storage (Qdrant)
+   • Tool execution & external connectors (`packages/connectors`, `packages/tools`)
+   • Deterministic transformation & synthesis
+   • Verification, test execution & regression checking
+   • Repair loops & root-cause diagnosis
+   • Provenance, evidence logging & audit trail
 
 Go-To-Market Value Flow:
 
 ```
-Customer Legacy System
+Customer Commercial Request (RAG Assistant / Custom Agent / Automation / Modernization / Migration)
   ↓
-Modernization Service (Commercial Offering)
+AutoForge Commercial Service Portfolio (Offerings 1–5)
   ↓
-AutoForge AI Workforce (23 Specialized Workers)
+AutoForge AI Workforce (23 Specialized Workers) & Platform Primitives
   ↓
-Modernization Pipeline (Discovery → Archaeology → Reconstruction → Migration → Validation)
+Orchestrated Pipeline (Ingestion / Reasoning / Deterministic Transformation / Synthesis)
   ↓
-Validated Modernized System
+Verification & Hardening (Testing, Equivalence, Evaluation, Security, Quality Gates)
   ↓
-Customer Deliverables (Source Code, Schemas, Architecture Specs, Test Suites, Runbooks)
+Customer Deliverables (Verified Artifacts, Code, Schemas, Test Suites, Runbooks, Provenance)
 ```
 
 ------------------------------------------------------------

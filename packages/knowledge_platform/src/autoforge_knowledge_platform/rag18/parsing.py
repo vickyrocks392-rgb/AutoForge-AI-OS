@@ -36,6 +36,10 @@ DOCUMENT_TYPE_BY_SUFFIX: dict[str, tuple[str, str]] = {
     ".markdown": ("markdown", "markdown"),
     ".mdx": ("markdown", "markdown"),
     ".txt": ("plain_text", "text"),
+    ".pdf": ("pdf_document", "pdf"),
+    ".json": ("json_document", "json"),
+    ".yaml": ("yaml_document", "yaml"),
+    ".yml": ("yaml_document", "yaml"),
     ".rst": ("restructured_text", "rst"),
     ".adoc": ("asciidoc", "asciidoc"),
     ".text": ("plain_text", "text"),
@@ -51,10 +55,29 @@ def classify(path: str | Path) -> tuple[str, str]:
 def read_text(path: str | Path) -> tuple[str, str]:
     """Read a source file as text with a strict-then-lenient encoding policy.
 
+    Supports text, source code, structured documents, and PDF documents.
     Returns ``(content, encoding)``. Raises ``CorruptSourceError`` only when
-    the file cannot be decoded at all.
+    the file cannot be decoded or parsed at all.
     """
-    raw = Path(path).read_bytes()
+    p = Path(path)
+    suffix = p.suffix.lower()
+
+    if suffix == ".pdf":
+        try:
+            import PyPDF2
+            reader = PyPDF2.PdfReader(str(p))
+            pages_text = []
+            for i, page in enumerate(reader.pages):
+                extracted = page.extract_text()
+                if extracted and extracted.strip():
+                    pages_text.append(f"--- [Page {i + 1}] ---\n{extracted.strip()}")
+            if not pages_text:
+                return f"[Empty or non-extractable PDF: {p.name}]", "pdf"
+            return "\n\n".join(pages_text), "pdf"
+        except Exception as exc:
+            raise CorruptSourceError(f"Failed to parse PDF document {path}: {exc}") from exc
+
+    raw = p.read_bytes()
     for encoding in ("utf-8", "utf-8-sig", "latin-1"):
         try:
             return raw.decode(encoding), encoding

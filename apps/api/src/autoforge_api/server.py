@@ -178,6 +178,10 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
                 experience = self.service.get_engineering_experience()
                 self._send_json(HTTPStatus.OK, experience)
 
+            elif path == "/api/power-engines/deliveries":
+                delivs = self.service.list_power_engine_deliveries()
+                self._send_json(HTTPStatus.OK, delivs)
+
             elif path == "/api/self-improvement":
                 si = self.service.get_self_improvement_center()
                 self._send_json(HTTPStatus.OK, si.model_dump())
@@ -337,6 +341,10 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
                 q = data.get("query", "")
                 top_k = int(data.get("top_k", 5))
                 res = self.service.query_knowledge(q, top_k=top_k)
+                self._send_json(HTTPStatus.OK, res)
+
+            elif path == "/api/power-engines/rag/execute":
+                res = self.service.execute_rag_power_engine(data)
                 self._send_json(HTTPStatus.OK, res)
 
             elif path == "/api/hitl/approvals":

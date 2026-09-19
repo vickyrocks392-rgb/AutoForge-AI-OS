@@ -127,3 +127,6 @@ scripts/production_reality_gate.py
 scripts/profile_one.py
 scripts/run_prg_with_profile.py
 
+# Local runtime state and databases
+data/
+

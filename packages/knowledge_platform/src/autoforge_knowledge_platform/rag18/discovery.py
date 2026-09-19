@@ -69,6 +69,8 @@ ALLOWED_SOURCE_EXTENSIONS: frozenset[str] = frozenset({
     ".scala", ".ex", ".exs",
     # Documentation / markdown / plain text
     ".md", ".markdown", ".mdx", ".txt", ".rst", ".adoc", ".text",
+    # Structured documents & PDF
+    ".pdf", ".json", ".yaml", ".yml",
 })
 
 

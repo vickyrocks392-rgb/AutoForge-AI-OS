@@ -1388,8 +1388,8 @@ This document is the canonical architectural specification for AutoForge AI OS. 
 - **Phase 15**: Security & Governance Platform
 - **Phase 16**: AutoForge Product Experience
 - **Phase 17**: AI Runtime & Real Model Integration
-- **Phase 18**: Autonomous Engineering & Modernization
-- **Phase 19**: Continuous Learning & Self-Improvement
+- **Phase 18**: Autonomous Engineering & Modernization (Subphases: 18-A..18-F Foundation; 18-G Legacy Modernization [Complete & Certified]; 18-H AI Runtime Optimization [Frozen pending M6]; 18-COMMERCIAL Commercial AI Engineering Services [Planned Subphases A–D]; 18-I..18-L Workload Sandboxing, Durable Execution, Delivery & Certification)
+- **Phase 19**: Continuous Learning & Self-Improvement (Strictly after Phase 18-L completion)
 - **Phase 20**: Modernization Service MVP
 - **Phase 21**: Desktop Application & Distribution
 - **Phase 22**: Developer / Extension Platform
@@ -1405,5 +1405,18 @@ This document is the canonical architectural specification for AutoForge AI OS. 
 4. **Memory ≠ Learning**: Memory stores context; Learning synthesizes adaptations through the mandatory gated safety pipeline.
 5. **Context Engineering**: Composes Knowledge and Memory without duplicating them.
 6. **Centralized Model Allocation**: Workers declare requirements; `ModelAllocator` and `ModelRouterService` control selection.
+7. **Autonomy by Default, Human Intervention by Exception**: AutoForge completes engineering work with minimal human interference. The system executes autonomously across the full lifecycle; human-in-the-loop (HITL) intervention is reserved strictly for detected risk, authorization boundaries, ambiguity, or irreversible actions via explicit wait states (`WAITING_FOR_HUMAN_APPROVAL`).
+8. **Transformation Studio & Turnkey Deliverables**: The Transformation Studio is a real event-driven developer workspace (never fake progress animations); commercial Power Engines compose platform primitives and produce complete customer-deliverable project packages to user-configured output directories (`AUTOFORGE_OUTPUT_ROOT`).
+9. **Shared Customer Delivery & Deployment Platform**: A universal cross-cutting capability (`autoforge_power_engines.delivery`) decoupling workload generation from delivery/deployment mechanics. Power Engines declare deployment intent via `CustomerDeploymentSpec` and `ServiceDefinition`; the shared platform enforces declarative spec integrity (dependency resolution, port collision detection), generates standard container orchestration, one-click desktop launchers (`Deploy.command`, `Deploy.bat`), one-command fallback (`deploy.sh`), lifecycle management CLI (`manage.sh`), persistent data segregation, health check harnesses, and 15-section customer documentation while strictly enforcing zero proprietary source leakage and automated secret/credential protection across the export boundary.
+
+```text
+Power Engines (RAG, Agent, Automation, Migration, Modernization)
+      ↓
+CustomerDeploymentSpec (Services, Volumes, Networks, Ports, Envs, Health Checks)
+      ↓
+Shared Customer Delivery & Deployment Platform (Packaging, Deployment, Sanitization, Docs)
+      ↓
+Customer-Owned Deployable Package (Deploy.command, deploy.sh, Deploy.bat, manage.sh, docker-compose)
+```
 
 Architectural modifications require an approved Architecture Decision Record (ADR) adhering to these invariants.

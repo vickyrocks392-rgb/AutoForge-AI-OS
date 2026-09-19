@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoforge-power-engines"
+version = "0.1.0"
+description = "Commercial Power Engines for AutoForge AI OS — Phase 18-COMMERCIAL Canonical Autonomous Customer-Delivery Engines"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "AutoForge AI"},
+]
+dependencies = [
+    "autoforge-kernel",
+    "autoforge-knowledge-platform",
+    "autoforge-ai-infrastructure",
+    "autoforge-events",
+    "autoforge-artifacts",
+    "autoforge-models",
+    "autoforge-runtime",
+    "PyPDF2>=3.0.0",
+    "PyYAML>=6.0",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]

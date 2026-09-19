@@ -4,6 +4,8 @@ Coordinates authoritative services without bypassing governance or mutating stat
 """
 
 from __future__ import annotations
+import os
+import json
 import uuid
 import time
 from datetime import datetime, timezone
@@ -2350,6 +2352,75 @@ class AutoForgeApiService:
         nodes = {n.node_id: n for n in self.list_nodes_detail()}
         nodes.pop(node_id, None)
         self._custom_nodes = nodes
+
+    # ── Commercial Power Engines (Phase 18-COMMERCIAL) ───────────────────
+
+    def execute_rag_power_engine(self, spec_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Executes the canonical 11-stage RAG Knowledge Power Engine."""
+        import asyncio
+        from autoforge_power_engines.specification import CustomerProjectSpecification
+        from autoforge_power_engines.rag.engine import RAGKnowledgePowerEngine
+        from autoforge_api.models import KnowledgeChunkResponse
+
+        spec = CustomerProjectSpecification(**spec_dict)
+        engine = RAGKnowledgePowerEngine()
+        result = asyncio.run(engine.execute_lifecycle(spec))
+
+        # Real-time synchronization into service knowledge store
+        chunks_file = Path(result.delivery_dir) / "artifacts" / "knowledge_index.json"
+        if chunks_file.exists():
+            try:
+                data = json.loads(chunks_file.read_text(encoding="utf-8"))
+                raw_chunks = data.get("chunks", [])
+                new_chunks = []
+                for ch in raw_chunks:
+                    new_chunks.append(
+                        KnowledgeChunkResponse(
+                            chunk_id=ch.get("chunk_id", "c1"),
+                            document_id=ch.get("source_id", "doc1"),
+                            file_path=ch.get("file_path", "unknown"),
+                            line_range=f"L{ch.get('line_start', 1)}-L{ch.get('line_end', 1)}",
+                            content_snippet=ch.get("content", "")[:300],
+                            size_tokens=len(ch.get("content", "").split()),
+                            embedding_vector=[0.1] * 4,
+                            epistemic_state="GROUNDED",
+                        )
+                    )
+                if new_chunks:
+                    self._ingested_chunks = new_chunks
+            except Exception:
+                pass
+
+        return result.model_dump()
+
+    def list_power_engine_deliveries(self) -> List[Dict[str, Any]]:
+        """Lists deliveries present in AUTOFORGE_OUTPUT_ROOT."""
+        from autoforge_power_engines.base import resolve_output_root
+        out_root = resolve_output_root()
+        if not out_root.exists():
+            return []
+
+        deliveries = []
+        for project_dir in out_root.iterdir():
+            if not project_dir.is_dir():
+                continue
+            for deliv_dir in project_dir.iterdir():
+                if not deliv_dir.is_dir():
+                    continue
+                manifest_file = deliv_dir / "evidence" / "provenance_manifest.json"
+                if manifest_file.exists():
+                    try:
+                        manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+                        deliveries.append(manifest)
+                    except Exception:
+                        pass
+                else:
+                    deliveries.append({
+                        "project_name": project_dir.name,
+                        "delivery_id": deliv_dir.name,
+                        "delivery_dir": str(deliv_dir),
+                    })
+        return deliveries
 
 
 

@@ -164,12 +164,12 @@ The authoritative implementation roadmap is documented in [`architecture/ROADMAP
 | **Phase 12** | Artifact Platform | ✅ Frozen |
 | **Phase 13** | AI Workforce (23 Specialized Workers) | ✅ Frozen |
 | **Phase 14** | Observability Platform & Dashboards | ✅ Frozen |
-| **Phase 15** | Security & Governance Platform | ⏳ Planned |
-| **Phase 16** | AutoForge Product Experience | ⏳ Planned |
-| **Phase 17** | AI Runtime & Real Model Integration | ⏳ Planned |
-| **Phase 18** | Autonomous Engineering & Modernization | ⏳ Planned |
-| **Phase 19** | Continuous Learning & Self-Improvement | ⏳ Planned |
-| **Phase 20** | Modernization Service MVP | ⏳ Planned |
+| **Phase 15** | Security & Governance Platform | ✅ Frozen |
+| **Phase 16** | AutoForge Product Experience | ✅ Frozen |
+| **Phase 17** | AI Runtime & Real Model Integration | ✅ Frozen |
+| **Phase 18** | Autonomous Engineering & Modernization<br>• **18-A..18-F**: Foundation & Execution Loops (✅ Complete)<br>• **18-G**: Legacy Modernization (✅ Complete & Certified — 511-file mixed-language workload)<br>• **18-H**: AI Runtime / Heavy Optimization (⏸️ Frozen pending M6 arrival)<br>• **18-COMMERCIAL**: Commercial AI Engineering Services (Autonomy by Default, Turnkey Deliverables)<br>&nbsp;&nbsp;&nbsp;— **18-COMMERCIAL-A**: RAG Knowledge Power Engine (✅ Certified & Deployed)<br>&nbsp;&nbsp;&nbsp;— **Shared Customer Delivery & Deployment Platform**: (✅ Extracted & Certified cross-cutting platform for all commercial engines)<br>&nbsp;&nbsp;&nbsp;— **18-COMMERCIAL-B**: Custom AI Agent ($1,000+)<br>&nbsp;&nbsp;&nbsp;— **18-COMMERCIAL-C**: AI Automation ($750–$1,000+)<br>&nbsp;&nbsp;&nbsp;— **18-COMMERCIAL-D**: Code Migration / Refactoring ($1,000+)<br>&nbsp;&nbsp;&nbsp;*(Offering #4: Legacy Modernization ALREADY BUILT under 18-G)*<br>• **18-I..18-L**: Workload Sandboxing, Durable Execution, Delivery & Certification (⏳ Planned) | 🔄 In Progress |
+| **Phase 19** | Continuous Learning & Self-Improvement (Strictly after 18-L) | ⏳ Planned |
+| **Phase 20** | Modernization Service MVP (Enterprise Commercial Packaging) | ⏳ Planned |
 | **Phase 21** | Desktop Application & Distribution | ⏳ Planned |
 | **Phase 22** | Developer / Extension Platform | ⏳ Planned |
 | **Phase 23** | Enterprise Platform | ⏳ Planned |
