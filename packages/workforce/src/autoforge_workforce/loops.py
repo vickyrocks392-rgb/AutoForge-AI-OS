@@ -140,6 +140,81 @@ class SpecializedLoop(EngineeringLoop):
         """Backward-compatible instance method. Delegates to module helper."""
         return _is_real_ai_output(output, ai_provider=getattr(self, "_ai", None))
 
+    async def _run_ai_specialized_task(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        task_type: str,
+        prompt_instruction: str,
+        artifact_name: str,
+        artifact_type: ArtifactType = ArtifactType.SUMMARY,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        """Execute a specialized task via the canonical AI infrastructure.
+
+        Ensures genuine AI reasoning occurs, validates AI output provenance,
+        and fails visibly if LLM execution fails or returns unpermitted fallback.
+        """
+        self._status = LoopStatus.RUNNING
+        provenance = ArtifactProvenance(
+            task_id=context.task_id,
+            worker_id=worker_id,
+            workflow_id=context.workflow_id,
+            correlation_id=context.correlation_id,
+            attempt_number=context.attempt_number,
+            iteration=1,
+        )
+
+        content = ""
+        routing_info = "unknown"
+
+        if self._ai is None:
+            is_real_output = False
+        else:
+            try:
+                from copy import copy
+                spec_ctx = copy(context)
+                spec_ctx.task_type = task_type
+                spec_ctx.task_description = (
+                    f"{prompt_instruction}\n\n"
+                    f"Task: {context.task_name}\n"
+                    f"Details: {context.task_description or 'No additional description provided'}"
+                )
+                content = await self._ai.generate_plan(spec_ctx)
+
+                if hasattr(self._ai, "last_execution_result") and self._ai.last_execution_result:
+                    result = self._ai.last_execution_result
+                    routing_info = f"{result.provider_id}/{result.model_id}"
+                else:
+                    routing_info = "no-execution-result"
+            except Exception as exc:
+                content = ""
+                routing_info = f"error: {type(exc).__name__}: {exc}"
+                is_real_output = False
+            else:
+                is_real_output = self._is_real_ai_output(content)
+
+        produced_artifacts: list[ArtifactRecord] = []
+        if is_real_output:
+            art = self._artifacts.record_artifact(
+                name=artifact_name,
+                artifact_type=artifact_type,
+                content=content,
+                provenance=provenance,
+            )
+            produced_artifacts.append(art)
+            eval_status = EvaluationStatus.PASSED
+            findings = f"{artifact_name} generated ({len(content)} chars, routed via {routing_info})"
+        else:
+            eval_status = EvaluationStatus.FAILED
+            findings = f"AI {task_type} generation failed or returned fallback. routing={routing_info}"
+
+        eval_res = EvaluationResult(
+            status=eval_status,
+            qualitative_findings=findings,
+        )
+        self._status = LoopStatus.COMPLETED if is_real_output else LoopStatus.FAILED
+        return is_real_output, produced_artifacts, eval_res
+
 
 # ── Greenfield Loops ─────────────────────────────────────────────────────────
 
@@ -453,12 +528,299 @@ class PlanningLoop(SpecializedLoop):
         return plan_ctx
 
 
+class UIDesignLoop(SpecializedLoop):
+    """Real AI-driven UI design loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="ui_design",
+            prompt_instruction=(
+                "You are an expert UI/UX Designer. Produce a comprehensive UI Design Specification covering:\n"
+                "1. User flows, interaction patterns, and visual hierarchy\n"
+                "2. Layout grids, typography scale, spacing, and design tokens\n"
+                "3. Component wireframes, states (default, hover, active, disabled, loading)\n"
+                "4. Responsive design breakpoints and adaptivity\n"
+                "5. Accessibility (WCAG 2.1 AA) considerations and color contrast"
+            ),
+            artifact_name="ui_design_specification.md",
+        )
+
+
+class BackendLoop(EngineeringLoop):
+    """Specialized coding loop for Backend Engineering."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        if not context.task_type or context.task_type in ("general", "backend_engineer"):
+            context.task_type = "backend"
+        return await super().run(
+            context=context,
+            worker_id=worker_id,
+            verification_commands=verification_commands,
+            is_cancelled=is_cancelled,
+        )
+
+
+class FrontendLoop(EngineeringLoop):
+    """Specialized coding loop for Frontend Engineering."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        if not context.task_type or context.task_type in ("general", "frontend_engineer"):
+            context.task_type = "frontend"
+        return await super().run(
+            context=context,
+            worker_id=worker_id,
+            verification_commands=verification_commands,
+            is_cancelled=is_cancelled,
+        )
+
+
+class DatabaseLoop(SpecializedLoop):
+    """Real AI-driven database architecture and schema loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="database",
+            prompt_instruction=(
+                "You are an expert Database Architect and Engineer. Produce a database schema and data model specification covering:\n"
+                "1. Entity-relationship model and entity definitions\n"
+                "2. PostgreSQL DDL statements with tables, primary keys, and foreign keys\n"
+                "3. Indexing strategy for query performance and constraints\n"
+                "4. Data migration considerations and versioning\n"
+                "5. Concurrency, isolation levels, and transactional integrity"
+            ),
+            artifact_name="db_schema.sql",
+            artifact_type=ArtifactType.SOURCE_CODE,
+        )
+
+
+class MLLoop(SpecializedLoop):
+    """Real AI-driven machine learning architecture and inference loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="ml",
+            prompt_instruction=(
+                "You are an expert Machine Learning Engineer. Produce an ML model and inference pipeline specification covering:\n"
+                "1. Model architecture and candidate selection\n"
+                "2. Feature engineering and data preprocessing pipelines\n"
+                "3. Training and fine-tuning methodology and objective functions\n"
+                "4. Inference latency, hardware constraints, and batching\n"
+                "5. Evaluation metrics, validation strategy, and drift monitoring"
+            ),
+            artifact_name="ml_inference_plan.md",
+        )
+
+
+class InfrastructureLoop(SpecializedLoop):
+    """Real AI-driven cloud infrastructure and IaC loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="infrastructure",
+            prompt_instruction=(
+                "You are an expert Cloud Infrastructure Engineer. Produce an Infrastructure as Code (IaC) specification covering:\n"
+                "1. Cloud resource architecture and provisioning plan\n"
+                "2. Networking, VPCs, subnets, and security groups\n"
+                "3. Container orchestration / compute runtime configuration\n"
+                "4. Secrets management and IAM least-privilege policies\n"
+                "5. Disaster recovery and high-availability configuration"
+            ),
+            artifact_name="infrastructure_specification.md",
+        )
+
+
+class DevOpsLoop(SpecializedLoop):
+    """Real AI-driven DevOps and CI/CD automation loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="devops",
+            prompt_instruction=(
+                "You are an expert DevOps Engineer. Produce a CI/CD pipeline and release automation specification covering:\n"
+                "1. Automated build and packaging workflow\n"
+                "2. Automated test stages (unit, integration, linting, security scans)\n"
+                "3. Container image build, tagging, and registry push\n"
+                "4. Deployment environments and promotion gates\n"
+                "5. Rollback mechanisms and pipeline telemetry"
+            ),
+            artifact_name="cicd_pipeline_specification.md",
+        )
+
+
+class QALoop(SpecializedLoop):
+    """Real AI-driven QA strategy and test automation loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="qa",
+            prompt_instruction=(
+                "You are an expert QA and Test Automation Engineer. Produce a QA test strategy and verification plan covering:\n"
+                "1. Test coverage targets across unit, integration, and end-to-end tiers\n"
+                "2. Specific test cases with setup, execution steps, and expected outcomes\n"
+                "3. Edge cases, boundary values, and negative testing scenarios\n"
+                "4. Automation framework and runner configuration\n"
+                "5. Quality gates and regression criteria"
+            ),
+            artifact_name="qa_test_strategy.md",
+        )
+
+
+class SecurityLoop(SpecializedLoop):
+    """Real AI-driven security threat modeling and audit loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="security",
+            prompt_instruction=(
+                "You are an expert Security Engineer. Produce a security threat model and vulnerability assessment covering:\n"
+                "1. STRIDE threat modeling analysis of system components\n"
+                "2. Attack surface identification and threat vectors\n"
+                "3. Authentication, authorization, and cryptographic controls\n"
+                "4. Input validation, sanitization, and OWASP Top 10 mitigation\n"
+                "5. Audit logging, security monitoring, and incident response requirements"
+            ),
+            artifact_name="security_threat_model.md",
+        )
+
+
+class PerformanceLoop(SpecializedLoop):
+    """Real AI-driven performance assessment and scalability loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="performance",
+            prompt_instruction=(
+                "You are an expert Performance and Scalability Engineer. Produce a performance assessment and optimization plan covering:\n"
+                "1. Latency and throughput targets (p50, p95, p99 SLOs)\n"
+                "2. Critical path analysis and identified bottlenecks\n"
+                "3. Caching strategy (memory, Redis, HTTP caching)\n"
+                "4. Database query optimization and connection pooling\n"
+                "5. Load testing methodology and capacity sizing"
+            ),
+            artifact_name="performance_assessment.md",
+        )
+
+
+class DocumentationLoop(SpecializedLoop):
+    """Real AI-driven technical documentation loop."""
+
+    async def run(
+        self,
+        context: ExecutionContext,
+        worker_id: str,
+        *,
+        verification_commands: Any = None,
+        is_cancelled: Callable[[], bool] | None = None,
+    ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
+        return await self._run_ai_specialized_task(
+            context=context,
+            worker_id=worker_id,
+            task_type="documentation",
+            prompt_instruction=(
+                "You are an expert Technical Writer and Documentation Engineer. Produce comprehensive technical documentation covering:\n"
+                "1. System overview and high-level architectural concepts\n"
+                "2. Getting started guide and local development setup\n"
+                "3. API reference with request/response schemas and examples\n"
+                "4. Configuration parameters, environment variables, and defaults\n"
+                "5. Troubleshooting guide and common operational procedures"
+            ),
+            artifact_name="technical_documentation.md",
+        )
+
+
 # ── Legacy Modernization Loops ────────────────────────────────────────────────
 
 class LegacyDiscoveryLoop(SpecializedLoop):
     """
-    Loop that scans files in the workspace environment, detects technologies,
-    extracts metadata deterministically, and produces a LegacySystemModel.
+    Deterministic by design:
+    Scans files in the workspace environment, detects technologies,
+    extracts metadata deterministically using AST parsers, and produces a LegacySystemModel.
     """
     async def run(
         self,
@@ -478,29 +840,26 @@ class LegacyDiscoveryLoop(SpecializedLoop):
             iteration=1,
         )
 
-        # Ingest files through workspace environment filesystem
         model = LegacySystemModel(
             system_id=str(uuid.uuid4()),
             name=context.task_name,
             description=context.task_description,
         )
 
-        # Recursively list workspace files and analyze
-        root = self._env.filesystem.root
+        root = getattr(self._env.filesystem, "root", None)
         files = []
-        for p in root.rglob("*"):
-            if p.is_file():
-                files.append(str(p.relative_to(root)))
+        if root and root.exists():
+            for p in root.rglob("*"):
+                if p.is_file():
+                    files.append(str(p.relative_to(root)))
         for f in files:
             content = self._env.filesystem.read_text(f)
             analyzer = get_analyzer_for_file(content, f)
             analysis = analyzer.analyze(content, f)
 
-            # Record technologies and components
             lang = analysis.get("language", "UNKNOWN")
             model.technologies[lang] = FactState.FACT
 
-            # Record symbols as evidence
             for sym in analysis.get("symbols", []):
                 ev = LegacyEvidence(
                     evidence_id=str(uuid.uuid4())[:8],
@@ -511,11 +870,9 @@ class LegacyDiscoveryLoop(SpecializedLoop):
                 )
                 model.record_evidence(ev)
 
-            # Record analysis gaps
             if "analysis_gap" in analysis:
                 model.record_gap("Technology Ingestion", analysis["analysis_gap"], severity="medium")
 
-        # Record system model artifact
         model_art = self._artifacts.record_artifact(
             name="legacy_system_model.json",
             artifact_type=ArtifactType.SUMMARY,
@@ -532,6 +889,8 @@ class LegacyDiscoveryLoop(SpecializedLoop):
 
 
 class LegacyCodeArchaeologyLoop(SpecializedLoop):
+    """Real AI-driven legacy code archaeology loop."""
+
     async def run(
         self,
         context: ExecutionContext,
@@ -540,36 +899,39 @@ class LegacyCodeArchaeologyLoop(SpecializedLoop):
         verification_commands: Any = None,
         is_cancelled: Callable[[], bool] | None = None,
     ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
-        self._status = LoopStatus.RUNNING
-        provenance = ArtifactProvenance(
-            task_id=context.task_id,
+        file_summary = []
+        root = getattr(self._env.filesystem, "root", None)
+        if root and root.exists():
+            for p in list(root.rglob("*"))[:20]:
+                if p.is_file():
+                    try:
+                        content_sample = self._env.filesystem.read_text(str(p.relative_to(root)))[:300]
+                        file_summary.append(f"File: {p.relative_to(root)}\n{content_sample}\n---")
+                    except Exception:
+                        pass
+        code_context = "\n".join(file_summary) if file_summary else "No source files found in workspace."
+
+        return await self._run_ai_specialized_task(
+            context=context,
             worker_id=worker_id,
-            workflow_id=context.workflow_id,
-            correlation_id=context.correlation_id,
-            attempt_number=context.attempt_number,
-            iteration=1,
+            task_type="code_archaeology",
+            prompt_instruction=(
+                "You are an expert Legacy Code Archaeologist. Analyze the legacy codebase structure and produce archaeology findings covering:\n"
+                "1. Main entry points and batch execution interfaces\n"
+                "2. Shared global state and data coupling structures\n"
+                "3. Dead or unreachable code blocks\n"
+                "4. Idiomatic language patterns and dialects\n"
+                "5. Technical debt and hidden risks\n\n"
+                f"Workspace Source Code Samples:\n{code_context[:3000]}"
+            ),
+            artifact_name="code_archaeology_finding.md",
         )
-
-        # Simulate parsing legacy code logic structures
-        finding = "# Archaeology Findings\n\n- Entry Points: mainframe batch interface\n- Shared State: global variables block\n- Dead Code: 3 unused paragraphs"
-        finding_art = self._artifacts.record_artifact(
-            name="code_archaeology_finding.md",
-            artifact_type=ArtifactType.SUMMARY,
-            content=finding,
-            provenance=provenance,
-        )
-
-        eval_res = EvaluationResult(
-            status=EvaluationStatus.PASSED,
-            qualitative_findings="Archaeology reconstruction complete.",
-        )
-        self._status = LoopStatus.COMPLETED
-        return True, [finding_art], eval_res
 
 
 class BusinessRuleExtractionLoop(SpecializedLoop):
     """
-    Loop that scans for business rules and returns a structured rule list with evidence.
+    Deterministic by design:
+    Scans for business rules using regex / pattern rules and returns a structured rule list with evidence.
     """
     async def run(
         self,
@@ -589,16 +951,15 @@ class BusinessRuleExtractionLoop(SpecializedLoop):
             iteration=1,
         )
 
-        # Recursively list workspace files
-        root = self._env.filesystem.root
+        root = getattr(self._env.filesystem, "root", None)
         files = []
-        for p in root.rglob("*"):
-            if p.is_file():
-                files.append(str(p.relative_to(root)))
+        if root and root.exists():
+            for p in root.rglob("*"):
+                if p.is_file():
+                    files.append(str(p.relative_to(root)))
         rules = []
         for f in files:
             content = self._env.filesystem.read_text(f)
-            # Extracted rule based on deterministic patterns e.g. IF, COMPUTE, etc.
             if "IF" in content or "compute" in content:
                 ev = LegacyEvidence(
                     evidence_id=str(uuid.uuid4())[:8],
@@ -615,7 +976,6 @@ class BusinessRuleExtractionLoop(SpecializedLoop):
                 )
                 rules.append(rule)
 
-        # Create rules artifact
         rules_art = self._artifacts.record_artifact(
             name="business_rules_list.json",
             artifact_type=ArtifactType.SUMMARY,
@@ -632,6 +992,8 @@ class BusinessRuleExtractionLoop(SpecializedLoop):
 
 
 class ModernizationArchitectureLoop(SpecializedLoop):
+    """Real AI-driven modernization architecture proposal loop."""
+
     async def run(
         self,
         context: ExecutionContext,
@@ -640,33 +1002,25 @@ class ModernizationArchitectureLoop(SpecializedLoop):
         verification_commands: Any = None,
         is_cancelled: Callable[[], bool] | None = None,
     ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
-        self._status = LoopStatus.RUNNING
-        provenance = ArtifactProvenance(
-            task_id=context.task_id,
+        return await self._run_ai_specialized_task(
+            context=context,
             worker_id=worker_id,
-            workflow_id=context.workflow_id,
-            correlation_id=context.correlation_id,
-            attempt_number=context.attempt_number,
-            iteration=1,
+            task_type="modernization_architecture",
+            prompt_instruction=(
+                "You are an expert Modernization Architect. Produce a comprehensive modernization proposal covering:\n"
+                "1. Modernization strategy (Strangler Fig, Rehost, Refactor, Replatform)\n"
+                "2. Target technology stack and cloud-native architecture\n"
+                "3. Incremental cutover plan and anti-corruption layer design\n"
+                "4. Data synchronization between legacy and target systems\n"
+                "5. Risk mitigation and architectural governance"
+            ),
+            artifact_name="modernization_proposal.md",
         )
-
-        proposal = "# Modernization Architecture Proposal\n\n- Strategy: Strangler Pattern\n- Target Stack: Python FastAPI + PostgreSQL\n- Cutover Plan: Phase-based API proxying"
-        proposal_art = self._artifacts.record_artifact(
-            name="modernization_proposal.md",
-            artifact_type=ArtifactType.SUMMARY,
-            content=proposal,
-            provenance=provenance,
-        )
-
-        eval_res = EvaluationResult(
-            status=EvaluationStatus.PASSED,
-            qualitative_findings="Modernization proposal generated.",
-        )
-        self._status = LoopStatus.COMPLETED
-        return True, [proposal_art], eval_res
 
 
 class LegacyArchitectureReconstructionLoop(SpecializedLoop):
+    """Real AI-driven legacy architecture reconstruction loop."""
+
     async def run(
         self,
         context: ExecutionContext,
@@ -675,30 +1029,25 @@ class LegacyArchitectureReconstructionLoop(SpecializedLoop):
         verification_commands: Any = None,
         is_cancelled: Callable[[], bool] | None = None,
     ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
-        self._status = LoopStatus.RUNNING
-        provenance = ArtifactProvenance(
-            task_id=context.task_id,
+        return await self._run_ai_specialized_task(
+            context=context,
             worker_id=worker_id,
-            workflow_id=context.workflow_id,
-            correlation_id=context.correlation_id,
-            attempt_number=context.attempt_number,
-            iteration=1,
+            task_type="architecture_reconstruction",
+            prompt_instruction=(
+                "You are an expert Legacy Architecture Analyst. Reconstruct the legacy system architecture covering:\n"
+                "1. Monolithic component boundaries and module responsibilities\n"
+                "2. Inter-subsystem communication and coupling mechanisms\n"
+                "3. Persistence layer architecture and shared datastores\n"
+                "4. Runtime execution environments and deployment topology\n"
+                "5. Architecture drift and technical constraints"
+            ),
+            artifact_name="legacy_reconstruction.md",
         )
-        art = self._artifacts.record_artifact(
-            name="legacy_reconstruction.md",
-            artifact_type=ArtifactType.SUMMARY,
-            content="# Reconstructed Architecture\n\n- Monolith core reconstructed.",
-            provenance=provenance,
-        )
-        eval_res = EvaluationResult(
-            status=EvaluationStatus.PASSED,
-            qualitative_findings="Architecture reconstructed.",
-        )
-        self._status = LoopStatus.COMPLETED
-        return True, [art], eval_res
 
 
 class LegacyDataAnalysisLoop(SpecializedLoop):
+    """Real AI-driven legacy data analysis loop."""
+
     async def run(
         self,
         context: ExecutionContext,
@@ -707,30 +1056,25 @@ class LegacyDataAnalysisLoop(SpecializedLoop):
         verification_commands: Any = None,
         is_cancelled: Callable[[], bool] | None = None,
     ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
-        self._status = LoopStatus.RUNNING
-        provenance = ArtifactProvenance(
-            task_id=context.task_id,
+        return await self._run_ai_specialized_task(
+            context=context,
             worker_id=worker_id,
-            workflow_id=context.workflow_id,
-            correlation_id=context.correlation_id,
-            attempt_number=context.attempt_number,
-            iteration=1,
+            task_type="legacy_data",
+            prompt_instruction=(
+                "You are an expert Legacy Data Engineer. Analyze legacy data storage and schemas covering:\n"
+                "1. Schema layouts, copybooks, record definitions, and field encodings (EBCDIC/ASCII/packed decimal)\n"
+                "2. Relational and non-relational datastores (VSAM, DB2, IMS, flat files)\n"
+                "3. Referential integrity and implicit data dependencies\n"
+                "4. Target schema mapping and normalization recommendations\n"
+                "5. Data migration and validation strategy"
+            ),
+            artifact_name="legacy_data_analysis.md",
         )
-        art = self._artifacts.record_artifact(
-            name="legacy_data_analysis.md",
-            artifact_type=ArtifactType.SUMMARY,
-            content="# Data Analysis\n\n- Schema & data elements analyzed.",
-            provenance=provenance,
-        )
-        eval_res = EvaluationResult(
-            status=EvaluationStatus.PASSED,
-            qualitative_findings="Data analysis completed.",
-        )
-        self._status = LoopStatus.COMPLETED
-        return True, [art], eval_res
 
 
 class LegacyIntegrationAnalysisLoop(SpecializedLoop):
+    """Real AI-driven legacy integration analysis loop."""
+
     async def run(
         self,
         context: ExecutionContext,
@@ -739,30 +1083,25 @@ class LegacyIntegrationAnalysisLoop(SpecializedLoop):
         verification_commands: Any = None,
         is_cancelled: Callable[[], bool] | None = None,
     ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
-        self._status = LoopStatus.RUNNING
-        provenance = ArtifactProvenance(
-            task_id=context.task_id,
+        return await self._run_ai_specialized_task(
+            context=context,
             worker_id=worker_id,
-            workflow_id=context.workflow_id,
-            correlation_id=context.correlation_id,
-            attempt_number=context.attempt_number,
-            iteration=1,
+            task_type="legacy_integration",
+            prompt_instruction=(
+                "You are an expert Legacy Integration Engineer. Analyze external interfaces and system boundaries covering:\n"
+                "1. External APIs, web services, and remote procedure calls\n"
+                "2. Messaging systems (MQ Series, message brokers, queues)\n"
+                "3. Batch file exchange formats (FTP, EDI, fixed-width records)\n"
+                "4. Authentication and network boundary protocols\n"
+                "5. Integration risk points during modernization"
+            ),
+            artifact_name="legacy_integration_analysis.md",
         )
-        art = self._artifacts.record_artifact(
-            name="legacy_integration_analysis.md",
-            artifact_type=ArtifactType.SUMMARY,
-            content="# Integration Analysis\n\n- External API & DB boundaries analyzed.",
-            provenance=provenance,
-        )
-        eval_res = EvaluationResult(
-            status=EvaluationStatus.PASSED,
-            qualitative_findings="Integration analysis completed.",
-        )
-        self._status = LoopStatus.COMPLETED
-        return True, [art], eval_res
 
 
 class DependencyImpactAnalysisLoop(SpecializedLoop):
+    """Real AI-driven dependency and impact analysis loop."""
+
     async def run(
         self,
         context: ExecutionContext,
@@ -771,30 +1110,25 @@ class DependencyImpactAnalysisLoop(SpecializedLoop):
         verification_commands: Any = None,
         is_cancelled: Callable[[], bool] | None = None,
     ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
-        self._status = LoopStatus.RUNNING
-        provenance = ArtifactProvenance(
-            task_id=context.task_id,
+        return await self._run_ai_specialized_task(
+            context=context,
             worker_id=worker_id,
-            workflow_id=context.workflow_id,
-            correlation_id=context.correlation_id,
-            attempt_number=context.attempt_number,
-            iteration=1,
+            task_type="dependency_impact_analysis",
+            prompt_instruction=(
+                "You are an expert Dependency and Impact Analyst. Analyze the blast radius and dependencies covering:\n"
+                "1. Direct and transitive component dependencies\n"
+                "2. High-risk tightly coupled modules\n"
+                "3. Blast radius of proposed changes or migrations\n"
+                "4. Circular dependencies and shared state hazards\n"
+                "5. Recommended decoupling sequence"
+            ),
+            artifact_name="dependency_impact_analysis.md",
         )
-        art = self._artifacts.record_artifact(
-            name="dependency_impact_analysis.md",
-            artifact_type=ArtifactType.SUMMARY,
-            content="# Dependency & Impact Analysis\n\n- Impact scope determined.",
-            provenance=provenance,
-        )
-        eval_res = EvaluationResult(
-            status=EvaluationStatus.PASSED,
-            qualitative_findings="Impact analysis completed.",
-        )
-        self._status = LoopStatus.COMPLETED
-        return True, [art], eval_res
 
 
 class MigrationPlanningLoop(SpecializedLoop):
+    """Real AI-driven migration planning and cutover loop."""
+
     async def run(
         self,
         context: ExecutionContext,
@@ -803,35 +1137,41 @@ class MigrationPlanningLoop(SpecializedLoop):
         verification_commands: Any = None,
         is_cancelled: Callable[[], bool] | None = None,
     ) -> Tuple[bool, list[ArtifactRecord], EvaluationResult | None]:
-        self._status = LoopStatus.RUNNING
-        provenance = ArtifactProvenance(
-            task_id=context.task_id,
+        return await self._run_ai_specialized_task(
+            context=context,
             worker_id=worker_id,
-            workflow_id=context.workflow_id,
-            correlation_id=context.correlation_id,
-            attempt_number=context.attempt_number,
-            iteration=1,
+            task_type="migration_planning",
+            prompt_instruction=(
+                "You are an expert Migration Planning Engineer. Produce a phased migration plan covering:\n"
+                "1. Phase-by-phase execution sequencing and work packages\n"
+                "2. Cutover milestones and dependency prerequisites\n"
+                "3. Rollback plans and failure recovery criteria\n"
+                "4. Resource requirements and execution timeline\n"
+                "5. Validation checkpoints and signoff criteria"
+            ),
+            artifact_name="migration_plan.md",
         )
-        art = self._artifacts.record_artifact(
-            name="migration_plan.md",
-            artifact_type=ArtifactType.SUMMARY,
-            content="# Migration Plan\n\n- Step-by-step sequencing plan.",
-            provenance=provenance,
-        )
-        eval_res = EvaluationResult(
-            status=EvaluationStatus.PASSED,
-            qualitative_findings="Migration plan generated.",
-        )
-        self._status = LoopStatus.COMPLETED
-        return True, [art], eval_res
 
 
 # ── Mapping from Loop Type to Class ─────────────────────────────────────────
 
-_LOOP_CLASSES: dict[str, type[SpecializedLoop]] = {
+_LOOP_CLASSES: dict[str, type[EngineeringLoop]] = {
+    # Greenfield
     "research": ResearchLoop,
     "architecture": ArchitectureLoop,
     "planning": PlanningLoop,
+    "ui_design": UIDesignLoop,
+    "backend": BackendLoop,
+    "frontend": FrontendLoop,
+    "database": DatabaseLoop,
+    "ml": MLLoop,
+    "infrastructure": InfrastructureLoop,
+    "devops": DevOpsLoop,
+    "qa": QALoop,
+    "security": SecurityLoop,
+    "performance": PerformanceLoop,
+    "documentation": DocumentationLoop,
+    # Legacy
     "legacy_discovery": LegacyDiscoveryLoop,
     "legacy_code_archaeology": LegacyCodeArchaeologyLoop,
     "legacy_architecture_reconstruction": LegacyArchitectureReconstructionLoop,

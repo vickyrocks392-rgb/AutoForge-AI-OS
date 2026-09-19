@@ -128,6 +128,8 @@ class G3LLMIntegration:
         max_tokens: int = 2048,
         temperature: float = 0.1,
         force_offline: bool = False,
+        ai_adapter: Any = None,
+        capacity_router: Any = None,
     ):
         self._bu = base_url
         self._dm = default_model
@@ -135,6 +137,8 @@ class G3LLMIntegration:
         self._mt = max_tokens
         self._t = temperature
         self._fo = force_offline
+        self._ai_adapter = ai_adapter
+        self._capacity_router = capacity_router
         self._hr = None
         self._av = None
         self._cs = []
@@ -145,6 +149,8 @@ class G3LLMIntegration:
     def is_available(self) -> bool:
         if self._fo:
             return False
+        if self._ai_adapter is not None:
+            return True
         if self._av is None:
             self._hr = check_ollama_health(self._bu)
             self._av = bool(self._hr.get("ok", False))
@@ -302,6 +308,50 @@ class G3LLMIntegration:
             logger.warning("G3LLM: UNAVAILABLE task=%s", tk)
             self._cs.append(r)
             return r
+
+        if self._ai_adapter is not None:
+            try:
+                from autoforge_execution.context import ExecutionContext
+                req_cap = (
+                    "code_generation"
+                    if tk in (LLMTaskKind.TRANSFORMATION_GENERATION, LLMTaskKind.CODE_TRANSLATION)
+                    else "reasoning"
+                )
+                ctx = ExecutionContext(
+                    task_id=f"g3-{uuid.uuid4().hex[:8]}",
+                    task_name=td,
+                    task_type="modernization",
+                    task_description=f"System: {sp}\nUser: {ic}",
+                    input_data={"system_prompt": sp, "user_content": ic},
+                    effective_model_requirements={
+                        "required_capabilities": [req_cap],
+                        "preferred_capabilities": ["structured_output"],
+                        "min_context_window_tokens": 4096,
+                        "quality_priority": 3,
+                        "latency_priority": "medium",
+                    },
+                )
+                s = time.perf_counter()
+                ct = await self._ai_adapter.generate_plan(ctx)
+                ms = (time.perf_counter() - s) * 1000.0
+                r.conclusion = ct[:500]
+                r.confidence = 0.8
+                r.derived_claims = []
+                if hasattr(self._ai_adapter, "last_execution_result") and self._ai_adapter.last_execution_result:
+                    ler = self._ai_adapter.last_execution_result
+                    r.model = getattr(ler, "model_id", self._dm)
+                    r.provider = getattr(ler, "provider_id", "canonical-ai-infrastructure")
+                else:
+                    r.model = self._dm
+                    r.provider = "canonical-ai-infrastructure"
+                r.inference_latency_ms = ms
+                self._m.LLM_calls += 1
+                self._m.LLM_latency_ms += ms
+                self._cs.append(r)
+                return r
+            except Exception as exc:
+                logger.warning("G3LLM canonical adapter fail %s: %s; falling back to direct adapter", tk, exc)
+
         try:
             from autoforge_ai_infrastructure.adapters import OllamaProviderAdapter
             from autoforge_ai_infrastructure.execution import ExecutionRequest, ExecutionTarget

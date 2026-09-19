@@ -92,6 +92,7 @@ def build_execution_engine(
     workflow_engine: WorkflowEngine | None = None,
     model_router: ModelRouterService | None = None,
     model_executor: RoutedModelExecutor | None = None,
+    capacity_router: Any | None = None,
     governance_policy: GovernancePolicy | None = None,
     max_concurrent_workers: int = 4,
 ) -> ExecutionEngine:
@@ -111,6 +112,7 @@ def build_execution_engine(
     ai_adapter = AIInfrastructureAdapter(
         router=model_router,
         model_executor=model_executor,
+        capacity_router=capacity_router,
     )
 
     artifacts = ArtifactPipeline(event_sink=event_sink)

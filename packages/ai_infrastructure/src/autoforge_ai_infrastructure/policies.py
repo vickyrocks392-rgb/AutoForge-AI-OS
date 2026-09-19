@@ -80,7 +80,25 @@ class LocalFirstRoutingPolicy:
         # Tie-breakers inside the same deployment class.
         cost_term = -_estimated_cost(model, request)
         reliability_term = model.reliability
-        return base + cost_term + reliability_term
+
+        # Worker-specific intelligence preferences
+        quality_term = 0.0
+        req_quality = getattr(request, "quality_priority", None)
+        if req_quality is not None:
+            if model.quality_tier >= req_quality:
+                quality_term = (model.quality_tier - req_quality + 1) * 20.0
+            else:
+                quality_term = (model.quality_tier - req_quality) * 50.0
+
+        reliability_penalty = 0.0
+        min_rel = getattr(request, "reliability_minimum", None)
+        if min_rel is not None and model.reliability < min_rel:
+            reliability_penalty = (model.reliability - min_rel) * 100.0
+
+        preferred = getattr(request, "preferred_capabilities", frozenset())
+        pref_term = len(preferred & model.capabilities) * _CAPABILITY_BREADTH_BONUS
+
+        return base + cost_term + reliability_term + quality_term + reliability_penalty + pref_term
 
 
 class CapabilityFirstRoutingPolicy:

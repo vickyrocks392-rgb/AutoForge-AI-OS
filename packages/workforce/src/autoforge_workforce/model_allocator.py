@@ -294,6 +294,14 @@ class CapacityAwareRouter:
         self._router_service = ModelRouterService(registry)
         self._capacity_manager = capacity_manager
 
+    @property
+    def capacity_manager(self) -> ModelCapacityManager:
+        return self._capacity_manager
+
+    @property
+    def router_service(self) -> ModelRouterService:
+        return self._router_service
+
     async def route_task(
         self,
         task_requirements: dict[str, Any],
@@ -338,6 +346,9 @@ class CapacityAwareRouter:
             task_requirements.get("quality_priority")
             or task_requirements.get("quality_tier")
         )
+        latency_prio = task_requirements.get("latency_priority")
+        reliability_min = task_requirements.get("reliability_minimum")
+        preferred_caps = task_requirements.get("preferred_capabilities") or []
 
         # 1. Deterministic filtering from registry
         query_caps = set(required_caps)
@@ -361,8 +372,12 @@ class CapacityAwareRouter:
 
         req = RoutingRequest(
             required_capabilities=frozenset(query_caps),
+            preferred_capabilities=frozenset(preferred_caps),
             min_context_window_tokens=min_context,
             allowed_deployment_modes=allowed_modes,
+            quality_priority=int(quality_tier) if quality_tier is not None else None,
+            latency_priority=latency_prio,
+            reliability_minimum=float(reliability_min) if reliability_min is not None else None,
         )
 
         decision = self._router_service.route(req)

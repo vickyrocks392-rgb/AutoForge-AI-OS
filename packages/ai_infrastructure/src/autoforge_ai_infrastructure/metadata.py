@@ -312,6 +312,10 @@ class RoutingRequest(AutoForgeBaseModel):
     #: Reference workload used by cost-aware policies (defaults 1k/1k tokens).
     reference_input_tokens: int = Field(default=1_000, ge=0)
     reference_output_tokens: int = Field(default=1_000, ge=0)
+    quality_priority: int | None = Field(default=None, ge=1, le=5)
+    latency_priority: str | None = Field(default=None)
+    reliability_minimum: float | None = Field(default=None, ge=0.0, le=1.0)
+    preferred_capabilities: frozenset[str] = Field(default_factory=frozenset)
 
     @model_validator(mode="after")
     def _validate(self) -> "RoutingRequest":

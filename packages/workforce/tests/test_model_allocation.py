@@ -370,7 +370,7 @@ async def test_workforce_dispatcher_end_to_end_dispatch(tmp_path):
     Verify WorkforceDispatcher resolves effective model requirements and executes tasks.
     """
     env = WorkspaceEnvironment(tmp_path)
-    ai_adapter = AIInfrastructureAdapter()
+    ai_adapter = AIInfrastructureAdapter(allow_deterministic_fallback=True)
     dispatcher = WorkforceDispatcher(environment=env, ai_provider=ai_adapter)
 
     task_def = TaskDefinition(

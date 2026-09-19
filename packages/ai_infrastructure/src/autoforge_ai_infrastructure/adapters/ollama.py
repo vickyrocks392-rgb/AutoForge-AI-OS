@@ -144,6 +144,12 @@ class OllamaProviderAdapter(BaseProviderAdapter):
         timeout: float = 60.0,
     ) -> dict[str, Any]:
         """Genuine async HTTP JSON request to Ollama endpoint via httpx."""
+        if self._http_client is not None:
+            res = self._http_client(endpoint, payload, timeout)
+            if asyncio.iscoroutine(res):
+                return await res
+            return res
+
         url = f"{self._base_url}{endpoint}"
         headers = {"Content-Type": "application/json"} if payload is not None else {}
         client = self._get_async_client()
@@ -393,8 +399,10 @@ class OllamaProviderAdapter(BaseProviderAdapter):
         }
 
         # Update adapter-level metrics
-        self._total_input_tokens += input_tokens
-        self._total_output_tokens += output_tokens
+        if isinstance(input_tokens, int):
+            self._total_input_tokens += input_tokens
+        if isinstance(output_tokens, int):
+            self._total_output_tokens += output_tokens
 
         if parsed_json is not None:
             output["structured_output"] = parsed_json

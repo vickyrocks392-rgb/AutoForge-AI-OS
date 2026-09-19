@@ -240,6 +240,7 @@ def build_autoforge_system(
         workflow_engine=workflow_engine,
         model_router=ai_infra.router,
         model_executor=ai_infra.executor_registry,
+        capacity_router=ai_infra.capacity_router,
         max_concurrent_workers=(config or {}).get("max_concurrent_workers", 4),
     )
 

@@ -34,7 +34,11 @@ from autoforge_ai_infrastructure.kernel_adapter import (
 )
 from autoforge_ai_infrastructure.reference_catalog import install_reference_catalog
 from autoforge_composition.checkpoint_port_adapter import RuntimeCheckpointAdapter
-from autoforge_workforce.model_allocator import register_workforce_models
+from autoforge_workforce.model_allocator import (
+    CapacityAwareRouter,
+    ModelCapacityManager,
+    register_workforce_models,
+)
 
 
 __all__ = [
@@ -58,6 +62,8 @@ class AIInfrastructureServices:
     continuity: ExecutionContinuityService
     kernel_router: KernelModelRouter
     kernel_continuity: KernelContinuityManager
+    capacity_router: CapacityAwareRouter | None = None
+    capacity_manager: ModelCapacityManager | None = None
 
 
 def bind_default_provider_adapters(
@@ -184,6 +190,10 @@ def build_ai_infrastructure(
     kernel_router = KernelModelRouter(router, registry)
     kernel_continuity = KernelContinuityManager(continuity)
 
+    # 8. Capacity-aware allocation layer.
+    capacity_manager = ModelCapacityManager(max_concurrency=2)
+    capacity_router = CapacityAwareRouter(registry, capacity_manager)
+
     return AIInfrastructureServices(
         registry=registry,
         router=router,
@@ -191,4 +201,6 @@ def build_ai_infrastructure(
         continuity=continuity,
         kernel_router=kernel_router,
         kernel_continuity=kernel_continuity,
+        capacity_router=capacity_router,
+        capacity_manager=capacity_manager,
     )
