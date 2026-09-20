@@ -36,6 +36,14 @@ from autoforge_power_engines.automation import (
     CustomerAutomationSpecification,
     StandaloneCustomerAutomationGenerator,
 )
+from autoforge_power_engines.migration import (
+    CodeMigrationPowerEngine,
+    CustomerMigrationSpecification,
+    StandaloneCustomerMigrationGenerator,
+    MigrationType,
+    ApprovalPolicy,
+    VerificationPolicy,
+)
 
 __all__ = [
     "PowerEngine",
@@ -64,4 +72,10 @@ __all__ = [
     "AIAutomationPowerEngine",
     "CustomerAutomationSpecification",
     "StandaloneCustomerAutomationGenerator",
+    "CodeMigrationPowerEngine",
+    "CustomerMigrationSpecification",
+    "StandaloneCustomerMigrationGenerator",
+    "MigrationType",
+    "ApprovalPolicy",
+    "VerificationPolicy",
 ]
