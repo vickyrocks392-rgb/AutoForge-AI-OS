@@ -31,6 +31,11 @@ from autoforge_power_engines.agent import (
     CustomerAgentSpecification,
     StandaloneCustomerAgentGenerator,
 )
+from autoforge_power_engines.automation import (
+    AIAutomationPowerEngine,
+    CustomerAutomationSpecification,
+    StandaloneCustomerAutomationGenerator,
+)
 
 __all__ = [
     "PowerEngine",
@@ -56,4 +61,7 @@ __all__ = [
     "CustomAIAgentPowerEngine",
     "CustomerAgentSpecification",
     "StandaloneCustomerAgentGenerator",
+    "AIAutomationPowerEngine",
+    "CustomerAutomationSpecification",
+    "StandaloneCustomerAutomationGenerator",
 ]
