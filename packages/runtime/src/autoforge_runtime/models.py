@@ -138,6 +138,7 @@ class EntityType(str, Enum):
     EXECUTION_ATTEMPT = "execution_attempt"
     EXECUTION_CHECKPOINT = "execution_checkpoint"
     IDEMPOTENT_OPERATION = "idempotent_operation"
+    APPROVAL_REQUEST = "approval_request"
 
 
 # ── Durable execution identity (Phase 18-J.2) ─────────────────────────────
@@ -238,6 +239,25 @@ class OperationStatus(str, Enum):
     FAILED = "failed"
     INTERRUPTED = "interrupted"
     CANCELLED = "cancelled"
+
+
+class DurableApprovalStatus(str, Enum):
+    """Durable lifecycle status of a human-in-the-loop approval request (Phase 18-J.5).
+
+    Deterministic transitions:
+
+        pending   -> approved | rejected | cancelled | expired
+        approved  (terminal)
+        rejected  (terminal)
+        cancelled (terminal)
+        expired   (terminal)
+    """
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
 
 
 class RuntimeStatus(str, Enum):
@@ -759,6 +779,64 @@ class IdempotentOperationState(StateModel):
 
     schema_version: int = Field(default=OPERATION_RECORD_VERSION, ge=1)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+# ── Durable HITL Approval State (Phase 18-J.5) ───────────────────────────
+
+#: Revision of the durable approval request record layout (Phase 18-J.5).
+APPROVAL_RECORD_VERSION = 1
+
+
+class ApprovalRequestState(StateModel):
+    """Durable record of a Human-In-The-Loop approval request.
+
+    Phase 18-J.5 — Durable approval identity & state
+    ------------------------------------------------
+    ``approval_id`` is canonical and derived deterministically from the
+    logical ``approval_key`` (or workflow/task/gate identity). It stays stable
+    across retries and process restarts; a retry of a task does NOT mint a new
+    logical approval request.
+
+    ``approval_key`` is the canonical logical approval gate key.
+
+    ``request_fingerprint`` is a deterministic cryptographic hash (SHA-256) of
+    the canonicalized request payload. An existing key reused with a differing
+    fingerprint is rejected with a conflict error.
+
+    The record is authoritative: it is persisted in SQLite before observational
+    events announce it and before any protected execution occurs.
+    """
+
+    approval_id: uuid.UUID = Field(default_factory=_new_uuid)
+    approval_key: str = Field(..., max_length=512)
+    workflow_id: uuid.UUID | None = Field(default=None)
+    task_id: str | None = Field(default=None, max_length=256)
+    execution_id: uuid.UUID | None = Field(default=None)
+    attempt_id: uuid.UUID | None = Field(default=None)
+    approval_type: str = Field(default="gate", max_length=128)
+    status: DurableApprovalStatus = Field(default=DurableApprovalStatus.PENDING)
+
+    requested_by: str = Field(default="system", max_length=128)
+    requested_at: datetime = Field(default_factory=_utc_now)
+    resolved_by: str | None = Field(default=None, max_length=128)
+    resolved_at: datetime | None = Field(default=None)
+
+    decision: str | None = Field(default=None, max_length=64)
+    decision_reason: str | None = Field(default=None, max_length=4096)
+
+    request_payload: dict[str, Any] = Field(default_factory=dict)
+    request_fingerprint: str = Field(..., max_length=256)
+
+    timeout_seconds: float | None = Field(default=None, ge=0.0)
+    expires_at: datetime | None = Field(default=None)
+    required_approvers: int = Field(default=1, ge=1)
+    decision_history: list[dict[str, Any]] = Field(default_factory=list)
+
+    state_version: int = Field(default=1, ge=1)
+    schema_version: int = Field(default=APPROVAL_RECORD_VERSION, ge=1)
+    owner_id: str | None = Field(default=None, max_length=256)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    provenance: dict[str, Any] = Field(default_factory=dict)
 
 
 # ── Runtime Metadata ─────────────────────────────────────────────────────

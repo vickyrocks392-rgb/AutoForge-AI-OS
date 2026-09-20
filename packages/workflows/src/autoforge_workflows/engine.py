@@ -240,6 +240,7 @@ class WorkflowEngine:
         runtime_facade: RuntimeFacadeProtocol | None = None,
         workflow_store: Any | None = None,
         execution_store: Any | None = None,
+        approval_store: Any | None = None,
     ) -> None:
         self._config = config or WorkflowEngineConfig()
         self._scheduler = WorkflowScheduler(self._config.scheduler_config)
@@ -248,6 +249,7 @@ class WorkflowEngine:
         self._runtime_facade = runtime_facade
         self._workflow_store = workflow_store
         self._execution_store = execution_store
+        self._approval_store = approval_store
         self._handles: dict[uuid.UUID, WorkflowHandle] = {}
 
     # ── Workflow Submission ───────────────────────────────────────────────
@@ -309,11 +311,14 @@ class WorkflowEngine:
         # Register in durable workflow store if available (Phase 18-J.3)
         if self._workflow_store is not None:
             try:
+                meta = dict(definition.metadata)
+                corr = correlation_id or definition.correlation_id
+                if corr:
+                    meta["correlation_id"] = str(corr)
                 self._workflow_store.register_workflow(
                     definition.workflow_id,
                     definition=definition,
-                    correlation_id=correlation_id or definition.correlation_id,
-                    metadata=dict(definition.metadata),
+                    metadata=meta,
                 )
             except Exception:
                 pass
@@ -563,6 +568,28 @@ class WorkflowEngine:
                 details={"gate_id": gate_id, "workflow_id": str(workflow_id)},
             )
 
+        durable_app = None
+        if self._approval_store is not None:
+            # Look up pending approval for this task/gate
+            durable_app = self._approval_store.find_pending_for_task(workflow_id, gate.task_id)
+            if durable_app is None:
+                key = f"type:gate:wf:{workflow_id}:task:{gate.task_id}:gate:{gate_id}"
+                durable_app = self._approval_store.get_by_key(key)
+
+            if durable_app is not None:
+                outcome_str = (
+                    "approved"
+                    if decision.outcome == ApprovalOutcome.APPROVED
+                    else "rejected"
+                )
+                durable_app = self._approval_store.submit_decision(
+                    durable_app.approval_id,
+                    outcome=outcome_str,
+                    decided_by=decision.decided_by,
+                    reason=decision.reason,
+                    metadata=decision.metadata,
+                )
+
         new_status = gate.decide(decision)
 
         if new_status == ApprovalStatus.APPROVED:
@@ -578,7 +605,21 @@ class WorkflowEngine:
             # Resume workflow if it was paused.
             if handle.status == WorkflowEngineStatus.PAUSED:
                 handle.status = WorkflowEngineStatus.RUNNING
+                if self._workflow_store is not None:
+                    try:
+                        self._workflow_store.resume_workflow(
+                            handle.workflow_id,
+                            reason="approval_granted",
+                        )
+                    except Exception:
+                        pass
 
+            if durable_app is not None:
+                self._emit_task_event("approval.approved", workflow_id, gate.task_id, {
+                    "approval_id": str(durable_app.approval_id),
+                    "gate_id": gate_id,
+                    "decided_by": decision.decided_by,
+                })
             self._emit_task_event("task.resumed", workflow_id, gate.task_id, {
                 "gate_id": gate_id,
                 "decided_by": decision.decided_by,
@@ -592,6 +633,13 @@ class WorkflowEngine:
             ts.status = WorkflowTaskStatus.CANCELLED
             ts.finished_at = datetime.now(timezone.utc)
 
+            if durable_app is not None:
+                self._emit_task_event("approval.rejected", workflow_id, gate.task_id, {
+                    "approval_id": str(durable_app.approval_id),
+                    "gate_id": gate_id,
+                    "decided_by": decision.decided_by,
+                    "reason": f"approval_{new_status.value}",
+                })
             self._emit_task_event("task.cancelled", workflow_id, gate.task_id, {
                 "gate_id": gate_id,
                 "reason": f"approval_{new_status.value}",
@@ -639,6 +687,26 @@ class WorkflowEngine:
                 self._workflow_store.cancel_workflow(handle.workflow_id, reason=reason)
             except Exception:
                 pass
+
+        if self._approval_store is not None:
+            try:
+                for app in self._approval_store.find_by_workflow(handle.workflow_id):
+                    app_stat = getattr(app.status, "value", str(app.status))
+                    if app_stat == "pending":
+                        self._approval_store.cancel_approval(
+                            app.approval_id,
+                            reason=reason,
+                            cancelled_by="workflow_cancellation",
+                        )
+                        self._emit_task_event(
+                            "approval.cancelled",
+                            handle.workflow_id,
+                            app.task_id or "",
+                            {"approval_id": str(app.approval_id), "reason": reason},
+                        )
+            except Exception:
+                pass
+
         self._emit_workflow_event("workflow.cancelled", workflow_id, {"reason": reason})
         return handle
 
@@ -926,6 +994,21 @@ class WorkflowEngine:
         ts.status = WorkflowTaskStatus.WAITING_APPROVAL
         ts.result = result
 
+        durable_app = None
+        if self._approval_store is not None:
+            try:
+                durable_app = self._approval_store.create_approval_request(
+                    workflow_id=handle.workflow_id,
+                    task_id=ts.task_id,
+                    gate_id=gate_policy.gate_id,
+                    request_payload=result or {},
+                    timeout_seconds=gate_policy.timeout_seconds,
+                    required_approvers=gate_policy.required_approvers,
+                )
+                ts.approval_gate_id = durable_app.approval_key
+            except Exception as exc:
+                logger.warning("Failed to create durable approval request: %s", exc)
+
         gate = ApprovalGate(
             gate_id=gate_policy.gate_id,
             task_id=ts.task_id,
@@ -938,7 +1021,19 @@ class WorkflowEngine:
 
         # Pause the workflow.
         handle.status = WorkflowEngineStatus.PAUSED
+        if self._workflow_store is not None:
+            try:
+                self._workflow_store.pause_workflow(handle.workflow_id, reason="awaiting_approval")
+            except Exception:
+                pass
 
+        if durable_app is not None:
+            self._emit_task_event("approval.requested", handle.workflow_id, ts.task_id, {
+                "approval_id": str(durable_app.approval_id),
+                "approval_key": durable_app.approval_key,
+                "gate_id": gate_policy.gate_id,
+                "description": gate_policy.description,
+            })
         self._emit_task_event("task.waiting_approval", handle.workflow_id, ts.task_id, {
             "gate_id": gate_policy.gate_id,
             "description": gate_policy.description,

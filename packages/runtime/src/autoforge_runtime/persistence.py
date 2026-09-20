@@ -64,6 +64,7 @@ from autoforge_runtime.exceptions import (
     VersionConflictError,
 )
 from autoforge_runtime.models import (
+    ApprovalRequestState,
     CheckpointState,
     EngineeringLoopState,
     EntityType,
@@ -108,6 +109,9 @@ _ENTITY_MODEL_MAP: dict[EntityType, tuple[type[StateModel], str]] = {
     # Phase 18-J.4 — durable idempotent operations live in the same store as
     # every other runtime entity: one database, one source of truth.
     EntityType.IDEMPOTENT_OPERATION: (IdempotentOperationState, "operation_id"),
+    # Phase 18-J.5 — durable HITL approvals live in the same store as
+    # every other runtime entity: one database, one source of truth.
+    EntityType.APPROVAL_REQUEST: (ApprovalRequestState, "approval_id"),
 }
 
 

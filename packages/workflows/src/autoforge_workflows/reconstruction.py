@@ -34,10 +34,16 @@ from typing import TYPE_CHECKING, Any
 
 from autoforge_runtime.models import (
     AttemptStatus,
+    DurableApprovalStatus,
     ExecutionStatus,
     WorkflowStatus,
 )
-from autoforge_workflows.approval import ApprovalGate
+from autoforge_workflows.approval import (
+    ApprovalDecision,
+    ApprovalGate,
+    ApprovalOutcome,
+    ApprovalStatus,
+)
 from autoforge_workflows.dag import WorkflowDAG
 from autoforge_workflows.errors import RecoveryError, WorkflowNotFoundError
 from autoforge_workflows.models import (
@@ -67,6 +73,7 @@ class WorkflowReconstructionContext:
     failed_tasks: list[str] = field(default_factory=list)
     cancelled_tasks: list[str] = field(default_factory=list)
     retrying_tasks: list[str] = field(default_factory=list)
+    waiting_approval_tasks: list[str] = field(default_factory=list)
 
 
 class WorkflowReconstructor:
@@ -76,9 +83,12 @@ class WorkflowReconstructor:
         self,
         workflow_store: Any,
         execution_store: Any | None = None,
+        approval_store: Any | None = None,
     ) -> None:
         self._workflow_store = workflow_store
         self._execution_store = execution_store
+        self._approval_store = approval_store
+        self.last_context: WorkflowReconstructionContext | None = None
 
     def reconstruct(
         self,
@@ -128,6 +138,17 @@ class WorkflowReconstructor:
                 if e.task_id:
                     exec_map[e.task_id] = e
 
+        # 4b. Query durable approvals for this workflow (Phase 18-J.5)
+        app_map = {}
+        if self._approval_store is not None:
+            if hasattr(self._approval_store, "find_by_workflow"):
+                approvals = self._approval_store.find_by_workflow(workflow_id)
+            else:
+                approvals = []
+            for a in approvals:
+                if a.task_id:
+                    app_map[a.task_id] = a
+
         # 5. Reconstruct Task States
         task_states: dict[str, WorkflowTaskState] = {}
         context = WorkflowReconstructionContext(workflow_id=workflow_id)
@@ -135,6 +156,7 @@ class WorkflowReconstructor:
         for task_def in definition.tasks:
             tid = task_def.task_id
             e = exec_map.get(tid)
+            app = app_map.get(tid)
 
             ts = WorkflowTaskState(
                 task_id=tid,
@@ -166,7 +188,21 @@ class WorkflowReconstructor:
                 ts.last_error_code = last_error_code
                 ts.last_error_message = last_error_message
 
-                if e.status == ExecutionStatus.COMPLETED:
+                # Phase 18-J.5: Check durable approval status first
+                if app is not None and app.status == DurableApprovalStatus.PENDING:
+                    ts.status = WorkflowTaskStatus.WAITING_APPROVAL
+                    ts.approval_gate_id = app.approval_key
+                    context.waiting_approval_tasks.append(tid)
+
+                elif app is not None and app.status in {
+                    DurableApprovalStatus.REJECTED,
+                    DurableApprovalStatus.CANCELLED,
+                    DurableApprovalStatus.EXPIRED,
+                }:
+                    ts.status = WorkflowTaskStatus.CANCELLED
+                    context.cancelled_tasks.append(tid)
+
+                elif e.status == ExecutionStatus.COMPLETED:
                     ts.status = WorkflowTaskStatus.SUCCEEDED
                     context.succeeded_tasks.append(tid)
 
@@ -197,9 +233,22 @@ class WorkflowReconstructor:
                     ts.status = WorkflowTaskStatus.READY
                     context.ready_tasks.append(tid)
             else:
-                # Not yet executed
-                ts.status = WorkflowTaskStatus.PENDING
-                context.pending_tasks.append(tid)
+                # Execution record not found — check if an approval request was created
+                if app is not None and app.status == DurableApprovalStatus.PENDING:
+                    ts.status = WorkflowTaskStatus.WAITING_APPROVAL
+                    ts.approval_gate_id = app.approval_key
+                    context.waiting_approval_tasks.append(tid)
+                elif app is not None and app.status in {
+                    DurableApprovalStatus.REJECTED,
+                    DurableApprovalStatus.CANCELLED,
+                    DurableApprovalStatus.EXPIRED,
+                }:
+                    ts.status = WorkflowTaskStatus.CANCELLED
+                    context.cancelled_tasks.append(tid)
+                else:
+                    # Not yet executed
+                    ts.status = WorkflowTaskStatus.PENDING
+                    context.pending_tasks.append(tid)
 
             task_states[tid] = ts
 
@@ -231,7 +280,7 @@ class WorkflowReconstructor:
 
         # 7. Deterministically reconstruct TaskQueue
         # Only READY tasks enter the queue in topological + priority order.
-        # SUCCEEDED tasks are NEVER enqueued.
+        # SUCCEEDED and WAITING_APPROVAL tasks are NEVER enqueued.
         queue = TaskQueue()
         for tid in dag.topological_order:
             ts = task_states[tid]
@@ -242,16 +291,53 @@ class WorkflowReconstructor:
                     priority=ts.definition.priority,
                 )
 
-        # 8. Reconstruct Approval Gates
+        # 8. Reconstruct Approval Gates (Phase 18-J.5)
         approval_gates: dict[str, ApprovalGate] = {}
         for task_def in definition.tasks:
             if task_def.approval_gate is not None:
                 gate_id = task_def.approval_gate.gate_id
-                approval_gates[gate_id] = ApprovalGate(
+                gate = ApprovalGate(
                     gate_id=gate_id,
                     task_id=task_def.task_id,
-                    policy=task_def.approval_gate,
+                    workflow_id=workflow_id,
+                    description=task_def.approval_gate.description,
+                    required_approvers=task_def.approval_gate.required_approvers,
+                    timeout_seconds=task_def.approval_gate.timeout_seconds,
                 )
+                app = app_map.get(task_def.task_id)
+                if app is not None:
+                    if app.status == DurableApprovalStatus.APPROVED:
+                        gate.status = ApprovalStatus.APPROVED
+                    elif app.status == DurableApprovalStatus.REJECTED:
+                        gate.status = ApprovalStatus.REJECTED
+                    elif app.status == DurableApprovalStatus.EXPIRED:
+                        gate.status = ApprovalStatus.TIMED_OUT
+                    elif app.status == DurableApprovalStatus.PENDING:
+                        gate.status = ApprovalStatus.PENDING_APPROVAL
+                    for d_raw in getattr(app, "decision_history", []):
+                        try:
+                            outcome = (
+                                ApprovalOutcome.APPROVED
+                                if d_raw.get("outcome") == "approved"
+                                else ApprovalOutcome.REJECTED
+                            )
+                            decided_at = (
+                                datetime.fromisoformat(d_raw["decided_at"])
+                                if d_raw.get("decided_at")
+                                else datetime.now(timezone.utc)
+                            )
+                            gate.decisions.append(
+                                ApprovalDecision(
+                                    outcome=outcome,
+                                    decided_by=d_raw.get("decided_by", "system"),
+                                    reason=d_raw.get("reason", ""),
+                                    metadata=d_raw.get("metadata", {}),
+                                    decided_at=decided_at,
+                                )
+                            )
+                        except Exception:
+                            pass
+                approval_gates[gate_id] = gate
 
         # 9. Determine overall runtime status
         if wf_state.status == WorkflowStatus.FINISHED:
@@ -261,6 +347,8 @@ class WorkflowReconstructor:
         elif wf_state.status == WorkflowStatus.CANCELLED:
             engine_status = WorkflowEngineStatus.CANCELLED
         elif wf_state.status == WorkflowStatus.PAUSED:
+            engine_status = WorkflowEngineStatus.PAUSED
+        elif any(ts.status == WorkflowTaskStatus.WAITING_APPROVAL for ts in task_states.values()):
             engine_status = WorkflowEngineStatus.PAUSED
         else:
             engine_status = WorkflowEngineStatus.RUNNING
@@ -277,6 +365,7 @@ class WorkflowReconstructor:
             _recovery_attempt=getattr(wf_state, "recovery_attempt", 0) + 1,
         )
 
+        self.last_context = context
         return handle
 
     def _extract_definition(self, wf_state: Any) -> WorkflowDefinition:

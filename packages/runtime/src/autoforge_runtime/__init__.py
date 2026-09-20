@@ -58,6 +58,17 @@ from autoforge_runtime.idempotency import (
     sanitize_payload,
 )
 from autoforge_runtime.side_effects import SideEffectExecutor
+from autoforge_runtime.approval_store import (
+    APPROVAL_NAMESPACE,
+    ApprovalConflictError,
+    ApprovalError,
+    ApprovalExpiredError,
+    ApprovalNotFoundError,
+    DurableApprovalStore,
+    approval_id_for_key,
+    default_approval_owner_id,
+    derive_approval_key,
+)
 from autoforge_runtime.interfaces import (
     EventSubscriptionInterface,
     QueryInterface,
@@ -100,6 +111,9 @@ from autoforge_runtime.models import (
     OperationStatus,
     IdempotentOperationState,
     OPERATION_RECORD_VERSION,
+    DurableApprovalStatus,
+    ApprovalRequestState,
+    APPROVAL_RECORD_VERSION,
 )
 from autoforge_runtime.persistence import (
     CacheLayer,
@@ -146,6 +160,10 @@ from autoforge_runtime.validation import (
     get_allowed_operation_transitions,
     is_operation_terminal,
     is_operation_recoverable,
+    validate_approval_transition,
+    get_allowed_approval_transitions,
+    is_approval_terminal,
+    is_approval_recoverable,
 )
 
 __all__ = [
@@ -193,4 +211,10 @@ __all__ = [
     "AmbiguousSideEffectError", "OperationFailedError",
     "validate_operation_transition", "get_allowed_operation_transitions",
     "is_operation_terminal", "is_operation_recoverable",
+    "DurableApprovalStatus", "ApprovalRequestState", "APPROVAL_RECORD_VERSION",
+    "DurableApprovalStore", "APPROVAL_NAMESPACE", "default_approval_owner_id",
+    "derive_approval_key", "approval_id_for_key",
+    "ApprovalError", "ApprovalNotFoundError", "ApprovalConflictError", "ApprovalExpiredError",
+    "validate_approval_transition", "get_allowed_approval_transitions",
+    "is_approval_terminal", "is_approval_recoverable",
 ]

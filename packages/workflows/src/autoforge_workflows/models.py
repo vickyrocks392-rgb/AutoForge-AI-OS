@@ -84,6 +84,9 @@ class WorkflowTaskStatus(str, Enum):
     WAITING_APPROVAL = "waiting_approval"
     """Task is paused at an HITL approval gate."""
 
+    WAITING_FOR_HUMAN = "waiting_approval"
+    """Alias for WAITING_APPROVAL adhering to Phase 18-J.5 specification."""
+
     CANCELLED = "cancelled"
     """Task was cancelled (terminal)."""
 

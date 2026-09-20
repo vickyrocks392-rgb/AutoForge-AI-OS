@@ -11,6 +11,7 @@ from typing import Any
 from autoforge_runtime.models import (
     AttemptStatus,
     CheckpointStatus,
+    DurableApprovalStatus,
     ExecutionStatus,
     LoopStatus,
     OperationStatus,
@@ -589,3 +590,61 @@ def is_operation_terminal(status: OperationStatus) -> bool:
 def is_operation_recoverable(status: OperationStatus) -> bool:
     """Check whether an operation in this status is recoverable."""
     return status in _OPERATION_RECOVERABLE
+
+
+# ── Durable Approval State Transition Rules (Phase 18-J.5) ───────────────
+
+_APPROVAL_TRANSITIONS: dict[DurableApprovalStatus, set[DurableApprovalStatus]] = {
+    DurableApprovalStatus.PENDING: {
+        DurableApprovalStatus.APPROVED,
+        DurableApprovalStatus.REJECTED,
+        DurableApprovalStatus.CANCELLED,
+        DurableApprovalStatus.EXPIRED,
+    },
+    DurableApprovalStatus.APPROVED: set(),
+    DurableApprovalStatus.REJECTED: set(),
+    DurableApprovalStatus.CANCELLED: set(),
+    DurableApprovalStatus.EXPIRED: set(),
+}
+
+_APPROVAL_TERMINAL: set[DurableApprovalStatus] = {
+    DurableApprovalStatus.APPROVED,
+    DurableApprovalStatus.REJECTED,
+    DurableApprovalStatus.CANCELLED,
+    DurableApprovalStatus.EXPIRED,
+}
+
+_APPROVAL_RECOVERABLE: set[DurableApprovalStatus] = {
+    DurableApprovalStatus.PENDING,
+}
+
+
+def validate_approval_transition(
+    current: DurableApprovalStatus,
+    target: DurableApprovalStatus,
+    *,
+    metadata: dict[str, Any] | None = None,
+) -> ValidationResult:
+    """Validate a durable approval request state transition."""
+    err = _check_base(current, _APPROVAL_TRANSITIONS, _APPROVAL_TERMINAL, "approval")
+    if err:
+        return err
+    err = _check_allowed(current, target, _APPROVAL_TRANSITIONS, "approval")
+    if err:
+        return err
+    return ValidationResult(True)
+
+
+def get_allowed_approval_transitions(status: DurableApprovalStatus) -> frozenset[DurableApprovalStatus]:
+    """Return allowed target statuses from a given DurableApprovalStatus."""
+    return frozenset(_APPROVAL_TRANSITIONS.get(status, set()))
+
+
+def is_approval_terminal(status: DurableApprovalStatus) -> bool:
+    """Check whether an approval status is terminal (never mutable)."""
+    return status in _APPROVAL_TERMINAL
+
+
+def is_approval_recoverable(status: DurableApprovalStatus) -> bool:
+    """Check whether an approval in this status is active/recoverable."""
+    return status in _APPROVAL_RECOVERABLE
