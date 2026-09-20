@@ -54,6 +54,9 @@ class EventCategory(str, Enum):
     CHECKPOINT = "checkpoint"
     """Events related to checkpoint creation and restoration."""
 
+    WORKLOAD = "workload"
+    """Events related to sandboxed workload lifecycle and security enforcement."""
+
 
 class EventType(str, Enum):
     """
@@ -457,6 +460,45 @@ class EventType(str, Enum):
     # execution lifecycle events above; no duplicate is added here.
     CHECKPOINT_DELETED = "checkpoint.deleted"
     """A checkpoint was deleted."""
+
+    # ------------------------------------------------------------------
+    # Workload sandboxing events (Phase 18-I)
+    # ------------------------------------------------------------------
+    WORKLOAD_CREATED = "workload.created"
+    """A sandboxed workload environment was created."""
+
+    WORKLOAD_STARTED = "workload.started"
+    """A sandboxed workload began execution."""
+
+    WORKLOAD_COMPLETED = "workload.completed"
+    """A sandboxed workload completed successfully."""
+
+    WORKLOAD_FAILED = "workload.failed"
+    """A sandboxed workload failed."""
+
+    WORKLOAD_TIMEOUT = "workload.timeout"
+    """A sandboxed workload exceeded its execution time budget."""
+
+    WORKLOAD_TERMINATED = "workload.terminated"
+    """A sandboxed workload was explicitly terminated."""
+
+    WORKLOAD_POLICY_REJECTED = "workload.policy_rejected"
+    """A workload specification violated security policy and was rejected."""
+
+    WORKLOAD_NETWORK_BLOCKED = "workload.network_blocked"
+    """A network connection attempt by a workload was blocked."""
+
+    WORKLOAD_FILESYSTEM_VIOLATION = "workload.filesystem_violation"
+    """A workload attempted an unauthorized filesystem operation."""
+
+    WORKLOAD_RESOURCE_LIMIT = "workload.resource_limit"
+    """A workload exceeded resource limits (CPU, memory, output, processes)."""
+
+    WORKLOAD_SECRET_ACCESS_BLOCKED = "workload.secret_access_blocked"
+    """A workload attempted to access host credentials or secrets."""
+
+    WORKLOAD_CLEANUP_COMPLETED = "workload.cleanup_completed"
+    """A workload sandbox environment was safely destroyed and cleaned up."""
 
     # ------------------------------------------------------------------
     # System events (for backward compatibility)

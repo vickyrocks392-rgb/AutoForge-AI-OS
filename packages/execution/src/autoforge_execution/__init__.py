@@ -98,6 +98,37 @@ from autoforge_execution.worker import EngineeringWorker
 
 __version__ = "0.1.0"
 
+from autoforge_execution.sandbox import (
+    CleanupPolicy,
+    CleanupReport,
+    CleanupStatus,
+    ContainerSandboxProvider,
+    DockerSandboxProvider,
+    FilesystemPolicy,
+    LocalRestrictedSandboxProvider,
+    NetworkMode,
+    NetworkPolicy,
+    PodmanSandboxProvider,
+    PolicyValidator,
+    PolicyViolationError,
+    ProcessPolicy,
+    ResourceLimits,
+    ResourceUsage,
+    SandboxLifecycleManager,
+    SandboxProvider,
+    SandboxRuntimeUnavailableError,
+    SandboxedWorkspaceEnvironment,
+    SecretPolicy,
+    SecurityProfile,
+    TerminationReason,
+    VerificationState,
+    WorkloadLifecycleState,
+    WorkloadReaper,
+    WorkloadResult,
+    WorkloadSandboxManager,
+    WorkloadSpec,
+)
+
 __all__ = [
     # Engine
     "ExecutionEngine",
@@ -114,7 +145,7 @@ __all__ = [
     "CommandResult",
     # Context
     "ExecutionContext",
-    # Loop & Evaluation
+    # Engineering Loop & Evaluation
     "EngineeringLoop",
     "LoopConfig",
     "LoopStatus",
@@ -160,4 +191,33 @@ __all__ = [
     "ArtifactError",
     "GovernanceError",
     "GovernanceApprovalRequired",
+    # Sandbox (Phase 18-I)
+    "WorkloadSandboxManager",
+    "WorkloadSpec",
+    "WorkloadResult",
+    "WorkloadReaper",
+    "SandboxLifecycleManager",
+    "SandboxedWorkspaceEnvironment",
+    "SandboxProvider",
+    "LocalRestrictedSandboxProvider",
+    "ContainerSandboxProvider",
+    "PodmanSandboxProvider",
+    "DockerSandboxProvider",
+    "SandboxRuntimeUnavailableError",
+    "PolicyValidator",
+    "PolicyViolationError",
+    "SecurityProfile",
+    "FilesystemPolicy",
+    "NetworkPolicy",
+    "NetworkMode",
+    "ProcessPolicy",
+    "ResourceLimits",
+    "SecretPolicy",
+    "CleanupPolicy",
+    "CleanupReport",
+    "CleanupStatus",
+    "ResourceUsage",
+    "TerminationReason",
+    "VerificationState",
+    "WorkloadLifecycleState",
 ]

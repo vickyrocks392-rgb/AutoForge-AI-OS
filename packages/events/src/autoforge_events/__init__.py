@@ -58,6 +58,21 @@ from autoforge_events.memory_events import (
     MemoryRetrieved,
 )
 
+from autoforge_events.workload_events import (
+    WorkloadCreated,
+    WorkloadStarted,
+    WorkloadCompleted,
+    WorkloadFailed,
+    WorkloadTimeout,
+    WorkloadTerminated,
+    WorkloadPolicyRejected,
+    WorkloadNetworkBlocked,
+    WorkloadFilesystemViolation,
+    WorkloadResourceLimit,
+    WorkloadSecretAccessBlocked,
+    WorkloadCleanupCompleted,
+)
+
 __all__ = [
     # Base
     "BaseEvent",
@@ -99,4 +114,17 @@ __all__ = [
     "MemoryUpdated",
     "MemoryDeleted",
     "MemoryRetrieved",
+    # Workload events
+    "WorkloadCreated",
+    "WorkloadStarted",
+    "WorkloadCompleted",
+    "WorkloadFailed",
+    "WorkloadTimeout",
+    "WorkloadTerminated",
+    "WorkloadPolicyRejected",
+    "WorkloadNetworkBlocked",
+    "WorkloadFilesystemViolation",
+    "WorkloadResourceLimit",
+    "WorkloadSecretAccessBlocked",
+    "WorkloadCleanupCompleted",
 ]
