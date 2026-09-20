@@ -22,6 +22,8 @@ from autoforge_connectors.git import GitConnector
 from autoforge_event_platform.adapter import CanonicalEventBus
 from autoforge_events.base import BaseEvent
 from autoforge_runtime import RuntimeStateManager
+from autoforge_runtime.execution_store import DurableExecutionStore
+from autoforge_runtime.persistence import PersistenceLayer
 from autoforge_workflows.engine import WorkflowEngine
 
 from autoforge_execution.ai_adapter import AIInfrastructureAdapter
@@ -33,8 +35,10 @@ from autoforge_execution.governance import ExecutionGovernance, GovernancePolicy
 __all__ = [
     "ExecutionPlatformEventSink",
     "ExecutionPlatformRuntimeFacade",
+    "build_durable_execution_store",
     "build_execution_engine",
 ]
+
 
 
 class ExecutionPlatformEventSink:
@@ -84,6 +88,24 @@ class ExecutionPlatformRuntimeFacade:
             pass
 
 
+def build_durable_execution_store(
+    runtime: RuntimeStateManager | PersistenceLayer | None = None,
+    *,
+    owner_id: str | None = None,
+) -> DurableExecutionStore:
+    """Build a durable execution store on the *existing* runtime foundation.
+
+    Accepts a ``RuntimeStateManager`` (its persistence layer is reused) or a
+    ``PersistenceLayer`` directly. This is deliberately the same database as
+    every other runtime entity: one durable foundation, no second store.
+    """
+    if isinstance(runtime, PersistenceLayer):
+        return DurableExecutionStore(runtime, owner_id=owner_id)
+    if runtime is not None:
+        return DurableExecutionStore(runtime.persistence, owner_id=owner_id)
+    return DurableExecutionStore(PersistenceLayer(), owner_id=owner_id)
+
+
 def build_execution_engine(
     workspace_root: str | Path | None = None,
     *,
@@ -95,9 +117,16 @@ def build_execution_engine(
     capacity_router: Any | None = None,
     governance_policy: GovernancePolicy | None = None,
     max_concurrent_workers: int = 4,
+    durable_store: DurableExecutionStore | None = None,
 ) -> ExecutionEngine:
     """
     Construct and wire a production ``ExecutionEngine``.
+
+    ``durable_store`` (Phase 18-J.2): when provided, dispatched work units are
+    recorded with canonical durable execution identity (execution / attempt /
+    boundary) through the runtime PersistenceLayer. Build it with
+    :func:`build_durable_execution_store` so it shares the runtime's own
+    persistence layer.
     """
     root_path = Path(workspace_root) if workspace_root else Path(tempfile.mkdtemp(prefix="autoforge_exec_"))
     root_path.mkdir(parents=True, exist_ok=True)
@@ -120,6 +149,7 @@ def build_execution_engine(
 
     config = ExecutionEngineConfig(
         max_concurrent_workers=max_concurrent_workers,
+        durable_recorder=durable_store,
     )
 
     engine = ExecutionEngine(

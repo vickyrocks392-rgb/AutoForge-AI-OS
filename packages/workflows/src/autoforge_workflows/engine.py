@@ -78,6 +78,7 @@ from autoforge_workflows.recovery import RecoveryContext, WorkflowRecovery, Work
 from autoforge_workflows.retry import RetryContext, compute_backoff, should_retry
 from autoforge_workflows.scheduler import SchedulerConfig, SchedulingDecision, WorkflowScheduler
 from autoforge_workflows.state import validate_workflow_task_transition
+from autoforge_runtime.models import ExecutionStatus, WorkflowStatus
 
 
 # ── Event Sink Protocol ───────────────────────────────────────────────────
@@ -148,6 +149,11 @@ class WorkflowHandle:
     _recovery_attempt: int = field(default=0, repr=False)
 
     # ── Query API ─────────────────────────────────────────────────────────
+
+    @property
+    def task_states(self) -> dict[str, WorkflowTaskState]:
+        """All task states (read-only mapping)."""
+        return dict(self._task_states)
 
     @property
     def task_statuses(self) -> dict[str, WorkflowTaskStatus]:
@@ -232,12 +238,16 @@ class WorkflowEngine:
         config: WorkflowEngineConfig | None = None,
         event_sink: EventSinkProtocol | None = None,
         runtime_facade: RuntimeFacadeProtocol | None = None,
+        workflow_store: Any | None = None,
+        execution_store: Any | None = None,
     ) -> None:
         self._config = config or WorkflowEngineConfig()
         self._scheduler = WorkflowScheduler(self._config.scheduler_config)
         self._recovery = WorkflowRecovery()
         self._event_sink = event_sink
         self._runtime_facade = runtime_facade
+        self._workflow_store = workflow_store
+        self._execution_store = execution_store
         self._handles: dict[uuid.UUID, WorkflowHandle] = {}
 
     # ── Workflow Submission ───────────────────────────────────────────────
@@ -295,6 +305,18 @@ class WorkflowEngine:
             _queue=queue,
         )
         self._handles[definition.workflow_id] = handle
+
+        # Register in durable workflow store if available (Phase 18-J.3)
+        if self._workflow_store is not None:
+            try:
+                self._workflow_store.register_workflow(
+                    definition.workflow_id,
+                    definition=definition,
+                    correlation_id=correlation_id or definition.correlation_id,
+                    metadata=dict(definition.metadata),
+                )
+            except Exception:
+                pass
 
         # Publish workflow-started event.
         self._emit_workflow_event("workflow.started", definition.workflow_id, {
@@ -612,6 +634,11 @@ class WorkflowEngine:
 
         handle.status = WorkflowEngineStatus.CANCELLED
         handle.finished_at = datetime.now(timezone.utc)
+        if self._workflow_store is not None:
+            try:
+                self._workflow_store.cancel_workflow(handle.workflow_id, reason=reason)
+            except Exception:
+                pass
         self._emit_workflow_event("workflow.cancelled", workflow_id, {"reason": reason})
         return handle
 
@@ -683,6 +710,79 @@ class WorkflowEngine:
 
         # Run a scheduling tick to advance from recovered state.
         self._tick(handle)
+        return handle
+
+    def resume_workflow(
+        self,
+        workflow_id: uuid.UUID,
+        *,
+        owner_id: str | None = None,
+    ) -> WorkflowHandle:
+        """
+        Durable controlled resume of an interrupted workflow (Phase 18-J.3).
+
+        Performs transactional claim, reconstructs the workflow runtime state
+        from authoritative durable facts, resumes any interrupted execution
+        records (attaching attempt N+1), and drives a scheduling tick to dispatch
+        only eligible, unfinished work.
+
+        Args:
+            workflow_id: The canonical ID of the workflow to resume.
+            owner_id: Optional new owner identifier for the resumed workflow.
+
+        Returns:
+            The resumed WorkflowHandle.
+
+        Raises:
+            WorkflowNotFoundError: If the workflow does not exist durably.
+            RecoveryError: If the workflow is not in a resumable state.
+            VersionConflictError: If a concurrent resume operation won the claim.
+        """
+        # 1. In-process idempotency check
+        if workflow_id in self._handles:
+            existing_handle = self._handles[workflow_id]
+            if existing_handle.status in {WorkflowEngineStatus.RUNNING, WorkflowEngineStatus.PAUSED}:
+                return existing_handle
+
+        # 2. Durable transactional claim (concurrency-safe via optimistic versioning)
+        if self._workflow_store is not None:
+            self._workflow_store.claim_workflow_for_resume(workflow_id, owner_id=owner_id)
+        elif workflow_id not in self._handles:
+            raise WorkflowNotFoundError(
+                f"Workflow {workflow_id} not found in durable store or active handles.",
+                details={"workflow_id": str(workflow_id)},
+            )
+
+        # 3. Deterministic reconstruction from durable facts
+        from autoforge_workflows.reconstruction import WorkflowReconstructor
+        reconstructor = WorkflowReconstructor(
+            workflow_store=self._workflow_store,
+            execution_store=self._execution_store,
+        )
+        handle = reconstructor.reconstruct(workflow_id)
+
+        # 4. Resume interrupted executions (attaching new physical attempts)
+        if self._execution_store is not None:
+            executions = self._execution_store.list_executions_for_workflow(workflow_id)
+            for e in executions:
+                if e.status == ExecutionStatus.INTERRUPTED:
+                    self._execution_store.resume_execution(
+                        e.execution_id,
+                        owner_id=owner_id,
+                        metadata={"resume": True},
+                    )
+
+        # 5. Register in engine handles
+        self._handles[workflow_id] = handle
+
+        # 6. Observational event emission
+        self._emit_workflow_event("workflow.resumed", workflow_id, {
+            "recovery_attempt": handle._recovery_attempt,
+        })
+
+        # 7. Drive scheduling tick to dispatch only eligible unfinished work
+        self._tick(handle)
+
         return handle
 
     # ── Query API ─────────────────────────────────────────────────────────
@@ -778,12 +878,22 @@ class WorkflowEngine:
         if decision.workflow_complete:
             handle.status = WorkflowEngineStatus.COMPLETED
             handle.finished_at = datetime.now(timezone.utc)
+            if self._workflow_store is not None:
+                try:
+                    self._workflow_store.complete_workflow(handle.workflow_id)
+                except Exception:
+                    pass
             self._emit_workflow_event("workflow.completed", handle.workflow_id, {
                 "task_count": len(handle._task_states),
             })
         elif decision.workflow_failed:
             handle.status = WorkflowEngineStatus.FAILED
             handle.finished_at = datetime.now(timezone.utc)
+            if self._workflow_store is not None:
+                try:
+                    self._workflow_store.fail_workflow(handle.workflow_id)
+                except Exception:
+                    pass
             self._emit_workflow_event("workflow.failed", handle.workflow_id, {
                 "task_count": len(handle._task_states),
             })

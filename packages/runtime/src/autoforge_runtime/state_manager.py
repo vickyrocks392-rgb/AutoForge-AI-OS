@@ -6,6 +6,7 @@ Implements the Runtime State Manager from Runtime State Manager Specification v1
 from __future__ import annotations
 
 import uuid
+from pathlib import Path
 from typing import Any, Callable
 
 from autoforge_runtime.checkpoint_manager import CheckpointManager
@@ -75,13 +76,18 @@ class RuntimeStateManager:
         self,
         *,
         event_callback: Callable[[str, dict[str, Any]], None] | None = None,
+        db_path: str | Path | None = None,
     ) -> None:
         """Initialize the runtime state manager.
 
         Args:
             event_callback: Callback to publish events to the Event Bus.
+            db_path: Optional durable runtime-state database path. When
+                omitted, ``AUTOFORGE_RUNTIME_STATE_DB`` selects the durable
+                database and an unset environment falls back to a private,
+                volatile in-memory store (see ``PersistenceLayer``).
         """
-        self._persistence = PersistenceLayer()
+        self._persistence = PersistenceLayer(db_path)
         self._concurrency = ConcurrencyController()
         self._event_publisher = EventPublisher(publish_callback=event_callback)
         self._transition_engine = StateTransitionEngine(
@@ -120,6 +126,16 @@ class RuntimeStateManager:
     def runtime_id(self) -> uuid.UUID:
         """Get the runtime ID."""
         return self._lifecycle.runtime_id
+
+    @property
+    def persistence(self) -> PersistenceLayer:
+        """The runtime persistence layer (Phase 18-J.2 wiring surface).
+
+        Exposes the single durable foundation so composition can attach
+        projections such as the durable execution store without creating a
+        second database or a competing source of truth.
+        """
+        return self._persistence
 
     # ── State Write API (Section 6.1) ────────────────────────────────────
 

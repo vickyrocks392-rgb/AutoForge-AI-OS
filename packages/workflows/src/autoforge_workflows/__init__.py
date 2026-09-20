@@ -102,7 +102,8 @@ from autoforge_workflows.scheduler import (
     SchedulingDecision,
     WorkflowScheduler,
 )
-from autoforge_workflows.state import validate_workflow_task_transition
+from autoforge_workflows.reconstruction import WorkflowReconstructor
+from autoforge_workflows.supervisor import StartupReconciliationReport, WorkflowSupervisor
 
 __version__ = "0.1.0"
 
@@ -142,10 +143,13 @@ __all__ = [
     "BackoffStrategy",
     "should_retry",
     "compute_backoff",
-    # Recovery
+    # Recovery & Reconstruction (Phase 18-J.3)
     "WorkflowRecovery",
     "RecoveryContext",
     "WorkflowSnapshot",
+    "WorkflowReconstructor",
+    "WorkflowSupervisor",
+    "StartupReconciliationReport",
     # Approval
     "ApprovalGate",
     "ApprovalDecision",

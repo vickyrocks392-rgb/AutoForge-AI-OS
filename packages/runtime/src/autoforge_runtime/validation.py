@@ -9,7 +9,9 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from autoforge_runtime.models import (
+    AttemptStatus,
     CheckpointStatus,
+    ExecutionStatus,
     LoopStatus,
     ProjectStatus,
     WorkerStatus,
@@ -61,15 +63,33 @@ _PROJECT_TERMINAL: set[ProjectStatus] = {ProjectStatus.FINISHED, ProjectStatus.F
 
 _WORKFLOW_TRANSITIONS: dict[WorkflowStatus, set[WorkflowStatus]] = {
     WorkflowStatus.CREATED: {WorkflowStatus.RUNNING, WorkflowStatus.CANCELLED},
-    WorkflowStatus.RUNNING: {WorkflowStatus.PAUSED, WorkflowStatus.COMPLETING, WorkflowStatus.FAILED, WorkflowStatus.CANCELLED},
+    WorkflowStatus.RUNNING: {
+        WorkflowStatus.PAUSED,
+        WorkflowStatus.COMPLETING,
+        WorkflowStatus.FINISHED,
+        WorkflowStatus.FAILED,
+        WorkflowStatus.CANCELLED,
+        WorkflowStatus.INTERRUPTED,
+    },
     WorkflowStatus.PAUSED: {WorkflowStatus.RUNNING, WorkflowStatus.CANCELLED},
     WorkflowStatus.COMPLETING: {WorkflowStatus.FINISHED, WorkflowStatus.FAILED},
+    WorkflowStatus.INTERRUPTED: {
+        WorkflowStatus.RUNNING,
+        WorkflowStatus.FAILED,
+        WorkflowStatus.CANCELLED,
+    },
     WorkflowStatus.FINISHED: set(),
     WorkflowStatus.FAILED: set(),
     WorkflowStatus.CANCELLED: set(),
 }
 
 _WORKFLOW_TERMINAL: set[WorkflowStatus] = {WorkflowStatus.FINISHED, WorkflowStatus.FAILED, WorkflowStatus.CANCELLED}
+_WORKFLOW_RECOVERABLE: set[WorkflowStatus] = {
+    WorkflowStatus.CREATED,
+    WorkflowStatus.RUNNING,
+    WorkflowStatus.PAUSED,
+    WorkflowStatus.INTERRUPTED,
+}
 
 
 # ── Engineering Loop State Transition Rules (Section 18.3) ───────────────
@@ -189,6 +209,14 @@ def validate_workflow_transition(current: WorkflowStatus, target: WorkflowStatus
             return ValidationResult(False, ValidationErrorCode.PRECONDITION_FAILED,
                 "All tasks must be completed for transition to Finished",
                 {"current": current.value, "target": target.value})
+    if current == WorkflowStatus.INTERRUPTED and target == WorkflowStatus.RUNNING:
+        if not metadata or not metadata.get("resume"):
+            return ValidationResult(
+                False,
+                ValidationErrorCode.PRECONDITION_FAILED,
+                "An interrupted workflow may only return to Running through an explicit controlled resume",
+                {"current": current.value, "target": target.value},
+            )
     return ValidationResult(True)
 
 
@@ -338,3 +366,148 @@ def is_task_terminal(status: str) -> bool:
 def is_checkpoint_terminal(status: CheckpointStatus) -> bool:
     """Check whether a checkpoint status is terminal."""
     return status in _CHECKPOINT_TERMINAL
+
+
+# ── Durable Execution Rules (Phase 18-J.2) ───────────────────────────────
+#
+# Section 18.7 extension: the durable execution lifecycle and the attempt
+# lifecycle. Keeping these tables next to the other entity rules means the
+# durable execution model is validated by the same deterministic validation
+# engine as every other runtime entity — no competing state machine.
+
+_EXECUTION_TRANSITIONS: dict[ExecutionStatus, set[ExecutionStatus]] = {
+    ExecutionStatus.CREATED: {
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.CANCELLED,
+    },
+    ExecutionStatus.RUNNING: {
+        ExecutionStatus.COMPLETED,
+        ExecutionStatus.FAILED,
+        ExecutionStatus.CANCELLED,
+        ExecutionStatus.INTERRUPTED,
+    },
+    # A controlled resume (18-J.3) may return an interrupted execution to
+    # RUNNING; it must pass ``metadata={"resume": True}`` so that no code path
+    # can accidentally "resume" an interrupted execution.
+    ExecutionStatus.INTERRUPTED: {
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.FAILED,
+        ExecutionStatus.CANCELLED,
+    },
+    ExecutionStatus.COMPLETED: set(),
+    ExecutionStatus.FAILED: set(),
+    ExecutionStatus.CANCELLED: set(),
+}
+
+_EXECUTION_TERMINAL: set[ExecutionStatus] = {
+    ExecutionStatus.COMPLETED,
+    ExecutionStatus.FAILED,
+    ExecutionStatus.CANCELLED,
+}
+
+#: Statuses that a later phase may resume (never terminal, never "done").
+_EXECUTION_RECOVERABLE: set[ExecutionStatus] = {
+    ExecutionStatus.CREATED,
+    ExecutionStatus.RUNNING,
+    ExecutionStatus.INTERRUPTED,
+}
+
+_ATTEMPT_TRANSITIONS: dict[AttemptStatus, set[AttemptStatus]] = {
+    AttemptStatus.STARTED: {
+        AttemptStatus.COMPLETED,
+        AttemptStatus.FAILED,
+        AttemptStatus.INTERRUPTED,
+        AttemptStatus.CANCELLED,
+    },
+    AttemptStatus.COMPLETED: set(),
+    AttemptStatus.FAILED: set(),
+    AttemptStatus.INTERRUPTED: set(),
+    AttemptStatus.CANCELLED: set(),
+}
+
+_ATTEMPT_TERMINAL: set[AttemptStatus] = {
+    AttemptStatus.COMPLETED,
+    AttemptStatus.FAILED,
+    AttemptStatus.INTERRUPTED,
+    AttemptStatus.CANCELLED,
+}
+
+
+def validate_execution_transition(
+    current: ExecutionStatus,
+    target: ExecutionStatus,
+    *,
+    metadata: dict[str, Any] | None = None,
+) -> ValidationResult:
+    """Validate a durable execution state transition."""
+    err = _check_base(current, _EXECUTION_TRANSITIONS, _EXECUTION_TERMINAL, "execution")
+    if err:
+        return err
+    err = _check_allowed(current, target, _EXECUTION_TRANSITIONS, "execution")
+    if err:
+        return err
+    if current == ExecutionStatus.INTERRUPTED and target == ExecutionStatus.RUNNING:
+        if not metadata or not metadata.get("resume"):
+            return ValidationResult(
+                False,
+                ValidationErrorCode.PRECONDITION_FAILED,
+                "An interrupted execution may only return to Running through an explicit controlled resume",
+                {"current": current.value, "target": target.value},
+            )
+    return ValidationResult(True)
+
+
+def validate_attempt_transition(
+    current: AttemptStatus,
+    target: AttemptStatus,
+    *,
+    metadata: dict[str, Any] | None = None,
+) -> ValidationResult:
+    """Validate an execution attempt state transition."""
+    err = _check_base(current, _ATTEMPT_TRANSITIONS, _ATTEMPT_TERMINAL, "attempt")
+    if err:
+        return err
+    err = _check_allowed(current, target, _ATTEMPT_TRANSITIONS, "attempt")
+    if err:
+        return err
+    return ValidationResult(True)
+
+
+def get_allowed_execution_transitions(status: ExecutionStatus) -> frozenset[ExecutionStatus]:
+    """Return allowed target statuses from a given ExecutionStatus."""
+    return frozenset(_EXECUTION_TRANSITIONS.get(status, set()))
+
+
+def get_allowed_attempt_transitions(status: AttemptStatus) -> frozenset[AttemptStatus]:
+    """Return allowed target statuses from a given AttemptStatus."""
+    return frozenset(_ATTEMPT_TRANSITIONS.get(status, set()))
+
+
+def is_execution_terminal(status: ExecutionStatus) -> bool:
+    """Check whether an execution status is terminal (never resumable)."""
+    return status in _EXECUTION_TERMINAL
+
+
+def is_attempt_terminal(status: AttemptStatus) -> bool:
+    """Check whether an attempt status is terminal for that attempt."""
+    return status in _ATTEMPT_TERMINAL
+
+
+def is_execution_recoverable(status: ExecutionStatus) -> bool:
+    """Check whether a later phase may resume an execution in this status."""
+    return status in _EXECUTION_RECOVERABLE
+
+
+def is_workflow_terminal(status: WorkflowStatus) -> bool:
+    """Check whether a workflow status is terminal (never resumable)."""
+    return status in _WORKFLOW_TERMINAL
+
+
+def is_workflow_recoverable(status: WorkflowStatus) -> bool:
+    """Check whether a workflow in this status is recoverable / resumable."""
+    return status in _WORKFLOW_RECOVERABLE
+
+
+def get_allowed_workflow_transitions(status: WorkflowStatus) -> frozenset[WorkflowStatus]:
+    """Return allowed target statuses from a given WorkflowStatus."""
+    return frozenset(_WORKFLOW_TRANSITIONS.get(status, set()))

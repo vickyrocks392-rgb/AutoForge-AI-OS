@@ -29,6 +29,7 @@ from autoforge_workflows.queue import QueueEntry
 from autoforge_execution.ai_adapter import AIEngineeringProvider, AIInfrastructureAdapter
 from autoforge_execution.artifacts import ArtifactPipeline
 from autoforge_execution.dispatcher import WorkerDispatcher
+from autoforge_execution.durable import DurableExecutionRecorder
 from autoforge_execution.environment import WorkspaceEnvironment
 from autoforge_execution.events import EventSinkProtocol, ExecutionEvents
 from autoforge_execution.governance import ExecutionGovernance
@@ -39,6 +40,11 @@ from autoforge_execution.models import (
     LoopConfig,
     WorkerType,
 )
+
+#: Durable boundary written once a dispatched work unit finished running but
+#: *before* its outcome is committed. A crash between the two leaves durable
+#: evidence that the unit ran without claiming its outcome was committed.
+DISPATCH_BOUNDARY_LABEL = "dispatch-completed"
 
 
 class RuntimeFacadeProtocol(Protocol):
@@ -58,6 +64,16 @@ class ExecutionEngineConfig:
     max_concurrent_workers: int = 4
     default_loop_config: LoopConfig = field(default_factory=LoopConfig)
     auto_checkpoint: bool = True
+    durable_recorder: DurableExecutionRecorder | None = None
+    """Optional durable execution recorder (Phase 18-J.2).
+
+    When attached, every dispatched work unit gains canonical durable
+    identity: execution + attempt + boundary records written through the
+    runtime PersistenceLayer. The engine never caches durable state and never
+    treats emitted events as the authoritative commit — the recorder's
+    transactional commits are.
+    """
+
 
 
 class ExecutionEngine:
@@ -134,6 +150,35 @@ class ExecutionEngine:
         project_id = workflow_id or uuid.uuid4()
         start_time = time.perf_counter()
 
+        # ── Durable execution identity (Phase 18-J.2) ────────────────────
+        # The work unit (workflow + task) IS the logical execution: identity
+        # is derived from that key, so a retry (attempt 2, 3, ...) extends
+        # the same execution instead of minting a new one. The durable start
+        # is committed BEFORE dispatch, and the outcome events below are
+        # published only AFTER their durable commit — durable state is
+        # authoritative, events are derived publications.
+        recorder = self._config.durable_recorder
+        durable_state = None
+        if recorder is not None and workflow_id is not None:
+            try:
+                durable_state = recorder.begin_execution(
+                    workflow_id=workflow_id,
+                    task_id=task_def.task_id,
+                    correlation_id=correlation_id,
+                    attempt_number=attempt_number,
+                    worker_type=worker_type.value if hasattr(worker_type, "value") else str(worker_type),
+                    max_attempts=getattr(task_def.retry_policy, "max_attempts", None),
+                    metadata={"project_id": str(project_id)},
+                )
+                if durable_state is not None:
+                    execution_id = durable_state.execution_id
+            except Exception:
+                # Durable identity is best-effort at this layer: the runtime
+                # store (shared SQLite) can be concurrently migrated, etc.
+                # In-memory execution continues; the durable record simply
+                # reflects the last durably committed truth.
+                durable_state = None
+
         self._events.emit_execution_started(
             execution_id=execution_id,
             task_id=task_uuid,
@@ -151,10 +196,38 @@ class ExecutionEngine:
             worker_type=worker_type,
         )
 
+        # ── Durable boundary: the unit ran, its outcome is not yet committed
+        if recorder is not None and durable_state is not None:
+            try:
+                recorder.record_checkpoint(
+                    durable_state.execution_id,
+                    label=DISPATCH_BOUNDARY_LABEL,
+                    boundary_state={
+                        "attempt_number": attempt_number,
+                        "worker_id": worker.worker_id if hasattr(worker, "worker_id") else None,
+                        "ran_to_completion": True,
+                    },
+                    created_by="execution_engine",
+                )
+            except Exception:
+                pass
+
         duration = time.perf_counter() - start_time
         art_ids = [a.artifact_id for a in artifacts]
 
         if passed:
+            # Durable commit FIRST, then the derived event publication.
+            if recorder is not None and durable_state is not None:
+                try:
+                    recorder.complete_attempt(
+                        durable_state.execution_id,
+                        result={
+                            "artifact_ids": art_ids,
+                            "duration_seconds": duration,
+                        },
+                    )
+                except Exception:
+                    pass
             self._events.emit_execution_completed(
                 execution_id=execution_id,
                 task_id=task_uuid,
@@ -165,6 +238,23 @@ class ExecutionEngine:
             )
         else:
             err_msg = worker.state.last_error_message or "Task execution failed"
+            # A retryable task failure keeps the logical execution running so
+            # the workflow engine's next retry continues the SAME execution;
+            # the workflow-level terminal-failure reconciliation belongs to a
+            # later phase (18-J.3).
+            if recorder is not None and durable_state is not None:
+                try:
+                    max_attempts = getattr(task_def.retry_policy, "max_attempts", None)
+                    retryable = max_attempts is None or attempt_number < max_attempts
+                    recorder.fail_attempt(
+                        durable_state.execution_id,
+                        error_code=worker.state.last_error_code or "TASK_FAILED",
+                        error_message=err_msg,
+                        retryable=retryable,
+                        result={"duration_seconds": duration},
+                    )
+                except Exception:
+                    pass
             self._events.emit_execution_failed(
                 execution_id=execution_id,
                 task_id=task_uuid,
@@ -174,6 +264,7 @@ class ExecutionEngine:
                 duration_seconds=duration,
                 correlation_id=correlation_id,
             )
+
 
         # Record to Runtime if facade provided
         if self._runtime_facade:

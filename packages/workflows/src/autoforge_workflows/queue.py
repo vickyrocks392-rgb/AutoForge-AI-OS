@@ -252,6 +252,10 @@ class TaskQueue:
     def __len__(self) -> int:
         return len(self._entries)
 
+    def qsize(self) -> int:
+        """Return the total number of entries in the queue."""
+        return len(self._entries)
+
     def __bool__(self) -> bool:
         return bool(self._entries)
 

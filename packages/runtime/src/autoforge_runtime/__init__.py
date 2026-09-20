@@ -29,6 +29,18 @@ from autoforge_runtime.exceptions import (
     ValidationError,
     VersionConflictError,
 )
+from autoforge_runtime.execution_store import (
+    EXECUTION_ID_NAMESPACE,
+    DurableExecutionStore,
+    ExecutionReconstruction,
+    default_owner_id,
+    execution_id_for_key,
+    execution_key_for_task,
+)
+from autoforge_runtime.workflow_store import (
+    DurableWorkflowStore,
+    default_workflow_owner_id,
+)
 from autoforge_runtime.interfaces import (
     EventSubscriptionInterface,
     QueryInterface,
@@ -66,12 +78,15 @@ from autoforge_runtime.models import (
     WorkerStatus,
     WorkflowState,
     WorkflowStatus,
+    ExecutionStatus,
+    AttemptStatus,
 )
 from autoforge_runtime.persistence import (
     CacheLayer,
     HistoryStore,
     PersistenceLayer,
     PersistentStore,
+    SQLiteStorage,
 )
 from autoforge_runtime.query_engine import (
     AggregationEngine,
@@ -112,6 +127,7 @@ from autoforge_runtime.validation import (
 __all__ = [
     "RuntimeStateManager",
     "ProjectState", "ProjectStatus", "WorkflowState", "WorkflowStatus",
+    "ExecutionStatus", "AttemptStatus",
     "EngineeringLoopState", "LoopStatus", "LoopType", "TaskState",
     "WorkerState", "WorkerStatus", "CheckpointState", "CheckpointStatus",
     "CheckpointType", "RecoveryState", "RecoveryStatus", "RuntimeMetadata",
@@ -130,7 +146,7 @@ __all__ = [
     "is_project_terminal", "is_workflow_terminal", "is_loop_terminal",
     "is_task_terminal", "is_checkpoint_terminal",
     "ConcurrencyController", "ResolutionResult",
-    "PersistenceLayer", "CacheLayer", "PersistentStore", "HistoryStore",
+    "PersistenceLayer", "CacheLayer", "PersistentStore", "HistoryStore", "SQLiteStorage",
     "CheckpointManager", "CheckpointCreator", "CheckpointRestorer", "CheckpointCleaner",
     "QueryEngine", "QueryParser", "FilterEngine", "AggregationEngine",
     "EventPublisher", "EventFormatter", "EventRouter",
@@ -141,4 +157,7 @@ __all__ = [
     "EntityNotFoundError", "DuplicateEntityError", "VersionConflictError",
     "ValidationError", "PersistenceError", "InvalidStateError",
     "InvalidEntityTypeError", "CheckpointError", "RecoveryError", "LifecycleError",
+    "DurableExecutionStore", "ExecutionReconstruction", "default_owner_id",
+    "execution_id_for_key", "execution_key_for_task", "EXECUTION_ID_NAMESPACE",
+    "DurableWorkflowStore", "default_workflow_owner_id",
 ]

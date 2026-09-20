@@ -61,6 +61,7 @@ class WorkflowStatus(str, Enum):
     FINISHED = "finished"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    INTERRUPTED = "interrupted"
 
 
 class LoopStatus(str, Enum):
@@ -134,6 +135,87 @@ class EntityType(str, Enum):
     CHECKPOINT = "checkpoint"
     RECOVERY = "recovery"
     EXECUTION = "execution"
+    EXECUTION_ATTEMPT = "execution_attempt"
+    EXECUTION_CHECKPOINT = "execution_checkpoint"
+
+
+# ── Durable execution identity (Phase 18-J.2) ─────────────────────────────
+
+#: Revision of the durable execution record layout (Phase 18-J.2).
+EXECUTION_RECORD_VERSION = 1
+
+
+class ExecutionStatus(str, Enum):
+    """Durable lifecycle status of one logical execution.
+
+    A *logical execution* is the durable unit of work (for example one task of
+    one workflow instance). Retries do **not** create a new logical execution;
+    each retry is recorded as a new :class:`ExecutionAttemptState` of the same
+    execution.
+
+    Deterministic transitions (Section 18.7 — execution rules):
+
+        created     -> running | cancelled
+        running     -> completed | failed | cancelled | interrupted
+        interrupted -> running | failed | cancelled   (running = controlled resume)
+        completed   (terminal)
+        failed      (terminal)
+        cancelled   (terminal)
+
+    ``interrupted`` is deliberately *not* ``failed``: an execution that was
+    running when its process died must stay recoverable so that a later phase
+    (18-J.3) can attempt a controlled resume instead of blind re-dispatch.
+    """
+
+    CREATED = "created"
+    """Recorded durably; no attempt has started yet."""
+
+    RUNNING = "running"
+    """At least one attempt has started; the execution is in flight."""
+
+    COMPLETED = "completed"
+    """An attempt committed success (terminal)."""
+
+    FAILED = "failed"
+    """The execution exhausted its attempts and is terminally failed."""
+
+    CANCELLED = "cancelled"
+    """The execution was cancelled (terminal)."""
+
+    INTERRUPTED = "interrupted"
+    """The owning process disappeared while the execution was in flight.
+
+    Recoverable: a later phase may resume it. It is never reported as
+    completed and is never silently re-dispatched.
+    """
+
+
+class AttemptStatus(str, Enum):
+    """Durable lifecycle status of one execution attempt.
+
+    Deterministic transitions:
+
+        started   -> completed | failed | interrupted | cancelled
+        completed (terminal)
+        failed    (terminal)
+        interrupted (terminal for this attempt; the *execution* may resume)
+        cancelled (terminal)
+    """
+
+    STARTED = "started"
+    """The attempt was durably recorded before any work started."""
+
+    COMPLETED = "completed"
+    """The attempt committed success (terminal)."""
+
+    FAILED = "failed"
+    """The attempt committed failure (terminal)."""
+
+    INTERRUPTED = "interrupted"
+    """The attempt was in flight when its owning process disappeared."""
+
+    CANCELLED = "cancelled"
+    """The attempt was cancelled (terminal)."""
 
 
 class RuntimeStatus(str, Enum):
@@ -298,6 +380,10 @@ class WorkflowState(StateModel):
     project_id: uuid.UUID = Field(...)
     status: WorkflowStatus = Field(default=WorkflowStatus.CREATED)
     version: uuid.UUID = Field(default_factory=_new_uuid)
+    state_version: int = Field(default=1, ge=1)
+    owner_id: str | None = Field(default=None, max_length=256)
+    recoverable: bool = Field(default=False)
+    definition: dict[str, Any] = Field(default_factory=dict)
     task_graph: dict[str, Any] = Field(default_factory=dict)
     task_count: int = Field(default=0, ge=0)
     completed_count: int = Field(default=0, ge=0)
@@ -314,6 +400,7 @@ class WorkflowState(StateModel):
     started_at: datetime | None = Field(default=None)
     estimated_duration: timedelta | None = Field(default=None)
     actual_duration: timedelta | None = Field(default=None)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 # ── Engineering Loop State ───────────────────────────────────────────────
@@ -444,6 +531,155 @@ class RecoveryState(StateModel):
     checkpoint_id: uuid.UUID | None = Field(default=None)
     started_at: datetime | None = Field(default=None)
     completed_at: datetime | None = Field(default=None)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ExecutionAttemptState(StateModel):
+    """Durable record of one attempt of one logical execution.
+
+    Attempt identity is distinct from execution identity: retry ``N+1`` of
+    execution ``E`` is a new attempt of ``E``, never a new execution.
+
+    The record is written *before* the attempt does any work (``started``) and
+    is only advanced when the outcome is durably committed, so after a restart
+    the system can answer "was attempt N completed, failed or interrupted?"
+    from durable storage alone — never from in-memory worker state.
+    """
+
+    attempt_id: uuid.UUID = Field(default_factory=_new_uuid)
+    execution_id: uuid.UUID = Field(...)
+    attempt_number: int = Field(..., ge=1)
+    status: AttemptStatus = Field(default=AttemptStatus.STARTED)
+
+    worker_id: str | None = Field(default=None, max_length=256)
+    worker_type: str | None = Field(default=None, max_length=128)
+    previous_attempt_id: uuid.UUID | None = Field(default=None)
+    """Attempt that this attempt retries, when retry metadata is available."""
+
+    max_attempts: int | None = Field(default=None, ge=1)
+    """Retry budget in force for this work unit, when the caller knows it."""
+
+    last_checkpoint_id: uuid.UUID | None = Field(default=None)
+    last_checkpoint_sequence: int | None = Field(default=None, ge=1)
+
+    started_at: datetime | None = Field(default=None)
+    completed_at: datetime | None = Field(default=None)
+
+    failure: FailureRecord | None = Field(default=None)
+    result: dict[str, Any] = Field(default_factory=dict)
+    """Structured, inspectable outcome summary (never an opaque object blob)."""
+
+    schema_version: int = Field(default=EXECUTION_RECORD_VERSION, ge=1)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ExecutionCheckpointState(StateModel):
+    """Durable execution boundary (checkpoint) of one attempt.
+
+    A boundary is a *committed truth edge*: it is written only on a meaningful
+    recovery boundary (a work step whose result is durably known), never on a
+    timer. ``sequence`` is monotonic per execution, so the system can always
+    answer "what was the last known durable boundary of execution E?".
+
+    What a boundary guarantees: the facts recorded here were committed before
+    the crash, so recovery may treat everything up to it as done.
+
+    What a boundary does **not** guarantee: that external side effects
+    performed before it are reversible or exactly-once. J.2 makes no
+    exactly-once claim; idempotent replay is 18-J.4 work.
+
+    Boundaries live in the same runtime persistence foundation as every other
+    runtime entity (``EntityType.EXECUTION_CHECKPOINT``). They are *not* the
+    project-level :class:`CheckpointState` snapshots: a recovery boundary is
+    linked to an execution/attempt/work unit, whereas a project checkpoint
+    captures a whole project state snapshot.
+    """
+
+    checkpoint_id: uuid.UUID = Field(default_factory=_new_uuid)
+    execution_id: uuid.UUID = Field(...)
+    attempt_id: uuid.UUID = Field(...)
+    attempt_number: int = Field(..., ge=1)
+    workflow_id: uuid.UUID | None = Field(default=None)
+    task_id: str | None = Field(default=None, max_length=256)
+
+    sequence: int = Field(..., ge=1)
+    """Monotonic per execution, starting at 1."""
+
+    label: str = Field(default="", max_length=256)
+    status: ExecutionStatus = Field(default=ExecutionStatus.RUNNING)
+    """Execution status committed at the boundary."""
+
+    boundary_state: dict[str, Any] = Field(default_factory=dict)
+    """Structured, inspectable facts reached at the boundary."""
+
+    previous_checkpoint_id: uuid.UUID | None = Field(default=None)
+    created_by: str = Field(default="system", max_length=128)
+    schema_version: int = Field(default=EXECUTION_RECORD_VERSION, ge=1)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+# ── Durable Execution State (Phase 18-J.2) ───────────────────────────────
+
+
+class ExecutionState(StateModel):
+    """Durable record of one logical execution.
+
+    Phase 18-J.2 — canonical execution identity
+    -------------------------------------------
+    ``execution_id`` is the canonical, durable identity of *one logical
+    execution* (e.g. one task of one workflow instance). It stays stable
+    across retries and across process restarts; a retry adds an
+    :class:`ExecutionAttemptState`, it never mints a new ``execution_id``.
+
+    ``execution_key`` is the work-unit key the identity was derived from
+    (see :func:`~autoforge_runtime.execution_store.execution_key_for_task`).
+    It makes the canonical identity reproducible after a restart, so a new
+    process can find the execution it must resume instead of starting a
+    duplicate one.
+
+    ``owner_id`` records *which process last owned* the execution. It is the
+    durable evidence used to tell "running because I am running it" from
+    "running because the process that ran it disappeared".
+
+    The record is authoritative: it is written before work starts and after
+    work commits, so a crash can never make in-flight work look committed.
+    """
+
+    execution_id: uuid.UUID = Field(default_factory=_new_uuid)
+    execution_key: str | None = Field(default=None, max_length=512)
+    workflow_id: uuid.UUID | None = Field(default=None)
+    task_id: str | None = Field(default=None, max_length=256)
+    correlation_id: uuid.UUID | None = Field(default=None)
+    status: ExecutionStatus = Field(default=ExecutionStatus.CREATED)
+
+    attempt_count: int = Field(default=0, ge=0)
+    """Number of attempts durably recorded for this execution."""
+
+    current_attempt_id: uuid.UUID | None = Field(default=None)
+    """Most recently started attempt (in flight when that attempt is STARTED)."""
+
+    current_attempt_number: int | None = Field(default=None, ge=1)
+
+    last_checkpoint_id: uuid.UUID | None = Field(default=None)
+    """Last durable boundary committed for this execution."""
+
+    last_checkpoint_sequence: int | None = Field(default=None, ge=1)
+
+    owner_id: str | None = Field(default=None, max_length=256)
+    """Identity of the process that owns (or last owned) the execution."""
+
+    started_at: datetime | None = Field(default=None)
+    completed_at: datetime | None = Field(default=None)
+    interrupted_at: datetime | None = Field(default=None)
+
+    failure: FailureRecord | None = Field(default=None)
+    """Most recent committed failure; attempt-level failures are also recorded
+    on the attempt record itself."""
+
+    recoverable: bool = Field(default=False)
+    """Whether a later phase may resume this execution instead of re-running it."""
+
+    schema_version: int = Field(default=EXECUTION_RECORD_VERSION, ge=1)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
