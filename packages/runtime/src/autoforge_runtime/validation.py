@@ -13,6 +13,7 @@ from autoforge_runtime.models import (
     CheckpointStatus,
     ExecutionStatus,
     LoopStatus,
+    OperationStatus,
     ProjectStatus,
     WorkerStatus,
     WorkflowStatus,
@@ -511,3 +512,80 @@ def is_workflow_recoverable(status: WorkflowStatus) -> bool:
 def get_allowed_workflow_transitions(status: WorkflowStatus) -> frozenset[WorkflowStatus]:
     """Return allowed target statuses from a given WorkflowStatus."""
     return frozenset(_WORKFLOW_TRANSITIONS.get(status, set()))
+
+
+# ── Idempotent Operation State Transition Rules (Phase 18-J.4) ────────────
+
+_OPERATION_TRANSITIONS: dict[OperationStatus, set[OperationStatus]] = {
+    OperationStatus.PENDING: {
+        OperationStatus.RUNNING,
+        OperationStatus.CANCELLED,
+    },
+    OperationStatus.RUNNING: {
+        OperationStatus.COMPLETED,
+        OperationStatus.FAILED,
+        OperationStatus.INTERRUPTED,
+        OperationStatus.CANCELLED,
+    },
+    OperationStatus.INTERRUPTED: {
+        OperationStatus.RUNNING,
+        OperationStatus.FAILED,
+        OperationStatus.CANCELLED,
+    },
+    OperationStatus.FAILED: {
+        OperationStatus.RUNNING,
+    },
+    OperationStatus.COMPLETED: set(),
+    OperationStatus.CANCELLED: set(),
+}
+
+_OPERATION_TERMINAL: set[OperationStatus] = {
+    OperationStatus.COMPLETED,
+    OperationStatus.CANCELLED,
+}
+
+_OPERATION_RECOVERABLE: set[OperationStatus] = {
+    OperationStatus.PENDING,
+    OperationStatus.RUNNING,
+    OperationStatus.INTERRUPTED,
+    OperationStatus.FAILED,
+}
+
+
+def validate_operation_transition(
+    current: OperationStatus,
+    target: OperationStatus,
+    *,
+    metadata: dict[str, Any] | None = None,
+) -> ValidationResult:
+    """Validate an idempotent operation state transition."""
+    err = _check_base(current, _OPERATION_TRANSITIONS, _OPERATION_TERMINAL, "operation")
+    if err:
+        return err
+    err = _check_allowed(current, target, _OPERATION_TRANSITIONS, "operation")
+    if err:
+        return err
+    if current == OperationStatus.INTERRUPTED and target == OperationStatus.RUNNING:
+        if not metadata or not (metadata.get("resume") or metadata.get("recover")):
+            return ValidationResult(
+                False,
+                ValidationErrorCode.PRECONDITION_FAILED,
+                "An interrupted operation may only return to Running through an explicit controlled resume/recovery",
+                {"current": current.value, "target": target.value},
+            )
+    return ValidationResult(True)
+
+
+def get_allowed_operation_transitions(status: OperationStatus) -> frozenset[OperationStatus]:
+    """Return allowed target statuses from a given OperationStatus."""
+    return frozenset(_OPERATION_TRANSITIONS.get(status, set()))
+
+
+def is_operation_terminal(status: OperationStatus) -> bool:
+    """Check whether an operation status is terminal (never resumable)."""
+    return status in _OPERATION_TERMINAL
+
+
+def is_operation_recoverable(status: OperationStatus) -> bool:
+    """Check whether an operation in this status is recoverable."""
+    return status in _OPERATION_RECOVERABLE

@@ -70,6 +70,7 @@ from autoforge_runtime.models import (
     ExecutionAttemptState,
     ExecutionCheckpointState,
     ExecutionState,
+    IdempotentOperationState,
     ProjectState,
     RecoveryState,
     StateModel,
@@ -104,6 +105,9 @@ _ENTITY_MODEL_MAP: dict[EntityType, tuple[type[StateModel], str]] = {
     EntityType.EXECUTION: (ExecutionState, "execution_id"),
     EntityType.EXECUTION_ATTEMPT: (ExecutionAttemptState, "attempt_id"),
     EntityType.EXECUTION_CHECKPOINT: (ExecutionCheckpointState, "checkpoint_id"),
+    # Phase 18-J.4 — durable idempotent operations live in the same store as
+    # every other runtime entity: one database, one source of truth.
+    EntityType.IDEMPOTENT_OPERATION: (IdempotentOperationState, "operation_id"),
 }
 
 
@@ -1172,18 +1176,19 @@ class PersistenceLayer:
             ...     persistence.write_state(EntityType.PROJECT, pid, state)
             ...     persistence.write_history(transition)
         """
-        self.store.begin()
-        scope_depth = self.store.transaction_depth
-        try:
-            yield self
-        except BaseException:
-            self.store.rollback()
-            self._discard_pending_cache(scope_depth)
-            raise
-        else:
-            self.store.commit()
-            if not self.store.in_transaction:
-                self._pending_invalidations.clear()
+        with self._lock:
+            self.store.begin()
+            scope_depth = self.store.transaction_depth
+            try:
+                yield self
+            except BaseException:
+                self.store.rollback()
+                self._discard_pending_cache(scope_depth)
+                raise
+            else:
+                self.store.commit()
+                if not self.store.in_transaction:
+                    self._pending_invalidations.clear()
 
     def _discard_pending_cache(self, scope_depth: int = 1) -> None:
         """Invalidate cache entries written inside a rolled-back scope.

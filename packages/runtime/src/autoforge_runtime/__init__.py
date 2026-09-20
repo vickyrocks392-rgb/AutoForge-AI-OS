@@ -41,6 +41,23 @@ from autoforge_runtime.workflow_store import (
     DurableWorkflowStore,
     default_workflow_owner_id,
 )
+from autoforge_runtime.idempotency import (
+    IDEMPOTENT_OPERATION_NAMESPACE,
+    AmbiguousSideEffectError,
+    ClaimResult,
+    ConcurrentOperationError,
+    DurableIdempotencyStore,
+    FingerprintConflictError,
+    IdempotencyError,
+    OperationFailedError,
+    compute_request_fingerprint,
+    default_operation_owner_id,
+    derive_idempotency_key,
+    derive_task_idempotency_key,
+    operation_id_for_key,
+    sanitize_payload,
+)
+from autoforge_runtime.side_effects import SideEffectExecutor
 from autoforge_runtime.interfaces import (
     EventSubscriptionInterface,
     QueryInterface,
@@ -80,6 +97,9 @@ from autoforge_runtime.models import (
     WorkflowStatus,
     ExecutionStatus,
     AttemptStatus,
+    OperationStatus,
+    IdempotentOperationState,
+    OPERATION_RECORD_VERSION,
 )
 from autoforge_runtime.persistence import (
     CacheLayer,
@@ -122,6 +142,10 @@ from autoforge_runtime.validation import (
     validate_task_transition,
     validate_worker_transition,
     validate_workflow_transition,
+    validate_operation_transition,
+    get_allowed_operation_transitions,
+    is_operation_terminal,
+    is_operation_recoverable,
 )
 
 __all__ = [
@@ -160,4 +184,13 @@ __all__ = [
     "DurableExecutionStore", "ExecutionReconstruction", "default_owner_id",
     "execution_id_for_key", "execution_key_for_task", "EXECUTION_ID_NAMESPACE",
     "DurableWorkflowStore", "default_workflow_owner_id",
+    "OperationStatus", "IdempotentOperationState", "OPERATION_RECORD_VERSION",
+    "DurableIdempotencyStore", "ClaimResult", "SideEffectExecutor",
+    "IDEMPOTENT_OPERATION_NAMESPACE", "default_operation_owner_id",
+    "derive_idempotency_key", "derive_task_idempotency_key", "operation_id_for_key",
+    "compute_request_fingerprint", "sanitize_payload",
+    "IdempotencyError", "FingerprintConflictError", "ConcurrentOperationError",
+    "AmbiguousSideEffectError", "OperationFailedError",
+    "validate_operation_transition", "get_allowed_operation_transitions",
+    "is_operation_terminal", "is_operation_recoverable",
 ]

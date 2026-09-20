@@ -137,6 +137,7 @@ class EntityType(str, Enum):
     EXECUTION = "execution"
     EXECUTION_ATTEMPT = "execution_attempt"
     EXECUTION_CHECKPOINT = "execution_checkpoint"
+    IDEMPOTENT_OPERATION = "idempotent_operation"
 
 
 # ── Durable execution identity (Phase 18-J.2) ─────────────────────────────
@@ -216,6 +217,27 @@ class AttemptStatus(str, Enum):
 
     CANCELLED = "cancelled"
     """The attempt was cancelled (terminal)."""
+
+
+class OperationStatus(str, Enum):
+    """Durable lifecycle status of an idempotent operation (Phase 18-J.4).
+
+    Deterministic transitions:
+
+        pending     -> running | cancelled
+        running     -> completed | failed | interrupted | cancelled
+        interrupted -> running | failed | cancelled (running = controlled resume)
+        failed      -> running (when retry policy permits retry)
+        completed   (terminal)
+        cancelled   (terminal)
+    """
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    INTERRUPTED = "interrupted"
+    CANCELLED = "cancelled"
 
 
 class RuntimeStatus(str, Enum):
@@ -680,6 +702,62 @@ class ExecutionState(StateModel):
     """Whether a later phase may resume this execution instead of re-running it."""
 
     schema_version: int = Field(default=EXECUTION_RECORD_VERSION, ge=1)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+# ── Durable Idempotency & Side-Effect State (Phase 18-J.4) ───────────────
+
+#: Revision of the durable idempotent operation record layout (Phase 18-J.4).
+OPERATION_RECORD_VERSION = 1
+
+
+class IdempotentOperationState(StateModel):
+    """Durable record of a side-effecting operation for deduplication and recovery.
+
+    Phase 18-J.4 — Durable operation identity
+    -----------------------------------------
+    ``operation_id`` is canonical and derived deterministically from the
+    logical ``idempotency_key``. It stays stable across retries and across
+    process restarts; a physical retry does NOT mint a new logical operation.
+
+    ``idempotency_key`` is the canonical logical operation key.
+
+    ``request_fingerprint`` is a deterministic cryptographic hash (SHA-256) of
+    the canonicalized request payload. An existing key reused with a differing
+    fingerprint is rejected with a conflict error.
+
+    The record is authoritative: it is claimed in SQLite before external side
+    effects run and marked completed before success is announced.
+    """
+
+    operation_id: uuid.UUID = Field(default_factory=_new_uuid)
+    idempotency_key: str = Field(..., max_length=512)
+    execution_id: uuid.UUID | None = Field(default=None)
+    attempt_id: uuid.UUID | None = Field(default=None)
+    workflow_id: uuid.UUID | None = Field(default=None)
+    task_id: str | None = Field(default=None, max_length=256)
+    operation_type: str = Field(default="generic", max_length=128)
+    status: OperationStatus = Field(default=OperationStatus.PENDING)
+
+    request_fingerprint: str = Field(..., max_length=256)
+    result: dict[str, Any] = Field(default_factory=dict)
+    result_reference: str | None = Field(default=None, max_length=1024)
+
+    error_code: str | None = Field(default=None, max_length=128)
+    error_message: str | None = Field(default=None, max_length=8192)
+
+    owner_id: str | None = Field(default=None, max_length=256)
+    supports_provider_idempotency: bool = Field(default=True)
+    provider_idempotency_key: str | None = Field(default=None, max_length=512)
+    is_ambiguous: bool = Field(default=False)
+    ambiguity_reason: str | None = Field(default=None, max_length=4096)
+    retry_count: int = Field(default=0, ge=0)
+
+    started_at: datetime | None = Field(default=None)
+    completed_at: datetime | None = Field(default=None)
+    interrupted_at: datetime | None = Field(default=None)
+
+    schema_version: int = Field(default=OPERATION_RECORD_VERSION, ge=1)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
