@@ -139,6 +139,7 @@ class EntityType(str, Enum):
     EXECUTION_CHECKPOINT = "execution_checkpoint"
     IDEMPOTENT_OPERATION = "idempotent_operation"
     APPROVAL_REQUEST = "approval_request"
+    DURABLE_ARTIFACT = "durable_artifact"
 
 
 # ── Durable execution identity (Phase 18-J.2) ─────────────────────────────
@@ -835,6 +836,116 @@ class ApprovalRequestState(StateModel):
     state_version: int = Field(default=1, ge=1)
     schema_version: int = Field(default=APPROVAL_RECORD_VERSION, ge=1)
     owner_id: str | None = Field(default=None, max_length=256)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    provenance: dict[str, Any] = Field(default_factory=dict)
+
+
+# ── Durable Artifact Catalog State (Phase 18-J — Final Closure) ──────────
+
+#: Revision of the durable artifact catalog record layout.
+ARTIFACT_CATALOG_RECORD_VERSION = 1
+
+
+class DurableArtifactStatus(str, Enum):
+    """Durable lifecycle status of a catalogued artifact.
+
+    Phase 18-J — Final Durability Closure
+    -------------------------------------
+    Deterministic transitions:
+
+        created   -> staging | failed
+        staging   -> committed | failed
+        committed -> retired
+        failed    (terminal)
+        retired   (terminal)
+
+    ``staging`` represents physical artifact content being written but not
+    yet durably committed.  Recovery uses this status to detect crash windows
+    between physical write and catalog commit.
+    """
+
+    CREATED = "created"
+    """Catalog record created; no physical artifact content yet."""
+
+    STAGING = "staging"
+    """Physical artifact write in progress (staging path populated)."""
+
+    COMMITTED = "committed"
+    """Catalog + physical artifact both durably complete."""
+
+    FAILED = "failed"
+    """Artifact creation failed (terminal)."""
+
+    RETIRED = "retired"
+    """Artifact soft-deleted / lifecycle complete (terminal)."""
+
+
+class DurableArtifactState(StateModel):
+    """Durable record of a catalogued artifact for crash-safe identity and provenance.
+
+    Phase 18-J — Final Durability Closure
+    -------------------------------------
+    ``artifact_id`` is canonical and derived deterministically from the logical
+    ``artifact_key`` (composed of workflow_id, task_id, execution_id, and
+    artifact name).  It stays stable across retries and across process
+    restarts; a retry does NOT mint a new logical artifact identity.
+
+    ``artifact_key`` is the canonical logical artifact key.
+
+    ``content_hash`` is a deterministic SHA-256 fingerprint of the artifact
+    content.  An existing key reused with a differing hash is rejected with
+    a conflict error (unless it represents a legitimate new version).
+
+    The record is authoritative: it is persisted in SQLite before physical
+    artifact content is written, and committed after physical content is
+    durably available, so crash recovery can always determine whether the
+    artifact is fully committed, incomplete, or orphaned.
+    """
+
+    artifact_id: uuid.UUID = Field(default_factory=_new_uuid)
+    artifact_key: str = Field(..., max_length=1024)
+    """Deterministic logical artifact key."""
+
+    artifact_type: str = Field(default="generic", max_length=128)
+    artifact_name: str = Field(default="", max_length=512)
+    status: DurableArtifactStatus = Field(default=DurableArtifactStatus.CREATED)
+
+    workflow_id: uuid.UUID | None = Field(default=None)
+    task_id: str | None = Field(default=None, max_length=256)
+    execution_id: uuid.UUID | None = Field(default=None)
+    attempt_id: uuid.UUID | None = Field(default=None)
+    operation_id: uuid.UUID | None = Field(default=None)
+    """J.4 idempotency operation ID, when artifact creation is a side effect."""
+
+    content_hash: str = Field(default="", max_length=256)
+    """SHA-256 fingerprint of the artifact content."""
+
+    size_bytes: int = Field(default=0, ge=0)
+
+    storage_path: str | None = Field(default=None, max_length=2048)
+    """Physical storage reference for committed artifacts."""
+
+    staging_path: str | None = Field(default=None, max_length=2048)
+    """Staging location during physical write, before atomic commit."""
+
+    logical_version: int = Field(default=1, ge=1)
+    """Monotonic version per logical artifact key."""
+
+    parent_artifact_id: uuid.UUID | None = Field(default=None)
+    """Lineage: parent artifact that contributed to this one."""
+
+    owner_id: str | None = Field(default=None, max_length=256)
+    """Identity of the process that owns (or last owned) this artifact operation."""
+
+    committed_at: datetime | None = Field(default=None)
+    failed_at: datetime | None = Field(default=None)
+    retired_at: datetime | None = Field(default=None)
+
+    error_code: str | None = Field(default=None, max_length=128)
+    error_message: str | None = Field(default=None, max_length=8192)
+
+    state_version: int = Field(default=1, ge=1)
+    schema_version: int = Field(default=ARTIFACT_CATALOG_RECORD_VERSION, ge=1)
     metadata: dict[str, Any] = Field(default_factory=dict)
     provenance: dict[str, Any] = Field(default_factory=dict)
 

@@ -12,6 +12,7 @@ from autoforge_runtime.models import (
     AttemptStatus,
     CheckpointStatus,
     DurableApprovalStatus,
+    DurableArtifactStatus,
     ExecutionStatus,
     LoopStatus,
     OperationStatus,
@@ -648,3 +649,63 @@ def is_approval_terminal(status: DurableApprovalStatus) -> bool:
 def is_approval_recoverable(status: DurableApprovalStatus) -> bool:
     """Check whether an approval in this status is active/recoverable."""
     return status in _APPROVAL_RECOVERABLE
+
+
+# ── Durable Artifact Catalog Transitions (Phase 18-J Final Closure) ──────
+
+_ARTIFACT_TRANSITIONS: dict[DurableArtifactStatus, set[DurableArtifactStatus]] = {
+    DurableArtifactStatus.CREATED: {
+        DurableArtifactStatus.STAGING,
+        DurableArtifactStatus.FAILED,
+    },
+    DurableArtifactStatus.STAGING: {
+        DurableArtifactStatus.COMMITTED,
+        DurableArtifactStatus.FAILED,
+    },
+    DurableArtifactStatus.COMMITTED: {
+        DurableArtifactStatus.RETIRED,
+    },
+    DurableArtifactStatus.FAILED: set(),
+    DurableArtifactStatus.RETIRED: set(),
+}
+
+_ARTIFACT_TERMINAL: set[DurableArtifactStatus] = {
+    DurableArtifactStatus.FAILED,
+    DurableArtifactStatus.RETIRED,
+}
+
+_ARTIFACT_RECOVERABLE: set[DurableArtifactStatus] = {
+    DurableArtifactStatus.CREATED,
+    DurableArtifactStatus.STAGING,
+}
+
+
+def validate_artifact_transition(
+    current: DurableArtifactStatus,
+    target: DurableArtifactStatus,
+    *,
+    metadata: dict[str, Any] | None = None,
+) -> ValidationResult:
+    """Validate a durable artifact catalog state transition."""
+    err = _check_base(current, _ARTIFACT_TRANSITIONS, _ARTIFACT_TERMINAL, "artifact")
+    if err:
+        return err
+    err = _check_allowed(current, target, _ARTIFACT_TRANSITIONS, "artifact")
+    if err:
+        return err
+    return ValidationResult(True)
+
+
+def get_allowed_artifact_transitions(status: DurableArtifactStatus) -> frozenset[DurableArtifactStatus]:
+    """Return allowed target statuses from a given DurableArtifactStatus."""
+    return frozenset(_ARTIFACT_TRANSITIONS.get(status, set()))
+
+
+def is_artifact_terminal(status: DurableArtifactStatus) -> bool:
+    """Check whether an artifact status is terminal (never mutable)."""
+    return status in _ARTIFACT_TERMINAL
+
+
+def is_artifact_recoverable(status: DurableArtifactStatus) -> bool:
+    """Check whether an artifact in this status is active/recoverable."""
+    return status in _ARTIFACT_RECOVERABLE

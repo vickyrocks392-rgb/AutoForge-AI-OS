@@ -66,6 +66,7 @@ from autoforge_runtime.exceptions import (
 from autoforge_runtime.models import (
     ApprovalRequestState,
     CheckpointState,
+    DurableArtifactState,
     EngineeringLoopState,
     EntityType,
     ExecutionAttemptState,
@@ -112,6 +113,9 @@ _ENTITY_MODEL_MAP: dict[EntityType, tuple[type[StateModel], str]] = {
     # Phase 18-J.5 — durable HITL approvals live in the same store as
     # every other runtime entity: one database, one source of truth.
     EntityType.APPROVAL_REQUEST: (ApprovalRequestState, "approval_id"),
+    # Phase 18-J (Final Closure) — durable artifact catalog lives in the same
+    # store as every other runtime entity: one database, one source of truth.
+    EntityType.DURABLE_ARTIFACT: (DurableArtifactState, "artifact_id"),
 }
 
 

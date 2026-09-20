@@ -69,6 +69,17 @@ from autoforge_runtime.approval_store import (
     default_approval_owner_id,
     derive_approval_key,
 )
+from autoforge_runtime.artifact_catalog import (
+    ARTIFACT_CATALOG_NAMESPACE,
+    ArtifactCatalogError,
+    ArtifactConflictError,
+    ArtifactNotCommittedError,
+    DurableArtifactCatalog,
+    ReconciliationResult,
+    artifact_id_for_key,
+    default_artifact_owner_id,
+    derive_artifact_key,
+)
 from autoforge_runtime.interfaces import (
     EventSubscriptionInterface,
     QueryInterface,
@@ -114,6 +125,9 @@ from autoforge_runtime.models import (
     DurableApprovalStatus,
     ApprovalRequestState,
     APPROVAL_RECORD_VERSION,
+    DurableArtifactStatus,
+    DurableArtifactState,
+    ARTIFACT_CATALOG_RECORD_VERSION,
 )
 from autoforge_runtime.persistence import (
     CacheLayer,
@@ -164,6 +178,10 @@ from autoforge_runtime.validation import (
     get_allowed_approval_transitions,
     is_approval_terminal,
     is_approval_recoverable,
+    validate_artifact_transition,
+    get_allowed_artifact_transitions,
+    is_artifact_terminal,
+    is_artifact_recoverable,
 )
 
 __all__ = [
@@ -217,4 +235,10 @@ __all__ = [
     "ApprovalError", "ApprovalNotFoundError", "ApprovalConflictError", "ApprovalExpiredError",
     "validate_approval_transition", "get_allowed_approval_transitions",
     "is_approval_terminal", "is_approval_recoverable",
+    "DurableArtifactStatus", "DurableArtifactState", "ARTIFACT_CATALOG_RECORD_VERSION",
+    "DurableArtifactCatalog", "ARTIFACT_CATALOG_NAMESPACE", "default_artifact_owner_id",
+    "derive_artifact_key", "artifact_id_for_key", "ReconciliationResult",
+    "ArtifactCatalogError", "ArtifactConflictError", "ArtifactNotCommittedError",
+    "validate_artifact_transition", "get_allowed_artifact_transitions",
+    "is_artifact_terminal", "is_artifact_recoverable",
 ]
