@@ -218,22 +218,27 @@ class TestLifecycleTransitions:
         state = catalog.register_artifact(artifact_key=key)
         assert state.status == DurableArtifactStatus.CREATED
 
+        f = staging_dir / "happy.py"
+        f.write_text("happy content")
         state = catalog.begin_staging(
-            state.artifact_id, staging_path=str(staging_dir / "happy.py")
+            state.artifact_id, staging_path=str(f)
         )
         assert state.status == DurableArtifactStatus.STAGING
 
-        state = catalog.commit_artifact(state.artifact_id, content_hash="abc123")
+        state = catalog.commit_artifact(state.artifact_id)
         assert state.status == DurableArtifactStatus.COMMITTED
         assert state.committed_at is not None
+        assert state.content_hash == hashlib.sha256(b"happy content").hexdigest()
 
     def test_committed_to_retired(
         self, catalog: DurableArtifactCatalog, staging_dir: Path
     ) -> None:
         key = derive_artifact_key(artifact_name="retire.py")
         state = catalog.register_artifact(artifact_key=key)
-        catalog.begin_staging(state.artifact_id, staging_path=str(staging_dir / "r"))
-        catalog.commit_artifact(state.artifact_id, content_hash="x")
+        f = staging_dir / "r"
+        f.write_text("retire content")
+        catalog.begin_staging(state.artifact_id, staging_path=str(f))
+        catalog.commit_artifact(state.artifact_id)
         retired = catalog.retire_artifact(state.artifact_id, reason="obsolete")
         assert retired.status == DurableArtifactStatus.RETIRED
         assert retired.retired_at is not None
@@ -263,8 +268,10 @@ class TestLifecycleTransitions:
     ) -> None:
         key = derive_artifact_key(artifact_name="inv.py")
         state = catalog.register_artifact(artifact_key=key)
-        catalog.begin_staging(state.artifact_id, staging_path=str(staging_dir / "i"))
-        catalog.commit_artifact(state.artifact_id, content_hash="x")
+        f = staging_dir / "i"
+        f.write_text("content")
+        catalog.begin_staging(state.artifact_id, staging_path=str(f))
+        catalog.commit_artifact(state.artifact_id)
         with pytest.raises(InvalidTransitionError):
             catalog.begin_staging(
                 state.artifact_id, staging_path=str(staging_dir / "i2")
@@ -284,8 +291,10 @@ class TestLifecycleTransitions:
     ) -> None:
         key = derive_artifact_key(artifact_name="ret.py")
         state = catalog.register_artifact(artifact_key=key)
-        catalog.begin_staging(state.artifact_id, staging_path=str(staging_dir / "r"))
-        catalog.commit_artifact(state.artifact_id, content_hash="x")
+        f = staging_dir / "r"
+        f.write_text("content")
+        catalog.begin_staging(state.artifact_id, staging_path=str(f))
+        catalog.commit_artifact(state.artifact_id)
         catalog.retire_artifact(state.artifact_id)
         with pytest.raises(InvalidTransitionError):
             catalog.fail_artifact(state.artifact_id, error_code="ERR")
@@ -324,14 +333,15 @@ class TestOptimisticConcurrency:
     ) -> None:
         key = derive_artifact_key(artifact_name="occ2.py")
         state = catalog.register_artifact(artifact_key=key)
+        f = staging_dir / "occ2"
+        f.write_text("occ2 content")
         staged = catalog.begin_staging(
             state.artifact_id,
-            staging_path=str(staging_dir / "occ2"),
+            staging_path=str(f),
             expected_version=1,
         )
         committed = catalog.commit_artifact(
             state.artifact_id,
-            content_hash="y",
             expected_version=staged.state_version,
         )
         assert committed.state_version == 3
@@ -590,7 +600,6 @@ class TestMissingArtifactDetection:
         catalog.commit_artifact(
             state.artifact_id,
             storage_path=str(staging_file),
-            content_hash="x",
         )
         # Remove the file
         staging_file.unlink()
@@ -608,7 +617,6 @@ class TestMissingArtifactDetection:
         catalog.commit_artifact(
             state.artifact_id,
             storage_path=str(staging_file),
-            content_hash="x",
         )
         missing = catalog.find_missing_committed()
         assert not any(a.artifact_id == state.artifact_id for a in missing)
@@ -806,7 +814,6 @@ class TestProvenanceVerification:
         catalog.begin_staging(state.artifact_id, staging_path=str(staging_file))
         committed = catalog.commit_artifact(
             state.artifact_id,
-            content_hash="hash",
             provenance={"reviewed_by": "human-1"},
         )
         assert committed.provenance["actor"] == "agent-7"
@@ -829,12 +836,14 @@ class TestAuditOrdering:
         s0 = catalog.register_artifact(artifact_key=key)
         assert s0.state_version == 1
 
+        f = staging_dir / "audit.py"
+        f.write_text("audit")
         s1 = catalog.begin_staging(
-            s0.artifact_id, staging_path=str(staging_dir / "audit.py")
+            s0.artifact_id, staging_path=str(f)
         )
         assert s1.state_version == 2
 
-        s2 = catalog.commit_artifact(s0.artifact_id, content_hash="x")
+        s2 = catalog.commit_artifact(s0.artifact_id)
         assert s2.state_version == 3
 
         s3 = catalog.retire_artifact(s0.artifact_id)
@@ -848,7 +857,7 @@ class TestAuditOrdering:
         f = staging_dir / "time.py"
         f.write_text("t")
         catalog.begin_staging(s0.artifact_id, staging_path=str(f))
-        committed = catalog.commit_artifact(s0.artifact_id, content_hash="x")
+        committed = catalog.commit_artifact(s0.artifact_id)
         retired = catalog.retire_artifact(s0.artifact_id)
 
         assert committed.committed_at is not None
@@ -892,7 +901,7 @@ class TestDeletionRecoverySemantics:
         f = staging_dir / "dr.py"
         f.write_text("d")
         catalog.begin_staging(state.artifact_id, staging_path=str(f))
-        catalog.commit_artifact(state.artifact_id, content_hash="x")
+        catalog.commit_artifact(state.artifact_id)
         catalog.retire_artifact(state.artifact_id, reason="end of life")
 
         read_back = catalog.get_artifact(state.artifact_id)

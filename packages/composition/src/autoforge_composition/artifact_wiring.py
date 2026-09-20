@@ -14,12 +14,14 @@ from autoforge_artifacts.engine import (
 )
 from autoforge_artifacts.events import ArtifactEventSinkProtocol
 from autoforge_artifacts.policies import ArtifactPolicy
+from autoforge_artifacts.store import ArtifactStoreProtocol
 
 
 def build_artifact_platform_from_bus(
     *,
     canonical_bus: ArtifactEventSinkProtocol | None = None,
     policy: ArtifactPolicy | None = None,
+    store: ArtifactStoreProtocol | None = None,
 ) -> ArtifactPlatformServices:
     """Construct the Artifact Platform wired to the canonical event bus.
 
@@ -30,8 +32,11 @@ def build_artifact_platform_from_bus(
         structurally via its ``publish()`` method).
     policy
         Optional artifact governance policy.  Defaults to safe defaults.
+    store
+        Optional artifact store implementation (e.g. DurableArtifactStoreBridge).
     """
     return build_artifact_platform(
         event_sink=canonical_bus,
         policy=policy,
+        store=store,
     )

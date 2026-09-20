@@ -104,17 +104,20 @@ class WorkforceDispatcher(WorkerDispatcher):
         Dispatch a task definition to a specialized worker and run it.
         """
         # Resolve target worker type
-        target_type = task_def.task_type
-        if not WORKER_REGISTRY.lookup(target_type):
-            target_type = worker_type or task_def.task_type
-            # Fallback to general coding/research if not in registry
-            if not WORKER_REGISTRY.lookup(target_type):
-                if target_type in {"review", "qa"}:
-                    target_type = "qa_engineer"
-                elif target_type in {"research", "plan"}:
-                    target_type = "research_engineer"
-                else:
-                    target_type = "backend_engineer"
+        if WORKER_REGISTRY.lookup(task_def.task_type):
+            target_type = task_def.task_type
+        else:
+            w_candidate = worker_type.value if hasattr(worker_type, "value") else worker_type
+            if w_candidate and WORKER_REGISTRY.lookup(w_candidate):
+                target_type = w_candidate
+            elif task_def.task_type == "architecture":
+                target_type = "architecture_engineer"
+            elif task_def.task_type in {"review", "qa", "testing"}:
+                target_type = "qa_engineer"
+            elif task_def.task_type in {"research", "plan", "planning"}:
+                target_type = "research_engineer"
+            else:
+                target_type = "backend_engineer"
 
         # Deterministic capability matching / task compatibility validation
         if not WORKER_REGISTRY.check_task_compatibility(target_type, task_def.task_type):

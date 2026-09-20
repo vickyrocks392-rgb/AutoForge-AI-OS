@@ -2,6 +2,7 @@
 
 from autoforge_power_engines.delivery.spec import (
     DeploymentTarget,
+    TargetCapabilityStatus,
     RestartPolicy,
     PersistenceMode,
     PortMapping,
@@ -19,6 +20,7 @@ from autoforge_power_engines.delivery.sanitizer import (
     SecretLeakageViolationError,
 )
 from autoforge_power_engines.delivery.packaging import (
+    ArtifactEntry,
     DeliverableManifest,
     CustomerDeliveryBuilder,
 )
@@ -27,6 +29,7 @@ from autoforge_power_engines.delivery.provider import PowerEngineDeploymentProvi
 
 __all__ = [
     "DeploymentTarget",
+    "TargetCapabilityStatus",
     "RestartPolicy",
     "PersistenceMode",
     "PortMapping",
@@ -40,6 +43,7 @@ __all__ = [
     "ProprietaryBoundarySanitizer",
     "ProprietaryCodeViolationError",
     "SecretLeakageViolationError",
+    "ArtifactEntry",
     "DeliverableManifest",
     "CustomerDeliveryBuilder",
     "CustomerDocumentationBuilder",

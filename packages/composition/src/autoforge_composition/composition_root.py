@@ -54,6 +54,27 @@ from autoforge_execution.engine import ExecutionEngine
 from autoforge_artifacts.engine import ArtifactPlatformServices
 from autoforge_security.engine import SecurityPlatform
 from autoforge_workflows.engine import WorkflowEngine
+from autoforge_review.engine import ReviewEngine as ConcreteReviewEngine
+
+from autoforge_kernel.strategic_engine import DefaultStrategicEngine
+from autoforge_kernel.intent_analysis import DefaultIntentAnalyzer
+from autoforge_kernel.planning_coordination import DefaultPlanningCoordinator
+from autoforge_kernel.orchestration import DefaultOrchestrationEngine
+from autoforge_kernel.infrastructure import DefaultInfrastructureCoordinator
+from autoforge_kernel.completion import DefaultCompletionModule
+from autoforge_kernel.approval import DefaultApprovalCoordinator
+from autoforge_kernel.recovery import DefaultRecoveryCoordinator
+from autoforge_kernel.learning_engine import EngineeringLearningEngine
+from autoforge_execution.context_builder import EngineeringContextBuilder
+
+from autoforge_composition.kernel_adapters import (
+    KernelWorkflowEngineAdapter,
+    KernelExecutionEngineAdapter,
+    KernelReviewEngineAdapter,
+    KernelModelRouterAdapter,
+    KernelMemoryEngineAdapter,
+    KernelKnowledgeEngineAdapter,
+)
 
 __all__ = ["AutoForgeSystem", "build_autoforge_system"]
 
@@ -146,6 +167,16 @@ class AutoForgeSystem:
     execution_engine: ExecutionEngine
     artifact_platform: ArtifactPlatformServices
     security_platform: SecurityPlatform | None = None
+    review_engine: ConcreteReviewEngine | None = None
+    strategic_engine: DefaultStrategicEngine | None = None
+    context_builder: EngineeringContextBuilder | None = None
+    learning_engine: EngineeringLearningEngine | None = None
+    planning_coordinator: DefaultPlanningCoordinator | None = None
+    orchestration_engine: DefaultOrchestrationEngine | None = None
+    completion_module: DefaultCompletionModule | None = None
+    infrastructure_coordinator: DefaultInfrastructureCoordinator | None = None
+    recovery_coordinator: DefaultRecoveryCoordinator | None = None
+    approval_coordinator: DefaultApprovalCoordinator | None = None
 
     #: Raw runtime diagnostics that had no canonical counterpart during lift.
     skipped_runtime_events: list[dict[str, Any]] = None
@@ -203,17 +234,7 @@ def build_autoforge_system(
     facade = KernelRuntimeFacade(runtime)
     kernel_bus = CanonicalKernelEventBus(canonical_bus)
 
-    # 5. The orchestrator, injected with everything above.
-    kernel = Kernel(
-        event_bus=kernel_bus,
-        runtime_state_manager=facade,
-        request_validator=DefaultRequestValidator(),
-        request_normalizer=DefaultRequestNormalizer(),
-        project_initializer=DefaultProjectInitializer(event_bus=kernel_bus),
-        identifier_generator=DefaultIdentifierGenerator(),
-    )
-
-    # 6. Workflow Engine — wired with event bus and runtime for state projection.
+    # 5. Workflow Engine — wired with event bus and runtime for state projection.
     workflow_engine = build_workflow_engine(
         canonical_bus=canonical_bus,
         runtime=runtime,
@@ -221,7 +242,7 @@ def build_autoforge_system(
         auto_checkpoint=True,
     )
 
-    # 6a. AI Infrastructure — capability registry, router, executor registry.
+    # 6. AI Infrastructure — capability registry, router, executor registry.
     # Wiring this here ensures the Execution Engine can route real model requests
     # through the AI adapter instead of falling back to deterministic stubs.
     ai_infra = build_ai_infrastructure(
@@ -254,6 +275,100 @@ def build_autoforge_system(
         canonical_bus=canonical_bus,
     )
 
+    # 10. Review Engine (concrete) — wired with canonical event bus.
+    concrete_review_engine = ConcreteReviewEngine(event_sink=canonical_bus)
+
+    # 11. Kernel Adapters — bridging platform engines to Kernel's abstract interfaces.
+    kernel_workflow_engine = KernelWorkflowEngineAdapter(concrete_engine=workflow_engine)
+    kernel_execution_engine = KernelExecutionEngineAdapter(concrete_engine=execution_engine)
+    kernel_review_engine = KernelReviewEngineAdapter(concrete_engine=concrete_review_engine)
+    kernel_model_router = KernelModelRouterAdapter(model_router=ai_infra.router)
+    kernel_memory_engine = KernelMemoryEngineAdapter(runtime=runtime)
+    kernel_knowledge_engine = KernelKnowledgeEngineAdapter()
+
+    # 12. Strategic & Planning Coordination components.
+    strategic_engine = DefaultStrategicEngine()
+    intent_analyzer = DefaultIntentAnalyzer(knowledge_engine=kernel_knowledge_engine)
+    planning_coordinator = DefaultPlanningCoordinator(
+        strategic_engine=strategic_engine,
+        workflow_engine=kernel_workflow_engine,
+        event_bus=kernel_bus,
+    )
+
+    # 13. Orchestration & Execution components.
+    orchestration_engine = DefaultOrchestrationEngine(
+        execution_engine=kernel_execution_engine,
+        review_engine=kernel_review_engine,
+        event_bus=kernel_bus,
+        runtime_state_manager=facade,
+        model_router=kernel_model_router,
+    )
+
+    # 14. Shared Platform Services & Governance coordinators.
+    infrastructure_coordinator = DefaultInfrastructureCoordinator(
+        runtime_state_manager=facade,
+        event_bus=kernel_bus,
+        memory_engine=kernel_memory_engine,
+        knowledge_engine=kernel_knowledge_engine,
+        model_router=kernel_model_router,
+    )
+    completion_module = DefaultCompletionModule(
+        review_engine=kernel_review_engine,
+        event_bus=kernel_bus,
+        runtime_state_manager=facade,
+    )
+    approval_coordinator = DefaultApprovalCoordinator(
+        event_bus=kernel_bus,
+        runtime_state_manager=facade,
+    )
+    recovery_coordinator = DefaultRecoveryCoordinator(
+        event_bus=kernel_bus,
+        runtime_state_manager=facade,
+    )
+
+    # 15. Context Builder & Learning Engine (Phase 18-K reconciliations).
+    context_builder = EngineeringContextBuilder(
+        runtime=runtime,
+        memory_engine=kernel_memory_engine,
+        knowledge_engine=kernel_knowledge_engine,
+    )
+    learning_engine = EngineeringLearningEngine(
+        memory_engine=kernel_memory_engine,
+        knowledge_engine=kernel_knowledge_engine,
+        event_bus=kernel_bus,
+        runtime=runtime,
+    )
+
+    kernel_config = dict(config) if config else {}
+    if "auto_execute" not in kernel_config:
+        kernel_config["auto_execute"] = False
+
+    # 16. The Kernel — fully wired with all platform engines and coordinators.
+    kernel = Kernel(
+        version=kernel_version,
+        config=kernel_config,
+        event_bus=kernel_bus,
+        runtime_state_manager=facade,
+        request_validator=DefaultRequestValidator(),
+        request_normalizer=DefaultRequestNormalizer(),
+        project_initializer=DefaultProjectInitializer(event_bus=kernel_bus),
+        identifier_generator=DefaultIdentifierGenerator(),
+        intent_analyzer=intent_analyzer,
+        planning_coordinator=planning_coordinator,
+        orchestration_engine=orchestration_engine,
+        infrastructure_coordinator=infrastructure_coordinator,
+        completion_module=completion_module,
+        approval_coordinator=approval_coordinator,
+        recovery_coordinator=recovery_coordinator,
+        strategic_engine=strategic_engine,
+        workflow_engine=kernel_workflow_engine,
+        execution_engine=kernel_execution_engine,
+        review_engine=kernel_review_engine,
+        memory_engine=kernel_memory_engine,
+        knowledge_engine=kernel_knowledge_engine,
+        model_router=kernel_model_router,
+    )
+
     return AutoForgeSystem(
         kernel=kernel,
         runtime=runtime,
@@ -265,5 +380,15 @@ def build_autoforge_system(
         execution_engine=execution_engine,
         artifact_platform=artifact_platform,
         security_platform=security_platform,
+        review_engine=concrete_review_engine,
+        strategic_engine=strategic_engine,
+        context_builder=context_builder,
+        learning_engine=learning_engine,
+        planning_coordinator=planning_coordinator,
+        orchestration_engine=orchestration_engine,
+        completion_module=completion_module,
+        infrastructure_coordinator=infrastructure_coordinator,
+        recovery_coordinator=recovery_coordinator,
+        approval_coordinator=approval_coordinator,
         skipped_runtime_events=skipped,
     )

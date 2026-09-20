@@ -62,6 +62,7 @@ from autoforge_artifacts.models import (
     RollbackRecord,
 )
 from autoforge_artifacts.store import ArtifactStoreProtocol, LocalArtifactStore
+from autoforge_artifacts.durable_bridge import DurableArtifactStoreBridge
 
 __all__ = [
     # Engine
@@ -90,4 +91,5 @@ __all__ = [
     # Store
     "ArtifactStoreProtocol",
     "LocalArtifactStore",
+    "DurableArtifactStoreBridge",
 ]

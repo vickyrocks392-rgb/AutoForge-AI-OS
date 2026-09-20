@@ -18,16 +18,49 @@ from autoforge_power_engines.delivery.sanitizer import (
 )
 
 
+class ArtifactEntry(BaseModel):
+    artifact_id: str
+    logical_version: int = 1
+    physical_path: str = ""
+    sha256: str = ""
+    size_bytes: int = 0
+    lineage: Dict[str, Any] = Field(default_factory=dict)
+
+
 class DeliverableManifest(BaseModel):
     """Cryptographic manifest of packaged customer deliverables."""
     project_name: str
     delivery_id: str
     delivery_dir: str
     created_at: str
+    project_id: Optional[str] = None
+    execution_id: Optional[str] = None
+    workflow_id: Optional[str] = None
     files_created: List[str] = Field(default_factory=list)
     directories_created: List[str] = Field(default_factory=list)
     total_bytes: int = 0
     sha256_checksums: Dict[str, str] = Field(default_factory=dict)
+    file_sizes: Dict[str, int] = Field(default_factory=dict)
+    artifacts: List[ArtifactEntry] = Field(default_factory=list)
+    provenance: Dict[str, Any] = Field(default_factory=dict)
+    verification_status: str = "VERIFIED"
+    test_evidence: Dict[str, Any] = Field(default_factory=dict)
+    sanitizer_result: Dict[str, Any] = Field(default_factory=dict)
+    deployment_verification_result: Dict[str, Any] = Field(default_factory=dict)
+    manifest_signature: Optional[str] = None
+
+    def compute_manifest_hash(self) -> str:
+        """Compute cryptographic SHA-256 hash of manifest contents excluding the signature itself."""
+        import json
+        data = self.model_dump(exclude={"manifest_signature"})
+        dumped = json.dumps(data, sort_keys=True, default=str)
+        return hashlib.sha256(dumped.encode("utf-8")).hexdigest()
+
+    def sign_manifest(self) -> str:
+        """Signs the manifest with its own cryptographic hash."""
+        sig = self.compute_manifest_hash()
+        self.manifest_signature = sig
+        return sig
 
 
 class CustomerDeliveryBuilder:
@@ -150,11 +183,25 @@ class CustomerDeliveryBuilder:
         """Audits all files in the deliverable; raises ProprietaryCodeViolationError on violation."""
         return self.sanitizer.sanitize()
 
-    def create_manifest(self, fixed_timestamp: Optional[str] = None) -> DeliverableManifest:
-        """Generates a complete manifest with cryptographic checksums."""
+    def create_manifest(
+        self,
+        fixed_timestamp: Optional[str] = None,
+        project_id: Optional[str] = None,
+        execution_id: Optional[str] = None,
+        workflow_id: Optional[str] = None,
+        artifacts: Optional[List[ArtifactEntry]] = None,
+        provenance: Optional[Dict[str, Any]] = None,
+        verification_status: str = "VERIFIED",
+        test_evidence: Optional[Dict[str, Any]] = None,
+        sanitizer_result: Optional[Dict[str, Any]] = None,
+        deployment_verification_result: Optional[Dict[str, Any]] = None,
+        auto_sign: bool = True,
+    ) -> DeliverableManifest:
+        """Generates a complete manifest with cryptographic checksums and sizes."""
         files_created = []
         dirs_created = []
         checksums = {}
+        file_sizes = {}
         total_bytes = 0
 
         for root, dirs, files in os.walk(self.delivery_dir):
@@ -167,17 +214,33 @@ class CustomerDeliveryBuilder:
                 b = fpath.read_bytes()
                 total_bytes += len(b)
                 checksums[rel] = hashlib.sha256(b).hexdigest()
+                file_sizes[rel] = len(b)
 
         project_name = self.delivery_dir.parent.name
         delivery_id = self.delivery_dir.name
 
-        return DeliverableManifest(
+        manifest = DeliverableManifest(
             project_name=project_name,
             delivery_id=delivery_id,
             delivery_dir=str(self.delivery_dir),
             created_at=fixed_timestamp or datetime.now(timezone.utc).isoformat(),
+            project_id=project_id,
+            execution_id=execution_id,
+            workflow_id=workflow_id,
             files_created=sorted(files_created),
             directories_created=sorted(dirs_created),
             total_bytes=total_bytes,
             sha256_checksums=checksums,
+            file_sizes=file_sizes,
+            artifacts=artifacts or [],
+            provenance=provenance or {},
+            verification_status=verification_status,
+            test_evidence=test_evidence or {},
+            sanitizer_result=sanitizer_result or {},
+            deployment_verification_result=deployment_verification_result or {},
         )
+
+        if auto_sign:
+            manifest.sign_manifest()
+
+        return manifest

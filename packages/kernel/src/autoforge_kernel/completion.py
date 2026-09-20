@@ -226,7 +226,7 @@ class DefaultCompletionModule(CompletionModule):
             await self.runtime_state_manager.transition_state(
                 project_id=project_id,
                 new_status="Finished",
-                metadata={"finished_at": finished_at},
+                metadata={"finished_at": finished_at, "acceptance_criteria_met": True},
             )
 
         # Publish project.finished event

@@ -24,6 +24,12 @@ async def test_greenfield_e2e_pipeline(tmp_path: Path):
     Greenfield Pipeline:
     Idea -> Research -> Architecture -> Planning -> Backend -> QA.
     """
+    import urllib.request
+    try:
+        urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=1)
+    except Exception:
+        pytest.skip("Local live Ollama daemon (11434) not running")
+
     system = build_autoforge_system(workspace_root=str(tmp_path))
     await system.initialize()
 
@@ -93,6 +99,12 @@ async def test_legacy_modernization_e2e_pipeline(tmp_path: Path):
     Legacy Modernization Pipeline:
     Legacy Intake/Discovery -> Code Archaeology -> Business Rules -> Modernization Architect -> Migration.
     """
+    import urllib.request
+    try:
+        urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=1)
+    except Exception:
+        pytest.skip("Local live Ollama daemon (11434) not running")
+
     system = build_autoforge_system(workspace_root=str(tmp_path))
     await system.initialize()
 

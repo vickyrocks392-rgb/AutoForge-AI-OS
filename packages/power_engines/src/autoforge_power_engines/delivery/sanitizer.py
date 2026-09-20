@@ -148,19 +148,60 @@ class ProprietaryBoundarySanitizer:
                     continue
 
                 try:
-                    text = fpath.read_text(encoding="utf-8", errors="ignore")
-                    for term in self.forbidden_terms:
-                        # Static import patterns
-                        if f"import {term}" in text or f"from {term}" in text:
-                            rel_path = fpath.relative_to(self.delivery_dir)
-                            violations.append(f"{rel_path} imports proprietary '{term}'")
-                        # Dynamic import patterns
-                        elif f'"{term}"' in text or f"'{term}'" in text:
-                            if "__import__" in text or "import_module" in text:
-                                rel_path = fpath.relative_to(self.delivery_dir)
-                                violations.append(f"{rel_path} dynamically imports proprietary '{term}'")
+                    text = fpath.read_text(encoding="utf-8", errors="replace")
                 except Exception:
-                    pass
+                    continue
+
+                # 1. Text scanner for static and dynamic import patterns
+                for term in self.forbidden_terms:
+                    if f"import {term}" in text or f"from {term}" in text:
+                        rel_path = fpath.relative_to(self.delivery_dir)
+                        violations.append(f"{rel_path} imports proprietary '{term}'")
+                    elif f'"{term}"' in text or f"'{term}'" in text:
+                        if "__import__" in text or "import_module" in text:
+                            rel_path = fpath.relative_to(self.delivery_dir)
+                            violations.append(f"{rel_path} dynamically imports proprietary '{term}'")
+
+                # 2. Python AST parsing for all .py files to catch complex/aliased/dynamic imports
+                if fpath.suffix.lower() == ".py":
+                    try:
+                        import ast
+                        tree = ast.parse(text, filename=str(fpath))
+                        for node in ast.walk(tree):
+                            if isinstance(node, ast.Import):
+                                for alias in node.names:
+                                    for term in self.forbidden_terms:
+                                        if alias.name == term or alias.name.startswith(f"{term}."):
+                                            rel_path = fpath.relative_to(self.delivery_dir)
+                                            violations.append(f"{rel_path} AST imports proprietary '{alias.name}'")
+                            elif isinstance(node, ast.ImportFrom):
+                                if node.module:
+                                    for term in self.forbidden_terms:
+                                        if node.module == term or node.module.startswith(f"{term}."):
+                                            rel_path = fpath.relative_to(self.delivery_dir)
+                                            violations.append(f"{rel_path} AST imports from proprietary '{node.module}'")
+                            elif isinstance(node, ast.Call):
+                                is_dyn = False
+                                if isinstance(node.func, ast.Name) and node.func.id == "__import__":
+                                    is_dyn = True
+                                elif isinstance(node.func, ast.Attribute) and node.func.attr == "import_module":
+                                    is_dyn = True
+                                if is_dyn and node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+                                    mod_val = node.args[0].value
+                                    for term in self.forbidden_terms:
+                                        if mod_val == term or mod_val.startswith(f"{term}."):
+                                            rel_path = fpath.relative_to(self.delivery_dir)
+                                            violations.append(f"{rel_path} AST dynamically imports '{mod_val}'")
+                    except SyntaxError:
+                        pass
+
+                # 3. Dependency inventory scan for requirements.txt / pyproject.toml
+                if file.lower() in ("requirements.txt", "pyproject.toml", "setup.cfg"):
+                    for term in self.forbidden_terms:
+                        pkg_term = term.replace("_", "-")
+                        if term in text or pkg_term in text:
+                            rel_path = fpath.relative_to(self.delivery_dir)
+                            violations.append(f"Dependency manifest {rel_path} references proprietary package '{term}'")
 
         if violations:
             msg = "Proprietary code leakage detected in customer delivery:\n" + "\n".join(violations)

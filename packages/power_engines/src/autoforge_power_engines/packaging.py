@@ -59,14 +59,8 @@ class CustomerProjectPackager:
         return dirs
 
     def write_file(self, rel_path: str, content: str, make_executable: bool = False) -> Path:
-        """Writes a deliverable file and sets permissions."""
-        target = self.delivery_dir / rel_path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
-        if make_executable:
-            mode = os.stat(target).st_mode
-            os.chmod(target, mode | 0o755)
-        return target
+        """Writes a deliverable file and sets permissions; enforces delivery root confinement."""
+        return self._builder.write_file(rel_path, content, make_executable=make_executable)
 
     def generate_readme(
         self,

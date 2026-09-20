@@ -632,7 +632,7 @@ def register_all_workers():
         (MLEngineer, "ml_engineer", ["ml", "coding"]),
         (InfrastructureEngineer, "infrastructure_engineer", ["infrastructure", "iac", "coding"]),
         (DevOpsEngineer, "devops_engineer", ["devops", "cicd", "coding"]),
-        (QAEngineer, "qa_engineer", ["qa", "testing"]),
+        (QAEngineer, "qa_engineer", ["qa", "testing", "review"]),
         (SecurityEngineer, "security_engineer", ["security", "review"]),
         (PerformanceEngineer, "performance_engineer", ["performance", "review"]),
         (DocumentationEngineer, "documentation_engineer", ["documentation", "general"]),

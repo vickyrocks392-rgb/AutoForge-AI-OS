@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Tuple
 from autoforge_power_engines.delivery.spec import (
     CustomerDeploymentSpec,
     ServiceDefinition,
+    assert_target_supported,
 )
 
 
@@ -25,6 +26,7 @@ class DeploymentBuilder:
 
     def build_docker_compose(self, spec: CustomerDeploymentSpec) -> str:
         """Generates standard Docker Compose configuration from CustomerDeploymentSpec."""
+        assert_target_supported(spec.target)
         lines: List[str] = ["version: '3.8'", "", "services:"]
 
         for s_name, svc in spec.services.items():
@@ -124,9 +126,9 @@ RUN pip install --no-cache-dir -r /app/config/requirements.txt
 COPY src/ /app/src/
 COPY config/ /app/config/
 COPY artifacts/ /app/artifacts/
-COPY data/ /app/data/
 
-RUN mkdir -p /app/data/logs && chown -R appuser:appuser /app
+# Note: Persistent customer runtime data is mounted at runtime via volume, not baked into the image
+RUN mkdir -p /app/data/logs /app/data/config && chown -R appuser:appuser /app
 
 USER appuser
 
@@ -136,18 +138,26 @@ CMD {cmd_parts}
 """
 
     def build_deploy_command(self) -> str:
-        """Generates double-clickable macOS Deploy.command launcher."""
+        """Generates double-clickable macOS Deploy.command launcher with error propagation."""
         return """#!/usr/bin/env bash
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
-chmod +x deploy.sh manage.sh scripts/*.sh 2>/dev/null || true
+[ -f deploy.sh ] && chmod +x deploy.sh
+[ -f manage.sh ] && chmod +x manage.sh
+for s in scripts/*.sh; do [ -f "$s" ] && chmod +x "$s"; done
 ./deploy.sh
+EXIT_CODE=$?
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "Deployment failed with exit code $EXIT_CODE."
+fi
 echo ""
 read -p "Press [Enter] to exit..."
+exit $EXIT_CODE
 """
 
     def build_deploy_sh(self, spec: CustomerDeploymentSpec) -> str:
-        """Generates POSIX deploy.sh supporting containerized and local modes."""
+        """Generates POSIX deploy.sh supporting containerized and local modes with health verification."""
+        assert_target_supported(spec.target)
         port = spec.get_primary_port()
         host = spec.get_primary_host()
         data_dirs_str = " ".join(spec.data_directories) if spec.data_directories else "data/logs data/config"
@@ -180,7 +190,9 @@ if [ ! -f ".env" ]; then
 fi
 
 if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs)
+    set -a
+    . ./.env
+    set +a
 fi
 
 PORT="${{PORT:-{port}}}"
@@ -215,7 +227,10 @@ if [ "$MODE" == "local" ]; then
     echo "Running in local execution mode..."
     if [ ! -d ".venv" ]; then
         echo "Initializing local virtual environment..."
-        python3 -m venv .venv || true
+        if ! python3 -m venv .venv; then
+            echo "ERROR: Failed to initialize virtual environment." >&2
+            exit 1
+        fi
     fi
     if [ -f ".venv/bin/activate" ]; then
         source .venv/bin/activate
@@ -223,7 +238,10 @@ if [ "$MODE" == "local" ]; then
     
     if [ -f "config/requirements.txt" ]; then
         echo "Installing required dependencies..."
-        pip install -q -r config/requirements.txt 2>/dev/null || python3 -m pip install -q -r config/requirements.txt 2>/dev/null || true
+        if ! pip install -q -r config/requirements.txt; then
+            echo "ERROR: Failed to install required dependencies." >&2
+            exit 1
+        fi
     fi
     
     if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1 ; then
@@ -238,24 +256,44 @@ fi
 
 # 4. Perform health verification
 echo "Verifying deployment health..."
-python3 scripts/health_check.py 2>/dev/null || python3 src/health.py 2>/dev/null || echo "Notice: Diagnostic checks complete."
-
-echo "============================================================"
-echo "   APPLICATION READY"
-echo "============================================================"
-echo "Application URL:  http://$HOST:$PORT"
-echo "Data Directory:   $DIR/data/"
-echo "Logs Directory:   $DIR/data/logs/"
-echo "Management CLI:   ./manage.sh [start|stop|restart|status|logs]"
-echo "============================================================"
-
-# 5. Open browser if supported
-if [ "${{AUTO_OPEN_BROWSER:-true}}" == "true" ]; then
-    if command -v open &> /dev/null; then
-        open "http://$HOST:$PORT" 2>/dev/null || true
-    elif command -v xdg-open &> /dev/null; then
-        xdg-open "http://$HOST:$PORT" 2>/dev/null || true
+HEALTH_PASSED=0
+if [ -f "scripts/health_check.py" ]; then
+    if python3 scripts/health_check.py; then
+        HEALTH_PASSED=1
     fi
+elif [ -f "src/health.py" ]; then
+    if python3 src/health.py; then
+        HEALTH_PASSED=1
+    fi
+else
+    # Verify port is listening
+    if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+        HEALTH_PASSED=1
+    fi
+fi
+
+if [ "$HEALTH_PASSED" -eq 1 ]; then
+    echo "============================================================"
+    echo "   APPLICATION READY"
+    echo "============================================================"
+    echo "Application URL:  http://$HOST:$PORT"
+    echo "Data Directory:   $DIR/data/"
+    echo "Logs Directory:   $DIR/data/logs/"
+    echo "Management CLI:   ./manage.sh [start|stop|restart|status|logs]"
+    echo "============================================================"
+    if [ "${{AUTO_OPEN_BROWSER:-true}}" == "true" ]; then
+        if command -v open &> /dev/null; then
+            open "http://$HOST:$PORT" 2>/dev/null
+        elif command -v xdg-open &> /dev/null; then
+            xdg-open "http://$HOST:$PORT" 2>/dev/null
+        fi
+    fi
+else
+    echo "============================================================"
+    echo "   DEPLOYMENT FAILED — HEALTH GATES DID NOT PASS"
+    echo "============================================================"
+    echo "Check application logs for details: $DIR/data/logs/application.log"
+    exit 1
 fi
 """
 
@@ -377,7 +415,7 @@ esac
         Generates .env.example and .env strings.
         Ensures secrets are not hardcoded in templates.
         """
-        lines = [
+        header = [
             "# ============================================================",
             f"# Customer Application Environment Configuration",
             f"# Project: {spec.project_name}",
@@ -388,17 +426,32 @@ esac
         ]
 
         for k, v in spec.global_environment.items():
-            lines.append(f"{k}={v}")
+            header.append(f"{k}={v}")
 
-        env_content = "\n".join(lines) + "\n"
-        # .env.example masks explicit auth tokens
-        example_lines = []
-        for line in lines:
-            if line.startswith("AUTH_TOKEN=") or "SECRET" in line:
-                key = line.split("=")[0]
-                example_lines.append(f"{key}=")
+        env_content = (
+            "# NOTICE: This file contains local runtime configuration.\n"
+            "# DO NOT commit this file to version control.\n"
+            + "\n".join(header)
+            + "\n"
+        )
+
+        SENSITIVE_KEYWORDS = ("SECRET", "KEY", "TOKEN", "PASS", "AUTH", "CREDENTIAL")
+        example_lines = [
+            "# ============================================================",
+            f"# Customer Application Environment Template (.env.example)",
+            f"# Copy to .env and configure appropriate values",
+            "# ============================================================",
+        ]
+        for line in header[4:]:
+            if "=" in line:
+                k, v = line.split("=", 1)
+                k_upper = k.upper()
+                if any(kw in k_upper for kw in SENSITIVE_KEYWORDS):
+                    example_lines.append(f"{k}=your_{k.lower()}_here")
+                else:
+                    example_lines.append(line)
             else:
                 example_lines.append(line)
-        env_example = "\n".join(example_lines) + "\n"
 
+        env_example = "\n".join(example_lines) + "\n"
         return env_example, env_content

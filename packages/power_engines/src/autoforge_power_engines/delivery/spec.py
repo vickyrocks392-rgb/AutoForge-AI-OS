@@ -8,16 +8,53 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class DeploymentTarget(str, Enum):
-    """Supported customer deployment targets."""
+    """Customer deployment targets."""
     LOCAL_DESKTOP = "local_desktop"
     DOCKER_HOST = "docker_host"
     VPS = "vps"
     PRIVATE_SERVER = "private_server"
     CUSTOM = "custom"
-    # Extension points for cloud managed hosting
+    # Planned / unsupported cloud hosting options
     AWS = "aws"
     AZURE = "azure"
     GCP = "gcp"
+
+
+class TargetCapabilityStatus(str, Enum):
+    """Implementation capability status for deployment targets."""
+    SUPPORTED = "supported"
+    PLANNED = "planned"
+    UNSUPPORTED = "unsupported"
+
+
+TARGET_CAPABILITIES: Dict[DeploymentTarget, TargetCapabilityStatus] = {
+    DeploymentTarget.LOCAL_DESKTOP: TargetCapabilityStatus.SUPPORTED,
+    DeploymentTarget.DOCKER_HOST: TargetCapabilityStatus.SUPPORTED,
+    DeploymentTarget.VPS: TargetCapabilityStatus.PLANNED,
+    DeploymentTarget.PRIVATE_SERVER: TargetCapabilityStatus.PLANNED,
+    DeploymentTarget.CUSTOM: TargetCapabilityStatus.PLANNED,
+    DeploymentTarget.AWS: TargetCapabilityStatus.UNSUPPORTED,
+    DeploymentTarget.AZURE: TargetCapabilityStatus.UNSUPPORTED,
+    DeploymentTarget.GCP: TargetCapabilityStatus.UNSUPPORTED,
+}
+
+
+class UnsupportedDeploymentTargetError(ValueError):
+    """Raised when an unsupported deployment target is requested without a dedicated adapter."""
+
+
+def get_target_capability(target: DeploymentTarget) -> TargetCapabilityStatus:
+    """Return the capability status of a deployment target."""
+    return TARGET_CAPABILITIES.get(target, TargetCapabilityStatus.UNSUPPORTED)
+
+
+def assert_target_supported(target: DeploymentTarget) -> None:
+    """Assert that a target is supported; raises UnsupportedDeploymentTargetError otherwise."""
+    status = get_target_capability(target)
+    if status == TargetCapabilityStatus.UNSUPPORTED:
+        raise UnsupportedDeploymentTargetError(
+            f"Deployment target '{target.value}' is UNSUPPORTED. Only local/Docker deployment targets are fully implemented."
+        )
 
 
 class RestartPolicy(str, Enum):
@@ -181,3 +218,7 @@ class CustomerDeploymentSpec(BaseModel):
         if svc and svc.ports:
             return svc.ports[0].host_ip
         return "127.0.0.1"
+
+    def target_capability_status(self) -> TargetCapabilityStatus:
+        """Return the capability status of this deployment target."""
+        return get_target_capability(self.target)

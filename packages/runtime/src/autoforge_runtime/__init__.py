@@ -79,6 +79,15 @@ from autoforge_runtime.artifact_catalog import (
     artifact_id_for_key,
     default_artifact_owner_id,
     derive_artifact_key,
+    is_owner_confirmed_dead,
+)
+from autoforge_runtime.physical_artifact_store import (
+    ArtifactIntegrityMismatchError,
+    ArtifactMissingError,
+    ArtifactPathViolationError,
+    ArtifactStorageException,
+    InvalidArtifactTypeError,
+    PhysicalArtifactStore,
 )
 from autoforge_runtime.interfaces import (
     EventSubscriptionInterface,
@@ -237,8 +246,10 @@ __all__ = [
     "is_approval_terminal", "is_approval_recoverable",
     "DurableArtifactStatus", "DurableArtifactState", "ARTIFACT_CATALOG_RECORD_VERSION",
     "DurableArtifactCatalog", "ARTIFACT_CATALOG_NAMESPACE", "default_artifact_owner_id",
-    "derive_artifact_key", "artifact_id_for_key", "ReconciliationResult",
+    "derive_artifact_key", "artifact_id_for_key", "ReconciliationResult", "is_owner_confirmed_dead",
     "ArtifactCatalogError", "ArtifactConflictError", "ArtifactNotCommittedError",
+    "PhysicalArtifactStore", "ArtifactStorageException", "ArtifactMissingError",
+    "ArtifactIntegrityMismatchError", "ArtifactPathViolationError", "InvalidArtifactTypeError",
     "validate_artifact_transition", "get_allowed_artifact_transitions",
     "is_artifact_terminal", "is_artifact_recoverable",
 ]

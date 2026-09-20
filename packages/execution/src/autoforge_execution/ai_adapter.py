@@ -143,11 +143,14 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
         AI-required workers must NEVER silently receive deterministic template outputs.
         Deterministic fallback is only permitted if explicitly configured.
         """
-        # Explicit override via environment
-        if os.environ.get("AUTOFORGE_ALLOW_DETERMINISTIC_FALLBACK", "").lower() in ("true", "1", "yes"):
+        # Explicit parameter override takes precedence
+        if self._allow_fallback is False:
+            return False
+        if self._allow_fallback is True:
             return True
 
-        if self._allow_fallback is True:
+        # Explicit override via environment
+        if os.environ.get("AUTOFORGE_ALLOW_DETERMINISTIC_FALLBACK", "").lower() in ("true", "1", "yes"):
             return True
         if self._allow_fallback is False and (not context or not self._has_explicit_fallback_policy(context)):
             return False

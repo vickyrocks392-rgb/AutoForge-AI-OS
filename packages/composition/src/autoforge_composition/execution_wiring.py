@@ -147,6 +147,9 @@ def build_execution_engine(
     artifacts = ArtifactPipeline(event_sink=event_sink)
     governance = ExecutionGovernance(policy=governance_policy)
 
+    if durable_store is None and runtime is not None:
+        durable_store = build_durable_execution_store(runtime)
+
     config = ExecutionEngineConfig(
         max_concurrent_workers=max_concurrent_workers,
         durable_recorder=durable_store,

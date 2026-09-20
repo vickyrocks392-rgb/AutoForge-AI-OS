@@ -271,6 +271,30 @@ CREATE TABLE IF NOT EXISTS runtime_entities (
 CREATE INDEX IF NOT EXISTS idx_runtime_entities_seq
     ON runtime_entities (entity_type, seq);
 
+CREATE INDEX IF NOT EXISTS idx_durable_artifact_workflow
+    ON runtime_entities (entity_type, json_extract(payload, '$.workflow_id'))
+    WHERE entity_type = 'durable_artifact';
+
+CREATE INDEX IF NOT EXISTS idx_durable_artifact_task
+    ON runtime_entities (entity_type, json_extract(payload, '$.task_id'))
+    WHERE entity_type = 'durable_artifact';
+
+CREATE INDEX IF NOT EXISTS idx_durable_artifact_execution
+    ON runtime_entities (entity_type, json_extract(payload, '$.execution_id'))
+    WHERE entity_type = 'durable_artifact';
+
+CREATE INDEX IF NOT EXISTS idx_durable_artifact_status
+    ON runtime_entities (entity_type, json_extract(payload, '$.status'))
+    WHERE entity_type = 'durable_artifact';
+
+CREATE INDEX IF NOT EXISTS idx_durable_artifact_key
+    ON runtime_entities (entity_type, json_extract(payload, '$.artifact_key'))
+    WHERE entity_type = 'durable_artifact';
+
+CREATE INDEX IF NOT EXISTS idx_durable_artifact_owner
+    ON runtime_entities (entity_type, json_extract(payload, '$.owner_id'))
+    WHERE entity_type = 'durable_artifact';
+
 CREATE TABLE IF NOT EXISTS runtime_history (
     sequence      INTEGER PRIMARY KEY AUTOINCREMENT,
     transition_id TEXT    NOT NULL UNIQUE,
@@ -633,63 +657,76 @@ class SQLiteStorage:
         now = _utc_now_iso()
         with self._lock:
             connection = self._connection_or_open()
-            row = connection.execute(
-                "SELECT seq, state_version, revision, created_at"
-                " FROM runtime_entities WHERE entity_type = ? AND entity_id = ?",
-                (entity_type.value, str(entity_id)),
-            ).fetchone()
-            if row is None:
-                if expected_version is not None:
-                    raise VersionConflictError(
-                        f"Expected version {expected_version} for "
-                        f"{entity_type.value} {entity_id}, but no state exists",
-                        details={
-                            "entity_type": entity_type.value,
-                            "entity_id": str(entity_id),
-                            "expected_version": expected_version,
-                        },
-                    )
-                seq = self._next_seq(connection)
-                revision = 1
-                created_at = now
-            else:
-                if expected_version is not None and row["state_version"] != expected_version:
-                    raise VersionConflictError(
-                        f"Version conflict for {entity_type.value} {entity_id}: "
-                        f"expected {expected_version}, stored {row['state_version']}",
-                        details={
-                            "entity_type": entity_type.value,
-                            "entity_id": str(entity_id),
-                            "expected_version": expected_version,
-                            "stored_version": row["state_version"],
-                        },
-                    )
-                seq = row["seq"]
-                revision = row["revision"] + 1
-                created_at = row["created_at"]
-            connection.execute(
-                "INSERT INTO runtime_entities"
-                " (entity_type, entity_id, seq, state_version, revision, payload,"
-                "  created_at, updated_at)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-                " ON CONFLICT (entity_type, entity_id) DO UPDATE SET"
-                "  seq = excluded.seq,"
-                "  state_version = excluded.state_version,"
-                "  revision = excluded.revision,"
-                "  payload = excluded.payload,"
-                "  updated_at = excluded.updated_at",
-                (
-                    entity_type.value,
-                    str(entity_id),
-                    seq,
-                    state_version,
-                    revision,
-                    payload,
-                    created_at,
-                    now,
-                ),
-            )
-            return revision
+            in_tx = self._transaction_depth > 0
+            if not in_tx:
+                connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = connection.execute(
+                    "SELECT seq, state_version, revision, created_at"
+                    " FROM runtime_entities WHERE entity_type = ? AND entity_id = ?",
+                    (entity_type.value, str(entity_id)),
+                ).fetchone()
+                if row is None:
+                    if expected_version is not None:
+                        raise VersionConflictError(
+                            f"Expected version {expected_version} for "
+                            f"{entity_type.value} {entity_id}, but no state exists",
+                            details={
+                                "entity_type": entity_type.value,
+                                "entity_id": str(entity_id),
+                                "expected_version": expected_version,
+                            },
+                        )
+                    seq = self._next_seq(connection)
+                    revision = 1
+                    created_at = now
+                else:
+                    if expected_version is not None and row["state_version"] != expected_version:
+                        raise VersionConflictError(
+                            f"Version conflict for {entity_type.value} {entity_id}: "
+                            f"expected {expected_version}, stored {row['state_version']}",
+                            details={
+                                "entity_type": entity_type.value,
+                                "entity_id": str(entity_id),
+                                "expected_version": expected_version,
+                                "stored_version": row["state_version"],
+                            },
+                        )
+                    seq = row["seq"]
+                    revision = row["revision"] + 1
+                    created_at = row["created_at"]
+                connection.execute(
+                    "INSERT INTO runtime_entities"
+                    " (entity_type, entity_id, seq, state_version, revision, payload,"
+                    "  created_at, updated_at)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                    " ON CONFLICT (entity_type, entity_id) DO UPDATE SET"
+                    "  seq = excluded.seq,"
+                    "  state_version = excluded.state_version,"
+                    "  revision = excluded.revision,"
+                    "  payload = excluded.payload,"
+                    "  updated_at = excluded.updated_at",
+                    (
+                        entity_type.value,
+                        str(entity_id),
+                        seq,
+                        state_version,
+                        revision,
+                        payload,
+                        created_at,
+                        now,
+                    ),
+                )
+                if not in_tx:
+                    connection.execute("COMMIT")
+                return revision
+            except Exception:
+                if not in_tx:
+                    try:
+                        connection.execute("ROLLBACK")
+                    except Exception:
+                        pass
+                raise
 
     @staticmethod
     def _next_seq(connection: sqlite3.Connection) -> int:
@@ -730,6 +767,64 @@ class SQLiteStorage:
                 " WHERE entity_type = ? ORDER BY seq",
                 (etype.value,),
             ).fetchall()
+        return [
+            _deserialize_state(etype, uuid.UUID(row["entity_id"]), row["payload"])
+            for row in rows
+        ]
+
+    def query_entities(
+        self,
+        entity_type: EntityType | str,
+        filters: dict[str, Any] | None = None,
+    ) -> list[StateModel]:
+        """Query entities of a given type matching field filters via SQL.
+
+        Args:
+            entity_type: The entity type to query.
+            filters: Key-value pairs to match against fields in payload.
+                'entity_id' matches directly against column entity_id.
+
+        Returns:
+            List of matching StateModel instances in sequence order.
+
+        Raises:
+            PersistenceError: On database or query error.
+        """
+        etype = coerce_entity_type(entity_type)
+        entity_model(etype)
+        clauses = ["entity_type = ?"]
+        params: list[Any] = [etype.value]
+
+        if filters:
+            for k, v in filters.items():
+                if v is None:
+                    continue
+                val_str = v.value if hasattr(v, "value") else str(v)
+                if k == "entity_id":
+                    clauses.append("entity_id = ?")
+                    params.append(val_str)
+                else:
+                    if not k.isidentifier():
+                        raise PersistenceError(
+                            f"Invalid query field: {k!r}",
+                            details={"field": k},
+                        )
+                    clauses.append(f"json_extract(payload, '$.{k}') = ?")
+                    params.append(val_str)
+
+        sql = (
+            f"SELECT entity_id, payload FROM runtime_entities"
+            f" WHERE {' AND '.join(clauses)} ORDER BY seq"
+        )
+        with self._lock:
+            try:
+                rows = self._connection_or_open().execute(sql, params).fetchall()
+            except sqlite3.Error as exc:
+                raise PersistenceError(
+                    f"Failed to query entities for {etype.value}: {exc}",
+                    details={"entity_type": etype.value, "filters": str(filters)},
+                ) from exc
+
         return [
             _deserialize_state(etype, uuid.UUID(row["entity_id"]), row["payload"])
             for row in rows
@@ -1147,6 +1242,14 @@ class PersistenceLayer:
     def read_all(self, entity_type: EntityType | str) -> list[StateModel]:
         """Read all states of a given type, in insertion order."""
         return self.store.read_all(entity_type)
+
+    def query_entities(
+        self,
+        entity_type: EntityType | str,
+        filters: dict[str, Any] | None = None,
+    ) -> list[StateModel]:
+        """Query entities matching filters directly from durable storage."""
+        return self.store.query_entities(entity_type, filters)
 
     def snapshot_store(self, entity_type: EntityType | str) -> dict[uuid.UUID, StateModel]:
         """Return a copy of one entity store, keyed by entity ID.

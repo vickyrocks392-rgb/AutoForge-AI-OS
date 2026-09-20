@@ -358,6 +358,59 @@ class Kernel:
                 },
             )
 
+        # Store planning artifacts in active_projects
+        if project_id in self.active_projects:
+            self.active_projects[project_id]["strategic_plan"] = strategic_plan
+            self.active_projects[project_id]["executable_workflow"] = executable_workflow
+
+        # Step 4 & 5: Orchestration -> Execution Engine -> Engineering Loops
+        should_execute = True
+        if self.config and "auto_execute" in self.config:
+            should_execute = bool(self.config["auto_execute"])
+        if request.configuration and "execute" in request.configuration:
+            should_execute = bool(request.configuration["execute"])
+        elif request.configuration and "auto_execute" in request.configuration:
+            should_execute = bool(request.configuration["auto_execute"])
+
+        if should_execute and self.orchestration_engine and executable_workflow:
+            await self.execute_project(project_id)
+
+        # Return project info
+        estimated_duration = 0.0
+        estimated_cost = 0.0
+        if strategic_plan:
+            estimated_duration = strategic_plan.estimated_duration
+            estimated_cost = strategic_plan.estimated_cost
+        if executable_workflow:
+            estimated_duration = executable_workflow.estimated_duration
+            estimated_cost = executable_workflow.estimated_cost
+
+        return {
+            "project_id": project_id,
+            "status": "created",
+            "estimated_duration": estimated_duration,
+            "estimated_cost": estimated_cost,
+        }
+
+    async def execute_project(
+        self,
+        project_id: uuid.UUID,
+    ) -> dict[str, Any]:
+        """
+        Execute a planned project through the Orchestration Engine,
+        specialist workforce engineering loops, and completion validation.
+        """
+        project_info = self.active_projects.get(project_id)
+        if not project_info:
+            raise ValueError(f"Project {project_id} not found in active projects")
+
+        executable_workflow = project_info.get("executable_workflow")
+        if not executable_workflow:
+            raise RuntimeError(f"No executable workflow found for project {project_id}")
+
+        correlation_id = project_info.get("correlation_id")
+        workflow_id = project_info.get("workflow_id") or executable_workflow.workflow_id
+
         # Step 4: Orchestration -> Execution Engine -> Engineering Loops
         if self.orchestration_engine and executable_workflow:
             # Transition to Running state
@@ -365,7 +418,11 @@ class Kernel:
                 await self.runtime_state_manager.transition_state(
                     project_id=project_id,
                     new_status="running",
-                    metadata={"workflow_id": str(workflow_id)},
+                    metadata={
+                        "workflow_id": str(workflow_id),
+                        "strategic_plan": True,
+                        "executable_workflow": True,
+                    },
                 )
 
             # Publish project.running event
@@ -414,7 +471,7 @@ class Kernel:
                         correlation_id=correlation_id,
                         metadata=finalize_result,
                     )
-                    
+
                     # Coordinate infrastructure at project end per Kernel Specification v1.0 Section 15
                     if self.infrastructure_coordinator:
                         await self.infrastructure_coordinator.coordinate_services(
@@ -425,22 +482,7 @@ class Kernel:
                             },
                         )
 
-        # Return project info
-        estimated_duration = 0.0
-        estimated_cost = 0.0
-        if strategic_plan:
-            estimated_duration = strategic_plan.estimated_duration
-            estimated_cost = strategic_plan.estimated_cost
-        if executable_workflow:
-            estimated_duration = executable_workflow.estimated_duration
-            estimated_cost = executable_workflow.estimated_cost
-
-        return {
-            "project_id": project_id,
-            "status": "created",
-            "estimated_duration": estimated_duration,
-            "estimated_cost": estimated_cost,
-        }
+        return {"project_id": project_id, "status": "finished"}
 
     async def get_status(self, project_id: uuid.UUID) -> dict[str, Any]:
         """
@@ -913,14 +955,18 @@ class Kernel:
         if event_type == EventType.TASK_COMPLETED:
             # Task completed - update state
             if self.runtime_state_manager:
-                state = await self.runtime_state_manager.get_project_state(project_id)
-                completed = state.get("completed_count", 0) + 1
-                total = state.get("task_count", 1)
-                progress = (completed / total) * 100.0 if total > 0 else 0.0
-                await self.runtime_state_manager.transition_state(
-                    project_id, state.get("status", "running"),
-                    metadata={"completed_count": completed, "progress": progress}
-                )
+                try:
+                    state = await self.runtime_state_manager.get_project_state(project_id)
+                except Exception:
+                    state = None
+                if state:
+                    completed = state.get("completed_count", 0) + 1
+                    total = state.get("task_count", 1)
+                    progress = (completed / total) * 100.0 if total > 0 else 0.0
+                    await self.runtime_state_manager.transition_state(
+                        project_id, state.get("status", "running"),
+                        metadata={"completed_count": completed, "progress": progress}
+                    )
         elif event_type == EventType.TASK_FAILED:
             # Task failed - apply retry policy
             if self.recovery_module:
@@ -930,17 +976,27 @@ class Kernel:
         elif event_type == EventType.TASK_PAUSED:
             # Task paused - update state
             if self.runtime_state_manager:
-                await self.runtime_state_manager.transition_state(
-                    project_id, "paused",
-                    metadata={"paused_task_id": task_id}
-                )
+                try:
+                    state = await self.runtime_state_manager.get_project_state(project_id)
+                except Exception:
+                    state = None
+                if state:
+                    await self.runtime_state_manager.transition_state(
+                        project_id, "paused",
+                        metadata={"paused_task_id": task_id}
+                    )
         elif event_type == EventType.TASK_BLOCKED:
             # Task blocked - update state
             if self.runtime_state_manager:
-                await self.runtime_state_manager.transition_state(
-                    project_id, "running",
-                    metadata={"blocked_task_id": task_id, "blocked_by": event.metadata.get("blocked_by")}
-                )
+                try:
+                    state = await self.runtime_state_manager.get_project_state(project_id)
+                except Exception:
+                    state = None
+                if state:
+                    await self.runtime_state_manager.transition_state(
+                        project_id, "running",
+                        metadata={"blocked_task_id": task_id, "blocked_by": event.metadata.get("blocked_by")}
+                    )
 
     async def _handle_approval_event(self, event: DomainBaseEvent) -> None:
         """Handle approval events."""

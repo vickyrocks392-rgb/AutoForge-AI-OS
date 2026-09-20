@@ -1,0 +1,81 @@
+name: AutoForge CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-and-test:
+    name: Validate Packages & Run Test Suites
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    env:
+      AUTOFORGE_ALLOW_DETERMINISTIC_FALLBACK: "1"
+      PYTHONPATH: "packages/events/src:packages/event-platform/src:packages/runtime/src:packages/models/src:packages/storage/src:packages/ai-infrastructure/src:packages/workflows/src:packages/execution/src:packages/artifacts/src:packages/review/src:packages/security/src:packages/connectors/src:packages/memory/src:packages/knowledge/src:packages/strategic/src:packages/orchestration/src:packages/kernel/src:packages/composition/src:packages/workforce/src:packages/customer-platform/src:packages/power_engines/src:packages/modernization/src:packages/ai_infrastructure/src:packages/observability/src:packages/persistence/src"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Base Test Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio pydantic httpx pyyaml cryptography gitpython
+
+      - name: Validate Package Imports
+        run: |
+          python -c "
+          import autoforge_runtime
+          import autoforge_kernel
+          import autoforge_workflows
+          import autoforge_execution
+          import autoforge_artifacts
+          import autoforge_review
+          import autoforge_security
+          import autoforge_connectors
+          import autoforge_composition
+          import autoforge_power_engines
+          print('✓ All core package namespaces imported successfully')
+          "
+
+      - name: Run Kernel & Workflow Test Suites
+        run: |
+          pytest packages/kernel/tests/ -v
+          pytest packages/workflows/tests/ -v
+
+      - name: Run Runtime & Durability Test Suites
+        run: |
+          pytest packages/runtime/tests/ -v
+
+      - name: Run Artifact Platform & Physical Store Test Suites
+        run: |
+          pytest packages/artifacts/tests/ -v
+
+      - name: Run Security & Connector Boundaries
+        run: |
+          pytest packages/security/tests/ -v
+          pytest packages/connectors/tests/ -v
+
+      - name: Run AI Infrastructure & Review Quality Gates
+        run: |
+          pytest packages/ai_infrastructure/tests/ -v
+          pytest packages/review/tests/ -v
+
+      - name: Run Commercial Power Engines & Customer Delivery
+        run: |
+          pytest packages/power_engines/tests/ -v
+
+      - name: Run Architecture Reconciliation & Full Autonomous Chain E2E
+        run: |
+          pytest packages/composition/tests/ -v

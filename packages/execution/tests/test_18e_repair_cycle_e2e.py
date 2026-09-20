@@ -32,6 +32,30 @@ def _is_local_url(url):
     except: return False
     return bool(parsed.hostname) and parsed.hostname in _LOCALHOSTS
 
+def _is_qdrant_and_ollama_available():
+    try:
+        urllib.request.urlopen("http://127.0.0.1:6333/collections", timeout=1)
+        urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=1)
+        return True
+    except Exception:
+        return False
+
+@pytest.fixture(autouse=True)
+def _check_live_dependencies(request):
+    live_tests = {
+        "test_18e_repair_cycle_through_real_execution_engine",
+        "test_18e_rag_diagnoser_calls_real_qdrant",
+        "test_18e_repair_cycle_bounded_retry",
+        "test_18e_no_cloud_ollama_live",
+        "test_18e_no_cloud_qdrant_live",
+        "test_18e_comprehensive_authoritative_live_e2e",
+        "test_18e_bad_repair_cannot_fabricate_pass",
+        "test_18e_provenance_chain_complete",
+    }
+    if request.node.name in live_tests:
+        if not _is_qdrant_and_ollama_available():
+            pytest.skip("Local live Qdrant (6333) or Ollama (11434) daemon not running")
+
 
 class BadHashRepairAIProvider(AIEngineeringProvider):
     def __init__(self): self.plans=[]; self.impls=[]; self.repairs=[]; self.diags=[]

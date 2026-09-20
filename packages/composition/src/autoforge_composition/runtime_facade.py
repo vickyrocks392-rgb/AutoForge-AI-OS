@@ -141,7 +141,11 @@ class KernelRuntimeFacade(RuntimeStateManager):
         metadata: dict[str, Any] | None = None,
     ) -> None:
         """Request a project state transition — validated BY the runtime."""
-        self._runtime.transition_project_state(project_id, new_status, metadata)
+        target = new_status.lower()
+        curr = self._runtime.get_project_state(project_id)
+        if curr and curr.status.value == target:
+            return
+        self._runtime.transition_project_state(project_id, target, metadata)
 
     async def get_project_state(self, project_id: uuid.UUID) -> dict[str, Any]:
         """Return the runtime's authoritative view as a plain dict."""
