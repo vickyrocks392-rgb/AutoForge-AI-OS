@@ -290,6 +290,11 @@ class PhysicalArtifactStore:
         )
 
         target = self.resolve_artifact_path(target_relative_path)
+        if target.is_symlink():
+            raise ArtifactPathViolationError(
+                f"Atomic publish target cannot be an existing symlink: {target}",
+                details={"target": str(target)},
+            )
         target.parent.mkdir(parents=True, exist_ok=True)
 
         # Atomic replace on POSIX / Windows
@@ -303,16 +308,45 @@ class PhysicalArtifactStore:
     # ── Quarantine & Cleanup ──────────────────────────────────────────────
 
     def quarantine(self, path: Path | str, reason: str = "") -> Path:
-        """Safely move an invalid, corrupted, or orphaned artifact to quarantine_root."""
-        src = Path(path)
-        if not src.exists():
-            raise ArtifactMissingError(f"Cannot quarantine nonexistent file: {src}")
+        """Safely move an invalid, corrupted, or orphaned artifact to quarantine_root.
 
-        q_name = f"quarantine_{uuid.uuid4().hex[:12]}_{src.name}"
+        Enforces strict boundary confinement: only files within artifact_root or
+        staging_root can be quarantined. Symlinks are rejected.
+        """
+        p = Path(path)
+        if p.is_symlink():
+            raise ArtifactPathViolationError(
+                f"Cannot quarantine a symlink: {p}",
+                details={"path": str(p)},
+            )
+
+        try:
+            resolved = p.resolve()
+        except Exception as e:
+            raise ArtifactPathViolationError(
+                f"Invalid quarantine path: {p}",
+                details={"error": str(e)},
+            ) from e
+
+        if not (resolved.is_relative_to(self._artifact_root) or resolved.is_relative_to(self._staging_root)):
+            raise ArtifactPathViolationError(
+                f"Cannot quarantine file outside artifact boundaries: '{path}' (resolved: '{resolved}')",
+                details={
+                    "requested_path": str(path),
+                    "resolved_path": str(resolved),
+                    "artifact_root": str(self._artifact_root),
+                    "staging_root": str(self._staging_root),
+                },
+            )
+
+        if not resolved.exists():
+            raise ArtifactMissingError(f"Cannot quarantine nonexistent file: {resolved}")
+
+        q_name = f"quarantine_{uuid.uuid4().hex[:12]}_{resolved.name}"
         q_target = self._quarantine_root / q_name
-        shutil.move(src, q_target)
+        shutil.move(resolved, q_target)
         self._sync_directory(self._quarantine_root)
-        logger.warning("Quarantined artifact %s -> %s (reason: %s)", src, q_target, reason)
+        logger.warning("Quarantined artifact %s -> %s (reason: %s)", resolved, q_target, reason)
         return q_target
 
     def cleanup_staging(self, staging_path: Path | str) -> bool:

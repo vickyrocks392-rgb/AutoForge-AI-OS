@@ -29,6 +29,14 @@ from autoforge_execution.models import (
 )
 
 
+class ArtifactRetrievalError(Exception):
+    """Raised when artifact retrieval encounters a persistence, I/O, or corruption error."""
+
+
+class ArtifactPersistenceError(ArtifactRetrievalError):
+    """Raised when durable catalog or physical store fails during artifact retrieval."""
+
+
 class ArtifactPipeline:
     """
     Manages capturing, indexing, and emitting events for artifacts produced during execution.
@@ -190,40 +198,52 @@ class ArtifactPipeline:
         if self._durable_catalog is not None:
             try:
                 state = self._durable_catalog.get_artifact(artifact_id)
-                if state is not None:
-                    # Reconstruct ArtifactRecord from durable state
-                    art_type = ArtifactType.SOURCE_CODE
-                    for t in ArtifactType:
-                        if t.value == state.artifact_type:
-                            art_type = t
-                            break
-                    prov = ArtifactProvenance(
-                        workflow_id=state.workflow_id,
-                        task_id=state.task_id or "",
-                        execution_id=state.execution_id,
-                        worker_id=state.provenance.get("worker_id", "system"),
-                        iteration=state.provenance.get("iteration", state.logical_version),
-                    )
-                    content = ""
-                    if state.storage_path and Path(state.storage_path).is_file():
+            except Exception as e:
+                logger.error("Durable catalog retrieval failed for artifact %s: %s", artifact_id, e, exc_info=True)
+                raise ArtifactPersistenceError(
+                    f"Durable catalog error retrieving artifact {artifact_id}: {e}"
+                ) from e
+
+            if state is not None:
+                # Reconstruct ArtifactRecord from durable state
+                art_type = ArtifactType.SOURCE_CODE
+                for t in ArtifactType:
+                    if t.value == state.artifact_type:
+                        art_type = t
+                        break
+                prov_meta = dict(state.provenance.get("metadata", {}))
+                if state.execution_id:
+                    prov_meta["execution_id"] = str(state.execution_id)
+                prov = ArtifactProvenance(
+                    workflow_id=state.workflow_id,
+                    task_id=state.task_id or "",
+                    worker_id=state.provenance.get("worker_id", "system"),
+                    iteration=state.provenance.get("iteration", state.logical_version),
+                    metadata=prov_meta,
+                )
+                content = ""
+                if state.storage_path:
+                    p = Path(state.storage_path)
+                    if p.exists():
                         try:
-                            content = Path(state.storage_path).read_text(encoding="utf-8", errors="ignore")
-                        except Exception:
-                            content = ""
-                    rec = ArtifactRecord(
-                        artifact_id=state.artifact_id,
-                        name=state.artifact_name,
-                        artifact_type=art_type,
-                        content=content,
-                        path=state.storage_path,
-                        checksum=state.content_hash,
-                        size_bytes=state.size_bytes,
-                        provenance=prov,
-                    )
-                    self._artifacts[state.artifact_id] = rec
-                    return rec
-            except Exception:
-                pass
+                            content = p.read_text(encoding="utf-8")
+                        except Exception as io_err:
+                            logger.error("Failed to read artifact content at %s: %s", state.storage_path, io_err)
+                            raise ArtifactRetrievalError(
+                                f"I/O error reading artifact content for {artifact_id} at {state.storage_path}: {io_err}"
+                            ) from io_err
+                rec = ArtifactRecord(
+                    artifact_id=state.artifact_id,
+                    name=state.artifact_name,
+                    artifact_type=art_type,
+                    content=content,
+                    path=state.storage_path,
+                    checksum=state.content_hash,
+                    size_bytes=state.size_bytes,
+                    provenance=prov,
+                )
+                self._artifacts[state.artifact_id] = rec
+                return rec
         return None
 
     def get_artifacts_for_task(self, task_id: str) -> list[ArtifactRecord]:

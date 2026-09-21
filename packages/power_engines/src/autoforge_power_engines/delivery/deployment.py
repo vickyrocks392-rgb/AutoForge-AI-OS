@@ -348,12 +348,18 @@ case "$ACTION" in
     stop)
         echo "Stopping customer application..."
         if command -v docker &> /dev/null && [ -f "docker-compose.yml" ]; then
-            docker compose down 2>/dev/null || true
+            if ! docker compose down 2>/dev/null; then
+                echo "Notice: docker compose down exited or services already stopped." >&2
+            fi
         fi
         for pid_file in data/*.pid; do
             if [ -f "$pid_file" ]; then
                 PID=$(cat "$pid_file")
-                kill -15 "$PID" 2>/dev/null || kill -9 "$PID" 2>/dev/null || true
+                if kill -0 "$PID" 2>/dev/null; then
+                    if ! kill -15 "$PID" 2>/dev/null; then
+                        kill -9 "$PID" 2>/dev/null || echo "Notice: process $PID already exited." >&2
+                    fi
+                fi
                 rm -f "$pid_file"
             fi
         done

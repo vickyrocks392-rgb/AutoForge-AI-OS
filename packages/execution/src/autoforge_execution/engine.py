@@ -16,7 +16,11 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
+from enum import Enum
+import logging
 import time
+
+logger = logging.getLogger("autoforge.execution.engine")
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -57,6 +61,16 @@ class RuntimeFacadeProtocol(Protocol):
         ...
 
 
+class DurabilityPolicy(str, Enum):
+    """Policy for handling failures in the durable execution persistence path."""
+    FAIL_CLOSED = "fail_closed"
+    DEGRADED = "degraded"
+
+
+class DurabilityPersistenceError(Exception):
+    """Raised when durable execution persistence operations fail."""
+
+
 @dataclass
 class ExecutionEngineConfig:
     """Configuration options for the ExecutionEngine."""
@@ -65,14 +79,8 @@ class ExecutionEngineConfig:
     default_loop_config: LoopConfig = field(default_factory=LoopConfig)
     auto_checkpoint: bool = True
     durable_recorder: DurableExecutionRecorder | None = None
-    """Optional durable execution recorder (Phase 18-J.2).
-
-    When attached, every dispatched work unit gains canonical durable
-    identity: execution + attempt + boundary records written through the
-    runtime PersistenceLayer. The engine never caches durable state and never
-    treats emitted events as the authoritative commit — the recorder's
-    transactional commits are.
-    """
+    durability_policy: DurabilityPolicy = DurabilityPolicy.FAIL_CLOSED
+    """Policy controlling whether persistence failures fail-closed or degrade observably."""
 
 
 
@@ -172,12 +180,23 @@ class ExecutionEngine:
                 )
                 if durable_state is not None:
                     execution_id = durable_state.execution_id
-            except Exception:
-                # Durable identity is best-effort at this layer: the runtime
-                # store (shared SQLite) can be concurrently migrated, etc.
-                # In-memory execution continues; the durable record simply
-                # reflects the last durably committed truth.
-                durable_state = None
+            except Exception as ex:
+                logger.error("Durable execution begin_execution failed: %s", ex, exc_info=True)
+                if self._config.durability_policy == DurabilityPolicy.FAIL_CLOSED:
+                    self._events.emit_execution_failed(
+                        execution_id=execution_id,
+                        task_id=task_uuid,
+                        project_id=project_id,
+                        error_code="DURABILITY_PERSISTENCE_FAILURE",
+                        error_message=f"Durable execution recording failed: {ex}",
+                        duration_seconds=time.perf_counter() - start_time,
+                        correlation_id=correlation_id,
+                    )
+                    raise DurabilityPersistenceError(f"Durable execution recording failed: {ex}") from ex
+                else:
+                    task_def.metadata["durability_status"] = "DEGRADED"
+                    task_def.metadata["durability_error"] = str(ex)
+                    durable_state = None
 
         self._events.emit_execution_started(
             execution_id=execution_id,
@@ -209,8 +228,11 @@ class ExecutionEngine:
                     },
                     created_by="execution_engine",
                 )
-            except Exception:
-                pass
+            except Exception as ex:
+                logger.error("Durable execution record_checkpoint failed: %s", ex, exc_info=True)
+                if self._config.durability_policy == DurabilityPolicy.FAIL_CLOSED:
+                    raise DurabilityPersistenceError(f"Durable checkpoint recording failed: {ex}") from ex
+                task_def.metadata["durability_status"] = "DEGRADED"
 
         duration = time.perf_counter() - start_time
         art_ids = [a.artifact_id for a in artifacts]
@@ -226,8 +248,11 @@ class ExecutionEngine:
                             "duration_seconds": duration,
                         },
                     )
-                except Exception:
-                    pass
+                except Exception as ex:
+                    logger.error("Durable execution complete_attempt failed: %s", ex, exc_info=True)
+                    if self._config.durability_policy == DurabilityPolicy.FAIL_CLOSED:
+                        raise DurabilityPersistenceError(f"Durable complete_attempt recording failed: {ex}") from ex
+                    task_def.metadata["durability_status"] = "DEGRADED"
             self._events.emit_execution_completed(
                 execution_id=execution_id,
                 task_id=task_uuid,
@@ -253,8 +278,11 @@ class ExecutionEngine:
                         retryable=retryable,
                         result={"duration_seconds": duration},
                     )
-                except Exception:
-                    pass
+                except Exception as ex:
+                    logger.error("Durable execution fail_attempt failed: %s", ex, exc_info=True)
+                    if self._config.durability_policy == DurabilityPolicy.FAIL_CLOSED:
+                        raise DurabilityPersistenceError(f"Durable fail_attempt recording failed: {ex}") from ex
+                    task_def.metadata["durability_status"] = "DEGRADED"
             self._events.emit_execution_failed(
                 execution_id=execution_id,
                 task_id=task_uuid,

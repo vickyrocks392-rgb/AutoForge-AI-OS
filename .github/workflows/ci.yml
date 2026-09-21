@@ -17,7 +17,7 @@ jobs:
 
     env:
       AUTOFORGE_ALLOW_DETERMINISTIC_FALLBACK: "1"
-      PYTHONPATH: "packages/events/src:packages/event-platform/src:packages/runtime/src:packages/models/src:packages/storage/src:packages/ai-infrastructure/src:packages/workflows/src:packages/execution/src:packages/artifacts/src:packages/review/src:packages/security/src:packages/connectors/src:packages/memory/src:packages/knowledge/src:packages/strategic/src:packages/orchestration/src:packages/kernel/src:packages/composition/src:packages/workforce/src:packages/customer-platform/src:packages/power_engines/src:packages/modernization/src:packages/ai_infrastructure/src:packages/observability/src:packages/persistence/src"
+      PYTHONPATH: "packages/events/src:packages/event_platform/src:packages/runtime/src:packages/models/src:packages/ai_infrastructure/src:packages/workflows/src:packages/execution/src:packages/artifacts/src:packages/review/src:packages/security/src:packages/connectors/src:packages/orchestration/src:packages/kernel/src:packages/composition/src:packages/workforce/src:packages/power_engines/src:packages/modernization/src:packages/observability/src:packages/persistence/src:packages/knowledge_platform/src"
 
     steps:
       - name: Checkout Code
@@ -31,36 +31,56 @@ jobs:
       - name: Install Base Test Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio pydantic httpx pyyaml cryptography gitpython
+          pip install pytest pytest-asyncio pydantic httpx pyyaml cryptography gitpython fastapi uvicorn qdrant-client psutil
 
       - name: Validate Package Imports
         run: |
           python -c "
+          import autoforge_events
+          import autoforge_event_platform
           import autoforge_runtime
-          import autoforge_kernel
+          import autoforge_models
+          import autoforge_ai_infrastructure
           import autoforge_workflows
           import autoforge_execution
           import autoforge_artifacts
           import autoforge_review
           import autoforge_security
           import autoforge_connectors
+          import autoforge_orchestration
+          import autoforge_kernel
           import autoforge_composition
+          import autoforge_workforce
           import autoforge_power_engines
-          print('✓ All core package namespaces imported successfully')
+          import autoforge_modernization
+          import autoforge_observability
+          import autoforge_persistence
+          import autoforge_knowledge_platform
+          print('✓ All 20 core package namespaces imported successfully')
           "
 
-      - name: Run Kernel & Workflow Test Suites
+      - name: Run Kernel & Orchestration Test Suites
         run: |
           pytest packages/kernel/tests/ -v
+          pytest packages/orchestration/tests/ -v
+
+      - name: Run Workflow Test Suites
+        run: |
           pytest packages/workflows/tests/ -v
 
-      - name: Run Runtime & Durability Test Suites
+      - name: Run Runtime & Persistence Test Suites
         run: |
           pytest packages/runtime/tests/ -v
+          pytest packages/persistence/tests/ -v
 
       - name: Run Artifact Platform & Physical Store Test Suites
         run: |
           pytest packages/artifacts/tests/ -v
+
+      - name: Run Events & Event Platform Test Suites
+        run: |
+          pytest packages/events/tests/ -v
+          pytest packages/event_platform/tests/ -v
 
       - name: Run Security & Connector Boundaries
         run: |
@@ -72,6 +92,15 @@ jobs:
           pytest packages/ai_infrastructure/tests/ -v
           pytest packages/review/tests/ -v
 
+      - name: Run Observability Test Suites
+        run: |
+          pytest packages/observability/tests/ -v
+
+      - name: Run Workforce & Execution Engines
+        run: |
+          pytest packages/workforce/tests/ -v
+          pytest packages/execution/tests/ -v
+
       - name: Run Commercial Power Engines & Customer Delivery
         run: |
           pytest packages/power_engines/tests/ -v
@@ -79,3 +108,11 @@ jobs:
       - name: Run Architecture Reconciliation & Full Autonomous Chain E2E
         run: |
           pytest packages/composition/tests/ -v
+
+      - name: Run Legacy Modernization Test Suites
+        run: |
+          pytest packages/modernization/tests/ -v
+
+      - name: Run Root & Models Test Suites
+        run: |
+          pytest tests/ -v

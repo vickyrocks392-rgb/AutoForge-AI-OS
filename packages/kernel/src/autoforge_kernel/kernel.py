@@ -148,6 +148,7 @@ class Kernel:
         runtime_lifecycle_manager: RuntimeLifecycleManager | None = None,
         project_lifecycle_manager: ProjectLifecycleManager | None = None,
         recovery_module: RecoveryModule | None = None,
+        learning_engine: Any | None = None,
     ):
         """
         Initialize the Kernel.
@@ -197,6 +198,7 @@ class Kernel:
         self.runtime_lifecycle_manager = runtime_lifecycle_manager
         self.project_lifecycle_manager = project_lifecycle_manager
         self.recovery_module = recovery_module
+        self.learning_engine = learning_engine
 
         # Active projects tracking
         self.active_projects: dict[uuid.UUID, dict[str, Any]] = {}
@@ -481,6 +483,25 @@ class Kernel:
                                 "project_memory": finalize_result,
                             },
                         )
+
+                    # Step 6: Learning & Reflection (Phase 18-K ADR-005)
+                    if self.learning_engine and hasattr(self.learning_engine, "reflect_and_learn"):
+                        try:
+                            await self.learning_engine.reflect_and_learn(
+                                project_id=project_id,
+                                execution_summary=finalize_result,
+                                review_findings=validation_result.get("findings", []),
+                            )
+                        except Exception as ex:
+                            logger.warning(f"Kernel learning stage failed: {ex}")
+        elif self.learning_engine and hasattr(self.learning_engine, "reflect_and_learn"):
+            try:
+                await self.learning_engine.reflect_and_learn(
+                    project_id=project_id,
+                    execution_summary={"status": "finished", "project_id": str(project_id)},
+                )
+            except Exception as ex:
+                logger.warning(f"Kernel learning stage failed: {ex}")
 
         return {"project_id": project_id, "status": "finished"}
 

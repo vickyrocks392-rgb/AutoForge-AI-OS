@@ -85,10 +85,11 @@ class EngineeringContextBuilder:
                 logger.debug(f"Workspace file scan error: {ex}")
 
         # 3. Retrieve Relevant Project Memory (if memory engine provided)
-        if memory_engine and hasattr(memory_engine, "retrieve_memory"):
+        mem_eng = memory_engine or self.memory_engine
+        if mem_eng and hasattr(mem_eng, "retrieve_memory"):
             try:
                 query = f"{task_def.name} {task_def.task_type}"
-                memories = await memory_engine.retrieve_memory(query, limit=5)
+                memories = await mem_eng.retrieve_memory(query, limit=5)
                 if memories:
                     context.metadata["relevant_memories"] = memories
             except Exception as ex:
@@ -96,6 +97,7 @@ class EngineeringContextBuilder:
 
         # 4. Retrieve Domain Knowledge / RAG Evidence (if available)
         retrieved_hits: list[dict[str, Any]] = []
+        kn_eng = knowledge_engine or self.knowledge_engine
         if rag_engine and hasattr(rag_engine, "retrieve"):
             try:
                 query = f"{task_def.name} {task_def.description}"
@@ -106,9 +108,9 @@ class EngineeringContextBuilder:
                     )
             except Exception as ex:
                 logger.debug(f"RAG retrieval non-fatal error: {ex}")
-        elif knowledge_engine and hasattr(knowledge_engine, "query"):
+        elif kn_eng and hasattr(kn_eng, "query"):
             try:
-                k_items = await knowledge_engine.query(task_def.name, filters=None)
+                k_items = await kn_eng.query(task_def.name, filters=None)
                 for ki in k_items[:3]:
                     retrieved_hits.append(ki if isinstance(ki, dict) else {"content": str(ki)})
             except Exception as ex:

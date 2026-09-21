@@ -57,6 +57,7 @@ class WorkerDispatcher:
         loop_config: LoopConfig | None = None,
         event_sink: Any = None,
         rag_engine: RAGRetrievalEngine | None = None,
+        context_builder: Any | None = None,
     ) -> None:
         self._env = environment
         self._ai = ai_provider
@@ -66,6 +67,7 @@ class WorkerDispatcher:
         self._loop_config = loop_config or LoopConfig()
         self._event_sink = event_sink
         self._rag_engine = rag_engine
+        self._context_builder = context_builder
 
         self._active_workers: dict[str, EngineeringWorker] = {}
         self._worker_counter = 0
@@ -135,13 +137,23 @@ class WorkerDispatcher:
 
         worker = self.create_worker(worker_type=w_type)
 
-        context = ExecutionContext.from_task_definition(
-            task_def=task_def,
-            workspace_root=self._env.root,
-            workflow_id=workflow_id,
-            correlation_id=correlation_id,
-            attempt_number=attempt_number,
-        )
+        if self._context_builder is not None and hasattr(self._context_builder, "assemble_context"):
+            context = await self._context_builder.assemble_context(
+                task_def=task_def,
+                workspace_root=self._env.root,
+                workflow_id=workflow_id,
+                correlation_id=correlation_id,
+                attempt_number=attempt_number,
+                rag_engine=self._rag_engine,
+            )
+        else:
+            context = ExecutionContext.from_task_definition(
+                task_def=task_def,
+                workspace_root=self._env.root,
+                workflow_id=workflow_id,
+                correlation_id=correlation_id,
+                attempt_number=attempt_number,
+            )
 
         passed, artifacts, eval_res = await worker.execute_task(context)
         return passed, artifacts, eval_res, worker

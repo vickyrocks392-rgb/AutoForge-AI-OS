@@ -118,6 +118,9 @@ def build_execution_engine(
     governance_policy: GovernancePolicy | None = None,
     max_concurrent_workers: int = 4,
     durable_store: DurableExecutionStore | None = None,
+    durable_catalog: Any | None = None,
+    physical_store: Any | None = None,
+    context_builder: Any | None = None,
 ) -> ExecutionEngine:
     """
     Construct and wire a production ``ExecutionEngine``.
@@ -127,6 +130,12 @@ def build_execution_engine(
     boundary) through the runtime PersistenceLayer. Build it with
     :func:`build_durable_execution_store` so it shares the runtime's own
     persistence layer.
+
+    ``durable_catalog`` and ``physical_store`` (Phase 18-K): when provided,
+    artifacts produced by workers are durably registered and physically stored.
+
+    ``context_builder`` (Phase 18-K): when provided, workforce workers receive
+    context assembled by EngineeringContextBuilder.
     """
     root_path = Path(workspace_root) if workspace_root else Path(tempfile.mkdtemp(prefix="autoforge_exec_"))
     root_path.mkdir(parents=True, exist_ok=True)
@@ -144,7 +153,11 @@ def build_execution_engine(
         capacity_router=capacity_router,
     )
 
-    artifacts = ArtifactPipeline(event_sink=event_sink)
+    artifacts = ArtifactPipeline(
+        event_sink=event_sink,
+        durable_catalog=durable_catalog,
+        physical_store=physical_store,
+    )
     governance = ExecutionGovernance(policy=governance_policy)
 
     if durable_store is None and runtime is not None:
@@ -175,6 +188,7 @@ def build_execution_engine(
         governance=governance,
         loop_config=config.default_loop_config,
         event_sink=event_sink,
+        context_builder=context_builder,
     )
 
     return engine

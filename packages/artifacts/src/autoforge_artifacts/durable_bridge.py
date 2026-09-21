@@ -57,7 +57,7 @@ class DurableArtifactStoreBridge(ArtifactStoreProtocol):
         self.catalog = catalog
         self.physical_store = physical_store
         self.owner_id = owner_id or catalog.owner_id
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
         # Domain metadata caches preserved for domain features (lineage, publications, rollbacks)
         self._artifacts: dict[uuid.UUID, Artifact] = {}
@@ -113,7 +113,7 @@ class DurableArtifactStoreBridge(ArtifactStoreProtocol):
                     name=state.artifact_name,
                     artifact_type=CanonicalArtifactType.SOURCE,
                     state=ArtifactState.VERSIONED if state.status == DurableArtifactStatus.COMMITTED else ArtifactState.CREATED,
-                    latest_version_number=state.logical_version,
+                    version_count=state.logical_version or 0,
                     metadata=state.metadata,
                 )
                 self._artifacts[state.artifact_id] = art
@@ -143,7 +143,7 @@ class DurableArtifactStoreBridge(ArtifactStoreProtocol):
                             name=s.artifact_name,
                             artifact_type=CanonicalArtifactType.SOURCE,
                             state=ArtifactState.VERSIONED if s.status == DurableArtifactStatus.COMMITTED else ArtifactState.CREATED,
-                            latest_version_number=s.logical_version,
+                            version_count=s.logical_version or 0,
                             metadata=s.metadata,
                         )
                 return [a for a in self._artifacts.values() if a.project_id == project_id]
@@ -207,6 +207,7 @@ class DurableArtifactStoreBridge(ArtifactStoreProtocol):
 
             stored_version = version.model_copy(
                 update={
+                    "version_id": durable_state.artifact_id,
                     "content_hash": c_hash,
                     "size_bytes": s_bytes,
                 }
@@ -216,15 +217,43 @@ class DurableArtifactStoreBridge(ArtifactStoreProtocol):
             self._version_index[stored_version.version_id] = stored_version
 
             # Update parent artifact latest version
-            updated_art = artifact.model_copy(
-                update={
-                    "latest_version_number": version.version_number,
-                    "state": ArtifactState.VERSIONED,
-                }
+            updated_art = artifact.with_version(
+                version_id=stored_version.version_id,
+                version_count=len(self._versions[artifact.artifact_id]),
             )
             self._artifacts[artifact.artifact_id] = updated_art
 
             return stored_version
+
+    def _populate_versions_from_catalog(self, artifact_id: uuid.UUID) -> None:
+        """Reconstruct version metadata from the authoritative DurableArtifactCatalog on restart."""
+        artifact = self.get(artifact_id)
+        if artifact is None or not artifact.project_id:
+            return
+        states = self.catalog.find_by_workflow(artifact.project_id)
+        for s in states:
+            if s.status == DurableArtifactStatus.COMMITTED and s.logical_version is not None:
+                if s.artifact_name == artifact.name or s.artifact_name.startswith(f"{artifact.name}_v"):
+                    content = ""
+                    if s.storage_path and Path(s.storage_path).is_file():
+                        try:
+                            content = Path(s.storage_path).read_text(encoding="utf-8")
+                        except Exception:
+                            content = ""
+                    v = ArtifactVersion(
+                        version_id=s.artifact_id,
+                        artifact_id=artifact_id,
+                        version_number=s.logical_version,
+                        content=content,
+                        content_hash=s.content_hash or "",
+                        size_bytes=s.size_bytes or len(content.encode("utf-8")),
+                        parent_version_id=s.parent_artifact_id,
+                    )
+                    if v.version_id not in self._version_index:
+                        self._version_index[v.version_id] = v
+                        cur_list = self._versions.setdefault(artifact_id, [])
+                        if not any(existing.version_id == v.version_id for existing in cur_list):
+                            cur_list.append(v)
 
     def get_version(
         self, artifact_id: uuid.UUID, version_id: uuid.UUID
@@ -233,14 +262,22 @@ class DurableArtifactStoreBridge(ArtifactStoreProtocol):
             v = self._version_index.get(version_id)
             if v is not None and v.artifact_id == artifact_id:
                 return v
+            self._populate_versions_from_catalog(artifact_id)
+            v = self._version_index.get(version_id)
+            if v is not None and v.artifact_id == artifact_id:
+                return v
             return None
 
     def list_versions(self, artifact_id: uuid.UUID) -> list[ArtifactVersion]:
         with self._lock:
+            if not self._versions.get(artifact_id):
+                self._populate_versions_from_catalog(artifact_id)
             return list(self._versions.get(artifact_id, []))
 
     def get_latest_version(self, artifact_id: uuid.UUID) -> ArtifactVersion | None:
         with self._lock:
+            if not self._versions.get(artifact_id):
+                self._populate_versions_from_catalog(artifact_id)
             versions = self._versions.get(artifact_id, [])
             if not versions:
                 return None
@@ -253,7 +290,20 @@ class DurableArtifactStoreBridge(ArtifactStoreProtocol):
                 return False
             # Verify in-memory content hash
             computed = compute_content_hash(v.content)
-            return computed == v.content_hash
+            if computed != v.content_hash:
+                return False
+            # Verify physical file state on disk via physical store
+            state = self.catalog.get_artifact(version_id)
+            if state and state.storage_path:
+                try:
+                    self.physical_store.validate_integrity(
+                        state.storage_path,
+                        expected_hash=v.content_hash,
+                        expected_size=v.size_bytes,
+                    )
+                except Exception:
+                    return False
+            return True
 
     def store_lineage(self, entry: ArtifactLineageEntry) -> None:
         with self._lock:

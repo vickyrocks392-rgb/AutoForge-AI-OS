@@ -19,8 +19,10 @@ and connects.
 
 from __future__ import annotations
 
+import tempfile
 import uuid
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from autoforge_events.base import BaseEvent as DomainBaseEvent
@@ -38,6 +40,9 @@ from autoforge_kernel.request_intake import (
 )
 
 from autoforge_runtime import RuntimeStateManager
+from autoforge_runtime.artifact_catalog import DurableArtifactCatalog
+from autoforge_runtime.physical_artifact_store import PhysicalArtifactStore
+from autoforge_artifacts.durable_bridge import DurableArtifactStoreBridge
 
 from autoforge_composition.ai_infrastructure_wiring import (
     bind_default_provider_adapters,
@@ -177,6 +182,9 @@ class AutoForgeSystem:
     infrastructure_coordinator: DefaultInfrastructureCoordinator | None = None
     recovery_coordinator: DefaultRecoveryCoordinator | None = None
     approval_coordinator: DefaultApprovalCoordinator | None = None
+    durable_catalog: DurableArtifactCatalog | None = None
+    physical_store: PhysicalArtifactStore | None = None
+    artifact_bridge: DurableArtifactStoreBridge | None = None
 
     #: Raw runtime diagnostics that had no canonical counterpart during lift.
     skipped_runtime_events: list[dict[str, Any]] = None
@@ -219,6 +227,14 @@ def build_autoforge_system(
     )
 
     # 3. Authoritative runtime; its state changes become canonical events.
+    root_dir = Path(workspace_root) if workspace_root else Path(tempfile.mkdtemp(prefix="autoforge_ws_"))
+    root_dir.mkdir(parents=True, exist_ok=True)
+    db_path = (config or {}).get("db_path")
+    if db_path is None and workspace_root:
+        db_file = root_dir / ".autoforge" / "runtime_state.db"
+        db_file.parent.mkdir(parents=True, exist_ok=True)
+        db_path = db_file
+
     skipped: list[dict[str, Any]] = []
 
     def _on_runtime_event(payload: dict[str, Any]) -> None:
@@ -228,11 +244,45 @@ def build_autoforge_system(
             return
         canonical_bus.publish(event)
 
-    runtime = RuntimeStateManager(event_callback=_on_runtime_event)
+    runtime = RuntimeStateManager(event_callback=_on_runtime_event, db_path=db_path)
+
+    # 3b. Authoritative Durable Artifact Infrastructure (Phase 18-K Canonical Wiring)
+    artifact_root = root_dir / "artifacts"
+    staging_root = artifact_root / ".staging"
+    quarantine_root = artifact_root / ".quarantine"
+
+    physical_store = PhysicalArtifactStore(
+        artifact_root=artifact_root,
+        staging_root=staging_root,
+        quarantine_root=quarantine_root,
+    )
+    durable_catalog = DurableArtifactCatalog(
+        persistence=runtime.persistence,
+        physical_store=physical_store,
+    )
+    durable_bridge = DurableArtifactStoreBridge(
+        catalog=durable_catalog,
+        physical_store=physical_store,
+    )
 
     # 4. Kernel-facing adapters (dependency inversion boundary).
     facade = KernelRuntimeFacade(runtime)
     kernel_bus = CanonicalKernelEventBus(canonical_bus)
+    kernel_memory_engine = KernelMemoryEngineAdapter(runtime=runtime)
+    kernel_knowledge_engine = KernelKnowledgeEngineAdapter()
+
+    # 4b. Context Builder & Learning Engine (Phase 18-K Canonical Wiring).
+    context_builder = EngineeringContextBuilder(
+        runtime=runtime,
+        memory_engine=kernel_memory_engine,
+        knowledge_engine=kernel_knowledge_engine,
+    )
+    learning_engine = EngineeringLearningEngine(
+        memory_engine=kernel_memory_engine,
+        knowledge_engine=kernel_knowledge_engine,
+        event_bus=kernel_bus,
+        runtime=runtime,
+    )
 
     # 5. Workflow Engine — wired with event bus and runtime for state projection.
     workflow_engine = build_workflow_engine(
@@ -243,8 +293,6 @@ def build_autoforge_system(
     )
 
     # 6. AI Infrastructure — capability registry, router, executor registry.
-    # Wiring this here ensures the Execution Engine can route real model requests
-    # through the AI adapter instead of falling back to deterministic stubs.
     ai_infra = build_ai_infrastructure(
         runtime=runtime,
         include_workforce_models=True,
@@ -252,10 +300,9 @@ def build_autoforge_system(
     )
 
     # 7. Execution Engine — wired with environment, workflow engine, events, runtime,
-    # AND the AI infrastructure (router + executor registry) so that real model
-    # calls succeed end-to-end.
+    # durable artifact pipeline (catalog + store), and context builder.
     execution_engine = build_execution_engine(
-        workspace_root=workspace_root,
+        workspace_root=root_dir,
         canonical_bus=canonical_bus,
         runtime=runtime,
         workflow_engine=workflow_engine,
@@ -263,11 +310,15 @@ def build_autoforge_system(
         model_executor=ai_infra.executor_registry,
         capacity_router=ai_infra.capacity_router,
         max_concurrent_workers=(config or {}).get("max_concurrent_workers", 4),
+        durable_catalog=durable_catalog,
+        physical_store=physical_store,
+        context_builder=context_builder,
     )
 
-    # 8. Artifact Platform — wired with event bus and governance policy.
+    # 8. Artifact Platform — wired with canonical event bus and DurableArtifactStoreBridge.
     artifact_platform = build_artifact_platform_from_bus(
         canonical_bus=canonical_bus,
+        store=durable_bridge,
     )
 
     # 9. Security Platform — wired with canonical event bus.
@@ -283,8 +334,6 @@ def build_autoforge_system(
     kernel_execution_engine = KernelExecutionEngineAdapter(concrete_engine=execution_engine)
     kernel_review_engine = KernelReviewEngineAdapter(concrete_engine=concrete_review_engine)
     kernel_model_router = KernelModelRouterAdapter(model_router=ai_infra.router)
-    kernel_memory_engine = KernelMemoryEngineAdapter(runtime=runtime)
-    kernel_knowledge_engine = KernelKnowledgeEngineAdapter()
 
     # 12. Strategic & Planning Coordination components.
     strategic_engine = DefaultStrategicEngine()
@@ -326,24 +375,11 @@ def build_autoforge_system(
         runtime_state_manager=facade,
     )
 
-    # 15. Context Builder & Learning Engine (Phase 18-K reconciliations).
-    context_builder = EngineeringContextBuilder(
-        runtime=runtime,
-        memory_engine=kernel_memory_engine,
-        knowledge_engine=kernel_knowledge_engine,
-    )
-    learning_engine = EngineeringLearningEngine(
-        memory_engine=kernel_memory_engine,
-        knowledge_engine=kernel_knowledge_engine,
-        event_bus=kernel_bus,
-        runtime=runtime,
-    )
-
     kernel_config = dict(config) if config else {}
     if "auto_execute" not in kernel_config:
         kernel_config["auto_execute"] = False
 
-    # 16. The Kernel — fully wired with all platform engines and coordinators.
+    # 16. The Kernel — fully wired with all platform engines, coordinators, and learning engine.
     kernel = Kernel(
         version=kernel_version,
         config=kernel_config,
@@ -367,6 +403,7 @@ def build_autoforge_system(
         memory_engine=kernel_memory_engine,
         knowledge_engine=kernel_knowledge_engine,
         model_router=kernel_model_router,
+        learning_engine=learning_engine,
     )
 
     return AutoForgeSystem(
@@ -390,5 +427,8 @@ def build_autoforge_system(
         infrastructure_coordinator=infrastructure_coordinator,
         recovery_coordinator=recovery_coordinator,
         approval_coordinator=approval_coordinator,
+        durable_catalog=durable_catalog,
+        physical_store=physical_store,
+        artifact_bridge=durable_bridge,
         skipped_runtime_events=skipped,
     )

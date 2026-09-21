@@ -35,6 +35,7 @@ class WorkforceDispatcher(WorkerDispatcher):
         governance: ExecutionGovernance | None = None,
         loop_config: LoopConfig | None = None,
         event_sink: Any = None,
+        context_builder: Any | None = None,
     ) -> None:
         super().__init__(
             environment=environment,
@@ -44,6 +45,7 @@ class WorkforceDispatcher(WorkerDispatcher):
             governance=governance,
             loop_config=loop_config,
             event_sink=event_sink,
+            context_builder=context_builder,
         )
         self._workforce_workers: dict[str, WorkforceWorker] = {}
         self._workforce_counter = 0
@@ -136,14 +138,24 @@ class WorkforceDispatcher(WorkerDispatcher):
         task_model_reqs = task_def.input_data.get("model_requirements") or task_def.metadata.get("model_requirements")
         effective_reqs = resolve_effective_requirements(worker.model_profile, task_model_reqs)
 
-        context = ExecutionContext.from_task_definition(
-            task_def=task_def,
-            workspace_root=self._env.root,
-            workflow_id=workflow_id,
-            correlation_id=correlation_id,
-            attempt_number=attempt_number,
-            effective_model_requirements=effective_reqs.to_dict(),
-        )
+        if self._context_builder is not None and hasattr(self._context_builder, "assemble_context"):
+            context = await self._context_builder.assemble_context(
+                task_def=task_def,
+                workspace_root=self._env.root,
+                workflow_id=workflow_id,
+                correlation_id=correlation_id,
+                attempt_number=attempt_number,
+                effective_model_requirements=effective_reqs.to_dict(),
+            )
+        else:
+            context = ExecutionContext.from_task_definition(
+                task_def=task_def,
+                workspace_root=self._env.root,
+                workflow_id=workflow_id,
+                correlation_id=correlation_id,
+                attempt_number=attempt_number,
+                effective_model_requirements=effective_reqs.to_dict(),
+            )
 
         passed, artifacts, eval_res = await worker.execute_task(context)
         return passed, artifacts, eval_res, worker
