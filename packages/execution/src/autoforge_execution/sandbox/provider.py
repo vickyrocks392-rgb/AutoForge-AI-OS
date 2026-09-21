@@ -612,10 +612,14 @@ class PodmanSandboxProvider(ContainerSandboxProvider):
         if shutil.which("podman") is None:
             self._is_avail = False
             return False
-        # Verify podman can respond
+        # Verify podman can respond and the sandbox image is present locally
         try:
             res = os.system("podman --version > /dev/null 2>&1")
-            self._is_avail = (res == 0)
+            if res != 0:
+                self._is_avail = False
+                return False
+            img_res = os.system(f"podman image exists {self.image} > /dev/null 2>&1")
+            self._is_avail = (img_res == 0)
         except Exception:
             self._is_avail = False
         return self._is_avail

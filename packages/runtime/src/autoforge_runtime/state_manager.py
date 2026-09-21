@@ -514,11 +514,14 @@ class RuntimeStateManager:
         Raises:
             InvalidEntityTypeError: If entity type is invalid.
         """
-        if entity_type not in EntityType:
-            raise InvalidEntityTypeError(
-                f"Invalid entity type: {entity_type}",
-                details={"entity_type": str(entity_type)},
-            )
+        if not isinstance(entity_type, EntityType):
+            try:
+                entity_type = EntityType(entity_type)
+            except (ValueError, TypeError):
+                raise InvalidEntityTypeError(
+                    f"Invalid entity type: {entity_type}",
+                    details={"entity_type": str(entity_type)},
+                )
         event_type = f"{entity_type.value}."
         return self._event_publisher.router.subscribe(event_type, callback, prefix_match=True)
 
