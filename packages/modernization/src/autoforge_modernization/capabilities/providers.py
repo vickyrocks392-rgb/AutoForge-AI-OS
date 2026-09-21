@@ -316,14 +316,29 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
         """
         dest_dir = target_dir or (Path.cwd() / ".autoforge" / "tools" / "openjdk")
 
-        candidate_roots = [
+        candidate_roots: list[Path] = []
+        if self._managed_java_home:
+            candidate_roots.append(self._managed_java_home)
+        af_home = os.environ.get("AUTOFORGE_JAVA_HOME")
+        if af_home:
+            candidate_roots.append(Path(af_home))
+        java_home = os.environ.get("JAVA_HOME")
+        if java_home:
+            candidate_roots.append(Path(java_home))
+        real_javac = self._find_real_javac()
+        if real_javac:
+            try:
+                candidate_roots.append(Path(real_javac).resolve().parent.parent)
+            except Exception:
+                pass
+        candidate_roots.extend([
             Path("/opt/homebrew/opt/openjdk"),
             Path("/usr/local/opt/openjdk"),
             Path("/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home"),
             Path("/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home"),
             Path("/usr/lib/jvm/java-21-openjdk-amd64"),
             Path("/usr/lib/jvm/default-java"),
-        ]
+        ])
 
         found_source: Path | None = None
         for root in candidate_roots:
@@ -339,30 +354,36 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
                     continue
 
         if found_source:
+            if dest_dir.resolve() == found_source.resolve():
+                self._managed_java_home = dest_dir
+                return True, f"OpenJDK host distribution '{found_source}' is already operational at '{dest_dir}'"
+
             dest_bin = dest_dir / "bin"
             dest_bin.mkdir(parents=True, exist_ok=True)
             dest_javac = dest_bin / "javac"
-            if dest_javac.is_symlink() or dest_javac.exists():
-                dest_javac.unlink()
             source_javac = found_source / "bin" / "javac"
-            try:
-                dest_javac.symlink_to(source_javac)
-            except OSError:
-                dest_javac.write_text(f'#!/bin/sh\nexec "{source_javac}" "$@"\n')
-                dest_javac.chmod(0o755)
+            if not (dest_javac.exists() and dest_javac.resolve() == source_javac.resolve()):
+                if dest_javac.is_symlink() or dest_javac.exists():
+                    dest_javac.unlink()
+                try:
+                    dest_javac.symlink_to(source_javac)
+                except OSError:
+                    dest_javac.write_text(f'#!/bin/sh\nexec "{source_javac}" "$@"\n')
+                    dest_javac.chmod(0o755)
 
             # Also link java runtime and jar utility if present
             for tool_name in ("java", "jar"):
                 src_tool = found_source / "bin" / tool_name
                 if src_tool.exists() and os.access(src_tool, os.X_OK):
                     d_tool = dest_bin / tool_name
-                    if d_tool.is_symlink() or d_tool.exists():
-                        d_tool.unlink()
-                    try:
-                        d_tool.symlink_to(src_tool)
-                    except OSError:
-                        d_tool.write_text(f'#!/bin/sh\nexec "{src_tool}" "$@"\n')
-                        d_tool.chmod(0o755)
+                    if not (d_tool.exists() and d_tool.resolve() == src_tool.resolve()):
+                        if d_tool.is_symlink() or d_tool.exists():
+                            d_tool.unlink()
+                        try:
+                            d_tool.symlink_to(src_tool)
+                        except OSError:
+                            d_tool.write_text(f'#!/bin/sh\nexec "{src_tool}" "$@"\n')
+                            d_tool.chmod(0o755)
 
             self._managed_java_home = dest_dir
             return True, f"Prepared OpenJDK from host distribution '{found_source}' into isolated directory '{dest_dir}'"
@@ -2124,18 +2145,30 @@ class DockerProvider(VerifiedTechnologyProvider):
                 pass
         return "1.0.0-autoforge (structural parser)"
 
+    @classmethod
+    def is_engine_operational(cls, timeout: float = 10.0) -> bool:
+        """Check whether Docker daemon is active and responsive on the host."""
+        docker_cli = shutil.which("docker")
+        if not docker_cli:
+            return False
+        try:
+            res = subprocess.run([docker_cli, "info"], capture_output=True, text=True, timeout=timeout)
+            return res.returncode == 0
+        except Exception:
+            return False
+
     def qualify(self) -> list[CapabilityQualificationRecord]:
         t0 = time.perf_counter()
         dockerfile_content = (
-            "FROM python:3.12-slim AS builder\n"
-            "WORKDIR /build\n"
-            "COPY requirements.txt .\n"
-            "RUN pip install --no-cache-dir -r requirements.txt\n"
-            "FROM python:3.12-slim\n"
+            "FROM alpine:3.19 AS builder\n"
             "WORKDIR /app\n"
-            "COPY --from=builder /build /app\n"
-            "EXPOSE 8000\n"
-            "CMD [\"python\", \"main.py\"]\n"
+            "COPY . .\n"
+            "RUN echo 'building'\n\n"
+            "FROM alpine:3.19 AS runtime\n"
+            "WORKDIR /app\n"
+            "COPY --from=builder /app .\n"
+            "EXPOSE 8080\n"
+            "CMD [\"./app\"]\n"
         )
         lines = [line.strip() for line in dockerfile_content.splitlines() if line.strip() and not line.strip().startswith("#")]
         instructions = [l.split()[0].upper() for l in lines]
@@ -2148,14 +2181,7 @@ class DockerProvider(VerifiedTechnologyProvider):
         static_passed = has_from and has_workdir and has_copy and has_expose and has_cmd
         elapsed = (time.perf_counter() - t0) * 1000.0
 
-        docker_cli = shutil.which("docker")
-        has_engine = False
-        if docker_cli:
-            try:
-                res = subprocess.run([docker_cli, "info"], capture_output=True, text=True, timeout=3)
-                has_engine = res.returncode == 0
-            except Exception:
-                has_engine = False
+        has_engine = self.is_engine_operational(timeout=10.0)
 
         records = [
             # 1. Generation capability: QUALIFIED
@@ -2371,7 +2397,14 @@ class GoProvider(VerifiedTechnologyProvider):
             )
             try:
                 cmd = [go_bin, "vet", str(src_file)]
-                res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                env = {
+                    **os.environ,
+                    "GOCACHE": str(Path(tmpdir) / ".cache"),
+                    "GOPATH": str(Path(tmpdir) / "go"),
+                    "GOPROXY": "off",
+                    "GOFLAGS": "-buildvcs=false",
+                }
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=30, env=env)
                 elapsed = (time.perf_counter() - t0) * 1000.0
                 passed = res.returncode == 0
                 return [

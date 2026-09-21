@@ -291,14 +291,7 @@ class TestRealExecutionQualification:
         assert "Structural parser qualified Dockerfile" in syntax_rec.output_snippet
         exec_rec = next(r for r in records if r.capability_name == "docker_container_execution")
         # Reflects honest host reality:
-        docker_cli = shutil.which("docker")
-        has_engine = False
-        if docker_cli:
-            try:
-                res = subprocess.run([docker_cli, "info"], capture_output=True, text=True, timeout=3)
-                has_engine = res.returncode == 0
-            except Exception:
-                has_engine = False
+        has_engine = DockerProvider.is_engine_operational(timeout=10.0)
         if has_engine:
             assert exec_rec.passed is True
             assert "Docker Engine operational" in exec_rec.output_snippet
@@ -463,14 +456,7 @@ class TestHonestCapabilityStates:
 
         assert syntax_item.state == CapabilityState.QUALIFIED
         assert gen_item.state == CapabilityState.QUALIFIED
-        docker_cli = shutil.which("docker")
-        has_engine = False
-        if docker_cli:
-            try:
-                res = subprocess.run([docker_cli, "info"], capture_output=True, text=True, timeout=3)
-                has_engine = res.returncode == 0
-            except Exception:
-                has_engine = False
+        has_engine = DockerProvider.is_engine_operational(timeout=10.0)
         if has_engine:
             assert exec_item.state == CapabilityState.QUALIFIED
         else:
