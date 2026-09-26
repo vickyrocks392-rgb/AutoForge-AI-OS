@@ -1,0 +1,206 @@
+{
+  "budget_pressure": {
+    "budget_pressure_ever_fires": false,
+    "triggers_observed": {
+      "2": "iteration_boundary",
+      "3": "iteration_boundary",
+      "4": "iteration_boundary",
+      "5": "iteration_boundary",
+      "6": "iteration_boundary",
+      "7": "iteration_boundary",
+      "8": "iteration_boundary",
+      "9": "iteration_boundary",
+      "10": "iteration_boundary",
+      "11": "iteration_boundary",
+      "12": "iteration_boundary",
+      "13": "iteration_boundary",
+      "14": "iteration_boundary",
+      "15": "iteration_boundary",
+      "16": "iteration_boundary",
+      "17": "iteration_boundary",
+      "18": "iteration_boundary",
+      "19": "iteration_boundary",
+      "20": "iteration_boundary",
+      "21": "iteration_boundary",
+      "22": "iteration_boundary",
+      "23": "iteration_boundary",
+      "24": "iteration_boundary",
+      "25": "iteration_boundary",
+      "26": "iteration_boundary",
+      "27": "iteration_boundary",
+      "28": "iteration_boundary",
+      "29": "iteration_boundary",
+      "30": "iteration_boundary",
+      "31": "iteration_boundary",
+      "32": "iteration_boundary",
+      "33": "iteration_boundary",
+      "34": "iteration_boundary",
+      "35": "iteration_boundary",
+      "36": "iteration_boundary",
+      "37": "iteration_boundary",
+      "38": "iteration_boundary",
+      "39": "iteration_boundary"
+    },
+    "distinct_trigger_values": [
+      "iteration_boundary"
+    ],
+    "first_trigger_at_iterations": 2,
+    "iteration_trigger_threshold": 4,
+    "deterministic_trigger_fires": true,
+    "compactor_receives_budget_argument": false,
+    "context_engineering_resolves_budget": false,
+    "context_engineering_invokes_compactor": false,
+    "trigger_decision_lines": [
+      "trigger: str = \"iteration_boundary\",",
+      "trigger=trigger,"
+    ],
+    "finding": "budget_pressure cannot fire because the compaction trigger decision is made inside ContextCompactor.compact() from the source iteration count and candidate count, while token-budget resolution belongs to Context Engineering's selection stage, which runs AFTER candidate construction. The compactor is never handed a resolved budget, so no code path lets budget pressure influence the compaction decision.",
+    "alternative_deterministic_trigger_exists": true,
+    "classification": "ACCEPTABLE",
+    "classification_rationale": "An iteration-count trigger fires deterministically and long before the budget could be exhausted, so context growth stays bounded. Budget-pressure compaction is therefore an OPTIMIZATION for the narrow band of few-but-very-large iterations, not a correctness requirement. Budget ownership was NOT moved and no double budgeting was introduced."
+  },
+  "g1_reverification": {
+    "per_history_length": {
+      "4": {
+        "iterations_in": 4,
+        "trigger": "iteration_boundary",
+        "iteration_items_out": 1,
+        "distinct_iteration_refs": 1,
+        "retention_window": 3,
+        "compacted_iterations": 1,
+        "every_item_distinguishable": true,
+        "no_orphan_depends_on": true
+      },
+      "6": {
+        "iterations_in": 6,
+        "trigger": "iteration_boundary",
+        "iteration_items_out": 3,
+        "distinct_iteration_refs": 3,
+        "retention_window": 3,
+        "compacted_iterations": 3,
+        "every_item_distinguishable": true,
+        "no_orphan_depends_on": true
+      },
+      "8": {
+        "iterations_in": 8,
+        "trigger": "iteration_boundary",
+        "iteration_items_out": 5,
+        "distinct_iteration_refs": 5,
+        "retention_window": 3,
+        "compacted_iterations": 5,
+        "every_item_distinguishable": true,
+        "no_orphan_depends_on": true
+      },
+      "12": {
+        "iterations_in": 12,
+        "trigger": "iteration_boundary",
+        "iteration_items_out": 9,
+        "distinct_iteration_refs": 9,
+        "retention_window": 3,
+        "compacted_iterations": 9,
+        "every_item_distinguishable": true,
+        "no_orphan_depends_on": true
+      },
+      "20": {
+        "iterations_in": 20,
+        "trigger": "iteration_boundary",
+        "iteration_items_out": 17,
+        "distinct_iteration_refs": 17,
+        "retention_window": 3,
+        "compacted_iterations": 17,
+        "every_item_distinguishable": true,
+        "no_orphan_depends_on": true
+      }
+    },
+    "iteration_items_always_nonzero": true,
+    "iterations_distinguishable": true,
+    "g1_resolved": true
+  },
+  "inline_vs_reference": {
+    "iterations_compacted": 17,
+    "inline_projection_tokens": 766,
+    "reference_projection_tokens_upper_bound": 93,
+    "token_saving_if_references_wired": 673,
+    "references_would_be_created": 17,
+    "current_reference_count": 0,
+    "inline_contains_dependencies": true,
+    "inline_contains_provenance": true,
+    "inline_contains_authority_markers": true,
+    "inline_contains_status_and_corrections": false,
+    "semantic_safety_of_inline": "dependencies, provenance, authority markers, status/current flags and corrections all survive in the inline projection",
+    "conclusion": "Inline projection is semantically SAFE and self-contained: it is the only reason a context remains correct while references are unwired. Reference wiring would be a token optimisation, not a correctness requirement. Per Gate 4 \u00a720, it is NOT wired on token-count grounds."
+  },
+  "performance": {
+    "per_history_length": [
+      {
+        "iterations": 4,
+        "compaction_ms": 0.083,
+        "validation_ms": 0.006,
+        "source_estimated_tokens": 716,
+        "compacted_estimated_tokens": 45,
+        "reduction_ratio": 0.9372,
+        "validation_passed": true
+      },
+      {
+        "iterations": 8,
+        "compaction_ms": 0.153,
+        "validation_ms": 0.005,
+        "source_estimated_tokens": 1432,
+        "compacted_estimated_tokens": 225,
+        "reduction_ratio": 0.8429,
+        "validation_passed": true
+      },
+      {
+        "iterations": 12,
+        "compaction_ms": 0.219,
+        "validation_ms": 0.004,
+        "source_estimated_tokens": 2148,
+        "compacted_estimated_tokens": 405,
+        "reduction_ratio": 0.8115,
+        "validation_passed": true
+      },
+      {
+        "iterations": 20,
+        "compaction_ms": 0.349,
+        "validation_ms": 0.005,
+        "source_estimated_tokens": 3580,
+        "compacted_estimated_tokens": 765,
+        "reduction_ratio": 0.7863,
+        "validation_passed": true
+      },
+      {
+        "iterations": 40,
+        "compaction_ms": 0.936,
+        "validation_ms": 0.015,
+        "source_estimated_tokens": 7160,
+        "compacted_estimated_tokens": 1665,
+        "reduction_ratio": 0.7675,
+        "validation_passed": true
+      }
+    ],
+    "max_compaction_ms": 0.936,
+    "max_validation_ms": 0.015,
+    "note": "Compaction cost is a pure-CPU projection with no model, provider or runtime dependency. Model-evaluation cost is reported separately in semantic_ab_results.json and is excluded from these numbers (\u00a721)."
+  },
+  "failure_recovery": {
+    "compaction_exception_contained": {
+      "context_assembled": true,
+      "items": 1
+    },
+    "persisted_tampering_detected": true,
+    "persisted_tamper_detail": {
+      "detected": true,
+      "detail": "load() refused the corrupted artifact",
+      "artifact_path": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/af_g4_integrity_qnmwv8ys/artifacts/compaction_cmp_9fe66406c79b1747",
+      "original_size": 5141
+    },
+    "invalid_reference_rejected": true,
+    "invalid_reference_reasons": [
+      "v3_unresolvable_reference:does-not-exist"
+    ],
+    "source_state_still_usable": true,
+    "authoritative_state_uncorrupted": true,
+    "duplicate_retry_identical": true,
+    "verdict": "Compaction failure does not corrupt authoritative state: exceptions are contained by Context Engineering, tampering and invalid references are rejected by validation, and the original history remains intact."
+  }
+}

@@ -147,12 +147,21 @@ class WorkerDispatcher:
                 rag_engine=self._rag_engine,
             )
         else:
-            context = ExecutionContext.from_task_definition(
+            # Gate 4B: Context Engineering is the canonical default, so an
+            # un-injected builder must NOT silently degrade to a raw
+            # ExecutionContext. Build the canonical engine here instead, so every
+            # dispatch path runs the MSC pipeline by default. This is the same
+            # default-ON builder the composition root constructs; the lazy import
+            # keeps the module import graph unchanged for existing consumers.
+            from autoforge_execution.context_builder import EngineeringContextBuilder
+
+            context = await EngineeringContextBuilder().assemble_context(
                 task_def=task_def,
                 workspace_root=self._env.root,
                 workflow_id=workflow_id,
                 correlation_id=correlation_id,
                 attempt_number=attempt_number,
+                rag_engine=self._rag_engine,
             )
 
         passed, artifacts, eval_res = await worker.execute_task(context)

@@ -53,6 +53,26 @@ class ExecutionContext:
     metadata: dict[str, Any] = field(default_factory=dict)
     effective_model_requirements: dict[str, Any] = field(default_factory=dict)
 
+    # --- Context Engineering (18-L Gate 3) ----------------------------------
+    # Additive with defaults, so the ADR-003 output contract stays valid whether or
+    # not the engine is enabled. Empty when enable_context_engineering is False.
+    selected_context_items: list[Any] = field(default_factory=list)
+    excluded_context_items: list[Any] = field(default_factory=list)
+    context_assembly_record: Any | None = None
+
+    def build_canonical_messages(self, *, task_name: str = "") -> list[dict[str, str]]:
+        """Build the canonical provider-neutral message list (Gate 2 section 4).
+
+        Delegates to the single canonical prompt constructor. Returns an empty list
+        when Context Engineering is disabled or nothing was selected, so callers can
+        fall back to :meth:`format_reasoning_prompt` unchanged.
+        """
+        if not self.selected_context_items:
+            return []
+        from autoforge_execution.prompt_assembly import build_messages
+
+        return build_messages(self.selected_context_items, task_name=task_name or self.task_name)
+
     @classmethod
     def from_task_definition(
         cls,

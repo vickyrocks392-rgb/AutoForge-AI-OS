@@ -27,6 +27,7 @@ from autoforge_modernization.capabilities.models import (
     _utc_now,
 )
 from autoforge_modernization.capabilities.providers import (
+    MANAGED_TOOLCHAIN_ROOT,
     ProviderRegistry,
     VerifiedTechnologyProvider,
 )
@@ -75,7 +76,7 @@ class AutonomousAcquisitionEngine:
         self.provider_registry = provider_registry or ProviderRegistry()
         self.capability_registry = capability_registry or TechnologyCapabilityRegistry()
         self.allow_external_install = allow_external_install
-        self.tools_directory = tools_directory or (Path.cwd() / ".autoforge" / "tools")
+        self.tools_directory = tools_directory or MANAGED_TOOLCHAIN_ROOT
 
     def process_gap_item(self, gap_item: CapabilityGapItem) -> AcquisitionAttemptRecord:
         """Process a single capability gap through the autonomous acquisition lifecycle."""

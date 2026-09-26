@@ -49,6 +49,13 @@ class VerificationStatus(str, Enum):
     NOT_APPLICABLE = "not_applicable"
 
 
+# Stable machine-readable diagnostic code emitted when the required external
+# toolchain (compiler / build tool) could not be discovered or executed, so the
+# check never ran at all.  This is deliberately distinct from a source-code
+# defect so the repair cycle can tell "no compiler" from "broken code".
+TOOLCHAIN_UNAVAILABLE_CODE = "TOOLCHAIN_UNAVAILABLE"
+
+
 class VerificationDiagnostic(BaseModel):
     """One structured diagnostic produced by a verification check."""
 

@@ -1,0 +1,16 @@
+{
+  "context_engineering": "ON",
+  "context_compaction": "OFF",
+  "compaction_store_owned_by_root": "CompactionRecordStore",
+  "builder_consumes_root_store": true,
+  "git_head": "9cc09bc",
+  "commits_ahead_of_origin": "0",
+  "committed_this_task": false,
+  "pushed": false,
+  "protected": {
+    "18-J": "PROTECTED / RE-FROZEN",
+    "18-K": "PROTECTED",
+    "inference_lab": "PROTECTED",
+    "model_router": "PROTECTED"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "reproduced": false,
+  "compaction_paths_in_candidates": [],
+  "new_project_files_after_persist": [],
+  "cycles": [
+    {
+      "cycle": "cycle_1",
+      "candidate_count": 8,
+      "project_files": [
+        "README.md",
+        "docs/design.md",
+        "src/service.py",
+        "tests/evidence.json"
+      ],
+      "workspace_item_context_id": "ctx_66ff1f9462bd95fa",
+      "compaction_id": "cmp_596fc2c396726089",
+      "fingerprint": "742bd9a9572d63d29efca9448e2571aa63138a9bcf88cb1d072eaf5109ff658b",
+      "items": 8,
+      "persisted": "20425b97-4b25-506a-8169-4c4bba884bd5"
+    },
+    {
+      "cycle": "cycle_2",
+      "candidate_count": 8,
+      "project_files": [
+        "README.md",
+        "docs/design.md",
+        "src/service.py",
+        "tests/evidence.json"
+      ],
+      "workspace_item_context_id": "ctx_66ff1f9462bd95fa",
+      "compaction_id": "cmp_596fc2c396726089",
+      "fingerprint": "742bd9a9572d63d29efca9448e2571aa63138a9bcf88cb1d072eaf5109ff658b",
+      "items": 8,
+      "persisted": "20425b97-4b25-506a-8169-4c4bba884bd5"
+    },
+    {
+      "cycle": "cycle_3",
+      "candidate_count": 8,
+      "project_files": [
+        "README.md",
+        "docs/design.md",
+        "src/service.py",
+        "tests/evidence.json"
+      ],
+      "workspace_item_context_id": "ctx_66ff1f9462bd95fa",
+      "compaction_id": "cmp_596fc2c396726089",
+      "fingerprint": "742bd9a9572d63d29efca9448e2571aa63138a9bcf88cb1d072eaf5109ff658b",
+      "items": 8,
+      "persisted": "20425b97-4b25-506a-8169-4c4bba884bd5"
+    },
+    {
+      "cycle": "cycle_4",
+      "candidate_count": 8,
+      "project_files": [
+        "README.md",
+        "docs/design.md",
+        "src/service.py",
+        "tests/evidence.json"
+      ],
+      "workspace_item_context_id": "ctx_66ff1f9462bd95fa",
+      "compaction_id": "cmp_596fc2c396726089",
+      "fingerprint": "742bd9a9572d63d29efca9448e2571aa63138a9bcf88cb1d072eaf5109ff658b",
+      "items": 8,
+      "persisted": "20425b97-4b25-506a-8169-4c4bba884bd5"
+    }
+  ]
+}

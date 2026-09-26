@@ -40,6 +40,35 @@ from autoforge_modernization.capabilities.models import (
 )
 
 
+# ── Canonical managed toolchain locations ─────────────────────────────────────
+#
+# ``<repository-root>/.autoforge/tools`` is the single cwd-independent root for
+# AutoForge-managed toolchains, and ``<repository-root>/.autoforge/tools/java``
+# is the canonical managed JDK location shared by the provider, the acquisition
+# engine, the toolchain verifier and the application runner.
+MANAGED_TOOLCHAIN_ROOT: Path = Path(__file__).resolve().parents[5] / ".autoforge" / "tools"
+
+#: Canonical managed JDK home: ``<repository-root>/.autoforge/tools/java``.
+MANAGED_JAVA_HOME: Path = MANAGED_TOOLCHAIN_ROOT / "java"
+
+#: Host JDK prefixes inspected when neither the managed JDK nor an explicit
+#: ``AUTOFORGE_JAVA_HOME``/``JAVA_HOME`` is configured.  The versioned Homebrew
+#: formula (``openjdk@21``) is listed first: it is the JDK the repository
+#: documentation recommends and it matches the CI JDK, and being keg-only it is
+#: never present on ``PATH``.  These are prefixes of real JDK distributions --
+#: ``/usr/bin`` is deliberately absent -- and every candidate is still validated
+#: by running ``javac -version`` so a macOS shim is never accepted.
+_HOST_JDK_CANDIDATE_ROOTS: tuple[Path, ...] = (
+    Path("/opt/homebrew/opt/openjdk@21"),
+    Path("/opt/homebrew/opt/openjdk"),
+    Path("/usr/local/opt/openjdk"),
+    Path("/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home"),
+    Path("/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home"),
+    Path("/usr/lib/jvm/java-21-openjdk-amd64"),
+    Path("/usr/lib/jvm/default-java"),
+)
+
+
 class VerifiedTechnologyProvider(ABC):
     """Abstract base class for all Verified Technology Providers.
 
@@ -234,24 +263,56 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
             (CapabilityClass.TARGET_VERIFICATION, "java_class_verification", CapabilityLevel.VERIFY),
         ]
 
+    @staticmethod
+    def _validated_javac(candidate_root: Path) -> str | None:
+        """Return ``candidate_root/bin/javac`` only when it is a working compiler.
+
+        Mirrors the stub rejection already used by :meth:`acquire_or_prepare`: a
+        macOS ``/usr/bin``-style shim can exit 0 while printing
+        "Unable to locate a Java Runtime", so mere existence is not evidence.
+        """
+        cand = candidate_root / "bin" / "javac"
+        if not cand.exists() or not os.access(cand, os.X_OK):
+            return None
+        try:
+            res = subprocess.run(
+                [str(cand), "-version"], capture_output=True, text=True, timeout=5
+            )
+        except Exception:
+            return None
+        combined = (res.stdout or "") + (res.stderr or "")
+        if res.returncode != 0 or "Unable to locate a Java Runtime" in combined:
+            return None
+        return str(cand)
+
     def _find_real_javac(self) -> str | None:
         # 1. Check explicit managed java home
         if self._managed_java_home:
             cand = self._managed_java_home / "bin" / "javac"
             if cand.exists() and os.access(cand, os.X_OK):
                 return str(cand)
-        # 2. Check AUTOFORGE_JAVA_HOME environment variable
+        # 2. Check the canonical AutoForge-managed JDK (cwd-independent)
+        cand = MANAGED_JAVA_HOME / "bin" / "javac"
+        if cand.exists() and os.access(cand, os.X_OK):
+            return str(cand)
+        # 3. Check AUTOFORGE_JAVA_HOME environment variable
         af_home = os.environ.get("AUTOFORGE_JAVA_HOME")
         if af_home:
             cand = Path(af_home) / "bin" / "javac"
             if cand.exists() and os.access(cand, os.X_OK):
                 return str(cand)
-        # 3. Check JAVA_HOME
+        # 4. Check JAVA_HOME
         java_home = os.environ.get("JAVA_HOME")
         if java_home:
             cand = os.path.join(java_home, "bin", "javac")
             if os.path.exists(cand) and os.access(cand, os.X_OK):
                 return cand
+        # 5. Check known host JDK installations (stub-validated; PATH is never
+        #    consulted because /usr/bin holds a non-functional macOS shim).
+        for root in _HOST_JDK_CANDIDATE_ROOTS:
+            javac = self._validated_javac(root)
+            if javac:
+                return javac
         return None
 
     def _find_real_java(self) -> str | None:
@@ -259,6 +320,9 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
             cand = self._managed_java_home / "bin" / "java"
             if cand.exists() and os.access(cand, os.X_OK):
                 return str(cand)
+        cand = MANAGED_JAVA_HOME / "bin" / "java"
+        if cand.exists() and os.access(cand, os.X_OK):
+            return str(cand)
         af_home = os.environ.get("AUTOFORGE_JAVA_HOME")
         if af_home:
             cand = Path(af_home) / "bin" / "java"
@@ -269,15 +333,7 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
             cand = os.path.join(java_home, "bin", "java")
             if os.path.exists(cand) and os.access(cand, os.X_OK):
                 return cand
-        candidate_roots = [
-            Path("/opt/homebrew/opt/openjdk"),
-            Path("/usr/local/opt/openjdk"),
-            Path("/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home"),
-            Path("/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home"),
-            Path("/usr/lib/jvm/java-21-openjdk-amd64"),
-            Path("/usr/lib/jvm/default-java"),
-        ]
-        for root in candidate_roots:
+        for root in _HOST_JDK_CANDIDATE_ROOTS:
             cand_java = root / "bin" / "java"
             if cand_java.exists() and os.access(cand_java, os.X_OK):
                 return str(cand_java)
@@ -309,12 +365,13 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
 
         Follows deterministic resolution:
         1. Checks candidate free OpenJDK distributions already installed on the host
-           (e.g., Homebrew opt/openjdk on macOS or /usr/lib/jvm on Linux).
-           If present, links to target_dir (e.g. .autoforge/tools/openjdk) without modifying system dirs.
+           (e.g. Homebrew ``opt/openjdk@21`` on macOS or ``/usr/lib/jvm`` on Linux).
+           If present, links to target_dir (``<repository-root>/.autoforge/tools/java``)
+           without modifying system dirs.
         2. If none present and allow_external_install is False, returns (False, error) honestly.
         3. If allow_external_install is True, runs deterministic package manager command.
         """
-        dest_dir = target_dir or (Path.cwd() / ".autoforge" / "tools" / "openjdk")
+        dest_dir = target_dir or MANAGED_JAVA_HOME
 
         candidate_roots: list[Path] = []
         if self._managed_java_home:
@@ -331,14 +388,7 @@ class OpenJDKProvider(VerifiedTechnologyProvider):
                 candidate_roots.append(Path(real_javac).resolve().parent.parent)
             except Exception:
                 pass
-        candidate_roots.extend([
-            Path("/opt/homebrew/opt/openjdk"),
-            Path("/usr/local/opt/openjdk"),
-            Path("/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home"),
-            Path("/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home"),
-            Path("/usr/lib/jvm/java-21-openjdk-amd64"),
-            Path("/usr/lib/jvm/default-java"),
-        ])
+        candidate_roots.extend(_HOST_JDK_CANDIDATE_ROOTS)
 
         found_source: Path | None = None
         for root in candidate_roots:
@@ -1736,6 +1786,7 @@ class ExpressProvider(VerifiedTechnologyProvider):
     def qualify(self) -> list[CapabilityQualificationRecord]:
         node = shutil.which("node")
         if not node:
+            recipe = self.get_acquisition_recipe()
             return [
                 CapabilityQualificationRecord(
                     provider_id=self.provider_id,
@@ -1743,7 +1794,15 @@ class ExpressProvider(VerifiedTechnologyProvider):
                     technology=self.technology,
                     passed=False,
                     fixture_name="express_router_fixture",
-                    error_message="Node.js executable not found on PATH",
+                    error_message=(
+                        "Node.js executable not found on PATH: the Node.js runtime is a "
+                        "missing prerequisite for Express. Express is acquirable via "
+                        f"'{recipe.get('command', 'npm install express')}' once Node.js is available."
+                    ),
+                    evidence=[
+                        "Node.js runtime not discovered on PATH; honest ACQUIRABLE state declared.",
+                        f"Express acquisition recipe available: {recipe.get('source_url', '')}",
+                    ],
                 )
                 for _, cap_name, _ in self.capabilities_supplied()
             ]
@@ -1851,6 +1910,7 @@ class ReactProvider(VerifiedTechnologyProvider):
     def qualify(self) -> list[CapabilityQualificationRecord]:
         node = shutil.which("node")
         if not node:
+            recipe = self.get_acquisition_recipe()
             return [
                 CapabilityQualificationRecord(
                     provider_id=self.provider_id,
@@ -1858,7 +1918,15 @@ class ReactProvider(VerifiedTechnologyProvider):
                     technology=self.technology,
                     passed=False,
                     fixture_name="react_component_fixture",
-                    error_message="Node.js executable not found on PATH",
+                    error_message=(
+                        "Node.js executable not found on PATH: the Node.js runtime is a "
+                        "missing prerequisite for React. React is acquirable via "
+                        f"'{recipe.get('command', 'npm install react react-dom')}' once Node.js is available."
+                    ),
+                    evidence=[
+                        "Node.js runtime not discovered on PATH; honest ACQUIRABLE state declared.",
+                        f"React acquisition recipe available: {recipe.get('source_url', '')}",
+                    ],
                 )
                 for _, cap_name, _ in self.capabilities_supplied()
             ]

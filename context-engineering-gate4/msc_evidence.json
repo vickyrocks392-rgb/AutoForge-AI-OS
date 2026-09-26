@@ -1,0 +1,161 @@
+{
+  "checks_passed": 12,
+  "checks_total": 12,
+  "all_passed": true,
+  "checks": [
+    {
+      "check": "1_irrelevant_context_exclusion",
+      "passed": true,
+      "detail": {
+        "relevance_floor": 0.5,
+        "low_relevance_fact_delivered": false,
+        "high_relevance_fact_delivered": true,
+        "considered": 4,
+        "selected": 3,
+        "excluded": 1,
+        "reasons": [
+          "below_min_optional_relevance"
+        ],
+        "default_policy_note": "with the default min_optional_relevance=0.0 the engine admits every optional item that fits; exclusion needs a floor or budget"
+      }
+    },
+    {
+      "check": "2_mandatory_context_preservation",
+      "passed": true,
+      "detail": {
+        "mandatory_count": 3,
+        "categories": [
+          "task",
+          "verification"
+        ],
+        "root_cause_present": true,
+        "failure_evidence_present": true
+      }
+    },
+    {
+      "check": "3_dependency_expansion",
+      "passed": true,
+      "detail": {
+        "diagnosis_depends_on": [
+          "ctx_80364a96898db48e"
+        ],
+        "target_is_selected_item": true,
+        "expansion_depth_reached": 1
+      }
+    },
+    {
+      "check": "4_dependency_cycles_handled",
+      "passed": true,
+      "detail": {
+        "selected": 2,
+        "raised": false,
+        "note": "a<->b cycle terminated; both delivered; no error"
+      }
+    },
+    {
+      "check": "5_bounded_dependency_expansion",
+      "passed": true,
+      "detail": {
+        "max_dependency_depth": 2,
+        "depth_reached": 2,
+        "items_added": 1,
+        "chain_length_available": 6,
+        "item_bound_truncated": false,
+        "stopped_by": "depth bound (chain longer than max_dependency_depth)"
+      }
+    },
+    {
+      "check": "6_provenance_preservation",
+      "passed": true,
+      "detail": {
+        "all_selected_attributable": true,
+        "refs": [
+          "task_definition:t-g4-msc",
+          "verification_diagnosis:attempt-2",
+          "verification_evaluation:attempt-2",
+          "workspace_filesystem:/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/af_g4_msc_iortqlxl",
+          "knowledge_retrieval:hit-1",
+          "knowledge_retrieval:hit-0"
+        ],
+        "any_inferred": false
+      }
+    },
+    {
+      "check": "7_deterministic_ordering",
+      "passed": true,
+      "detail": {
+        "runs": 5,
+        "distinct_id_orders": 1,
+        "distinct_prompts": 1
+      }
+    },
+    {
+      "check": "8_duplicate_removal",
+      "passed": true,
+      "detail": {
+        "kept": 1,
+        "duplicates_removed": 2,
+        "normalization": "NFKC + casefold + trailing-whitespace/blank-line collapse",
+        "scope": "exact match; near-duplicate detection not implemented (documented)"
+      }
+    },
+    {
+      "check": "9_budget_enforcement",
+      "passed": true,
+      "detail": {
+        "available_for_context": 1792,
+        "used": 1792,
+        "selected": 8,
+        "excluded": 12,
+        "reasons": [
+          "budget_exhausted"
+        ]
+      }
+    },
+    {
+      "check": "10_mandatory_overflow_fails_loudly",
+      "passed": true,
+      "detail": {
+        "error": "MandatoryContextOverflowError",
+        "code": "MANDATORY_CONTEXT_OVERFLOW",
+        "mandatory_tokens": 3216,
+        "available": 1792,
+        "overage": 1424,
+        "mandatory_items_reported": 12,
+        "silently_truncated": false
+      }
+    },
+    {
+      "check": "11_model_aware_window_handling",
+      "passed": true,
+      "detail": {
+        "budget_source": "model_metadata",
+        "applied_window": 32768,
+        "model_id": "allocated-model",
+        "pass1_declared_requirement_seen_by_allocator": 1038,
+        "declared_recorded_on_observability": 1038,
+        "reserved_output_tokens": 2048
+      }
+    },
+    {
+      "check": "12_stable_prompt_structure",
+      "passed": true,
+      "detail": {
+        "byte_identical_under_input_reordering": true,
+        "message_roles": [
+          "user"
+        ],
+        "keys": [
+          "content",
+          "role"
+        ],
+        "sections_present": [
+          "project",
+          "task",
+          "evidence",
+          "verification"
+        ]
+      }
+    }
+  ]
+}

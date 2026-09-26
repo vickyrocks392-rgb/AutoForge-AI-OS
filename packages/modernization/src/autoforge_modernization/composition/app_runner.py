@@ -18,6 +18,11 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from autoforge_modernization.capabilities.providers import (
+    MANAGED_JAVA_HOME,
+    OpenJDKProvider,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -55,9 +60,13 @@ class SpringBootApplicationRunner:
         if java_bin:
             self.java_bin = str(java_bin)
         else:
-            repo_root = Path(__file__).resolve().parents[4]
-            local_java = repo_root / ".autoforge" / "tools" / "java" / "bin" / "java"
-            self.java_bin = str(local_java) if local_java.exists() else "/opt/homebrew/opt/openjdk/bin/java"
+            # Reuse the canonical JDK discovery chain (managed JDK ->
+            # AUTOFORGE_JAVA_HOME -> JAVA_HOME -> known host JDK locations)
+            # instead of hard-coding a Homebrew path.
+            self.java_bin = (
+                OpenJDKProvider()._find_real_java()
+                or str(MANAGED_JAVA_HOME / "bin" / "java")
+            )
         self.port = port
         self.startup_timeout_s = startup_timeout_s
         self.health_poll_interval_s = max(0.05, float(health_poll_interval_s))

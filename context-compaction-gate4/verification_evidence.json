@@ -1,0 +1,91 @@
+{
+  "gate": "18-L Context Compaction Gate 4",
+  "verdict_inputs": {
+    "deterministic_summary": {
+      "storage_roundtrip_all_pass": true,
+      "reference_resolution_all_pass": true,
+      "idempotency_all_pass": true,
+      "requirements_all_preserved": true,
+      "no_forbidden_resurrection": true,
+      "no_orphaned_dependencies": true,
+      "model_claims_never_verified": true
+    },
+    "answer_parity": {
+      "both_correct": 136,
+      "both_incorrect": 0,
+      "a_only_correct": 0,
+      "b_only_correct": 24
+    },
+    "compaction_induced_regressions": 0,
+    "false_compression_attributed": 0,
+    "mean_token_reduction": 0.7623,
+    "max_compaction_ms": 0.936,
+    "g1_resolved": true,
+    "budget_pressure_classification": "ACCEPTABLE"
+  },
+  "m6_runtime": {
+    "model": "Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "endpoint": "http://127.0.0.1:8080/v1 (canonical local runtime port)",
+    "role": "evaluation instrument only; not a production dependency",
+    "context_limit_probe": {
+      "probe": [
+        {
+          "approx_tokens": 600,
+          "served": true,
+          "detail": "OK"
+        },
+        {
+          "approx_tokens": 1200,
+          "served": true,
+          "detail": "OK"
+        },
+        {
+          "approx_tokens": 1800,
+          "served": true,
+          "detail": "OK"
+        },
+        {
+          "approx_tokens": 2400,
+          "served": true,
+          "detail": "OK"
+        },
+        {
+          "approx_tokens": 3400,
+          "served": true,
+          "detail": "OK"
+        }
+      ],
+      "max_approx_tokens_served": 3400
+    }
+  },
+  "regression": {
+    "execution": "207 passed, 18 skipped, 146 warnings in 3.27s",
+    "runtime": "268 passed, 102 warnings in 2.22s",
+    "artifacts": "14 passed in 0.10s",
+    "orchestration": "53 passed, 6 skipped, 146 warnings in 1.00s",
+    "workflows": "218 passed in 0.37s",
+    "kernel": "100 passed, 93 warnings in 0.17s",
+    "review": "114 passed, 102 warnings in 0.04s",
+    "observability": "16 passed in 0.10s",
+    "persistence": "70 passed, 88 warnings in 0.05s",
+    "events": "228 passed in 0.09s",
+    "event_platform": "56 passed in 0.12s",
+    "connectors": "93 passed in 2.03s",
+    "security": "37 passed, 102 warnings in 0.13s",
+    "ai_infrastructure": "97 passed, 102 warnings in 0.05s",
+    "modernization": "375 passed, 59 skipped, 149 warnings in 15.27s",
+    "workforce": "102 warnings, 1 error in 0.31s",
+    "composition": "3 failed, 48 passed, 102 warnings in 6.88s"
+  },
+  "configuration_at_gate_close": {
+    "context_engineering": "ON",
+    "context_compaction": "OFF",
+    "compaction_globally_enabled": false,
+    "model_18j": "PROTECTED / RE-FROZEN",
+    "model_18k": "PROTECTED",
+    "inference_lab": "PROTECTED",
+    "ollama_introduced": false,
+    "committed": false,
+    "pushed": false
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "A_determinism": {
+    "cycles": 5,
+    "identical_compaction_id": true,
+    "identical_fingerprint": true,
+    "identical_artifact_id": true,
+    "no_false_conflict": true
+  },
+  "B_cross_task_isolation": {
+    "distinct_compaction_id": true,
+    "distinct_logical_identity": true,
+    "distinct_artifact": true,
+    "no_collision": true
+  },
+  "D_runtime_metadata": {
+    "logical_identity_stable": true,
+    "content_digest_stable": true,
+    "replay_accepted": true,
+    "duration_persisted": true,
+    "acquired_at_persisted": true
+  },
+  "C_physical_integrity": {
+    "corrupted_bytes_rejected": true,
+    "restored_record_loads": true
+  },
+  "E_bookkeeping_isolation": {
+    "project_files_per_cycle": [
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "project_files_identical_across_cycles": true,
+    "stable": true,
+    "compaction_paths_in_candidates": [],
+    "no_leak": true
+  },
+  "F_restart_recovery": {
+    "reloaded": true,
+    "same_logical_identity": true,
+    "same_content_digest": true,
+    "artifact_id_before": "e32aba32-5948-53ce-8462-0747c82fc03d",
+    "no_duplicate_artifacts": true,
+    "physical_integrity_verified": true
+  },
+  "H_performance_sanity": {
+    "assemble_with_compaction_mean_ms": 1.337,
+    "assemble_with_compaction_max_ms": 2.121,
+    "compacted_tokens_mean": 253,
+    "durable_artifacts_after_6_cycles": 6,
+    "no_runaway_persistence": true,
+    "context_bounded": true,
+    "no_model_calls": true,
+    "no_network_dependency": true
+  }
+}

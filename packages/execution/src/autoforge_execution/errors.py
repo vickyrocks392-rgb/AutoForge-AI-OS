@@ -215,3 +215,99 @@ class GovernanceApprovalRequired(GovernanceError):
         details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message, code="GOVERNANCE_APPROVAL_REQUIRED", details=details)
+
+
+# --- Context Engineering (ADR-003) ------------------------------------------
+# Gate 2 §9. The design rule is "fatal iff correctness is at risk": optional
+# context degrades, mandatory context fails loudly. These errors are the loud path.
+
+
+class ContextEngineeringError(ExecutionError):
+    """Root error for Context Engineering failures."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str = "CONTEXT_ENGINEERING_ERROR",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, code=code, details=details)
+
+
+class InvalidContextItemError(ContextEngineeringError):
+    """A context item was malformed and could not be represented."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, code="INVALID_CONTEXT_ITEM", details=details)
+
+
+class MissingProvenanceError(ContextEngineeringError):
+    """A mandatory context item lacked attributable provenance."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, code="MISSING_PROVENANCE", details=details)
+
+
+class UnresolvableDependencyError(ContextEngineeringError):
+    """A mandatory item referenced a dependency that could not be resolved."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, code="UNRESOLVABLE_DEPENDENCY", details=details)
+
+
+class InvalidBudgetError(ContextEngineeringError):
+    """A context budget was constructed with inconsistent or negative capacity."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, code="INVALID_CONTEXT_BUDGET", details=details)
+
+
+class MandatoryContextOverflowError(ContextEngineeringError):
+    """Mandatory context does not fit the available window.
+
+    Gate 2 §3.3 / §9: this is a HARD failure. Mandatory context is never
+    truncated, never partially admitted, and never silently dropped. The caller
+    must re-plan, request a larger window, or fail the task.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, code="MANDATORY_CONTEXT_OVERFLOW", details=details)
+
+
+class ContextSourceUnavailableError(ContextEngineeringError):
+    """A mandatory context source was unavailable, so the operation cannot proceed."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, code="CONTEXT_SOURCE_UNAVAILABLE", details=details)
+

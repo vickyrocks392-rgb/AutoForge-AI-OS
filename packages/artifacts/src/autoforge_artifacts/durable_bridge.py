@@ -186,6 +186,44 @@ class DurableArtifactStoreBridge(ArtifactStoreProtocol):
                 parent_artifact_id=version.parent_version_id,
             )
 
+            # 18-J defect repair: ``register_artifact`` is idempotent, so replaying
+            # an already-materialised version returns the EXISTING record (which
+            # may be COMMITTED) instead of a fresh CREATED one. The state machine
+            # is correct — COMMITTED only exits via RETIRED — so the caller must
+            # honour the returned status rather than re-staging unconditionally.
+            # A new version_number derives a NEW key, so it legitimately reaches
+            # the CREATED -> STAGING -> COMMITTED path below.
+            if durable_state.status == DurableArtifactStatus.COMMITTED:
+                from autoforge_runtime.artifact_catalog import ArtifactConflictError
+
+                if durable_state.content_hash and durable_state.content_hash != computed_hash:
+                    raise ArtifactConflictError(
+                        f"Version {version.version_number} of artifact "
+                        f"{artifact.artifact_id} is already committed with "
+                        f"different content; refusing to silently overwrite.",
+                        details={
+                            "artifact_id": str(durable_state.artifact_id),
+                            "artifact_key": durable_state.artifact_key,
+                            "committed_content_hash": durable_state.content_hash,
+                            "incoming_content_hash": computed_hash,
+                        },
+                    )
+                # Idempotent replay: the version is already durable.
+                replayed = version.model_copy(
+                    update={
+                        "version_id": durable_state.artifact_id,
+                        "content_hash": durable_state.content_hash or computed_hash,
+                        "size_bytes": durable_state.size_bytes
+                        or len(version.content.encode("utf-8")),
+                    }
+                )
+                cur = self._versions.setdefault(artifact.artifact_id, [])
+                if replayed.version_id not in self._version_index:
+                    self._version_index[replayed.version_id] = replayed
+                    if not any(e.version_id == replayed.version_id for e in cur):
+                        cur.append(replayed)
+                return replayed
+
             staging_path = self.physical_store.create_staging_file(key)
             self.catalog.begin_staging(durable_state.artifact_id, staging_path=str(staging_path))
             c_hash, s_bytes = self.physical_store.write_staging_text(staging_path, version.content)

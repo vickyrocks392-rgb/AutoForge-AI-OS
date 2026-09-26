@@ -1,0 +1,138 @@
+{
+  "per_iteration": [
+    {
+      "iteration": 1,
+      "raw_record_tokens": 320,
+      "structured_projection_tokens": 88,
+      "reduction": 0.725
+    },
+    {
+      "iteration": 2,
+      "raw_record_tokens": 320,
+      "structured_projection_tokens": 88,
+      "reduction": 0.725
+    },
+    {
+      "iteration": 3,
+      "raw_record_tokens": 294,
+      "structured_projection_tokens": 66,
+      "reduction": 0.776
+    },
+    {
+      "iteration": 4,
+      "raw_record_tokens": 320,
+      "structured_projection_tokens": 88,
+      "reduction": 0.725
+    },
+    {
+      "iteration": 5,
+      "raw_record_tokens": 320,
+      "structured_projection_tokens": 88,
+      "reduction": 0.725
+    },
+    {
+      "iteration": 6,
+      "raw_record_tokens": 294,
+      "structured_projection_tokens": 66,
+      "reduction": 0.776
+    },
+    {
+      "iteration": 7,
+      "raw_record_tokens": 320,
+      "structured_projection_tokens": 88,
+      "reduction": 0.725
+    },
+    {
+      "iteration": 8,
+      "raw_record_tokens": 320,
+      "structured_projection_tokens": 88,
+      "reduction": 0.725
+    },
+    {
+      "iteration": 9,
+      "raw_record_tokens": 294,
+      "structured_projection_tokens": 66,
+      "reduction": 0.776
+    },
+    {
+      "iteration": 10,
+      "raw_record_tokens": 320,
+      "structured_projection_tokens": 88,
+      "reduction": 0.725
+    },
+    {
+      "iteration": 11,
+      "raw_record_tokens": 320,
+      "structured_projection_tokens": 88,
+      "reduction": 0.725
+    },
+    {
+      "iteration": 12,
+      "raw_record_tokens": 294,
+      "structured_projection_tokens": 66,
+      "reduction": 0.776
+    }
+  ],
+  "scaling": [
+    {
+      "iterations_supplied": 1,
+      "candidates_considered": 4,
+      "candidates_selected": 4,
+      "iteration_items_delivered_today": 0,
+      "delivered_tokens": 96,
+      "history_retained_on_context": 1
+    },
+    {
+      "iterations_supplied": 2,
+      "candidates_considered": 4,
+      "candidates_selected": 4,
+      "iteration_items_delivered_today": 0,
+      "delivered_tokens": 96,
+      "history_retained_on_context": 2
+    },
+    {
+      "iterations_supplied": 3,
+      "candidates_considered": 4,
+      "candidates_selected": 4,
+      "iteration_items_delivered_today": 0,
+      "delivered_tokens": 73,
+      "history_retained_on_context": 3
+    },
+    {
+      "iterations_supplied": 6,
+      "candidates_considered": 4,
+      "candidates_selected": 4,
+      "iteration_items_delivered_today": 0,
+      "delivered_tokens": 73,
+      "history_retained_on_context": 6
+    },
+    {
+      "iterations_supplied": 9,
+      "candidates_considered": 4,
+      "candidates_selected": 4,
+      "iteration_items_delivered_today": 0,
+      "delivered_tokens": 73,
+      "history_retained_on_context": 9
+    },
+    {
+      "iterations_supplied": 12,
+      "candidates_considered": 4,
+      "candidates_selected": 4,
+      "iteration_items_delivered_today": 0,
+      "delivered_tokens": 73,
+      "history_retained_on_context": 12
+    }
+  ],
+  "mean_raw_record_tokens": 311.3,
+  "mean_projection_tokens": 80.7,
+  "mean_projection_reduction": 0.741,
+  "g1_confirmed": true,
+  "evidence_derived_policy": {
+    "retention_window": 3,
+    "retention_rationale": "Mean raw iteration record is 311.3 tokens. Keeping 3 inline is ~934 tokens, about 2.9% of a 32k window, while preserving the active repair loop the next operation needs.",
+    "iteration_count_trigger": 4,
+    "iteration_trigger_rationale": "One iteration beyond the retention window: at that point at least one iteration is guaranteed to be compacted, so the trigger is meaningful.",
+    "budget_pressure_floor_tokens": 2048,
+    "budget_rationale": "Below one full raw iteration record (311.3 tokens); compaction then fires before MSC begins excluding optional items."
+  }
+}

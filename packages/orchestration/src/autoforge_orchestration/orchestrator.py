@@ -1125,8 +1125,10 @@ class OrchestrationEngine:
         Ensure the executor registry has real provider adapters bound.
 
         When executor_registry is provided at construction time it is used directly.
-        Otherwise creates a fresh registry and binds any locally-available
-        Ollama adapters. This method is idempotent — repeated calls return the
+        Otherwise creates a fresh registry and binds the canonical local runtime
+        (llama.cpp ``llama-server`` / MLX, both OpenAI-compatible). Gate 4: this
+        no longer hard-requires an Ollama daemon — Ollama was a silent runtime
+        dependency here. This method is idempotent — repeated calls return the
         same (possibly pre-bound) registry.
         """
         if self._executor_registry is not None:
@@ -1134,9 +1136,11 @@ class OrchestrationEngine:
 
         try:
             registry = ExecutorRegistry()
-            from autoforge_ai_infrastructure.adapters.ollama import OllamaProviderAdapter
-            ollama_m1 = OllamaProviderAdapter(provider_id="local-m1")
-            registry.bind("local-m1", ollama_m1)
+            from autoforge_ai_infrastructure.adapters.local_runtime import (
+                bind_local_runtime_adapters,
+            )
+
+            bind_local_runtime_adapters(registry)
             self._executor_registry = registry
             return registry
         except Exception:

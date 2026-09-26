@@ -1,0 +1,673 @@
+{
+  "cases": {
+    "A_simple_history": {
+      "iterations": 2,
+      "arm_b": {
+        "compaction_ran": false,
+        "validation_status": null,
+        "trigger": null,
+        "source_estimated_tokens": null,
+        "estimated_tokens": null,
+        "reduction_ratio": null
+      },
+      "counts": {
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0
+      },
+      "note": "compaction did not trigger for this case (short history)"
+    },
+    "B_failed_then_corrected": {
+      "iterations": 2,
+      "arm_b": {
+        "compaction_ran": false,
+        "validation_status": null,
+        "trigger": null,
+        "source_estimated_tokens": null,
+        "estimated_tokens": null,
+        "reduction_ratio": null
+      },
+      "counts": {
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0
+      },
+      "note": "compaction did not trigger for this case (short history)"
+    },
+    "C_conflicting_evidence": {
+      "iterations": 1,
+      "arm_b": {
+        "compaction_ran": false,
+        "validation_status": null,
+        "trigger": null,
+        "source_estimated_tokens": null,
+        "estimated_tokens": null,
+        "reduction_ratio": null
+      },
+      "counts": {
+        "candidates_considered": 4,
+        "candidates_selected": 4,
+        "excluded": 0
+      },
+      "note": "compaction did not trigger for this case (short history)"
+    },
+    "D_requirement_change": {
+      "iterations": 2,
+      "arm_b": {
+        "compaction_ran": false,
+        "validation_status": null,
+        "trigger": null,
+        "source_estimated_tokens": null,
+        "estimated_tokens": null,
+        "reduction_ratio": null
+      },
+      "counts": {
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0
+      },
+      "note": "compaction did not trigger for this case (short history)"
+    },
+    "E_rejected_decision": {
+      "iterations": 2,
+      "arm_b": {
+        "compaction_ran": false,
+        "validation_status": null,
+        "trigger": null,
+        "source_estimated_tokens": null,
+        "estimated_tokens": null,
+        "reduction_ratio": null
+      },
+      "counts": {
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0
+      },
+      "note": "compaction did not trigger for this case (short history)"
+    },
+    "F_unresolved_blocker": {
+      "iterations": 2,
+      "arm_b": {
+        "compaction_ran": false,
+        "validation_status": null,
+        "trigger": null,
+        "source_estimated_tokens": null,
+        "estimated_tokens": null,
+        "reduction_ratio": null
+      },
+      "counts": {
+        "candidates_considered": 4,
+        "candidates_selected": 4,
+        "excluded": 0
+      },
+      "note": "compaction did not trigger for this case (short history)"
+    },
+    "G_artifact_dependency": {
+      "iterations": 2,
+      "arm_b": {
+        "compaction_ran": false,
+        "validation_status": null,
+        "trigger": null,
+        "source_estimated_tokens": null,
+        "estimated_tokens": null,
+        "reduction_ratio": null
+      },
+      "counts": {
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0
+      },
+      "note": "compaction did not trigger for this case (short history)"
+    },
+    "H_recovery": {
+      "iterations": 2,
+      "arm_b": {
+        "compaction_ran": false,
+        "validation_status": null,
+        "trigger": null,
+        "source_estimated_tokens": null,
+        "estimated_tokens": null,
+        "reduction_ratio": null
+      },
+      "counts": {
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0
+      },
+      "note": "compaction did not trigger for this case (short history)"
+    },
+    "I_long_history": {
+      "iterations": 12,
+      "arm_b": {
+        "compaction_ran": true,
+        "validation_status": "valid",
+        "trigger": "iteration_boundary",
+        "source_estimated_tokens": 3098,
+        "estimated_tokens": 584,
+        "reduction_ratio": 0.8115
+      },
+      "counts": {
+        "candidates_considered": 13,
+        "candidates_selected": 13,
+        "excluded": 0
+      },
+      "identity": {
+        "iteration_refs_preserved": [
+          "iter-1",
+          "iter-2",
+          "iter-3",
+          "iter-4",
+          "iter-5",
+          "iter-6",
+          "iter-7",
+          "iter-8",
+          "iter-9"
+        ],
+        "iteration_refs_count": 9,
+        "context_ids_unique": true,
+        "context_ids_content_derived": true,
+        "source_refs_preserved": true
+      },
+      "dependencies": {
+        "dependency_chain_edges": 8,
+        "orphaned_dependency_refs": [],
+        "no_orphans": true,
+        "ordered_chain_intact": true
+      },
+      "provenance": {
+        "all_have_provenance": true,
+        "all_attributed": true,
+        "none_inferred": true,
+        "acquired_from_values": [
+          "engineering_loop"
+        ],
+        "provenance_is_content_free": true
+      },
+      "requirements": {
+        "required_facts_expected": 2,
+        "required_facts_preserved": 2,
+        "required_facts_missing": [],
+        "all_required_preserved": true,
+        "forbidden_facts_present_as_available": [],
+        "approval_items_carried": 0,
+        "approvals_irreplaceable": true,
+        "rejection_never_becomes_absence": true
+      },
+      "verification": {
+        "observed_failures_present": true,
+        "authority_markers_present": true,
+        "deterministic_evidence_marked": false,
+        "model_claims_never_marked_verified": true,
+        "proposals_marked_proposed": true
+      },
+      "recovery": {
+        "supersession_status_present": true,
+        "current_status_present": false,
+        "corrections_present": true,
+        "failure_history_present": true
+      },
+      "conflicts": {
+        "iterations_not_collapsed": true,
+        "each_iteration_distinct_ref": true,
+        "authority_markers_consistent": true
+      }
+    },
+    "J_redundant_history": {
+      "iterations": 8,
+      "arm_b": {
+        "compaction_ran": true,
+        "validation_status": "valid",
+        "trigger": "iteration_boundary",
+        "source_estimated_tokens": 2128,
+        "estimated_tokens": 429,
+        "reduction_ratio": 0.7984
+      },
+      "counts": {
+        "candidates_considered": 9,
+        "candidates_selected": 9,
+        "excluded": 0
+      },
+      "identity": {
+        "iteration_refs_preserved": [
+          "iter-1",
+          "iter-2",
+          "iter-3",
+          "iter-4",
+          "iter-5"
+        ],
+        "iteration_refs_count": 5,
+        "context_ids_unique": true,
+        "context_ids_content_derived": true,
+        "source_refs_preserved": true
+      },
+      "dependencies": {
+        "dependency_chain_edges": 4,
+        "orphaned_dependency_refs": [],
+        "no_orphans": true,
+        "ordered_chain_intact": true
+      },
+      "provenance": {
+        "all_have_provenance": true,
+        "all_attributed": true,
+        "none_inferred": true,
+        "acquired_from_values": [
+          "engineering_loop"
+        ],
+        "provenance_is_content_free": true
+      },
+      "requirements": {
+        "required_facts_expected": 2,
+        "required_facts_preserved": 2,
+        "required_facts_missing": [],
+        "all_required_preserved": true,
+        "forbidden_facts_present_as_available": [],
+        "approval_items_carried": 0,
+        "approvals_irreplaceable": true,
+        "rejection_never_becomes_absence": true
+      },
+      "verification": {
+        "observed_failures_present": true,
+        "authority_markers_present": true,
+        "deterministic_evidence_marked": false,
+        "model_claims_never_marked_verified": true,
+        "proposals_marked_proposed": true
+      },
+      "recovery": {
+        "supersession_status_present": true,
+        "current_status_present": false,
+        "corrections_present": true,
+        "failure_history_present": true
+      },
+      "conflicts": {
+        "iterations_not_collapsed": true,
+        "each_iteration_distinct_ref": true,
+        "authority_markers_consistent": true
+      }
+    }
+  },
+  "storage": [
+    {
+      "case": "A_simple_history",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "B_failed_then_corrected",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "C_conflicting_evidence",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "D_requirement_change",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "E_rejected_decision",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "F_unresolved_blocker",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "G_artifact_dependency",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "H_recovery",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "I_long_history",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    },
+    {
+      "case": "J_redundant_history",
+      "reloaded_ok": true,
+      "artifact_id_stable_across_restart": true,
+      "identity_preserved": true,
+      "fingerprint_preserved": true,
+      "content_digest_preserved": true,
+      "items_preserved": true,
+      "provenance_preserved": true,
+      "schema_version": 1,
+      "no_duplicate_artifact": true
+    }
+  ],
+  "references": [
+    {
+      "case": "A_simple_history",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "B_failed_then_corrected",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "C_conflicting_evidence",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "D_requirement_change",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "E_rejected_decision",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "F_unresolved_blocker",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "G_artifact_dependency",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "H_recovery",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "I_long_history",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    },
+    {
+      "case": "J_redundant_history",
+      "reference_created": true,
+      "reference_has_artifact_id": true,
+      "reference_has_content_hash": true,
+      "reference_has_version": true,
+      "reference_matches_committed_hash": true,
+      "reference_has_no_content_field": true,
+      "missing_source_returns_none": true,
+      "invalid_reference_rejected_by_validation": true,
+      "invalid_reference_reasons": [
+        "v3_unresolvable_reference:419b6c4c-6970-52cd-8cc0-d851bc1c8849"
+      ]
+    }
+  ],
+  "idempotency": [
+    {
+      "case": "A_simple_history",
+      "iterations": 2,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "B_failed_then_corrected",
+      "iterations": 2,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "C_conflicting_evidence",
+      "iterations": 1,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "D_requirement_change",
+      "iterations": 2,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "E_rejected_decision",
+      "iterations": 2,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "F_unresolved_blocker",
+      "iterations": 2,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "G_artifact_dependency",
+      "iterations": 2,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "H_recovery",
+      "iterations": 2,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "I_long_history",
+      "iterations": 12,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    },
+    {
+      "case": "J_redundant_history",
+      "iterations": 8,
+      "same_source_same_policy_same_id": true,
+      "same_source_same_policy_same_digest": true,
+      "no_duplicate_items_on_retry": true,
+      "different_task_distinct_id": true,
+      "longer_history_distinct_id": true,
+      "changed_policy_distinct_id": true,
+      "changed_policy_distinct_fingerprint": true
+    }
+  ],
+  "summary": {
+    "storage_roundtrip_all_pass": true,
+    "reference_resolution_all_pass": true,
+    "idempotency_all_pass": true,
+    "requirements_all_preserved": true,
+    "no_forbidden_resurrection": true,
+    "no_orphaned_dependencies": true,
+    "model_claims_never_verified": true
+  }
+}

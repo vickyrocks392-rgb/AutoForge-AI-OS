@@ -76,7 +76,11 @@ class ArtifactPipeline:
         # ── Authoritative Durable Registration (Phase 18-K) ─────────────────
         if self._durable_catalog is not None:
             try:
-                from autoforge_runtime.artifact_catalog import derive_artifact_key
+                from autoforge_runtime.artifact_catalog import (
+                    ArtifactConflictError,
+                    derive_artifact_key,
+                )
+                from autoforge_runtime.models import DurableArtifactStatus
 
                 exec_id = getattr(provenance, "execution_id", None) or provenance.metadata.get("execution_id")
 
@@ -105,29 +109,86 @@ class ArtifactPipeline:
                 artifact_id = durable_state.artifact_id
 
                 if self._physical_store is not None:
-                    staging_path = self._physical_store.create_staging_file(key)
-                    self._durable_catalog.begin_staging(artifact_id, staging_path=str(staging_path))
+                    # 18-J defect repair: ``register_artifact`` is idempotent by
+                    # design (a retry must NOT mint a new logical artifact
+                    # identity), so on replay it returns the EXISTING record
+                    # unchanged — which may already be COMMITTED.
+                    #
+                    # The state machine is correct: ``committed -> retired`` is
+                    # the only legal exit from COMMITTED, and re-entering STAGING
+                    # would un-commit durable, physically verified content. The
+                    # defect was that this caller ignored the returned status and
+                    # attempted to re-stage unconditionally.
+                    #
+                    # The correct semantic, per the DurableArtifactState contract
+                    # ("an existing key reused with a differing hash is rejected
+                    # with a conflict error"), is:
+                    #   * already COMMITTED with the SAME content -> idempotent
+                    #     replay: the artifact is already durable, so re-use it;
+                    #   * already COMMITTED with DIFFERENT content -> a genuine
+                    #     conflict, which must be reported, never silently
+                    #     overwrite the committed artifact.
+                    if durable_state.status is DurableArtifactStatus.COMMITTED:
+                        incoming = (
+                            content.encode("utf-8")
+                            if isinstance(content, str)
+                            else content
+                        )
+                        incoming_hash = hashlib.sha256(incoming).hexdigest()
+                        if durable_state.content_hash == incoming_hash:
+                            # Idempotent replay: already durable and identical.
+                            artifact_id = durable_state.artifact_id
+                            checksum = durable_state.content_hash
+                            size_bytes = (
+                                durable_state.size_bytes or len(incoming)
+                            )
+                            path = durable_state.storage_path or path
+                        else:
+                            raise ArtifactConflictError(
+                                f"Artifact '{name}' is already committed with "
+                                f"different content; refusing to silently "
+                                f"overwrite durable artifact {artifact_id}.",
+                                details={
+                                    "artifact_id": str(artifact_id),
+                                    "artifact_key": durable_state.artifact_key,
+                                    "committed_content_hash": durable_state.content_hash,
+                                    "incoming_content_hash": incoming_hash,
+                                    "task_id": provenance.task_id,
+                                    "worker_id": provenance.worker_id,
+                                },
+                            )
+                    else:
+                        staging_path = self._physical_store.create_staging_file(key)
+                        self._durable_catalog.begin_staging(
+                            artifact_id, staging_path=str(staging_path)
+                        )
 
-                    b_content = content.encode("utf-8") if isinstance(content, str) else content
-                    c_hash, s_bytes = self._physical_store.write_staging_bytes(staging_path, b_content)
-                    checksum = c_hash
-                    size_bytes = s_bytes
+                        b_content = (
+                            content.encode("utf-8")
+                            if isinstance(content, str)
+                            else content
+                        )
+                        c_hash, s_bytes = self._physical_store.write_staging_bytes(
+                            staging_path, b_content
+                        )
+                        checksum = c_hash
+                        size_bytes = s_bytes
 
-                    target_rel = path or name
-                    published_p = self._physical_store.atomic_publish(
-                        staging_path,
-                        target_rel,
-                        expected_hash=c_hash,
-                        expected_size=s_bytes,
-                    )
-                    path = str(published_p)
+                        target_rel = path or name
+                        published_p = self._physical_store.atomic_publish(
+                            staging_path,
+                            target_rel,
+                            expected_hash=c_hash,
+                            expected_size=s_bytes,
+                        )
+                        path = str(published_p)
 
-                    self._durable_catalog.commit_artifact(
-                        artifact_id,
-                        storage_path=path,
-                        content_hash=c_hash,
-                        size_bytes=s_bytes,
-                    )
+                        self._durable_catalog.commit_artifact(
+                            artifact_id,
+                            storage_path=path,
+                            content_hash=c_hash,
+                            size_bytes=s_bytes,
+                        )
             except Exception as e:
                 logger.error(f"Durable artifact registration failed: {e}", exc_info=True)
                 raise

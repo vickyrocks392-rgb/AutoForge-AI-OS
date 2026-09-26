@@ -1,0 +1,1178 @@
+{
+  "control": {
+    "model": "qwen2.5-coder-3b",
+    "runtime": "llama.cpp llama-server (OpenAI-compatible /v1)",
+    "temperature": 0.0,
+    "seed": 42,
+    "max_tokens": 320,
+    "repeats_per_arm": 3,
+    "context_window": 8192,
+    "distractor_scales": [
+      4,
+      12,
+      20
+    ],
+    "held_constant": [
+      "model",
+      "provider/runtime",
+      "task",
+      "system framing",
+      "temperature",
+      "seed",
+      "max_tokens",
+      "output contract",
+      "tool availability (none in both arms)"
+    ],
+    "varied": "context construction strategy only"
+  },
+  "summary_overall": {
+    "n": 15,
+    "arm_A_full_context": {
+      "mean_context_chars": 2075.3333,
+      "mean_prompt_tokens": 476.0667,
+      "mean_prompt_ms": 15.2107,
+      "mean_generation_ms": 946.4245,
+      "mean_wall_ms": 992.6993,
+      "mean_completion_tokens": 66.2,
+      "mean_required_recall": 0.8667,
+      "mean_distractor_leaks": 0.0,
+      "output_valid_rate": 1.0,
+      "unsupported_claim_total": 0
+    },
+    "arm_B_context_engineering": {
+      "mean_context_chars": 1524.0,
+      "mean_prompt_tokens": 453.0,
+      "mean_prompt_ms": 14.9024,
+      "mean_generation_ms": 752.6069,
+      "mean_wall_ms": 794.768,
+      "mean_completion_tokens": 53.0,
+      "mean_required_recall": 0.8667,
+      "mean_distractor_leaks": 0.0,
+      "output_valid_rate": 1.0,
+      "unsupported_claim_total": 0
+    },
+    "delta": {
+      "prompt_tokens_pct": -4.85,
+      "prompt_ms_pct": -2.03,
+      "required_recall_delta": 0.0,
+      "distractor_leaks_delta": 0.0
+    }
+  },
+  "summary_by_scale": {
+    "4": {
+      "n": 5,
+      "arm_A_full_context": {
+        "mean_context_chars": 1430.0,
+        "mean_prompt_tokens": 332.4,
+        "mean_prompt_ms": 14.7976,
+        "mean_generation_ms": 940.3698,
+        "mean_wall_ms": 975.296,
+        "mean_completion_tokens": 65.8,
+        "mean_required_recall": 0.8667,
+        "mean_distractor_leaks": 0.0,
+        "output_valid_rate": 1.0,
+        "unsupported_claim_total": 0
+      },
+      "arm_B_context_engineering": {
+        "mean_context_chars": 1524.0,
+        "mean_prompt_tokens": 453.0,
+        "mean_prompt_ms": 15.0228,
+        "mean_generation_ms": 752.3702,
+        "mean_wall_ms": 843.388,
+        "mean_completion_tokens": 53.0,
+        "mean_required_recall": 0.8667,
+        "mean_distractor_leaks": 0.0,
+        "output_valid_rate": 1.0,
+        "unsupported_claim_total": 0
+      },
+      "delta": {
+        "prompt_tokens_pct": 36.28,
+        "prompt_ms_pct": 1.52,
+        "required_recall_delta": 0.0,
+        "distractor_leaks_delta": 0.0
+      }
+    },
+    "12": {
+      "n": 5,
+      "arm_A_full_context": {
+        "mean_context_chars": 2099.0,
+        "mean_prompt_tokens": 485.4,
+        "mean_prompt_ms": 15.8496,
+        "mean_generation_ms": 964.632,
+        "mean_wall_ms": 1017.25,
+        "mean_completion_tokens": 67.6,
+        "mean_required_recall": 0.8667,
+        "mean_distractor_leaks": 0.0,
+        "output_valid_rate": 1.0,
+        "unsupported_claim_total": 0
+      },
+      "arm_B_context_engineering": {
+        "mean_context_chars": 1524.0,
+        "mean_prompt_tokens": 453.0,
+        "mean_prompt_ms": 14.9024,
+        "mean_generation_ms": 751.7336,
+        "mean_wall_ms": 769.542,
+        "mean_completion_tokens": 53.0,
+        "mean_required_recall": 0.8667,
+        "mean_distractor_leaks": 0.0,
+        "output_valid_rate": 1.0,
+        "unsupported_claim_total": 0
+      },
+      "delta": {
+        "prompt_tokens_pct": -6.67,
+        "prompt_ms_pct": -5.98,
+        "required_recall_delta": 0.0,
+        "distractor_leaks_delta": 0.0
+      }
+    },
+    "20": {
+      "n": 5,
+      "arm_A_full_context": {
+        "mean_context_chars": 2697.0,
+        "mean_prompt_tokens": 610.4,
+        "mean_prompt_ms": 14.9848,
+        "mean_generation_ms": 934.2718,
+        "mean_wall_ms": 985.552,
+        "mean_completion_tokens": 65.2,
+        "mean_required_recall": 0.8667,
+        "mean_distractor_leaks": 0.0,
+        "output_valid_rate": 1.0,
+        "unsupported_claim_total": 0
+      },
+      "arm_B_context_engineering": {
+        "mean_context_chars": 1524.0,
+        "mean_prompt_tokens": 453.0,
+        "mean_prompt_ms": 14.782,
+        "mean_generation_ms": 753.7168,
+        "mean_wall_ms": 771.374,
+        "mean_completion_tokens": 53.0,
+        "mean_required_recall": 0.8667,
+        "mean_distractor_leaks": 0.0,
+        "output_valid_rate": 1.0,
+        "unsupported_claim_total": 0
+      },
+      "delta": {
+        "prompt_tokens_pct": -25.79,
+        "prompt_ms_pct": -1.35,
+        "required_recall_delta": 0.0,
+        "distractor_leaks_delta": 0.0
+      }
+    }
+  },
+  "per_task": [
+    {
+      "task": "retry-backoff",
+      "distractor_items_in_full_context": 4,
+      "arm_A_full_context": {
+        "context_chars": 1518,
+        "prompt_tokens": 357,
+        "prompt_ms": 14.813,
+        "generation_ms": 940.159,
+        "wall_ms": 984.24,
+        "completion_tokens": 66,
+        "answer": "```json\n{\n  \"failure_cause\": \"AssertionError comparing expected and actual values\",\n  \"affected_symbol\": \"compute_backoff\",\n  \"expected_sequence\": [1, 2, 4, 8],\n  \"actual_sequence\": [1, 2, 4, 4]\n}\n```",
+        "score": {
+          "required_preserved": 3,
+          "required_total": 3,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 200
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1612,
+        "prompt_tokens": 475,
+        "prompt_ms": 15.757,
+        "generation_ms": 943.922,
+        "wall_ms": 1036.44,
+        "completion_tokens": 66,
+        "answer": "```json\n{\n  \"failure_cause\": \"AssertionError comparing expected and actual values\",\n  \"affected_symbol\": \"compute_backoff\",\n  \"expected_sequence\": [1, 2, 4, 8],\n  \"actual_sequence\": [1, 2, 4, 4]\n}\n```",
+        "score": {
+          "required_preserved": 3,
+          "required_total": 3,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 200
+        },
+        "msc_record": {
+          "considered": 9,
+          "selected": 5,
+          "excluded": 4,
+          "deduplicated": 0,
+          "mandatory_tokens": 97,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "cache-ttl",
+      "distractor_items_in_full_context": 4,
+      "arm_A_full_context": {
+        "context_chars": 1376,
+        "prompt_tokens": 321,
+        "prompt_ms": 14.505,
+        "generation_ms": 897.777,
+        "wall_ms": 928.24,
+        "completion_tokens": 63,
+        "answer": "CAUSE: The `cache_get` function in `src/cache-ttl/service.py` ignores the `ttl_seconds` parameter, causing entries to never expire.\nFILE: src/cache-ttl/service.py\nFIX: Apply the targeted fix described in the evidence to ensure that entries expire according to the specified TTL.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "300"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 278
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1470,
+        "prompt_tokens": 442,
+        "prompt_ms": 14.87,
+        "generation_ms": 838.665,
+        "wall_ms": 928.14,
+        "completion_tokens": 59,
+        "answer": "CAUSE: The cache_get function in src/cache-ttl/service.py does not respect the ttl_seconds parameter, causing entries to never expire.\nFILE: src/cache-ttl/service.py\nFIX: Apply the targeted fix described in the evidence to ensure that cache_get respects the ttl_seconds parameter.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "300"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 280
+        },
+        "msc_record": {
+          "considered": 9,
+          "selected": 5,
+          "excluded": 4,
+          "deduplicated": 0,
+          "mandatory_tokens": 89,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "auth-redirect",
+      "distractor_items_in_full_context": 4,
+      "arm_A_full_context": {
+        "context_chars": 1411,
+        "prompt_tokens": 331,
+        "prompt_ms": 15.133,
+        "generation_ms": 1119.018,
+        "wall_ms": 1153.31,
+        "completion_tokens": 77,
+        "answer": "CAUSE: The refresh handler in `src/auth-redirect/service.py` returns a 302 status code instead of a 200 status code, which causes the session cookie to be dropped.\nFILE: src/auth-redirect/service.py\nFIX: Modify the refresh handler to return a 200 status code and ensure that the session cookie is not dropped.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 309
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1505,
+        "prompt_tokens": 453,
+        "prompt_ms": 14.798,
+        "generation_ms": 621.207,
+        "wall_ms": 713.72,
+        "completion_tokens": 44,
+        "answer": "CAUSE: The refresh handler returns 302 instead of 200 and drops the session cookie.\nFILE: src/auth-redirect/service.py\nFIX: Apply the targeted fix described in the evidence.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 173
+        },
+        "msc_record": {
+          "considered": 9,
+          "selected": 5,
+          "excluded": 4,
+          "deduplicated": 0,
+          "mandatory_tokens": 95,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "rate-limit",
+      "distractor_items_in_full_context": 4,
+      "arm_A_full_context": {
+        "context_chars": 1434,
+        "prompt_tokens": 333,
+        "prompt_ms": 14.817,
+        "generation_ms": 748.98,
+        "wall_ms": 779.8,
+        "completion_tokens": 53,
+        "answer": "```json\n{\n  \"cause\": \"the response builder omits X-RateLimit-Remaining so clients never see 429\",\n  \"header\": \"X-RateLimit-Remaining\",\n  \"limit\": 429\n}\n```",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 155
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1528,
+        "prompt_tokens": 454,
+        "prompt_ms": 14.832,
+        "generation_ms": 751.344,
+        "wall_ms": 842.06,
+        "completion_tokens": 53,
+        "answer": "```json\n{\n  \"cause\": \"The response builder omits X-RateLimit-Remaining so clients never see 429\",\n  \"header\": \"X-RateLimit-Remaining\",\n  \"limit\": 429\n}\n```",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 155
+        },
+        "msc_record": {
+          "considered": 9,
+          "selected": 5,
+          "excluded": 4,
+          "deduplicated": 0,
+          "mandatory_tokens": 94,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "schema-drift",
+      "distractor_items_in_full_context": 4,
+      "arm_A_full_context": {
+        "context_chars": 1411,
+        "prompt_tokens": 320,
+        "prompt_ms": 14.72,
+        "generation_ms": 995.915,
+        "wall_ms": 1030.89,
+        "completion_tokens": 70,
+        "answer": "CAUSE: The migration drops the `user_email` NOT NULL constraint before backfilling existing rows, causing an assertion error when the migration is applied to the production database.\nFILE: src/schema-drift/service.py\nFIX: Apply the targeted fix described in the evidence to ensure the `user_email` column remains NOT NULL after the migration.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "postgres"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 342
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1505,
+        "prompt_tokens": 441,
+        "prompt_ms": 14.857,
+        "generation_ms": 606.713,
+        "wall_ms": 696.58,
+        "completion_tokens": 43,
+        "answer": "CAUSE: The migration drops the NOT NULL constraint on the user_email column before backfilling existing rows.\nFILE: src/schema-drift/service.py\nFIX: Apply the targeted fix described in the evidence.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "postgres"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 198
+        },
+        "msc_record": {
+          "considered": 9,
+          "selected": 5,
+          "excluded": 4,
+          "deduplicated": 0,
+          "mandatory_tokens": 88,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "retry-backoff",
+      "distractor_items_in_full_context": 12,
+      "arm_A_full_context": {
+        "context_chars": 2187,
+        "prompt_tokens": 510,
+        "prompt_ms": 15.993,
+        "generation_ms": 942.484,
+        "wall_ms": 996.36,
+        "completion_tokens": 66,
+        "answer": "```json\n{\n  \"failure_cause\": \"AssertionError comparing expected and actual values\",\n  \"affected_symbol\": \"compute_backoff\",\n  \"expected_sequence\": [1, 2, 4, 8],\n  \"actual_sequence\": [1, 2, 4, 4]\n}\n```",
+        "score": {
+          "required_preserved": 3,
+          "required_total": 3,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 200
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1612,
+        "prompt_tokens": 475,
+        "prompt_ms": 15.452,
+        "generation_ms": 941.49,
+        "wall_ms": 959.51,
+        "completion_tokens": 66,
+        "answer": "```json\n{\n  \"failure_cause\": \"AssertionError comparing expected and actual values\",\n  \"affected_symbol\": \"compute_backoff\",\n  \"expected_sequence\": [1, 2, 4, 8],\n  \"actual_sequence\": [1, 2, 4, 4]\n}\n```",
+        "score": {
+          "required_preserved": 3,
+          "required_total": 3,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 200
+        },
+        "msc_record": {
+          "considered": 17,
+          "selected": 5,
+          "excluded": 12,
+          "deduplicated": 0,
+          "mandatory_tokens": 97,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "cache-ttl",
+      "distractor_items_in_full_context": 12,
+      "arm_A_full_context": {
+        "context_chars": 2045,
+        "prompt_tokens": 474,
+        "prompt_ms": 15.995,
+        "generation_ms": 898.34,
+        "wall_ms": 950.78,
+        "completion_tokens": 63,
+        "answer": "CAUSE: The `cache_get` function in `src/cache-ttl/service.py` ignores the `ttl_seconds` parameter, causing entries to never expire.\nFILE: src/cache-ttl/service.py\nFIX: Apply the targeted fix described in the evidence to ensure that entries expire according to the specified TTL.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "300"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 278
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1470,
+        "prompt_tokens": 442,
+        "prompt_ms": 14.848,
+        "generation_ms": 838.069,
+        "wall_ms": 856.14,
+        "completion_tokens": 59,
+        "answer": "CAUSE: The cache_get function in src/cache-ttl/service.py does not respect the ttl_seconds parameter, causing entries to never expire.\nFILE: src/cache-ttl/service.py\nFIX: Apply the targeted fix described in the evidence to ensure that cache_get respects the ttl_seconds parameter.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "300"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 280
+        },
+        "msc_record": {
+          "considered": 17,
+          "selected": 5,
+          "excluded": 12,
+          "deduplicated": 0,
+          "mandatory_tokens": 89,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "auth-redirect",
+      "distractor_items_in_full_context": 12,
+      "arm_A_full_context": {
+        "context_chars": 2080,
+        "prompt_tokens": 484,
+        "prompt_ms": 16.08,
+        "generation_ms": 1187.544,
+        "wall_ms": 1239.92,
+        "completion_tokens": 83,
+        "answer": "CAUSE: The refresh handler in `src/auth-redirect/service.py` returns a 302 status code instead of a 200 status code, which causes the session cookie to be dropped when authenticated users refresh their tokens.\nFILE: src/auth-redirect/service.py\nFIX: Modify the refresh handler to return a 200 status code and ensure that the session cookie is not dropped.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 355
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1505,
+        "prompt_tokens": 453,
+        "prompt_ms": 14.646,
+        "generation_ms": 620.768,
+        "wall_ms": 638.26,
+        "completion_tokens": 44,
+        "answer": "CAUSE: The refresh handler returns 302 instead of 200 and drops the session cookie.\nFILE: src/auth-redirect/service.py\nFIX: Apply the targeted fix described in the evidence.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 173
+        },
+        "msc_record": {
+          "considered": 17,
+          "selected": 5,
+          "excluded": 12,
+          "deduplicated": 0,
+          "mandatory_tokens": 95,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "rate-limit",
+      "distractor_items_in_full_context": 12,
+      "arm_A_full_context": {
+        "context_chars": 2103,
+        "prompt_tokens": 486,
+        "prompt_ms": 15.305,
+        "generation_ms": 752.799,
+        "wall_ms": 805.0,
+        "completion_tokens": 53,
+        "answer": "```json\n{\n  \"cause\": \"the response builder omits X-RateLimit-Remaining so clients never see 429\",\n  \"header\": \"X-RateLimit-Remaining\",\n  \"limit\": 429\n}\n```",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 155
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1528,
+        "prompt_tokens": 454,
+        "prompt_ms": 14.612,
+        "generation_ms": 751.222,
+        "wall_ms": 768.56,
+        "completion_tokens": 53,
+        "answer": "```json\n{\n  \"cause\": \"The response builder omits X-RateLimit-Remaining so clients never see 429\",\n  \"header\": \"X-RateLimit-Remaining\",\n  \"limit\": 429\n}\n```",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 155
+        },
+        "msc_record": {
+          "considered": 17,
+          "selected": 5,
+          "excluded": 12,
+          "deduplicated": 0,
+          "mandatory_tokens": 94,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "schema-drift",
+      "distractor_items_in_full_context": 12,
+      "arm_A_full_context": {
+        "context_chars": 2080,
+        "prompt_tokens": 473,
+        "prompt_ms": 15.875,
+        "generation_ms": 1041.993,
+        "wall_ms": 1094.19,
+        "completion_tokens": 73,
+        "answer": "CAUSE: The migration drops the `user_email` NOT NULL constraint before backfilling existing rows, causing an assertion error when the migration is applied to the production database.\nFILE: src/schema-drift/service.py\nFIX: Apply the targeted fix described in the evidence to ensure the `user_email` column is NOT NULL before backfilling existing rows.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "postgres"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 350
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1505,
+        "prompt_tokens": 441,
+        "prompt_ms": 14.954,
+        "generation_ms": 607.119,
+        "wall_ms": 625.24,
+        "completion_tokens": 43,
+        "answer": "CAUSE: The migration drops the NOT NULL constraint on the user_email column before backfilling existing rows.\nFILE: src/schema-drift/service.py\nFIX: Apply the targeted fix described in the evidence.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "postgres"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 198
+        },
+        "msc_record": {
+          "considered": 17,
+          "selected": 5,
+          "excluded": 12,
+          "deduplicated": 0,
+          "mandatory_tokens": 88,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "retry-backoff",
+      "distractor_items_in_full_context": 20,
+      "arm_A_full_context": {
+        "context_chars": 2785,
+        "prompt_tokens": 635,
+        "prompt_ms": 15.083,
+        "generation_ms": 945.182,
+        "wall_ms": 997.87,
+        "completion_tokens": 66,
+        "answer": "```json\n{\n  \"failure_cause\": \"AssertionError comparing expected and actual values\",\n  \"affected_symbol\": \"compute_backoff\",\n  \"expected_sequence\": [1, 2, 4, 8],\n  \"actual_sequence\": [1, 2, 4, 4]\n}\n```",
+        "score": {
+          "required_preserved": 3,
+          "required_total": 3,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 200
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1612,
+        "prompt_tokens": 475,
+        "prompt_ms": 15.49,
+        "generation_ms": 941.549,
+        "wall_ms": 960.17,
+        "completion_tokens": 66,
+        "answer": "```json\n{\n  \"failure_cause\": \"AssertionError comparing expected and actual values\",\n  \"affected_symbol\": \"compute_backoff\",\n  \"expected_sequence\": [1, 2, 4, 8],\n  \"actual_sequence\": [1, 2, 4, 4]\n}\n```",
+        "score": {
+          "required_preserved": 3,
+          "required_total": 3,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 200
+        },
+        "msc_record": {
+          "considered": 24,
+          "selected": 5,
+          "excluded": 19,
+          "deduplicated": 0,
+          "mandatory_tokens": 97,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "cache-ttl",
+      "distractor_items_in_full_context": 20,
+      "arm_A_full_context": {
+        "context_chars": 2643,
+        "prompt_tokens": 599,
+        "prompt_ms": 15.117,
+        "generation_ms": 899.796,
+        "wall_ms": 951.06,
+        "completion_tokens": 63,
+        "answer": "CAUSE: The `cache_get` function in `src/cache-ttl/service.py` ignores the `ttl_seconds` parameter, causing entries to never expire.\nFILE: src/cache-ttl/service.py\nFIX: Apply the targeted fix described in the evidence to ensure that entries expire according to the specified TTL.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "300"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 278
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1470,
+        "prompt_tokens": 442,
+        "prompt_ms": 14.887,
+        "generation_ms": 840.539,
+        "wall_ms": 858.39,
+        "completion_tokens": 59,
+        "answer": "CAUSE: The cache_get function in src/cache-ttl/service.py does not respect the ttl_seconds parameter, causing entries to never expire.\nFILE: src/cache-ttl/service.py\nFIX: Apply the targeted fix described in the evidence to ensure that cache_get respects the ttl_seconds parameter.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "300"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 280
+        },
+        "msc_record": {
+          "considered": 24,
+          "selected": 5,
+          "excluded": 19,
+          "deduplicated": 0,
+          "mandatory_tokens": 89,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "auth-redirect",
+      "distractor_items_in_full_context": 20,
+      "arm_A_full_context": {
+        "context_chars": 2678,
+        "prompt_tokens": 609,
+        "prompt_ms": 14.827,
+        "generation_ms": 1107.112,
+        "wall_ms": 1158.04,
+        "completion_tokens": 77,
+        "answer": "CAUSE: The refresh handler in `src/auth-redirect/service.py` returns a 302 status code instead of a 200 status code, which causes the session cookie to be dropped.\nFILE: src/auth-redirect/service.py\nFIX: Modify the refresh handler to return a 200 status code and ensure that the session cookie is not dropped.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 309
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1505,
+        "prompt_tokens": 453,
+        "prompt_ms": 14.39,
+        "generation_ms": 623.299,
+        "wall_ms": 640.31,
+        "completion_tokens": 44,
+        "answer": "CAUSE: The refresh handler returns 302 instead of 200 and drops the session cookie.\nFILE: src/auth-redirect/service.py\nFIX: Apply the targeted fix described in the evidence.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 173
+        },
+        "msc_record": {
+          "considered": 24,
+          "selected": 5,
+          "excluded": 19,
+          "deduplicated": 0,
+          "mandatory_tokens": 95,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "rate-limit",
+      "distractor_items_in_full_context": 20,
+      "arm_A_full_context": {
+        "context_chars": 2701,
+        "prompt_tokens": 611,
+        "prompt_ms": 14.942,
+        "generation_ms": 757.162,
+        "wall_ms": 808.41,
+        "completion_tokens": 53,
+        "answer": "```json\n{\n  \"cause\": \"the response builder omits X-RateLimit-Remaining so clients never see 429\",\n  \"header\": \"X-RateLimit-Remaining\",\n  \"limit\": 429\n}\n```",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 155
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1528,
+        "prompt_tokens": 454,
+        "prompt_ms": 14.633,
+        "generation_ms": 754.106,
+        "wall_ms": 771.47,
+        "completion_tokens": 53,
+        "answer": "```json\n{\n  \"cause\": \"The response builder omits X-RateLimit-Remaining so clients never see 429\",\n  \"header\": \"X-RateLimit-Remaining\",\n  \"limit\": 429\n}\n```",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 2,
+          "required_recall": 1.0,
+          "missing_facts": [],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 155
+        },
+        "msc_record": {
+          "considered": 24,
+          "selected": 5,
+          "excluded": 19,
+          "deduplicated": 0,
+          "mandatory_tokens": 94,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    },
+    {
+      "task": "schema-drift",
+      "distractor_items_in_full_context": 20,
+      "arm_A_full_context": {
+        "context_chars": 2678,
+        "prompt_tokens": 598,
+        "prompt_ms": 14.955,
+        "generation_ms": 962.107,
+        "wall_ms": 1012.38,
+        "completion_tokens": 67,
+        "answer": "CAUSE: The migration drops the user_email NOT NULL constraint before backfilling existing rows, causing an AssertionError when the migration is applied to the production database.\nFILE: src/schema-drift/service.py\nFIX: Apply the targeted fix described in the evidence to ensure the NOT NULL constraint is applied after backfilling existing rows.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "postgres"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 345
+        }
+      },
+      "arm_B_context_engineering": {
+        "context_chars": 1505,
+        "prompt_tokens": 441,
+        "prompt_ms": 14.51,
+        "generation_ms": 609.091,
+        "wall_ms": 626.53,
+        "completion_tokens": 43,
+        "answer": "CAUSE: The migration drops the NOT NULL constraint on the user_email column before backfilling existing rows.\nFILE: src/schema-drift/service.py\nFIX: Apply the targeted fix described in the evidence.",
+        "score": {
+          "required_preserved": 2,
+          "required_total": 3,
+          "required_recall": 0.6667,
+          "missing_facts": [
+            "postgres"
+          ],
+          "distractor_leaks": [],
+          "distractor_leak_count": 0,
+          "output_valid": true,
+          "unsupported_claims": [],
+          "answer_chars": 198
+        },
+        "msc_record": {
+          "considered": 24,
+          "selected": 5,
+          "excluded": 19,
+          "deduplicated": 0,
+          "mandatory_tokens": 88,
+          "optional_tokens": 20,
+          "expansion_depth_reached": 1,
+          "expansion_items_added": 0,
+          "cacheability": [
+            "task_dynamic",
+            "volatile",
+            "volatile",
+            "task_dynamic",
+            "task_dynamic"
+          ],
+          "budget_source": "caller",
+          "context_window_tokens": 8192,
+          "exclusion_reasons": [
+            "below_min_optional_relevance"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -118,8 +118,10 @@ from autoforge_ai_infrastructure.adapters import (
     AnthropicProviderAdapter,
     BaseProviderAdapter,
     GeminiProviderAdapter,
-    OllamaProviderAdapter,
+    LocalRuntimeProviderAdapter,
     OpenAICompatibleProviderAdapter,
+    bind_local_runtime_adapters,
+    bind_optional_ollama_adapter,
     extract_json_payload,
 )
 
@@ -128,8 +130,10 @@ __all__ = [
     "AnthropicProviderAdapter",
     "BaseProviderAdapter",
     "GeminiProviderAdapter",
-    "OllamaProviderAdapter",
+    "LocalRuntimeProviderAdapter",
     "OpenAICompatibleProviderAdapter",
+    "bind_local_runtime_adapters",
+    "bind_optional_ollama_adapter",
     "extract_json_payload",
     # errors
     "AIInfrastructureError",

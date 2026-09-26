@@ -1,0 +1,43 @@
+{
+  "default_posture": {
+    "context_engineering_enabled": true,
+    "compactor_injected": false,
+    "compaction_record": true,
+    "selected_items": 4,
+    "prompt_assembly_path": "canonical (unchanged)"
+  },
+  "compaction_enabled": {
+    "compaction_record_present": true,
+    "compaction_id": "cmp_8e106d7c709ca583",
+    "validation_status": "valid",
+    "trigger": "iteration_boundary",
+    "policy_version": 1,
+    "compaction_method": "deterministic",
+    "iteration_items": 4,
+    "iteration_refs": [
+      "iter-1",
+      "iter-2",
+      "iter-3",
+      "iter-4"
+    ],
+    "dependency_chain": [
+      [],
+      [
+        "ctx_4116f0127c0378cc"
+      ],
+      [
+        "ctx_28dc2d42659d0a4b"
+      ],
+      [
+        "ctx_453b61238f00b1e2"
+      ]
+    ],
+    "selected_items": 8,
+    "prompt_messages_assembled": 1,
+    "reduction_ratio": 0.8268,
+    "source_estimated_tokens": 1813,
+    "estimated_tokens": 314,
+    "iterations_reached_prompt": 4,
+    "g1_resolved": true
+  }
+}

@@ -23,9 +23,13 @@ from autoforge_ai_infrastructure import (
     ExecutorRegistry,
     InMemoryCapabilityRegistry,
     ModelRouterService,
-    OllamaProviderAdapter,
     OpenAICompatibleProviderAdapter,
     RetryPolicy,
+)
+from autoforge_ai_infrastructure.adapters.local_runtime import (
+    LocalRuntimeProviderAdapter,
+    bind_local_runtime_adapters,
+    bind_optional_ollama_adapter,
 )
 from autoforge_ai_infrastructure.events import AIInfrastructureEvents
 from autoforge_ai_infrastructure.kernel_adapter import (
@@ -69,47 +73,37 @@ class AIInfrastructureServices:
 def bind_default_provider_adapters(
     executor_registry: ExecutorRegistry,
     *,
-    ollama_base_url: str = "http://127.0.0.1:11434",
+    local_runtime_base_url: str | None = None,
     node_endpoints: dict[str, str] | None = None,
     secrets_manager: Any | None = None,
+    bind_optional_ollama: bool = False,
 ) -> None:
     """Bind standard local and cloud provider adapters to ExecutorRegistry.
 
+    Gate 4 (Ollama removal): the canonical local nodes are now bound to a
+    **local OpenAI-compatible runtime** — llama.cpp ``llama-server`` or MLX —
+    via :class:`LocalRuntimeProviderAdapter`. Ollama is no longer a default or
+    required dependency. A deployment that genuinely runs an Ollama daemon can
+    still opt in with ``bind_optional_ollama=True``; provider neutrality is
+    preserved, Ollama is simply not mandatory.
+
     ``node_endpoints`` optionally maps a provider id (``local-m1``,
-    ``local-hp``, or any additional LAN node such as ``local-mac-mini-m6``)
-    to its own Ollama base URL, so each node can expose an independent
-    LAN endpoint. When a provider has no explicit entry it falls back to
-    ``ollama_base_url``, preserving the original single-URL default exactly.
+    ``local-hp``, or any additional LAN node such as ``local-mac-mini-m6``) to
+    its own endpoint, so each node can expose an independent LAN endpoint. When
+    a provider has no explicit entry it falls back to ``local_runtime_base_url``.
     """
-    endpoints = dict(node_endpoints or {})
-
-    # 1. Local M1 Ollama (independent endpoint when configured)
-    local_m1_adapter = OllamaProviderAdapter(
-        provider_id="local-m1",
-        base_url=endpoints.get("local-m1", ollama_base_url),
+    # 1-2. Local nodes (M1, HP) and any additional configured LAN nodes.
+    bind_local_runtime_adapters(
+        executor_registry,
+        local_runtime_base_url=local_runtime_base_url,
+        node_endpoints=node_endpoints,
     )
-    executor_registry.bind("local-m1", local_m1_adapter)
 
-    # 2. Local HP Ollama (independent endpoint when configured)
-    local_hp_adapter = OllamaProviderAdapter(
-        provider_id="local-hp",
-        base_url=endpoints.get("local-hp", ollama_base_url),
-    )
-    executor_registry.bind("local-hp", local_hp_adapter)
+    # 3. Optional, explicitly requested Ollama provider adapter.
+    if bind_optional_ollama:
+        bind_optional_ollama_adapter(executor_registry)
 
-    # 2a. Any additional LAN nodes provided (e.g. a third local Mac Mini node).
-    #     Missing entries keep the single-URL default; no topology is created
-    #     unless the caller explicitly configures one.
-    for provider_id in sorted(endpoints):
-        if provider_id in ("local-m1", "local-hp"):
-            continue
-        extra_adapter = OllamaProviderAdapter(
-            provider_id=provider_id,
-            base_url=endpoints[provider_id],
-        )
-        executor_registry.bind(provider_id, extra_adapter)
-
-    # 3. OpenAI-compatible
+    # 4. OpenAI-compatible cloud
     openai_adapter = OpenAICompatibleProviderAdapter(
         provider_id="openai-compatible",
         secrets_manager=secrets_manager,
@@ -126,9 +120,10 @@ def build_ai_infrastructure(
     sleeper: Any | None = None,
     include_workforce_models: bool = False,
     bind_adapters: bool = False,
-    ollama_base_url: str = "http://127.0.0.1:11434",
+    local_runtime_base_url: str | None = None,
     node_endpoints: dict[str, str] | None = None,
     secrets_manager: Any | None = None,
+    bind_optional_ollama: bool = False,
 ) -> AIInfrastructureServices:
     """Construct the AI Infrastructure Platform.
 
@@ -139,12 +134,17 @@ def build_ai_infrastructure(
         event_sink: Optional :class:`CanonicalEventSink` for canonical event publication.
         sleeper: Optional callable for async sleep.
         include_workforce_models: If True, registers canonical workforce models alongside reference catalog.
-        bind_adapters: If True, binds standard provider adapters (Ollama, OpenAI-compatible).
-        ollama_base_url: Base URL for local Ollama instances (fallback when a node has no explicit endpoint).
+        bind_adapters: If True, binds standard provider adapters (local OpenAI-compatible runtime, cloud).
+        local_runtime_base_url: Base URL for the local OpenAI-compatible runtime
+            (llama.cpp ``llama-server`` or MLX). Defaults to
+            ``AUTOFORGE_LOCAL_RUNTIME_URL`` then ``http://127.0.0.1:8080/v1``.
         node_endpoints: Optional mapping of provider id (e.g. ``local-m1``, ``local-hp``,
-            ``local-mac-mini-m6``) to that node's own Ollama base URL, enabling an
+            ``local-mac-mini-m6``) to that node's own endpoint, enabling an
             independent endpoint per LAN inference node.
         secrets_manager: Optional SecretsManager for cloud adapter credentials.
+        bind_optional_ollama: Gate 4 — opt-in only. When True an additional
+            ``local-ollama`` provider adapter is bound for deployments that run
+            an Ollama daemon. Ollama is never bound by default.
 
     Returns:
         :class:`AIInfrastructureServices` ready for dependency injection.
@@ -163,9 +163,10 @@ def build_ai_infrastructure(
     if bind_adapters:
         bind_default_provider_adapters(
             executor_registry,
-            ollama_base_url=ollama_base_url,
+            local_runtime_base_url=local_runtime_base_url,
             node_endpoints=node_endpoints,
             secrets_manager=secrets_manager,
+            bind_optional_ollama=bind_optional_ollama,
         )
 
     # 4. Checkpoint adapter over the frozen Runtime boundary.

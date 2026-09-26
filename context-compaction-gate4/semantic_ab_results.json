@@ -1,0 +1,1209 @@
+{
+  "m6_available": true,
+  "cases": {
+    "A_simple_history": {
+      "A_full": {
+        "tokens": 557,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 5,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The objective is to implement a token bucket rate limiter with burst capacity. The task involves creating a TokenBucket class that manages token refills and consumption correctly.",
+          "active_requirements": "The requirement to implement a token bucket rate limiter with burst capacity remains active. The task is mandatory and was part of the project awareness context.",
+          "superseded_requirements": "The token bucket implementation required refilling on consumption to handle burst capacity correctly, as identified in the diagnosis of iteration 1's failure. The requirement for burst handling was clarified through the debugging process.",
+          "attempted": "The token bucket rate limiter implementation was attempted twice. The first attempt failed due to the bucket not refilling, with a suggested fix to add refill on consume. The second attempt successfully implemented this fix.",
+          "failed": "The token bucket rate limiter failed to refill tokens, causing burst tests to fail by expecting 10 tokens but only getting 1. The implementation needed refill logic on consume.",
+          "why_failed": "The implementation failed because the token bucket was not refilling correctly. The test expected burst capacity of 10 but got only 1, indicating the refill mechanism was missing or broken during consumption.",
+          "correction": "The correction was to add token bucket refilling logic when tokens are consumed, fixing the issue where the bucket wasn't refilling and only yielding 1 token instead of the expected 10 during burst capacity tests.",
+          "verified": "The token bucket rate limiter implementation was verified and passed in the final iteration, with the bucket refilling on consume. The burst capacity and rate limiting functionality were confirmed working correctly.",
+          "unresolved": "The token bucket rate limiter implementation has a bug where the bucket does not refill properly during consumption, causing incorrect burst behavior. The fix requires adding refill logic on consume.",
+          "artifacts": "Files: src/bucket.py (implementation), service.py (project context). The token bucket logic and burst capacity are key requirements.",
+          "authoritative_evidence": "The authoritative evidence is the test failure: \"test_burst::FAILED expected 10 got 1\", indicating the bucket wasn't refilling properly during consumption.",
+          "model_inference": "The diagnosis states: \"bucket not refilling\", \"add refill on consume\", and \"confidence score 0.8\". These are proposals to fix the root cause, not confirmed facts. The actual implementation remains unverified.",
+          "approved": "The token bucket rate limiter implementation was approved after fixing the refill mechanism. The solution now properly handles burst capacity and rate limiting.",
+          "rejected": "The initial implementation failed because the token bucket was not refilling. The rejected approach was consuming tokens without refilling the bucket, causing burst tests to fail. Must implement refill logic on token consumption.",
+          "dependencies": "The next operation must depend on the root cause diagnosis from iteration 1, which identified that the bucket was not refilling. The fix requires adding refill logic when tokens are consumed.",
+          "avoid_repeating": "The next operation must avoid repeating the failure from iteration 1, where the bucket was not refilling, causing burst tests to fail. It must implement refill on consume logic."
+        }
+      },
+      "B_compacted": {
+        "tokens": 114,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "add refill on consume",
+            "bucket not refilling"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 3,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The current objective is to implement a token bucket rate limiter with burst capacity, as specified in the task requirement. This involves creating a system that controls request rates using tokens from a bucket.",
+          "active_requirements": "Based on the provided context, the only active requirement is to implement a token bucket rate limiter with burst capacity, as specified in task t-A. No other requirements are mentioned or implied.",
+          "superseded_requirements": "UNKNOWN\n\nThe context provided does not contain information about any requirements being superseded or changed. It only mentions implementing a token bucket rate limiter with burst capacity as a new task without indicating any prior requirements being modified.",
+          "attempted": "The context shows a task to implement a token bucket rate limiter but doesn't mention any previous attempts or implementations. No prior work is referenced in the provided information.",
+          "failed": "UNKNOWN\n\nThe context provided does not contain any information about failed implementations, errors, or failures in the token bucket rate limiter implementation. It only states the task requirement and that there are no evaluation failures listed.",
+          "why_failed": "The context shows a task to implement a token bucket rate limiter but doesn't provide any information about why an implementation failed. The evaluation shows no failures listed, so the reason for failure is unknown from the given context.",
+          "correction": "UNKNOWN\n\nThe context provided does not contain any information about corrections that were made. It only describes a task to implement a token bucket rate limiter and mentions that the evaluation has no failures, but does not specify what corrections were needed or made.",
+          "verified": "The verification context shows no evaluation failures, indicating the token bucket rate limiter implementation passed all checks. The task required implementing a token bucket limiter with burst capacity, which was successfully completed as no failures were reported.",
+          "unresolved": "The context shows a task to implement token bucket rate limiting but doesn't indicate completion. No implementation details, code, or status updates are provided, so the task remains unresolved.",
+          "artifacts": "Based on the engineering context provided, only \"service.py\" matters as it's the workspace file containing the implementation target for the token bucket rate limiter. The context shows this is the only file relevant to the task.",
+          "authoritative_evidence": "The authoritative evidence is the test/check results from the evaluation context (ctx_5d1721104e64dced), which shows no failures and verifies the implementation meets requirements.",
+          "model_inference": "UNKNOWN\n\nThe context provided contains a task to implement a token bucket rate limiter and project awareness information, but no statements are explicitly labeled as \"merely a diagnosis proposal\" to identify or analyze.",
+          "approved": "The engineering context shows a task to implement a token bucket rate limiter with burst capacity, which was approved as part of the project requirements. No specific acceptance criteria or approvals beyond the task requirement are mentioned in the provided context.",
+          "rejected": "UNKNOWN\n\nThe context provided does not contain information about any rejected requirements or what must not be done. It only specifies the task to implement a token bucket rate limiter and mentions that evaluation failures were empty.",
+          "dependencies": "The next operation must depend on completing the token bucket rate limiter implementation in service.py, as this is the mandatory task required for project awareness and verification.",
+          "avoid_repeating": "The next operation must avoid repeating the implementation of the token bucket rate limiter, as it's already been implemented according to the task requirements in the workspace files."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 114,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "add refill on consume",
+            "bucket not refilling"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 3
+      },
+      "comparison": {
+        "token_reduction": 0.7953,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": false,
+        "parity_required_facts": false,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": true
+      }
+    },
+    "B_failed_then_corrected": {
+      "A_full": {
+        "tokens": 565,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 5,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task objective is to repair the retry backoff functionality so it correctly returns the delay sequence [1,2,4,8] instead of the incorrect [1,2,4,4].",
+          "active_requirements": "The task \"Repair retry backoff\" remains active, requiring the fix of incorrect delay sequence in backoff helper. The previous iteration failed due to improper clamping logic overriding exponential doubling. The fix involves removing the clamp as confirmed by successful evaluation.",
+          "superseded_requirements": "The requirement to clamp the delay was superseded. The backoff sequence needed doubling, not clamping, as shown by the test expecting [1,2,4,8] instead of [1,2,4,4].",
+          "attempted": "The backoff helper's delay sequence was incorrect. Initially, a clamp was added to fix it, but this caused the last step to not double. The clamp was then removed, which resolved the issue.",
+          "failed": "The retry backoff sequence failed, returning [1,2,4,4] instead of expected [1,2,4,8]. The clamp caused incorrect delay calculation on the last step.",
+          "why_failed": "The retry backoff failed because the delay sequence was incorrect: [1,2,4,4] instead of expected [1,2,4,8]. The clamp override prevented proper doubling on the last step.",
+          "correction": "The correction was to remove the clamp that was overriding the exponential backoff, fixing the delay sequence from [1,2,4,4] to the correct [1,2,4,8].",
+          "verified": "The retry backoff repair was verified as passed in iteration 2, after removing the clamp that caused incorrect delay sequence [1,2,4,4] instead of expected [1,2,4,8].",
+          "unresolved": "The retry backoff sequence issue was identified and fixed by removing a clamp causing incorrect delays. The fix was verified as passing, resolving the task. No unresolved issues remain.",
+          "artifacts": "Files: src/retry.py (modified), src/retry_1.py (diagnosed). The issue was in the backoff delay sequence logic.",
+          "authoritative_evidence": "The authoritative evidence is the test failure: \"test_sequence FAILED expected [1,2,4,8] got [1,2,4,4]\", which shows the incorrect delay sequence.",
+          "model_inference": "The diagnosis states \"clamp overrides doubling on the last step\" and suggests \"remove the clamp\" as a fix. These are proposals, not confirmed facts. The actual code change removed the clamp, validating the diagnosis.",
+          "approved": "The retry backoff fix was approved in iteration 2, where \"remove the clamp\" was implemented, correcting the delay sequence from [1,2,4,4] to [1,2,4,8].",
+          "rejected": "Clamping the delay was rejected. The fix required removing the clamp, not adjusting the backoff sequence. The doubling mechanism must be preserved.",
+          "dependencies": "The next operation must depend on the diagnosis confirming the clamp causes wrong delay sequence, and the fix requiring clamp removal to match expected backoff [1,2,4,8].",
+          "avoid_repeating": "The next operation must avoid repeating the \"clamp the delay\" action, as it caused the backoff sequence to fail. The fix requires removing the clamp, not adjusting delays."
+        }
+      },
+      "B_compacted": {
+        "tokens": 110,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "clamp overrides doubling",
+            "remove the clamp"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 3,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task's objective is to fix the retry backoff functionality in the service.py file, as the current backoff helper is returning incorrect delay sequences.",
+          "active_requirements": "Based on the provided context, the active requirements are:\n\n1. Task: Repair retry backoff (coding)\n2. Project awareness\n3. Verification evidence\n\nThe context shows a task to fix incorrect backoff delay sequence and associated project/verification requirements, with no remaining unmet requirements identified.",
+          "superseded_requirements": "UNKNOWN\n\nThe context provided does not contain information about requirements being superseded or changed. It only mentions a task to repair retry backoff and evaluation failures, but no details about requirement modifications.",
+          "attempted": "The context shows a task to \"Repair retry backoff\" with a description stating the backoff helper returns wrong delay sequence, but no specific attempts or solutions are mentioned in the provided engineering context.",
+          "failed": "The backoff helper returns incorrect delay sequence. No specific failure details provided beyond this description in the engineering context.",
+          "why_failed": "The context shows a task to \"Repair retry backoff\" with description that \"The backoff helper returns the wrong delay sequence.\" However, no specific failure details, error messages, or logs are provided to explain why it failed. The verification context shows no evaluation failures, so the reason for failure is unknown from the given information.\n\nUNKNOWN",
+          "correction": "The context provided only states that the backoff helper returns the wrong delay sequence and that the task is to repair the retry backoff, but does not specify what exact correction was made to fix the issue.",
+          "verified": "The verification context shows no evaluation failures, indicating the backoff helper's delay sequence was correctly repaired and functions properly. The task was completed successfully.",
+          "unresolved": "The context indicates a task to repair retry backoff where the helper returns wrong delay sequence, but no specific unresolved issues or problems are detailed beyond this general description.",
+          "artifacts": "Based on the engineering context provided, only \"service.py\" matters for the repair retry backoff task, as it's the workspace file mentioned in the project context and contains the backoff helper implementation that needs fixing.",
+          "authoritative_evidence": "The context shows no test files or checks are provided. The evidence is limited to the task description stating the backoff helper returns wrong delay sequence, with no authoritative tests/checks mentioned.",
+          "model_inference": "UNKNOWN\n\nThe context provided does not contain any statements that can be identified as merely diagnosis proposals. The context describes a task to repair retry backoff and mentions the backoff helper returning wrong delay sequence, but does not present any diagnostic proposals to evaluate.",
+          "approved": "The context shows a task to repair retry backoff functionality where the backoff helper returns incorrect delay sequence. No approval or acceptance is explicitly mentioned - only a coding task requirement to fix the backoff behavior.",
+          "rejected": "UNKNOWN",
+          "dependencies": "The next operation must depend on the backoff helper returning the correct delay sequence, as the current implementation incorrectly calculates retry delays. The fix requires ensuring proper exponential backoff calculation and handling of retry intervals.",
+          "avoid_repeating": "The context provided does not specify what operation must be avoided from repeating. It only mentions a task to repair retry backoff and that the backoff helper returns wrong delay sequence, but does not identify which specific operation must be avoided.\n\nUNKNOWN"
+        }
+      },
+      "C_ce_only": {
+        "tokens": 110,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "clamp overrides doubling",
+            "remove the clamp"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 3
+      },
+      "comparison": {
+        "token_reduction": 0.8053,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": false,
+        "parity_required_facts": false,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": true
+      }
+    },
+    "C_conflicting_evidence": {
+      "A_full": {
+        "tokens": 503,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 4,
+        "candidates_selected": 4,
+        "excluded": 0,
+        "items": 5,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task's objective is to fix the parser off-by-one error where the last token is dropped due to an exclusive slice bound, requiring an inclusive upper bound implementation.",
+          "active_requirements": "The task \"Fix the parser off-by-one\" remains active, requiring adjustment of slice bounds to include the final token. The evaluation failed, indicating the fix hasn't been correctly implemented yet.",
+          "superseded_requirements": "The task requirement to fix the parser off-by-one error was not fully resolved, as the evaluation failed with the same token count issue. No requirements were explicitly superseded or changed.",
+          "attempted": "The parser slice bound was adjusted, but the fix failed. The test \"test_last_token\" still fails, expecting 3 but getting 2, indicating the last token is still dropped.",
+          "failed": "The parser test failed because it dropped the last token, expecting 3 but getting 2, due to an exclusive slice bound excluding the final element.",
+          "why_failed": "The parser failed because it dropped the last token due to an exclusive slice bound, excluding the final element during iteration. The fix requires an inclusive upper bound.",
+          "correction": "The parser was corrected to use an inclusive upper bound in the slice operation, preventing the last token from being excluded. The fix adjusted the slice bound to include the final token.",
+          "verified": "The parser fix was not verified as passed. The test `test_last_token` failed, expecting 3 but getting 2, indicating the off-by-one issue remains unresolved.",
+          "unresolved": "The parser off-by-one error persists. The fix attempt in src/parser.py failed to include the last token, as test_last_token still expects 3 but gets 2. The slice bound adjustment was incorrect.",
+          "artifacts": "Files: src/parser.py (fixed), src/retry_1.py (affected). Test: test_last_token (failed). Root cause: slice bound excludes final token. Fix: use inclusive upper bound.",
+          "authoritative_evidence": "The test failure \"test_last_token::FAILED expected 3 got 2\" is authoritative evidence. It directly demonstrates the off-by-one error where the last token is dropped during parsing.",
+          "model_inference": "The diagnosis states the root cause is slice bounds excluding the final token and suggests using an inclusive upper bound. This diagnosis is based on observed failure mechanism and evaluation results. The fix proposal is to adjust the slice bound.",
+          "approved": "The fix was to adjust the slice bound to use an inclusive upper bound, accepting the change to src/parser.py to resolve the off-by-one parsing issue.",
+          "rejected": "The fix attempt in iteration 1 failed because it did not correctly adjust the slice bound to include the final token, causing the parser to still drop the last token. The change was insufficient.",
+          "dependencies": "The next operation must depend on correcting the slice bound in src/parser.py to use an inclusive upper bound, based on the diagnosis that the current implementation excludes the final token.",
+          "avoid_repeating": "The next operation must avoid using an exclusive slice bound that excludes the final token, as this caused the off-by-one error. Use an inclusive upper bound instead."
+        }
+      },
+      "B_compacted": {
+        "tokens": 183,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 4,
+        "candidates_selected": 4,
+        "excluded": 0,
+        "items": 4,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task objective is to fix the parser off-by-one error where the last token is dropped due to an exclusive upper bound in the slice, requiring use of an inclusive upper bound.",
+          "active_requirements": "The requirements that remain active are: fixing the parser off-by-one error by using an inclusive upper bound instead of exclusive slice bounds, and ensuring all tokens including the last one are properly parsed and counted. The test failure confirms this issue needs resolution.",
+          "superseded_requirements": "The context shows a parser off-by-one error where the last token is dropped due to exclusive slice bounds. The fix requires using inclusive upper bounds. No requirements were superseded or changed - only the implementation logic needs adjustment to handle the final token correctly.",
+          "attempted": "The context shows a diagnosis identifying the root cause as \"slice bound excludes the final token\" and suggests using \"inclusive upper bound\" as fix. However, no specific attempts at fixing are mentioned beyond this analysis.",
+          "failed": "The parser test failed because it dropped the last token, expecting 3 tokens but getting only 2. This is an off-by-one error where the slice bound excluded the final token.",
+          "why_failed": "The parser failed because it dropped the last token due to an exclusive upper bound in the slice, causing iteration to exclude the final element. The test expected 3 tokens but got 2, confirming the off-by-one error.",
+          "correction": "The parser was corrected to use an inclusive upper bound in the slice operation to include the final token, fixing the off-by-one error that was dropping the last token.",
+          "verified": "The verification showed that the parser drops the last token, as evidenced by test failure \"test_last_token::FAILED expected 3 got 2\". The fix requires using an inclusive upper bound to include the final token in the slice.",
+          "unresolved": "The parser off-by-one error remains unresolved. The test shows last token is dropped (expected 3, got 2), indicating the slice bound still excludes the final token despite the suggested fix to use inclusive upper bound.",
+          "artifacts": "Based on the engineering context, the files and artifacts that matter are:\n\n1. **service.py** - The main workspace file containing the parser\n2. **retry_1.py** - The affected file with the slice bound issue\n3. **test_last_token** - The failing test case showing the off-by-one error\n4. **The parser implementation** - Specifically the slice operation that excludes the final token\n\nThese artifacts directly relate to fixing the parser off-by-one error where the last token is dropped due to an exclusive upper bound in the slice operation.",
+          "authoritative_evidence": "The test failure \"test_last_token::FAILED expected 3 got 2\" is authoritative evidence. It directly demonstrates the off-by-one bug where the parser drops the last token, confirming the root cause analysis.",
+          "model_inference": "The diagnosis states the root cause is slice bound excluding final token and suggests using inclusive upper bound. This is a proposed fix approach, not a confirmed solution. The evaluation shows the test failure confirms the issue but doesn't validate the proposed solution.",
+          "approved": "The fix was approved to use an inclusive upper bound to include the final token, addressing the off-by-one error where the parser dropped the last token. The root cause was identified as slice bounds excluding the final token.",
+          "rejected": "The parser must not drop the last token due to slice bound exclusion. The fix requires using an inclusive upper bound instead of the current exclusive slice that omits the final token.",
+          "dependencies": "The next operation must depend on fixing the slice bound in src/retry_1.py to use an inclusive upper bound, as the current implementation excludes the final token causing the off-by-one error.",
+          "avoid_repeating": "The next operation must avoid repeating the off-by-one error by ensuring the parser includes the final token instead of dropping it, using an inclusive upper bound in the slice operation."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 183,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 4
+      },
+      "comparison": {
+        "token_reduction": 0.6362,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": true,
+        "parity_required_facts": true,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": false
+      }
+    },
+    "D_requirement_change": {
+      "A_full": {
+        "tokens": 473,
+        "deterministic": {
+          "required_expected": 1,
+          "required_preserved": 1,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 5,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task's objective is to build an export API supporting both CSV and JSON formats, as initially implemented and later updated to include JSON export functionality.",
+          "active_requirements": "The export API must support both CSV and JSON formats. The CSV export was implemented in iteration 1, and JSON export was added in iteration 2. All requirements are now implemented.",
+          "superseded_requirements": "The original requirement specified export CSV only. This was later changed to support both CSV and JSON exports, superseding the initial limitation to CSV format.",
+          "attempted": "CSV export was implemented first, then JSON export was added to meet updated requirements. Both iterations passed evaluation.",
+          "failed": "No failures occurred. All iterations passed evaluation. The task evolved from CSV-only export to supporting both CSV and JSON formats.",
+          "why_failed": "The task did not fail. Both iterations passed evaluation. The export API was implemented for CSV first, then updated to support JSON as required.",
+          "correction": "The correction was updating the export API requirement from CSV-only to support both CSV and JSON formats. This was implemented in iteration 2.",
+          "verified": "The export API implementation was verified and passed, supporting both CSV and JSON exports as per the updated requirement.",
+          "unresolved": "The export API requirement changed from CSV-only to CSV and JSON. The context shows implementation of both exporters, but does not indicate completion or testing status. No unresolved issues are explicitly stated.",
+          "artifacts": "The key file is `src/export.py`, which was modified twice\u2014first for CSV export, then updated to support both CSV and JSON formats as per the changed requirement.",
+          "authoritative_evidence": "The authoritative evidence is the test results and deterministic checks from the evaluation. However, the context shows \"test_results: null\" and \"deterministic_checks: []\", indicating no specific tests or checks were executed or verified.",
+          "model_inference": "UNKNOWN. The context does not contain any statements labeled as \"merely a diagnosis proposal.\" It only includes task requirements, implementation details, and evaluation results.",
+          "approved": "The export API was approved to support both CSV and JSON formats. Initially, only CSV was implemented, but later JSON support was added per updated requirements. Both formats are now accepted.",
+          "rejected": "The context does not specify what was rejected or must not be done. It only describes implementing CSV export, then adding JSON export per updated requirements. No rejections or prohibitions are stated.\n\nUNKNOWN",
+          "dependencies": "The next operation must depend on the updated requirement to export in both CSV and JSON formats, as stated in the task description. The context shows implementation of CSV export, then JSON export addition.",
+          "avoid_repeating": "The next operation must avoid repeating implementing CSV exporter only, as JSON export support was later required and implemented."
+        }
+      },
+      "B_compacted": {
+        "tokens": 117,
+        "deterministic": {
+          "required_expected": 1,
+          "required_preserved": 0,
+          "required_missing": [
+            "add JSON exporter per updated requirement"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 3,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The current objective is to build an export API that supports both CSV and JSON formats, originally started as CSV-only.",
+          "active_requirements": "The active requirements are: 1) Build export API, 2) Export CSV format, 3) Export JSON format. The task requires implementing an API for data export in both CSV and JSON formats.",
+          "superseded_requirements": "The original requirement was to export only CSV format, but this was changed to support both CSV and JSON formats. The requirement for CSV-only export was superseded by the new dual-format capability.",
+          "attempted": "The context shows a task to build an export API that originally required CSV export but was later changed to support both CSV and JSON formats. No specific attempts or implementation details are provided beyond this requirement change.",
+          "failed": "UNKNOWN\n\nThe context shows no evaluation failures. The task is to build an export API for CSV and JSON formats, and there are no indications of what failed in the provided information.",
+          "why_failed": "The context shows a task to build an export API (CSV and JSON) but doesn't indicate any failure. The evaluation shows \"Evaluation failures: []\" - no failures recorded. The task appears to be a requirement, not a failed implementation.",
+          "correction": "The correction was changing the export API requirement from CSV only to supporting both CSV and JSON formats.",
+          "verified": "The verification context shows no evaluation failures, indicating the export API implementation (CSV and JSON) met requirements. The task was to build this API, and verification confirms it passed without issues.",
+          "unresolved": "The export API requirements specify CSV and JSON formats, but the context doesn't show implementation details, testing, or deployment plans for these export functionalities. The actual API construction remains to be done.",
+          "artifacts": "Based on the engineering context provided, only \"service.py\" is mentioned as a workspace file that matters for the export API task. No other files or artifacts are specified as relevant in the given context.",
+          "authoritative_evidence": "The authoritative evidence is the evaluation result showing no failures (Evaluation failures: []). This confirms the export API implementation meets requirements for CSV and JSON export functionality.",
+          "model_inference": "UNKNOWN\n\nThe context provided doesn't contain any statements that can be identified as \"merely a diagnosis proposal.\" The context describes a task to build an export API with CSV and JSON capabilities but doesn't include any diagnostic proposals or related statements to evaluate.",
+          "approved": "The export API specification was approved to support both CSV and JSON formats, originally requiring only CSV export.",
+          "rejected": "UNKNOWN",
+          "dependencies": "The next operation must depend on completing the export API implementation for CSV and JSON formats, as specified in the task requirement.",
+          "avoid_repeating": "The next operation must avoid repeating the initial export API implementation that was limited to CSV only, as the requirement has evolved to include both CSV and JSON formats."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 117,
+        "deterministic": {
+          "required_expected": 1,
+          "required_preserved": 0,
+          "required_missing": [
+            "add JSON exporter per updated requirement"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 3
+      },
+      "comparison": {
+        "token_reduction": 0.7526,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": false,
+        "parity_required_facts": false,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": true
+      }
+    },
+    "E_rejected_decision": {
+      "A_full": {
+        "tokens": 570,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [
+            "implement a Redis-backed limiter"
+          ],
+          "no_forbidden_resurrection": false
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 5,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task is to implement an in-memory token bucket rate limiter backend, as Redis was rejected by reviewers. The current objective is to complete this implementation.",
+          "active_requirements": "Active requirements: implement in-memory token bucket rate limiter, reject Redis backend. Task requires choosing backend matching project's in-memory constraint.",
+          "superseded_requirements": "The requirement for a Redis-backed rate limiter was superseded by a new requirement for an in-memory token bucket implementation. The project context shows this change in iteration 2's action plan.",
+          "attempted": "The team first attempted a Redis-backed rate limiter in `src/limiter_redis.py`, but it was rejected. They then implemented an in-memory token bucket rate limiter in `src/limiter.py`.",
+          "failed": "Redis backend was rejected by reviewer. Implementation failed due to requirement for in-memory token bucket limiter instead.",
+          "why_failed": "The Redis backend failed because reviewers rejected it, requiring an in-memory token bucket implementation instead. The failure occurred during iteration 1's evaluation.",
+          "correction": "The correction was switching from a Redis-backed rate limiter to an in-memory token bucket implementation. The Redis solution was rejected, requiring a new in-memory approach.",
+          "verified": "The rate limiter implementation was verified as passed after switching from Redis to an in-memory token bucket backend, meeting project requirements.",
+          "unresolved": "The rate limiter backend choice remains unresolved. The project requires an in-memory token bucket implementation, but the current implementation is not yet complete or verified.",
+          "artifacts": "Files: src/limiter.py (in-memory token bucket), src/limiter_redis.py (rejected Redis backend). The final implementation must use in-memory storage per reviewer feedback.",
+          "authoritative_evidence": "The authoritative evidence is the evaluation result from iteration 2, which passed, versus iteration 1's failure due to Redis backend rejection. The in-memory implementation satisfies requirements.",
+          "model_inference": "The diagnosis proposal is: \"implement an in-memory token bucket instead\". This represents the suggested fix for the rejected Redis backend, indicating a proposed solution rather than a confirmed fact.",
+          "approved": "The in-memory token bucket rate limiter implementation was approved. The Redis backend was rejected, requiring a switch to in-memory storage as per reviewer feedback.",
+          "rejected": "Redis backend was rejected. Must implement in-memory token bucket rate limiter instead.",
+          "dependencies": "The next operation must depend on implementing an in-memory token bucket rate limiter, as per the diagnosis and requirement to replace the rejected Redis backend.",
+          "avoid_repeating": "The next operation must avoid repeating the Redis-backed rate limiter implementation, as it was rejected. It must implement an in-memory token bucket instead."
+        }
+      },
+      "B_compacted": {
+        "tokens": 113,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "in-memory token bucket",
+            "in-memory limiter required"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 3,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The current objective is to select a backend system for implementing rate limiting functionality in the project.",
+          "active_requirements": "Based on the provided context, the only active requirement is \"Choose a rate limiter backend\" for the task \"t-E\". No other requirements are specified in the engineering context provided.",
+          "superseded_requirements": "UNKNOWN\n\nThe context provided does not contain information about any requirements being superseded or changed. It only mentions choosing a rate limiter backend and does not reference any previous requirements or changes to them.",
+          "attempted": "The context shows a task to \"Choose a rate limiter backend\" but doesn't specify any previous attempts or solutions. No information is provided about what has already been attempted.",
+          "failed": "UNKNOWN\n\nThe context provided does not contain information about any failed task, evaluation, or specific failure details. It only mentions a task to choose a rate limiter backend and an evaluation without indicating what failed.",
+          "why_failed": "The context shows a task to \"Choose a rate limiter backend\" but provides no information about why a previous attempt failed. The workspace contains only a service.py file and no failure details are given.\n\nUNKNOWN",
+          "correction": "The context shows a task to choose a rate limiter backend but doesn't specify any correction being made. The workspace contains a service.py file, but no details about corrections or changes to rate limiting implementation are provided.\n\nUNKNOWN",
+          "verified": "The verification context shows no evaluation failures, indicating the rate limiter backend selection process passed all checks. The task requires choosing a backend but doesn't specify which one was verified.",
+          "unresolved": "The context shows a task to choose a rate limiter backend but doesn't specify any unresolved technical requirements, constraints, or conflicting options that would prevent selecting a backend. The workspace contains only a service.py file, which doesn't provide information about rate limiting needs or backend choices.\n\nNo specific unresolved issues are identified in the provided context.",
+          "artifacts": "Based on the engineering context provided, only \"service.py\" matters as it's the workspace file containing the project code that would utilize the rate limiter backend. The task is about choosing a backend implementation for rate limiting functionality.",
+          "authoritative_evidence": "UNKNOWN\n\nThe context provided does not contain any test results, check outcomes, or evidence of verification runs that would indicate which backend implementation is authoritative or has passed verification checks.",
+          "model_inference": "UNKNOWN\n\nThe context provided doesn't contain any statements that can be identified as \"merely a diagnosis proposal.\" The context describes a task to choose a rate limiter backend and project context, but doesn't include diagnostic proposals to evaluate.",
+          "approved": "The context does not specify which rate limiter backend was approved or accepted. It only states that a task exists to choose a rate limiter backend for a project, but does not provide information about any approval or acceptance decision.",
+          "rejected": "UNKNOWN\n\nThe context does not specify what was rejected or must not be done regarding rate limiter backend choices. It only states the task to pick a backend without mentioning any rejections or prohibitions.",
+          "dependencies": "The next operation must depend on choosing a rate limiter backend that meets the project's requirements and is compatible with the existing service.py implementation.",
+          "avoid_repeating": "The next operation must avoid repeating the rate limiter backend selection process, as the task is to choose a backend and no further operations are specified."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 113,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "in-memory token bucket",
+            "in-memory limiter required"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 3
+      },
+      "comparison": {
+        "token_reduction": 0.8018,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": false,
+        "parity_required_facts": false,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": true
+      }
+    },
+    "F_unresolved_blocker": {
+      "A_full": {
+        "tokens": 740,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 4,
+        "candidates_selected": 4,
+        "excluded": 0,
+        "items": 6,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task's objective is to migrate the legacy orders schema to a new format. However, it's currently blocked due to missing read access keys for the encrypted legacy table.",
+          "active_requirements": "Active requirements: migrate legacy schema, obtain DBA read key, resolve encryption issue. Migration blocked until read key acquired.",
+          "superseded_requirements": "The migration task's requirements were superseded by a blocker: no read key available for the encrypted legacy table, halting progress. The task remains uncompleted.",
+          "attempted": "Two iterations attempted: reading the legacy table (blocked by encryption) and attempting migration without the read key. Both failed due to missing DBA read key.",
+          "failed": "The migration failed because the legacy table is encrypted and no read key is available, preventing data access. The task was aborted due to this blocker.",
+          "why_failed": "The migration failed because the legacy table is encrypted and no read key is available, preventing data access. The DBA's read key is required to proceed.",
+          "correction": "No correction was made. The migration failed in both iterations due to missing read key access, with no functional changes or fixes applied.",
+          "verified": "The migration task failed both iterations due to missing read key for the encrypted legacy table. No verification passed; the process was blocked and aborted.",
+          "unresolved": "The migration remains unresolved due to the missing DBA read key, which is required to access the encrypted legacy table. The task is blocked and no fix has been implemented.",
+          "artifacts": "Files: service.py, migrate.py, src/retry_1.py, src/retry_2.py.  \nArtifacts: legacy table encryption, missing read key, migration failures.",
+          "authoritative_evidence": "The authoritative evidence is the evaluation and diagnosis from iterations 1 and 2, showing the migration failed due to missing read key, with root cause and suggested fix documented.",
+          "model_inference": "The diagnosis states the root cause and suggested fix for the migration failure. However, the suggested fix is \"UNRESOLVED\" and the task is blocked, so the diagnosis is not yet actionable. The diagnosis is a proposal, not a confirmed solution.",
+          "approved": "The legacy schema migration was not approved or accepted due to blocking issues. The process was aborted twice, pending a DBA-provided read key for the encrypted legacy table. No successful migration occurred.",
+          "rejected": "The legacy schema migration was rejected due to missing read key for the encrypted table. Must not proceed without DBA-provided read key.",
+          "dependencies": "The next operation must depend on obtaining the DBA read key, as both iterations failed due to missing encryption keys for the legacy table.",
+          "avoid_repeating": "The next operation must avoid repeating the attempt to migrate without the required DBA read key, as this causes a blocker failure."
+        }
+      },
+      "B_compacted": {
+        "tokens": 188,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 4,
+        "candidates_selected": 4,
+        "excluded": 0,
+        "items": 4,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The current objective is to migrate the legacy orders schema to new format, but it's blocked due to missing DBA read key required for database access during migration.",
+          "active_requirements": "The migration task remains active but blocked. The primary requirement is unresolved - missing DBA read key. Verification failed due to this blocker, and the suggested fix is still pending. The legacy schema migration cannot proceed.",
+          "superseded_requirements": "The migration task requirement was superseded by the blocking read key issue. The legacy schema migration cannot proceed due to missing database access credentials, changing the original task's feasibility.",
+          "attempted": "The legacy schema migration was attempted but failed due to a missing DBA read key. The task is blocked and no progress was made beyond the initial failure. The root cause remains unresolved.",
+          "failed": "The migration failed due to a missing DBA read key, preventing the legacy schema migration to new format. The system aborted the process with a BLOCKER error.",
+          "why_failed": "The migration failed because the DBA read key is still missing, preventing database access required for the schema migration process.",
+          "correction": "UNKNOWN\n\nThe context shows a migration task was blocked due to missing read key, but doesn't specify what correction was made. The issue remains unresolved with \"UNRESOLVED - still blocked on the DBA read key\".",
+          "verified": "UNKNOWN. The context shows migration failed due to missing read key, with no verification or passing elements explicitly stated. The evaluation indicates a blocker condition rather than successful verification.",
+          "unresolved": "The migration remains unresolved due to a missing DBA read key, which is still blocking the process according to the evaluation failure and diagnosis.",
+          "artifacts": "Files that matter: service.py (workspace file), src/retry_2.py (affected by missing read key), and the legacy orders schema for migration. The migration is blocked due to missing DBA read key.",
+          "authoritative_evidence": "The authoritative evidence is the evaluation failure showing \"BLOCKER: still no read key; migration aborted\" and diagnosis stating the root cause is the missing read key, which blocks the migration.",
+          "model_inference": "The context shows \"Suggested fix: UNRESOLVED - still blocked on the DBA read key\" which indicates the diagnosis is incomplete and no actual fix proposal exists. The diagnosis is merely a diagnosis proposal.",
+          "approved": "The context shows a migration task was attempted but failed due to missing read key. No approvals or accepted solutions are mentioned - only a BLOCKER failure and unresolved root cause.",
+          "rejected": "The legacy schema migration was rejected due to missing DBA read key, which is required for database access. The migration cannot proceed until this authentication issue is resolved.",
+          "dependencies": "The next operation must depend on obtaining the DBA read key, as stated in the diagnosis context. The migration is blocked and unresolved without this key.",
+          "avoid_repeating": "The next operation must avoid repeating the migration attempt without the required DBA read key, as this caused a BLOCKER failure in iteration 2."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 188,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 4
+      },
+      "comparison": {
+        "token_reduction": 0.7459,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": true,
+        "parity_required_facts": true,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": false
+      }
+    },
+    "G_artifact_dependency": {
+      "A_full": {
+        "tokens": 470,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 5,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The current objective is to consume the generated client library by wiring it into the service, as indicated by the task description and execution context showing the import of the client into service.py.",
+          "active_requirements": "All requirements are satisfied. The client library was generated and consumed in service.py. No active requirements remain.",
+          "superseded_requirements": "The context shows no requirements were superseded or changed. The client library was generated and consumed in sequence, with no indication of requirement modifications.",
+          "attempted": "The generated client library was created in iter-1, and in iter-2, the client was imported into service.py to wire it into the service.",
+          "failed": "No failures occurred. The client library was generated and consumed successfully in the service, with all evaluations passing.",
+          "why_failed": "The task passed, so it did not fail. The generated client library was successfully consumed by importing it into the service file. No failures occurred during execution.",
+          "correction": "The generated client library (`gen/client.py`) was imported into `src/service.py` to wire it into the service, as part of the task to consume the generated client library.",
+          "verified": "The generated client library was successfully imported into the service file (src/service.py). The task of wiring the client into the service passed verification with no failures.",
+          "unresolved": "The generated client library has been imported into service.py. No unresolved issues are reported; the task is complete with passed evaluations.",
+          "artifacts": "The generated client library (`gen/client.py`) and the service file (`src/service.py`) are the key artifacts. The client must be imported into the service to fulfill the task.",
+          "authoritative_evidence": "The authoritative evidence is the successful execution and passing evaluation from iteration 2, which shows the client library was imported and wired into the service. The generated client artifact from iteration 1 supports this.",
+          "model_inference": "UNKNOWN. The context does not contain any statements labeled as \"merely a diagnosis proposal.\" It only includes execution contexts and task descriptions.",
+          "approved": "The generated client library was successfully imported into the service file (src/service.py) in iteration 2, with no evaluation failures reported. The task was marked as passed.",
+          "rejected": "UNKNOWN. The context does not specify any rejections or prohibited actions. It only describes generating and consuming a client library.",
+          "dependencies": "The next operation must depend on successfully generating the client library artifact in iter-1, which was completed and evaluated as passed. The client library must be imported into service.py in iter-2.",
+          "avoid_repeating": "The next operation must avoid repeating the client library generation, as it's already generated in `gen/client.py` and now needs importing into `src/service.py`."
+        }
+      },
+      "B_compacted": {
+        "tokens": 113,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "gen/client.py",
+            "import the generated client"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 3,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The current objective is to wire the generated client library into the service, consuming the generated client library as specified in the task description.",
+          "active_requirements": "Based on the provided context, the only active requirement is \"Consume the generated client library\" which is marked as mandatory and required for the task objective. No other requirements are specified as active in the given context.",
+          "superseded_requirements": "UNKNOWN\n\nThe context provided does not contain information about any requirements being superseded or changed. It only mentions a task to consume a generated client library and wire it into a service, without indicating any requirement modifications.",
+          "attempted": "The context shows a task to \"Consume the generated client library\" and \"Wire the generated client into the service,\" but provides no information about what has already been attempted or any previous actions taken.",
+          "failed": "UNKNOWN\n\nThe context provided does not contain information about any failures or errors. It only states that the task is to consume the generated client library and wire it into the service, with no mention of what specifically failed during this process.",
+          "why_failed": "The context shows a task to consume a generated client library and wire it into a service, but there's no indication of failure. The evaluation shows no failures listed. The reason for failure cannot be determined from the provided context.",
+          "correction": "UNKNOWN\n\nThe context provided does not contain information about any correction being made. It only states the task of consuming the generated client library and wiring it into the service, without mentioning any previous errors or corrections.",
+          "verified": "The context shows a task to consume a generated client library by wiring it into the service, but contains no information about what was actually verified or passed during testing or validation.",
+          "unresolved": "The context shows a task to consume a generated client library by wiring it into a service, but provides no information about the client library's availability, compatibility issues, or integration problems that might remain unresolved.",
+          "artifacts": "Based on the engineering context provided, only \"service.py\" is mentioned as a workspace file that matters for consuming the generated client library. The context doesn't specify any other files or artifacts beyond this one.",
+          "authoritative_evidence": "The authoritative evidence is the generated client library itself, as it represents the actual implementation that was generated and needs to be consumed by the service. The context shows the client library exists in the workspace as service.py.",
+          "model_inference": "UNKNOWN\n\nThe context provided does not contain any statements that can be identified as merely diagnosis proposals. It only describes a task to consume a generated client library and wire it into a service, without including any diagnostic analysis or proposals.",
+          "approved": "The context shows a task to consume a generated client library by wiring it into the service, but does not specify what was approved or accepted. The evaluation shows no failures, indicating successful completion.",
+          "rejected": "UNKNOWN\n\nThe context provided does not contain information about any rejections or actions that must not be done. It only describes consuming a generated client library and wiring it into a service, without mentioning any constraints or prohibited actions.",
+          "dependencies": "The next operation must depend on the generated client library files being available and the service.py file existing to wire the client into the service.",
+          "avoid_repeating": "The next operation must avoid repeating the generation of the client library, as it's already been created and needs to be consumed/used in the service rather than regenerated."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 113,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "gen/client.py",
+            "import the generated client"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 3
+      },
+      "comparison": {
+        "token_reduction": 0.7596,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": false,
+        "parity_required_facts": false,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": true
+      }
+    },
+    "H_recovery": {
+      "A_full": {
+        "tokens": 559,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 5,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The current objective is to recover the interrupted deployment by rolling back the partially applied manifest and re-applying it cleanly to complete the deployment successfully.",
+          "active_requirements": "The only active requirement is the task to recover the interrupted deployment, which has a mandatory requirement and is marked as complete in the current iteration.",
+          "superseded_requirements": "The context does not specify any superseded or changed requirements. It only describes a deployment interruption and recovery plan. UNKNOWN.",
+          "attempted": "The deployment was partially applied, then interrupted. The team identified the issue and rolled back the half-applied manifest. They are now re-applying the deployment manifest cleanly.",
+          "failed": "The deployment failed because the apply process was interrupted mid-run, leaving the manifest half-applied. The system detected this and recommends rolling back and re-applying cleanly.",
+          "why_failed": "The deployment failed because the process was killed during apply, leaving the manifest half-applied. The root cause is interrupted mid-apply, requiring a rollback and clean re-apply.",
+          "correction": "The correction involved rolling back the partially applied manifest from the interrupted deployment and re-applying it cleanly to resume the deployment process.",
+          "verified": "The deployment recovery was verified. The rollback and re-apply of the manifest passed, with no evaluation failures reported. The task objective was achieved.",
+          "unresolved": "The interrupted deployment's manifest was half-applied. Although rollback and re-apply are planned, the actual recovery hasn't been executed yet. The workspace shows no changes post-rollback.",
+          "artifacts": "deploy.yaml is the primary file affected by the interrupted deployment. The rollback and re-apply strategy targets this manifest. The diagnosis mentions src/retry_1.py as affected, but context doesn't confirm its relevance to recovery.",
+          "authoritative_evidence": "The authoritative evidence is the evaluation failure in iteration 1: \"process killed during apply; manifest half-applied\" and the diagnosis recommending rollback. Tests/checks show no failures.",
+          "model_inference": "The diagnosis proposal states the root cause was interruption mid-apply, suggesting rollback then re-apply. This is based on observed failure and confidence score 0.8, indicating it's a diagnosis proposal, not verified.",
+          "approved": "The interrupted deployment's manifest was half-applied. Rolling back and re-applying cleanly was approved to recover the deployment.",
+          "rejected": "The interrupted deployment must not be re-applied as-is. The half-applied manifest was rejected; rollback and clean re-apply are required.",
+          "dependencies": "The next operation must depend on confirming the interrupted deployment state and verifying the rollback success before re-applying the manifest cleanly.",
+          "avoid_repeating": "The next operation must avoid interrupting the deployment mid-apply. The previous attempt failed due to process termination during manifest application."
+        }
+      },
+      "B_compacted": {
+        "tokens": 112,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "roll back",
+            "half-applied"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 3,
+        "candidates_selected": 3,
+        "excluded": 0,
+        "items": 3,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The current objective is to recover and resume an interrupted deployment that was halted mid-apply, requiring the deployment to be restarted from its interrupted state.",
+          "active_requirements": "Based on the provided context, the active requirements are:\n\n1. Task: Recover the interrupted deployment (coding type)\n2. Project awareness (required for workspace)\n3. Task objective (required for task)\n4. Verification evidence (required for evaluation)\n\nThe context shows the task is to resume an interrupted deployment, with project awareness and task objective as dependencies, and verification evidence as the final requirement.",
+          "superseded_requirements": "UNKNOWN\n\nThe context provided does not contain information about requirements being superseded or changed. It only mentions a task to recover an interrupted deployment and states that evaluation failures are empty, but gives no details about requirement modifications.",
+          "attempted": "Based on the provided context, no specific attempts to recover the interrupted deployment are mentioned. The context only states the task of recovering an interrupted deployment and that no evaluation failures occurred, but doesn't specify what has already been attempted.",
+          "failed": "UNKNOWN\n\nThe context provided does not contain information about what specifically failed during the deployment. It only mentions that a deployment was interrupted and needs to be recovered, but does not describe the nature of the failure that occurred.",
+          "why_failed": "The context shows a deployment recovery task but doesn't specify the cause of the original failure. It only indicates an interrupted deployment that needs resuming, without mentioning root cause analysis or error details.",
+          "correction": "UNKNOWN\n\nThe context provided does not contain information about what specific correction was made to recover the interrupted deployment. It only states that a deployment was interrupted and needs to be resumed, but doesn't describe any corrective actions taken.",
+          "verified": "The context shows no verification was performed. The evaluation has no failures listed, but there's no indication of what was actually verified or passed during the deployment recovery task. The context only states the task is to recover an interrupted deployment.",
+          "unresolved": "The context shows a task to recover an interrupted deployment but provides no information about what specific issues remain unresolved or what caused the interruption. The workspace contains only a service.py file with no details on deployment status or failure points.\n\nUNKNOWN",
+          "artifacts": "Based on the engineering context provided, only \"service.py\" from the workspace appears relevant for recovering the interrupted deployment. No other files or artifacts are mentioned as necessary for this specific task.",
+          "authoritative_evidence": "The authoritative evidence is the deployment logs showing the interruption point and the deployment manifest detailing the applied resources. However, the provided context does not contain these specific logs or manifests.",
+          "model_inference": "UNKNOWN\n\nThe context provided does not contain any statements that can be identified as merely diagnosis proposals. The context describes a task to recover an interrupted deployment and project context, but does not include diagnostic statements or proposals for diagnosis.",
+          "approved": "The context shows a task to recover an interrupted deployment but doesn't specify what was approved or accepted. The workspace contains a service.py file, and the task is to resume a mid-apply deployment, but no approval or acceptance information is provided.\n\nUNKNOWN",
+          "rejected": "UNKNOWN\n\nThe context does not specify what was rejected or must not be done. It only states the task is to recover an interrupted deployment and provides workspace files, but no information about rejections or prohibited actions.",
+          "dependencies": "The next operation must depend on the deployment state and progress tracking mechanisms to resume from the interruption point. The context indicates a deployment was interrupted mid-apply, requiring state recovery before proceeding.",
+          "avoid_repeating": "The next operation must avoid repeating the interrupted deployment apply that was halted mid-process, ensuring no duplicate or conflicting changes are made to the deployment state."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 112,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 0,
+          "required_missing": [
+            "roll back",
+            "half-applied"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 3
+      },
+      "comparison": {
+        "token_reduction": 0.7996,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": false,
+        "parity_required_facts": false,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": true
+      }
+    },
+    "I_long_history": {
+      "A_full": {
+        "tokens": 3414,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 4,
+        "candidates_selected": 4,
+        "excluded": 0,
+        "items": 16,
+        "heavy_serving": true,
+        "questions_asked": 4,
+        "answers": {
+          "current_objective": "The task's objective is to fix the connection pool timeout issue under load by adjusting `pool_max_connections`, as identified in iteration 12's diagnosis and fix suggestion.",
+          "failed": "The connection pool timeout issue persisted across iterations 1\u201311, with each trial failing to resolve the timeout under load, until iteration 12 successfully passed, indicating the fix in step 12 was effective.",
+          "why_failed": "The connection pool timed out under load due to insufficient sizing. Multiple iterations (1\u201311) failed with the same root cause: \"pool sizing trial X\". Iteration 12 passed after adjusting `pool_max_connections`.",
+          "unresolved": "The connection pool timeout issue was resolved in iteration 12 with the suggested fix to adjust pool_max_connections. No remaining unresolved issues are indicated."
+        }
+      },
+      "B_compacted": {
+        "tokens": 785,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": true,
+        "candidates_considered": 13,
+        "candidates_selected": 13,
+        "excluded": 0,
+        "items": 13,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task's objective is to fix the connection pool timeout under load by adjusting `pool_max_connections`, as identified through iterative debugging and failure analysis.",
+          "active_requirements": "Active requirements: task fix connection pool timeout (coding), project awareness, verification evidence, prior failure.",
+          "superseded_requirements": "The requirements for iterations 1 through 9 were superseded by subsequent iterations, with each proposing adjustments to pool_max_connections. The final requirement is implied in the task to fix the connection pool timeout.",
+          "attempted": "Attempts include adjusting `pool_max_connections` in iterations 1 through 9, with each trial failing and being superseded. The root cause identified is pool sizing issues.",
+          "failed": "The connection pool timeout failed during iterations 1, 3, 5, 6, 7, 8, 9, and 12 under load, with root cause identified as pool sizing issues and suggested fix as adjusting pool_max_connections.",
+          "why_failed": "The connection pool failed due to insufficient sizing under load, causing timeouts. Multiple iterations (1-9) confirmed this root cause, with each trial suggesting adjustment of `pool_max_connections` to resolve the issue.",
+          "correction": "The correction involved adjusting `pool_max_connections` in each failed iteration (1-9) to address connection pool timeout issues under load, as identified by the root cause analysis.",
+          "verified": "The connection pool timeout issue was investigated across multiple iterations (1-9), with each trial failing and suggesting adjustments to pool_max_connections. No successful fix or passed verification is documented.",
+          "unresolved": "The connection pool timeout issue remains unresolved. Multiple iterations failed to fix it, with root cause identified as pool sizing, but no successful correction found yet.",
+          "artifacts": "Files: service.py, src/retry_12.py, src/pool_7.py, src/pool_1.py, src/pool_3.py, src/pool_9.py, src/pool_8.py, src/pool_6.py, src/pool_2.py, src/pool_5.py, src/pool_4.py. Artifacts: ctx_50fffe2bdd644b1d, ctx_5d1721104e64dced, ctx_0e61b82d7fc034f8, ctx_1089ebb23ed1",
+          "authoritative_evidence": "The authoritative evidence is the observed failures in `test_pool_timeout` across iterations 1, 3, 5, 7, 9, and 12, indicating consistent pool sizing issues.",
+          "model_inference": "Statements proposing root causes and corrections for connection pool timeout issues across iterations 1-9 are diagnosis proposals, not confirmed findings. Each iteration suggests adjusting pool_max_connections based on observed failures.",
+          "approved": "The root cause was identified as pool sizing issues across multiple iterations (1-9), with suggested fixes approving adjustment of pool_max_connections. The evaluation showed no failures, indicating acceptance of the proposed corrections.",
+          "rejected": "Rejected: Iterations 1\u20139's proposed fixes adjusting pool_max_connections were superseded. Must not re-apply failed iteration corrections.",
+          "dependencies": "The next operation must depend on the verified fix from iteration 12, which identified adjusting pool_max_connections as the correct solution for the connection pool timeout under load.",
+          "avoid_repeating": "The next operation must avoid repeating the iterative pool sizing trials and their corresponding failed attempts, as they all led to timeout failures. Focus on implementing the suggested fix directly."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 171,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 1,
+          "required_missing": [
+            "test_pool_timeout"
+          ],
+          "all_required_preserved": false,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 4
+      },
+      "comparison": {
+        "token_reduction": 0.7701,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": true,
+        "parity_required_facts": true,
+        "compaction_caused_loss": false,
+        "compaction_added_information": true,
+        "false_compression": false
+      }
+    },
+    "J_redundant_history": {
+      "A_full": {
+        "tokens": 2413,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": false,
+        "candidates_considered": 4,
+        "candidates_selected": 4,
+        "excluded": 0,
+        "items": 12,
+        "heavy_serving": true,
+        "questions_asked": 4,
+        "answers": {
+          "current_objective": "The task's objective is to diagnose why the pool timeout persists across identical runs, with no fix identified yet.",
+          "failed": "Pool timeout persists across identical runs. Each iteration (1-8) shows the same failure: \"IDENTICAL OBSERVATION: pool timeout persists, unchanged.\" No fix identified.",
+          "why_failed": "The task failed because the pool timeout issue persists identically across all iterations, with no observed changes or fixes. Each run repeats the same failure.",
+          "unresolved": "The persistent pool timeout issue remains unresolved, with identical observations across iterations 1\u20138, indicating no progress or fix."
+        }
+      },
+      "B_compacted": {
+        "tokens": 586,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "compaction_ran": true,
+        "candidates_considered": 9,
+        "candidates_selected": 9,
+        "excluded": 0,
+        "items": 9,
+        "heavy_serving": false,
+        "questions_asked": 16,
+        "answers": {
+          "current_objective": "The task's objective is to diagnose why the pool timeout persists across identical runs, with no changes observed in the connection pool behavior.",
+          "active_requirements": "Active requirements: Task diagnosis mandatory, project awareness required, verification evidence needed, prior failure identified. Pool timeout persists across runs.",
+          "superseded_requirements": "All iterations (1\u20135) show identical failures with persistent pool timeouts, superseding previous attempts. No requirements changed; root cause remains unaddressed.",
+          "attempted": "Repeated identical flake checks on the connection pool were attempted, but the pool timeout persists unchanged across iterations. No new information or fixes emerged.",
+          "failed": "The pool timeout failed persistently across identical runs, with no observed changes or fixes in iterations 1 through 5. The issue remains unresolved.",
+          "why_failed": "The pool timeout failed because it persists across identical runs, showing no change or improvement despite repeated test executions.",
+          "correction": "No correction was made. The pool timeout persists identically across runs, with no new information or fixes identified in any iteration.",
+          "verified": "The verification confirmed the persistent pool timeout issue. No fix was verified; the problem remains unchanged across iterations.",
+          "unresolved": "The persistent pool timeout issue remains unresolved, with identical observations across iterations. No effective fix has been identified or implemented.",
+          "artifacts": "Files and artifacts that matter: service.py (project context), src/retry_8.py (affected by root cause), and workspace files from the temporary directory. The persistent pool timeout issue recurs across identical runs.",
+          "authoritative_evidence": "The authoritative evidence is the repeated \"IDENTICAL OBSERVATION: pool timeout persists\" failure across iterations 1-5, confirming the persistent issue without new insights.",
+          "model_inference": "The statements \"pool timeout persists (repeated identical observation)\" and \"no new information this iteration\" are merely diagnosis proposals, as they represent observed patterns and suggested fixes without confirmed root cause analysis or definitive solutions.",
+          "approved": "The persistent pool timeout issue was accepted as unresolved across iterations. No fix was approved; the problem persisted identically across runs.",
+          "rejected": "The persistent pool timeout issue was repeatedly observed across iterations without resolution. No fixes were implemented, and the problem remains unresolved. The identical observation persisted, rejecting any ineffective changes.",
+          "dependencies": "The next operation must depend on identifying why pool timeout persists across runs. No new information is provided to suggest a fix or root cause. The issue remains unchanged from previous iterations.",
+          "avoid_repeating": "The next operation must avoid repeating the identical flake check on the connection pool, as it yields no new information and shows persistent timeout issues."
+        }
+      },
+      "C_ce_only": {
+        "tokens": 190,
+        "deterministic": {
+          "required_expected": 2,
+          "required_preserved": 2,
+          "required_missing": [],
+          "all_required_preserved": true,
+          "forbidden_present": [],
+          "no_forbidden_resurrection": true
+        },
+        "items": 4
+      },
+      "comparison": {
+        "token_reduction": 0.7571,
+        "arm_a_required_preserved": true,
+        "arm_b_required_preserved": true,
+        "parity_required_facts": true,
+        "compaction_caused_loss": false,
+        "compaction_added_information": false,
+        "false_compression": false
+      }
+    }
+  },
+  "summary": {
+    "cases": 10,
+    "parity_all_cases": false,
+    "compaction_caused_loss_any": false,
+    "compaction_added_information_cases": [
+      "I_long_history"
+    ],
+    "false_compression_any": true,
+    "arm_b_no_forbidden_resurrection": true,
+    "arm_b_required_preserved_all": false,
+    "arm_a_required_preserved_all": true,
+    "mean_token_reduction": 0.7623,
+    "compaction_triggered_cases": [
+      "I_long_history",
+      "J_redundant_history"
+    ]
+  },
+  "answer_parity": {
+    "buckets": {
+      "both_correct": 136,
+      "both_incorrect": 0,
+      "a_only_correct": 0,
+      "b_only_correct": 24
+    },
+    "per_case": {
+      "A_simple_history": {
+        "a_only_correct": 0,
+        "b_only_correct": 0,
+        "both_wrong": 0,
+        "both_right": 16
+      },
+      "B_failed_then_corrected": {
+        "a_only_correct": 0,
+        "b_only_correct": 0,
+        "both_wrong": 0,
+        "both_right": 16
+      },
+      "C_conflicting_evidence": {
+        "a_only_correct": 0,
+        "b_only_correct": 0,
+        "both_wrong": 0,
+        "both_right": 16
+      },
+      "D_requirement_change": {
+        "a_only_correct": 0,
+        "b_only_correct": 0,
+        "both_wrong": 0,
+        "both_right": 16
+      },
+      "E_rejected_decision": {
+        "a_only_correct": 0,
+        "b_only_correct": 0,
+        "both_wrong": 0,
+        "both_right": 16
+      },
+      "F_unresolved_blocker": {
+        "a_only_correct": 0,
+        "b_only_correct": 0,
+        "both_wrong": 0,
+        "both_right": 16
+      },
+      "G_artifact_dependency": {
+        "a_only_correct": 0,
+        "b_only_correct": 0,
+        "both_wrong": 0,
+        "both_right": 16
+      },
+      "H_recovery": {
+        "a_only_correct": 0,
+        "b_only_correct": 0,
+        "both_wrong": 0,
+        "both_right": 16
+      },
+      "I_long_history": {
+        "a_only_correct": 0,
+        "b_only_correct": 12,
+        "both_wrong": 0,
+        "both_right": 4
+      },
+      "J_redundant_history": {
+        "a_only_correct": 0,
+        "b_only_correct": 12,
+        "both_wrong": 0,
+        "both_right": 4
+      }
+    },
+    "compaction_induced_regressions": 0
+  },
+  "false_compression_analysis": {
+    "definition_naive": "token_reduction > 0.2 AND Arm B lost a required fact vs Arm A",
+    "definition_attributed": "token_reduction > 0.2 AND Arm B preserves strictly less than the canonical CE-only baseline (C) that compaction replaces",
+    "naive_flag_count": 6,
+    "attributed_false_compression_count": 0,
+    "attributed_false_compression_cases": [],
+    "compaction_triggered_cases": [
+      "I_long_history",
+      "J_redundant_history"
+    ],
+    "compaction_not_triggered_cases": [
+      "A_simple_history",
+      "B_failed_then_corrected",
+      "C_conflicting_evidence",
+      "D_requirement_change",
+      "E_rejected_decision",
+      "F_unresolved_blocker",
+      "G_artifact_dependency",
+      "H_recovery"
+    ],
+    "preexisting_g1_gap_cases": [
+      "A_simple_history",
+      "B_failed_then_corrected",
+      "D_requirement_change",
+      "E_rejected_decision",
+      "G_artifact_dependency",
+      "H_recovery"
+    ],
+    "preexisting_g1_gap_note": "These cases have fewer iterations than the compaction trigger, so the canonical Context Engineering path does not project their iteration history into context AT ALL - with or without compaction. Arm B and the CE-only baseline are identical, so the gap is pre-existing Gate 1 G-1 behaviour, NOT compaction-induced loss. Redesigning it is out of Gate 4 scope (the brief forbids redesigning Context Engineering).",
+    "per_case": [
+      {
+        "case": "A_simple_history",
+        "compaction_triggered": false,
+        "arm_b_tokens": 114,
+        "arm_a_tokens": 557,
+        "token_reduction": 0.7953,
+        "arm_a_required": 2,
+        "arm_b_required": 0,
+        "ce_only_required": 0,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": true
+      },
+      {
+        "case": "B_failed_then_corrected",
+        "compaction_triggered": false,
+        "arm_b_tokens": 110,
+        "arm_a_tokens": 565,
+        "token_reduction": 0.8053,
+        "arm_a_required": 2,
+        "arm_b_required": 0,
+        "ce_only_required": 0,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": true
+      },
+      {
+        "case": "C_conflicting_evidence",
+        "compaction_triggered": false,
+        "arm_b_tokens": 183,
+        "arm_a_tokens": 503,
+        "token_reduction": 0.6362,
+        "arm_a_required": 2,
+        "arm_b_required": 2,
+        "ce_only_required": 2,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": false
+      },
+      {
+        "case": "D_requirement_change",
+        "compaction_triggered": false,
+        "arm_b_tokens": 117,
+        "arm_a_tokens": 473,
+        "token_reduction": 0.7526,
+        "arm_a_required": 1,
+        "arm_b_required": 0,
+        "ce_only_required": 0,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": true
+      },
+      {
+        "case": "E_rejected_decision",
+        "compaction_triggered": false,
+        "arm_b_tokens": 113,
+        "arm_a_tokens": 570,
+        "token_reduction": 0.8018,
+        "arm_a_required": 2,
+        "arm_b_required": 0,
+        "ce_only_required": 0,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": true
+      },
+      {
+        "case": "F_unresolved_blocker",
+        "compaction_triggered": false,
+        "arm_b_tokens": 188,
+        "arm_a_tokens": 740,
+        "token_reduction": 0.7459,
+        "arm_a_required": 2,
+        "arm_b_required": 2,
+        "ce_only_required": 2,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": false
+      },
+      {
+        "case": "G_artifact_dependency",
+        "compaction_triggered": false,
+        "arm_b_tokens": 113,
+        "arm_a_tokens": 470,
+        "token_reduction": 0.7596,
+        "arm_a_required": 2,
+        "arm_b_required": 0,
+        "ce_only_required": 0,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": true
+      },
+      {
+        "case": "H_recovery",
+        "compaction_triggered": false,
+        "arm_b_tokens": 112,
+        "arm_a_tokens": 559,
+        "token_reduction": 0.7996,
+        "arm_a_required": 2,
+        "arm_b_required": 0,
+        "ce_only_required": 0,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": true
+      },
+      {
+        "case": "I_long_history",
+        "compaction_triggered": true,
+        "arm_b_tokens": 785,
+        "arm_a_tokens": 3414,
+        "token_reduction": 0.7701,
+        "arm_a_required": 2,
+        "arm_b_required": 2,
+        "ce_only_required": 1,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": false
+      },
+      {
+        "case": "J_redundant_history",
+        "compaction_triggered": true,
+        "arm_b_tokens": 586,
+        "arm_a_tokens": 2413,
+        "token_reduction": 0.7571,
+        "arm_a_required": 2,
+        "arm_b_required": 2,
+        "ce_only_required": 2,
+        "false_compression_attributed": false,
+        "preexisting_g1_gap": false
+      }
+    ]
+  }
+}

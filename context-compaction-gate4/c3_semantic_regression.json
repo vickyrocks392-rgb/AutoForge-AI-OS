@@ -1,0 +1,44 @@
+{
+  "arm_a_candidate_ids": [
+    "ctx_55c83f1bbd8dadbd",
+    "ctx_668cf6fc4bf44b2e",
+    "ctx_681b9d86241041a8",
+    "ctx_8fa317e1fc52beed",
+    "ctx_e0db5f89128bf5d0",
+    "ctx_eb30d873f273eb8f",
+    "ctx_f85ec83f329ce672",
+    "ctx_faa127573b1e7ff0"
+  ],
+  "arm_b_candidate_ids": [
+    "ctx_55c83f1bbd8dadbd",
+    "ctx_668cf6fc4bf44b2e",
+    "ctx_681b9d86241041a8",
+    "ctx_8fa317e1fc52beed",
+    "ctx_e0db5f89128bf5d0",
+    "ctx_eb30d873f273eb8f",
+    "ctx_f85ec83f329ce672",
+    "ctx_faa127573b1e7ff0"
+  ],
+  "candidate_sets_equal": true,
+  "arm_a_project_files": [
+    "README.md",
+    "artifacts/build_report.json",
+    "docs/design.md",
+    "src/service.py",
+    "tests/evidence.json"
+  ],
+  "arm_b_project_files": [
+    "README.md",
+    "artifacts/build_report.json",
+    "docs/design.md",
+    "src/service.py",
+    "tests/evidence.json"
+  ],
+  "project_files_equal": true,
+  "compaction_artifacts_on_disk": [
+    "compaction_cmp_3c52bf8c3216c5b8"
+  ],
+  "compaction_artifacts_in_candidates": [],
+  "llm_used": false,
+  "rationale": "The question is 'did the ordinary candidate set change?', which is decidable by deterministic comparison. Per \u00a715 no LLM is warranted."
+}

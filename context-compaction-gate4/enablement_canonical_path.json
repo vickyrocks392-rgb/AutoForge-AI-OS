@@ -1,0 +1,38 @@
+{
+  "canonical_path": {
+    "context_engineering_on": true,
+    "context_compaction_on": true,
+    "compaction_record_produced": true,
+    "compaction_trigger": "iteration_boundary",
+    "compaction_persisted": true,
+    "artifact_id": "0bf9d3b8-d50a-5d8c-a4f2-7feaee6fea4a",
+    "assembled_context": true,
+    "msc_selected_count": 8,
+    "candidates_considered": 8,
+    "budget_resolved": true,
+    "prompt_assembled": true,
+    "prompt_messages": 1,
+    "canonical_item_kinds": [
+      "evaluation",
+      "iteration",
+      "task",
+      "workspace"
+    ],
+    "iteration_items_present": true,
+    "durable_artifact_files": [
+      "compaction_cmp_30e912431d357038"
+    ]
+  },
+  "bypass_audit": {
+    "production_dispatcher_builder_injected": true,
+    "dispatcher_uses_root_builder": true,
+    "dispatcher_builder_has_compaction": true,
+    "fallback_path_exists_in_source": true,
+    "fallback_paths": [
+      "packages/execution/src/autoforge_execution/dispatcher.py:158",
+      "packages/workforce/src/autoforge_workforce/dispatch.py:158"
+    ],
+    "fallback_trigger_condition": "only when no context_builder was injected into the dispatcher",
+    "fallback_reached_in_production": false
+  }
+}

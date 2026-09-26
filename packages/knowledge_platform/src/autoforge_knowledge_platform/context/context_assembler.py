@@ -2,13 +2,39 @@
 Context Assembler
 
 Assembles context for knowledge retrieval as defined in the Knowledge Platform Specification v1.0.
+
+Scoped specialization (18-L Gate 2, section 6.2). Per ADR-003's Consequences
+clause, "the Knowledge Platform's existing assembler remains the knowledge-scoped
+slice; the Context Engine composes it rather than replacing it". Behaviour is
+unchanged; the only Gate 3 change is that the two previously ``Any``-typed
+collaborators are now described by ``Protocol`` contracts. ``None``/falsy values
+remain acceptable so no existing caller breaks.
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Protocol, Sequence, runtime_checkable
+
 from autoforge_knowledge_platform.interfaces.knowledge_interfaces import IContextAssembler
 from autoforge_knowledge_platform.models import KnowledgeItem, RetrievalResult
+
+
+@runtime_checkable
+class RelevanceRankerPort(Protocol):
+    """Ranks knowledge items for a query."""
+
+    async def rank(
+        self, items: Sequence[KnowledgeItem], query: Dict[str, Any]
+    ) -> List[KnowledgeItem]: ...
+
+
+@runtime_checkable
+class ContextWindowFitterPort(Protocol):
+    """Fits ranked items into an available context window."""
+
+    async def fit(
+        self, items: Sequence[KnowledgeItem], context_window: int
+    ) -> List[KnowledgeItem]: ...
 
 
 class ContextAssembler(IContextAssembler):
@@ -20,11 +46,15 @@ class ContextAssembler(IContextAssembler):
     
     def __init__(
         self,
-        citation_manager: Any,
-        context_window_manager: Any,
-        relevance_ranker: Any,
+        citation_manager: Any = None,
+        context_window_manager: ContextWindowFitterPort | None = None,
+        relevance_ranker: RelevanceRankerPort | None = None,
     ):
-        """Initialize Context Assembler with dependencies."""
+        """Initialize Context Assembler with dependencies.
+
+        All three remain optional so the knowledge slice keeps working when they are
+        absent; the canonical Context Engine owns the global budget.
+        """
         self.citation_manager = citation_manager
         self.context_window_manager = context_window_manager
         self.relevance_ranker = relevance_ranker

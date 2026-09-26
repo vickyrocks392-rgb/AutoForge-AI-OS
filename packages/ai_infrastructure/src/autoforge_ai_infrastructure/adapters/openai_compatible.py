@@ -136,6 +136,40 @@ class OpenAICompatibleProviderAdapter(BaseProviderAdapter):
                 details={"provider_id": self.provider_id, "timeout": timeout},
             ) from e
 
+    async def check_health(self) -> bool:
+        """Provider-neutral liveness probe.
+
+        Asks the endpoint for its model list rather than calling a
+        vendor-specific health route, so the same probe works against llama.cpp
+        ``llama-server``, MLX, vLLM and hosted OpenAI-compatible gateways.
+        Returns False instead of raising: this is a probe, not an execution.
+        """
+        try:
+            models = await self.list_installed_models()
+        except Exception:
+            return False
+        return bool(models)
+
+    async def list_installed_models(self) -> list[str]:
+        """Model identifiers this endpoint advertises.
+
+        Provider-neutral: reads the standard ``/models`` listing. Returns an
+        empty list when the endpoint is unreachable rather than raising, so
+        callers can use it as a soft capability probe.
+        """
+        try:
+            body = self._sync_request("/models", {}, timeout=10.0)
+        except Exception:
+            return []
+        data = body.get("data") or body.get("models") or []
+        names: list[str] = []
+        for entry in data:
+            if isinstance(entry, dict):
+                name = entry.get("id") or entry.get("name") or entry.get("model")
+                if name:
+                    names.append(str(name))
+        return names
+
     async def execute(
         self,
         request: ExecutionRequest,
@@ -206,6 +240,21 @@ class OpenAICompatibleProviderAdapter(BaseProviderAdapter):
 
         parsed_json = extract_json_payload(content) if structured_requested else None
 
+        # Prompt-processing (prefill) accounting. llama.cpp and several other
+        # OpenAI-compatible servers return a ``timings`` block that separates
+        # prompt evaluation from token generation. Surfacing it here is what
+        # makes prompt-processing cost measurable through the provider
+        # abstraction instead of only inside one runtime. It is optional: a
+        # server that omits it simply reports UNAVAILABLE, and nothing else in
+        # the contract changes. Purely additive — no consumer depends on it.
+        timings = raw_response.get("timings") or {}
+        prompt_ms = timings.get("prompt_ms")
+        predicted_ms = timings.get("predicted_ms")
+        prompt_eval_ms = float(prompt_ms) if isinstance(prompt_ms, (int, float)) else UNAVAILABLE
+        generation_ms = (
+            float(predicted_ms) if isinstance(predicted_ms, (int, float)) else UNAVAILABLE
+        )
+
         output: dict[str, Any] = {
             "content": content,
             "model_id": target.model_id,
@@ -223,6 +272,9 @@ class OpenAICompatibleProviderAdapter(BaseProviderAdapter):
                 "tokens_per_second": tokens_per_sec,
             },
             "duration_ms": duration_ms,
+            # Prompt-processing vs. generation split, when the server reports it.
+            "prompt_eval_ms": prompt_eval_ms,
+            "generation_ms": generation_ms,
             "raw": raw_response,
         }
 

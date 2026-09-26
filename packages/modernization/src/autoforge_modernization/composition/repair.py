@@ -27,6 +27,7 @@ from autoforge_modernization.composition.verifier import (
 )
 from autoforge_modernization.repair_cycle import RepairAttempt, RepairOutcome, RepairStatus
 from autoforge_modernization.target.specification import TargetSpecification
+from autoforge_modernization.verification import TOOLCHAIN_UNAVAILABLE_CODE
 
 
 class AutonomousTargetRepairCycle:
@@ -59,6 +60,23 @@ class AutonomousTargetRepairCycle:
         if initial_result.passed:
             outcome.final_status = RepairStatus.NOT_REQUIRED
             outcome.completed_at = time.time()
+            return artifacts, outcome, initial_result
+
+        # A genuinely unavailable toolchain cannot be repaired by editing source
+        # code.  Report it as such instead of spending bounded repair attempts
+        # that can never succeed, so a missing compiler is never mistaken for a
+        # source-code defect (see TOOLCHAIN_UNAVAILABLE_CODE).
+        if any(
+            getattr(d, "code", "") == TOOLCHAIN_UNAVAILABLE_CODE
+            for d in initial_result.diagnostics
+        ):
+            outcome.final_status = RepairStatus.UNAVAILABLE
+            outcome.final_code = artifacts[0].code if artifacts else ""
+            outcome.completed_at = time.time()
+            outcome.telemetry = {
+                "repair_skipped_reason": "toolchain_unavailable",
+                "toolchain": initial_result.toolchain_used,
+            }
             return artifacts, outcome, initial_result
 
         current_artifacts = [

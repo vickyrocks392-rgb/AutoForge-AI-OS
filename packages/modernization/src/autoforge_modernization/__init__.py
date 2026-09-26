@@ -129,6 +129,13 @@ from autoforge_modernization.pipeline import (
 )
 
 
+from autoforge_modernization.g3_llm import (
+    G3LLMIntegration,
+    LLMWorkloadMetrics,
+    LLMConclusionRecord,
+    LLMTaskKind,
+    check_ollama_health,
+)
 from autoforge_modernization.g3_transform_strategies import G3TransformationStrategies
 from autoforge_modernization.dependency_graph import (
     DependencyGraph, GraphNode, GraphEdge, EdgeKind,

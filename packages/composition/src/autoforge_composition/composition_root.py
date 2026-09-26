@@ -49,6 +49,7 @@ from autoforge_composition.ai_infrastructure_wiring import (
     build_ai_infrastructure,
 )
 from autoforge_composition.artifact_wiring import build_artifact_platform_from_bus
+from autoforge_composition.context_allocation import RouterModelAllocationPort
 from autoforge_composition.event_bus_adapter import CanonicalKernelEventBus
 from autoforge_composition.execution_wiring import build_execution_engine
 from autoforge_composition.runtime_facade import KernelRuntimeFacade
@@ -71,6 +72,11 @@ from autoforge_kernel.approval import DefaultApprovalCoordinator
 from autoforge_kernel.recovery import DefaultRecoveryCoordinator
 from autoforge_kernel.learning_engine import EngineeringLearningEngine
 from autoforge_execution.context_builder import EngineeringContextBuilder
+from autoforge_execution.compaction import (
+    CompactionPolicy,
+    CompactionRecordStore,
+    ContextCompactor,
+)
 
 from autoforge_composition.kernel_adapters import (
     KernelWorkflowEngineAdapter,
@@ -185,6 +191,10 @@ class AutoForgeSystem:
     durable_catalog: DurableArtifactCatalog | None = None
     physical_store: PhysicalArtifactStore | None = None
     artifact_bridge: DurableArtifactStoreBridge | None = None
+    #: 18-L C-1: the production Context Compaction record store owned by this
+    #: composition root. Present (and owned) even while compaction is OFF; it is
+    #: the same object the Context Compaction path persists through.
+    compaction_store: CompactionRecordStore | None = None
 
     #: Raw runtime diagnostics that had no canonical counterpart during lift.
     skipped_runtime_events: list[dict[str, Any]] = None
@@ -265,18 +275,32 @@ def build_autoforge_system(
         physical_store=physical_store,
     )
 
+    # 3c. Context Compaction durable store (18-L C-1).
+    #
+    # The production composition root OWNS the compaction record store, built over
+    # the SAME DurableArtifactCatalog and PhysicalArtifactStore the rest of the
+    # system already uses. No new storage architecture and no duplicated
+    # persistence logic: this is the existing `CompactionRecordStore` from
+    # `autoforge_execution.compaction`, and it reuses the repaired 18-J replay
+    # semantics.
+    #
+    # Constructing the store does NOT enable compaction. `CompactionRecordStore`
+    # has no side effects at construction (it only holds the two references), and
+    # the builder only persists a record when a compactor has already produced a
+    # VALIDATED one. So the store is always owned — which is what C-1 requires —
+    # while the capability itself stays OFF until explicitly enabled below.
+    compaction_store = CompactionRecordStore(
+        catalog=durable_catalog,
+        physical_store=physical_store,
+    )
+
     # 4. Kernel-facing adapters (dependency inversion boundary).
     facade = KernelRuntimeFacade(runtime)
     kernel_bus = CanonicalKernelEventBus(canonical_bus)
     kernel_memory_engine = KernelMemoryEngineAdapter(runtime=runtime)
     kernel_knowledge_engine = KernelKnowledgeEngineAdapter()
 
-    # 4b. Context Builder & Learning Engine (Phase 18-K Canonical Wiring).
-    context_builder = EngineeringContextBuilder(
-        runtime=runtime,
-        memory_engine=kernel_memory_engine,
-        knowledge_engine=kernel_knowledge_engine,
-    )
+    # 4b. Learning Engine (Phase 18-K Canonical Wiring).
     learning_engine = EngineeringLearningEngine(
         memory_engine=kernel_memory_engine,
         knowledge_engine=kernel_knowledge_engine,
@@ -297,6 +321,57 @@ def build_autoforge_system(
         runtime=runtime,
         include_workforce_models=True,
         bind_adapters=True,
+    )
+
+    # 6b. Context Builder (Phase 18-K Canonical Wiring) — built here because the
+    # Gate 4B model-aware budget is served by the Model Router from step 6.
+    #
+    # Gate 4B — Context Engineering is the canonical production default. The flag
+    # is passed EXPLICITLY here (rather than relying only on the constructor
+    # default) so the composition root stays the single readable source of truth
+    # for the production posture, and so
+    # `config={"enable_context_engineering": False}` is a supported, documented
+    # rollback that needs no change at any other call site.
+    #
+    # `model_allocator` closes the Gate 4 §7 Pass-1 -> allocate -> Pass-2 seam so
+    # the applied context budget reflects the *allocated model's* real window
+    # instead of always falling back to the conservative default. It is a
+    # Protocol implemented over the existing Model Router, so neither this
+    # module nor the Context Engineering layer imports any runtime or provider.
+    # C-1: the production `compaction_store` created in step 3c is injected here,
+    # so the object the Context Compaction path persists through is the one the
+    # composition root owns — not a test-only or separately constructed store.
+    #
+    # 18-L GLOBAL ENABLEMENT — Context Compaction is now the canonical production
+    # default, exactly as Context Engineering became in Gate 4B. The flag is
+    # passed EXPLICITLY here so this module stays the single readable source of
+    # truth for the production posture, and so
+    # `config={"enable_context_compaction": False}` remains a supported,
+    # documented rollback that needs no change at any other call site.
+    #
+    # Enablement is a default flip only. It changes no algorithm, no policy, no
+    # selection, budgeting or prompt assembly, and introduces no dependency: the
+    # compactor is deterministic and CPU-only (no model, provider, runtime, M6,
+    # or network access), so the canonical production path stays
+    # deterministic-first.
+    enable_context_compaction = bool(
+        (config or {}).get("enable_context_compaction", True)
+    )
+    context_compactor = (
+        ContextCompactor(CompactionPolicy(enabled=True))
+        if enable_context_compaction
+        else None
+    )
+    context_builder = EngineeringContextBuilder(
+        runtime=runtime,
+        memory_engine=kernel_memory_engine,
+        knowledge_engine=kernel_knowledge_engine,
+        enable_context_engineering=bool(
+            (config or {}).get("enable_context_engineering", True)
+        ),
+        model_allocator=RouterModelAllocationPort(ai_infra.router),
+        compactor=context_compactor,
+        compaction_store=compaction_store,
     )
 
     # 7. Execution Engine — wired with environment, workflow engine, events, runtime,
@@ -430,5 +505,6 @@ def build_autoforge_system(
         durable_catalog=durable_catalog,
         physical_store=physical_store,
         artifact_bridge=durable_bridge,
+        compaction_store=compaction_store,
         skipped_runtime_events=skipped,
     )

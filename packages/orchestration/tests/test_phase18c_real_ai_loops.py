@@ -16,7 +16,17 @@ for _pkg in [
     if _src.exists() and str(_src) not in _sys.path:
         _sys.path.insert(0, str(_src))
 
-from autoforge_ai_infrastructure import ExecutorRegistry, InMemoryCapabilityRegistry, OllamaProviderAdapter
+import os
+import sys
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+from autoforge_ai_infrastructure import ExecutorRegistry, InMemoryCapabilityRegistry
+from autoforge_ai_infrastructure.adapters.local_runtime import (
+    LocalRuntimeProviderAdapter,
+)
 from autoforge_ai_infrastructure.router import ModelRouterService
 from autoforge_execution.context import ExecutionContext
 from autoforge_orchestration.models import StageKind
@@ -26,7 +36,13 @@ from autoforge_workforce.loops import ResearchLoop, ArchitectureLoop, PlanningLo
 
 @pytest.fixture
 async def live_ollama():
-    adapter = OllamaProviderAdapter(provider_id="local-m1", base_url="http://127.0.0.1:11434")
+    # Gate 4: the canonical local runtime is an OpenAI-compatible server
+    # (llama.cpp `llama-server` / MLX), not an Ollama daemon. Override with
+    # AUTOFORGE_LOCAL_RUNTIME_URL to point at a real node.
+    adapter = LocalRuntimeProviderAdapter(
+        provider_id="local-m1",
+        base_url=os.environ.get("AUTOFORGE_LOCAL_RUNTIME_URL", "http://127.0.0.1:8080/v1"),
+    )
     is_healthy = await adapter.check_health()
     if not is_healthy:
         pytest.skip("Ollama daemon not reachable")

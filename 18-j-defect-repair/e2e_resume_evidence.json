@@ -1,0 +1,105 @@
+{
+  "workspace": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/af_18j_e2e_b2u1h8da",
+  "rounds": [
+    {
+      "round": 0,
+      "phase": "initial engineering execution + artifact creation + commit",
+      "workflow_status": "completed",
+      "durable": {
+        "count": 3,
+        "by_status": {
+          "committed": 3
+        },
+        "committed_hashes": [
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "c84a01a31b2166bf98c06e992aaf73efb2a6a0cd0fcbd3aa2a763d87b97a6db3"
+        ],
+        "staging_stranded": []
+      }
+    },
+    {
+      "round": 1,
+      "phase": "restart + re-materialisation / resume path",
+      "workflow_status": "completed",
+      "durable": {
+        "count": 6,
+        "by_status": {
+          "committed": 6
+        },
+        "committed_hashes": [
+          "42db9d0387138fd63f7d464aa0c283dc7c8977a774d6ed16193b9793fce8ff2e",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "c84a01a31b2166bf98c06e992aaf73efb2a6a0cd0fcbd3aa2a763d87b97a6db3"
+        ],
+        "staging_stranded": []
+      }
+    },
+    {
+      "round": 2,
+      "phase": "restart + re-materialisation / resume path",
+      "workflow_status": "completed",
+      "durable": {
+        "count": 9,
+        "by_status": {
+          "committed": 9
+        },
+        "committed_hashes": [
+          "42db9d0387138fd63f7d464aa0c283dc7c8977a774d6ed16193b9793fce8ff2e",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "7ebaa5646a6e8cc06495685fd1c2c55ba5da49e1c32fee4f706a75005159dddc",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "c84a01a31b2166bf98c06e992aaf73efb2a6a0cd0fcbd3aa2a763d87b97a6db3"
+        ],
+        "staging_stranded": []
+      }
+    },
+    {
+      "round": 3,
+      "phase": "restart + re-materialisation / resume path",
+      "workflow_status": "completed",
+      "durable": {
+        "count": 12,
+        "by_status": {
+          "committed": 12
+        },
+        "committed_hashes": [
+          "42db9d0387138fd63f7d464aa0c283dc7c8977a774d6ed16193b9793fce8ff2e",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "6f7336349baa59c0c529519c5784dfe63edfd3a25d81fa5eb49dddc32cb8fa6c",
+          "7becb02f4d712698de38aac5a9e1915d584a2b1975d7d49cefafe1e8026fcd28",
+          "7ebaa5646a6e8cc06495685fd1c2c55ba5da49e1c32fee4f706a75005159dddc",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "bef87cc278517ce7307ee820b27326bb5b1b8ef18f0c5a7f70cb42bd4bf92338",
+          "c84a01a31b2166bf98c06e992aaf73efb2a6a0cd0fcbd3aa2a763d87b97a6db3"
+        ],
+        "staging_stranded": []
+      }
+    }
+  ],
+  "context_engineering_enabled": true,
+  "no_invalid_transition_raised": true,
+  "durable_count_per_round": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "all_artifacts_committed": true,
+  "earlier_hashes_never_lost": true,
+  "durable_state_stable_across_resume": true,
+  "committed_content_preserved": true,
+  "all_rounds_completed": true,
+  "VERDICT": "PASS: resume/re-materialisation completes across restarts with no InvalidTransitionError, no stranded STAGING state, and no durable-state loss"
+}

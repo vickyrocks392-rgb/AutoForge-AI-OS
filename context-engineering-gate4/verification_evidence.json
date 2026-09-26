@@ -1,0 +1,127 @@
+{
+  "rollout_flag": {
+    "constructor_default": false,
+    "default_is_off": true,
+    "flag_off": {
+      "selected_context_items": [],
+      "excluded_context_items": [],
+      "assembly_record": null,
+      "canonical_messages": [],
+      "legacy_prompt_payload_keys": [
+        "description",
+        "input_data",
+        "iteration",
+        "known_files",
+        "latest_diagnosis",
+        "project_files",
+        "task_id",
+        "task_name",
+        "task_type"
+      ],
+      "project_files_discovered": [
+        "seed.py"
+      ]
+    },
+    "flag_on": {
+      "selected_count": 4,
+      "has_record": true,
+      "message_count": 1,
+      "budget_source": "caller"
+    },
+    "rollback_procedure": "construct EngineeringContextBuilder(enable_context_engineering=False)",
+    "flag_off_inert": true,
+    "flag_off_preserves_legacy_contract": true
+  },
+  "provider_neutrality": {
+    "modules_scanned": [
+      "context_items",
+      "context_budget",
+      "context_selection",
+      "prompt_assembly",
+      "context_observability",
+      "token_estimator",
+      "context",
+      "context_builder"
+    ],
+    "runtime_tokens_found_per_module": {
+      "context_items": [],
+      "context_budget": [
+        "llama",
+        "mlx"
+      ],
+      "context_selection": [],
+      "prompt_assembly": [],
+      "context_observability": [],
+      "token_estimator": [],
+      "context": [],
+      "context_builder": [
+        "llama",
+        "mlx"
+      ]
+    },
+    "runtime_coupling_in_executable_code": [],
+    "no_runtime_coupling": true
+  },
+  "observability": {
+    "required_fields": [
+      "task_id",
+      "stage",
+      "correlation_id",
+      "attempt_number",
+      "model_id",
+      "declared_required_window_tokens",
+      "context_window_tokens",
+      "budget",
+      "considered_count",
+      "selected_count",
+      "excluded_count",
+      "category_breakdown",
+      "deduplicated_count",
+      "expansion",
+      "mandatory_tokens",
+      "optional_tokens",
+      "stable_prefix_tokens",
+      "budget_source",
+      "construction_duration_ms",
+      "mandatory_overflow",
+      "selected",
+      "excluded"
+    ],
+    "missing_fields": [],
+    "all_required_fields_present": true,
+    "content_leak_probes": [
+      "wrong delay sequence",
+      "compute_backoff clamps",
+      "1,2,4,8",
+      "seed.py"
+    ],
+    "content_leaks_found": [],
+    "record_is_content_free": true,
+    "identifies_operation": true,
+    "exclusion_reasons_observable": [],
+    "logs_full_prompt": false
+  },
+  "ollama_audit": {
+    "canonical_bound_providers": {
+      "local-hp": "LocalRuntimeProviderAdapter",
+      "local-m1": "LocalRuntimeProviderAdapter",
+      "openai-compatible": "OpenAICompatibleProviderAdapter"
+    },
+    "canonical_binds_ollama": false,
+    "canonical_binds_port_11434": false,
+    "opt_in_providers": [
+      "local-hp",
+      "local-m1",
+      "local-ollama",
+      "openai-compatible"
+    ],
+    "opt_in_is_opt_in_only": true,
+    "package_exports_ollama_at_root": false,
+    "build_ai_infrastructure_bound": [
+      "local-hp",
+      "local-m1",
+      "openai-compatible"
+    ],
+    "canonical_local_runtime": "llama.cpp / MLX OpenAI-compatible (:8080/v1)"
+  }
+}

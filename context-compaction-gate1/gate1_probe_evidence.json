@@ -1,0 +1,56 @@
+{
+  "context_engineering_enabled": true,
+  "probe_prior_iterations": {
+    "iterations_supplied": 6,
+    "iterations_retained_on_context": 6,
+    "context_items_selected": 4,
+    "selected_categories": [
+      "project",
+      "task",
+      "verification"
+    ],
+    "selected_ids": [
+      "ctx_56fd97c7d2147089",
+      "ctx_374174b4f1f267a8",
+      "ctx_6e9448e6df486c29",
+      "ctx_af5eaa2c3fd06c88"
+    ],
+    "distinct_iterations_represented": 0,
+    "note": "Only the LAST evaluation/diagnosis become items; intermediate iterations are carried on ExecutionContext but not projected into the MSC candidate set."
+  },
+  "probe_legacy_payload": {
+    "keys": [
+      "description",
+      "input_data",
+      "iteration",
+      "known_files",
+      "latest_diagnosis",
+      "prior_attempts",
+      "project_files",
+      "task_id",
+      "task_name",
+      "task_type"
+    ],
+    "prior_attempts_count": 6,
+    "note": "The legacy payload enumerates every prior attempt in full, with no budget applied. This is the unbounded growth path."
+  },
+  "probe_durability": {
+    "memory_engine": "KernelMemoryEngineAdapter._local_memories (in-process dict; not durable, lost on restart)",
+    "loop_iterations": "held in-process on EngineeringLoop._iterations and ExecutionContext.prior_iterations",
+    "durable_anchors": [
+      "DurableExecutionStore (18-J): execution/attempt/checkpoint state",
+      "DurableArtifactCatalog (18-K): committed artifacts + content hashes",
+      "CheckpointManager: named state snapshots",
+      "Event Platform: canonical events"
+    ]
+  },
+  "probe_existing_compaction": {
+    "found": "none on the canonical engineering path",
+    "adjacent": [
+      "research_brief_generator (knowledge_platform) \u2014 a different concern",
+      "assemble_evidence() \u2014 string formatting, not compaction",
+      "ContextWindowBudget \u2014 budget enforcement, not compaction"
+    ],
+    "note": "Budgeting already DROPS items when over budget (exclusion reason 'budget_exhausted'), which silently loses history rather than compacting it."
+  }
+}

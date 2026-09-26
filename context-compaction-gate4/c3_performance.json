@@ -1,0 +1,22 @@
+{
+  "measurements": {
+    "no_compaction_artifact": {
+      "mean_scan_and_assemble_ms": 0.833,
+      "median_ms": 0.738,
+      "min_ms": 0.543,
+      "max_ms": 1.622
+    },
+    "with_40_compaction_artifacts": {
+      "mean_scan_and_assemble_ms": 1.177,
+      "median_ms": 1.115,
+      "min_ms": 0.515,
+      "max_ms": 2.081
+    }
+  },
+  "candidate_count_arm_a": 5,
+  "candidate_count_arm_b": 5,
+  "candidate_count_delta": 0,
+  "mean_overhead_ms": 0.344,
+  "exaggerated_stress_files": 40,
+  "assessment": "Compaction is disabled in both timing arms, so the delta isolates the exclusion itself rather than compaction execution. 40 extra durable records (20x a realistic per-workspace count) move the scan by a fraction of a millisecond: the exclusion is a single str.startswith per discovered entry and adds no I/O and no new traversal."
+}

@@ -20,10 +20,16 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from autoforge_modernization.capabilities.models import _utc_now
-from autoforge_modernization.capabilities.providers import OpenJDKProvider, ProviderRegistry
+from autoforge_modernization.capabilities.providers import (
+    MANAGED_JAVA_HOME,
+    MANAGED_TOOLCHAIN_ROOT,
+    OpenJDKProvider,
+    ProviderRegistry,
+)
 from autoforge_modernization.composition.generator import GeneratedArtifact
 from autoforge_modernization.target.specification import TargetSpecification
 from autoforge_modernization.verification import (
+    TOOLCHAIN_UNAVAILABLE_CODE,
     VerificationDiagnostic,
     VerificationLevel,
     VerificationStatus,
@@ -92,6 +98,46 @@ class TargetToolchainVerifier:
             javac = provider._find_real_javac()
         return javac
 
+    @staticmethod
+    def _toolchain_unavailable_diagnostic(tool: str, reason: str) -> VerificationDiagnostic:
+        """Structured diagnostic for a genuinely unavailable external toolchain.
+
+        Emitted when the required executable could not be discovered/executed, so
+        the verification result never claims the tool ran and callers (including
+        the repair cycle) can tell a missing toolchain apart from a real
+        source-code defect.  No source-code error is ever fabricated.
+        """
+        return VerificationDiagnostic(
+            level=VerificationLevel.COMPILE,
+            check=f"{tool} toolchain discovery",
+            severity="error",
+            message=f"{tool} toolchain unavailable: {reason}",
+            code=TOOLCHAIN_UNAVAILABLE_CODE,
+            tool=tool,
+        )
+
+    def _resolve_maven_binary(self, managed_mvn: Path) -> str | None:
+        """Resolve an executable Maven binary, or ``None`` when Maven is absent.
+
+        Resolution order is unchanged (AutoForge managed toolchain directory, then
+        the host ``PATH``, then the Homebrew prefix convenience location), but a
+        candidate is only accepted when it exists and is executable.  A missing
+        Maven is therefore reported structurally by :meth:`verify_maven` instead of
+        surfacing as a ``FileNotFoundError`` from ``subprocess.run``.
+        """
+        candidates: list[Path | str] = [
+            managed_mvn,
+            shutil.which("mvn") or "",
+            "/opt/homebrew/bin/mvn",
+        ]
+        for candidate in candidates:
+            if not candidate:
+                continue
+            path = Path(candidate)
+            if path.exists() and os.access(path, os.X_OK):
+                return str(path)
+        return None
+
     def verify(
         self,
         artifacts: list[GeneratedArtifact],
@@ -148,16 +194,29 @@ class TargetToolchainVerifier:
         if not provider.get_version():
             provider.acquire_or_prepare()
 
+        # Resolve the compiler before compiling so an unavailable toolchain is
+        # distinguishable from genuine compiler output.
+        javac_path = provider._find_real_javac()
         passed, output, class_files = provider.compile_java(
             source_files=source_files,
             output_dir=bin_dir,
         )
         elapsed = (time.perf_counter() - t0) * 1000.0
 
-        javac_path = provider._find_real_javac() or "javac"
-        cmd_str = f"{javac_path} -d {bin_dir} " + " ".join(str(f) for f in source_files)
+        cmd_str = f"{javac_path or 'javac'} -d {bin_dir} " + " ".join(str(f) for f in source_files)
 
+        # (B) javac executed and returned source-code diagnostics: preserve them.
         diagnostics = self._parse_javac_diagnostics(output)
+        if javac_path is None:
+            # (A) Toolchain unavailable: javac never executed, so no source-code
+            # diagnostic can exist.  Record an explicit machine-readable
+            # diagnostic rather than an empty list, which callers and the repair
+            # cycle cannot distinguish from a real source defect.
+            reason = (
+                (output or "").strip()
+                or "no executable javac found on PATH or in the managed tool directory"
+            )
+            diagnostics = [self._toolchain_unavailable_diagnostic("javac", reason)] + diagnostics
 
         return TargetVerificationResult(
             passed=passed,
@@ -270,11 +329,28 @@ class TargetToolchainVerifier:
             target_path.parent.mkdir(parents=True, exist_ok=True)
             target_path.write_text(art.code, encoding="utf-8")
 
-        repo_root = Path(__file__).resolve().parents[4]
-        local_mvn = repo_root / ".autoforge" / "tools" / "maven" / "bin" / "mvn"
-        mvn_bin = str(local_mvn) if local_mvn.exists() else (shutil.which("mvn") or "/opt/homebrew/bin/mvn")
+        local_mvn = MANAGED_TOOLCHAIN_ROOT / "maven" / "bin" / "mvn"
+        mvn_bin = self._resolve_maven_binary(local_mvn)
+        if mvn_bin is None:
+            # Maven is genuinely unavailable.  Report the verifier's own structured
+            # failure instead of letting subprocess.run raise FileNotFoundError, and
+            # never claim the build was executed.
+            reason = (
+                "no executable Maven binary found in the AutoForge managed toolchain "
+                "directory, on PATH, or at /opt/homebrew/bin/mvn"
+            )
+            return MavenVerificationResult(
+                passed=False,
+                status=VerificationStatus.FAIL,
+                toolchain_used="Apache Maven (unavailable)",
+                command_executed="mvn clean package -DskipTests (not executed)",
+                build_directory=str(workdir),
+                duration_ms=round((time.perf_counter() - t0) * 1000.0, 2),
+                output_snippet=f"Maven build not executed: {reason}.",
+                diagnostics=[self._toolchain_unavailable_diagnostic("mvn", reason)],
+            )
 
-        local_java_home = repo_root / ".autoforge" / "tools" / "java"
+        local_java_home = MANAGED_JAVA_HOME
         env = os.environ.copy()
         if local_java_home.exists():
             env["JAVA_HOME"] = str(local_java_home)

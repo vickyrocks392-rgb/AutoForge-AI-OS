@@ -1,0 +1,23 @@
+{
+  "default": {
+    "context_engineering": true,
+    "compactor_injected": true,
+    "compactor_enabled": true,
+    "compaction_store_owned": "CompactionRecordStore"
+  },
+  "rollback_lever": {
+    "compactor_injected": false,
+    "context_engineering_still_on": true
+  },
+  "explicit_true": {
+    "compactor_injected": true
+  },
+  "composition_proof": {
+    "catalog_is_canonical": true,
+    "physical_store_is_canonical_obj": true,
+    "builder_consumes_root_store": true,
+    "single_store": true,
+    "compactor_injected": true,
+    "compaction_runs_through_builder": true
+  }
+}

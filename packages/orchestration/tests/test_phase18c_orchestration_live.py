@@ -43,6 +43,8 @@ from pathlib import Path
 from typing import Any
 import sys
 
+import os
+
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[3]
@@ -59,7 +61,7 @@ for _pkg in [
 from autoforge_ai_infrastructure import (
     ExecutorRegistry,
     InMemoryCapabilityRegistry,
-    OllamaProviderAdapter,
+    LocalRuntimeProviderAdapter,
 )
 from autoforge_ai_infrastructure.router import ModelRouterService
 from autoforge_execution.ai_adapter import AIInfrastructureAdapter
@@ -73,7 +75,11 @@ from autoforge_workforce.model_allocator import register_workforce_models
 @pytest.fixture
 async def live_ollama():
     """Real Ollama provider — skip if daemon unreachable."""
-    adapter = OllamaProviderAdapter(provider_id="local-m1", base_url="http://127.0.0.1:11434")
+    # Gate 4: canonical local runtime (llama.cpp / MLX, OpenAI-compatible).
+    adapter = LocalRuntimeProviderAdapter(
+        provider_id="local-m1",
+        base_url=os.environ.get("AUTOFORGE_LOCAL_RUNTIME_URL", "http://127.0.0.1:8080/v1"),
+    )
     is_healthy = await adapter.check_health()
     if not is_healthy:
         pytest.skip("Ollama daemon not reachable at http://127.0.0.1:11434")

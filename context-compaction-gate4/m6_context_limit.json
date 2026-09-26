@@ -1,0 +1,30 @@
+{
+  "probe": [
+    {
+      "approx_tokens": 600,
+      "served": true,
+      "detail": "OK"
+    },
+    {
+      "approx_tokens": 1200,
+      "served": true,
+      "detail": "OK"
+    },
+    {
+      "approx_tokens": 1800,
+      "served": true,
+      "detail": "OK"
+    },
+    {
+      "approx_tokens": 2400,
+      "served": true,
+      "detail": "OK"
+    },
+    {
+      "approx_tokens": 3400,
+      "served": true,
+      "detail": "OK"
+    }
+  ],
+  "max_approx_tokens_served": 3400
+}

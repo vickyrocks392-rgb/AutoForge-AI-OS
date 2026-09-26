@@ -148,7 +148,14 @@ class WorkforceDispatcher(WorkerDispatcher):
                 effective_model_requirements=effective_reqs.to_dict(),
             )
         else:
-            context = ExecutionContext.from_task_definition(
+            # Gate 4B: Context Engineering is the canonical default, so an
+            # un-injected builder must NOT silently degrade to a raw
+            # ExecutionContext. Build the canonical engine here instead, keeping
+            # the resolved model requirements so Pass-1 allocation still sees
+            # the workforce profile's declared constraints.
+            from autoforge_execution.context_builder import EngineeringContextBuilder
+
+            context = await EngineeringContextBuilder().assemble_context(
                 task_def=task_def,
                 workspace_root=self._env.root,
                 workflow_id=workflow_id,

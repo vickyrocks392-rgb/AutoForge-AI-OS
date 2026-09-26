@@ -1,0 +1,37 @@
+{
+  "logical_identity_computation": {
+    "mean_ms": 0.0991,
+    "median_ms": 0.0854,
+    "max_ms": 0.3141
+  },
+  "content_digest_computation": {
+    "mean_ms": 0.0092,
+    "median_ms": 0.0084,
+    "max_ms": 0.0593
+  },
+  "serialization": {
+    "mean_ms": 0.0525,
+    "median_ms": 0.0452,
+    "max_ms": 0.2704
+  },
+  "first_save_full_write": {
+    "mean_ms": 0.5822,
+    "median_ms": 0.4295,
+    "max_ms": 2.47
+  },
+  "replay_save_identity_comparison": {
+    "mean_ms": 0.4384,
+    "median_ms": 0.4019,
+    "max_ms": 0.5863
+  },
+  "load_with_integrity_verification": {
+    "mean_ms": 0.2031,
+    "median_ms": 0.1796,
+    "max_ms": 0.4303
+  },
+  "notes": {
+    "logical_identity": "Covers every serialized field except the two declared runtime-only ones; cost is one canonical JSON dump plus SHA-256.",
+    "replay_save": "Now reads the committed artifact and RECOMPUTES its logical identity, instead of hashing the incoming payload. One small file read plus one parse per replay.",
+    "load": "Unchanged from the Gate 4 repair: SHA-256 over the stored bytes against the catalog hash, plus the new logical-identity check."
+  }
+}

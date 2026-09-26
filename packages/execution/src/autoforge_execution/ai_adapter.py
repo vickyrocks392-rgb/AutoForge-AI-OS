@@ -109,6 +109,24 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
         self._allow_fallback = allow_deterministic_fallback
         self._last_execution_result: ExecutionResult | None = None
         self._execution_history: list[ExecutionResult] = []
+        # Gate 4B: content-free proof of which prompt-assembly path the last
+        # operation actually took. Initialised here so it is always readable.
+        self._last_prompt_observability: dict[str, Any] = {
+            "context_engineering_enabled": False,
+            "prompt_assembly_path": "none",
+            "selected_context_count": 0,
+            "budget_source": "",
+            "context_window_tokens": 0,
+        }
+
+    @property
+    def last_prompt_observability(self) -> dict[str, Any]:
+        """Content-free observability for the most recent model operation.
+
+        Deliberately exposes counts, budget provenance, and the assembly path
+        only — never the assembled prompt text itself.
+        """
+        return dict(self._last_prompt_observability)
 
     @property
     def last_execution_result(self) -> ExecutionResult | None:
@@ -125,6 +143,75 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
     def _record_result(self, result: ExecutionResult) -> None:
         self._last_execution_result = result
         self._execution_history.append(result)
+
+    # -- Gate 4B: canonical prompt assembly -------------------------------
+    #
+    # Before Gate 4B every method in this adapter hand-assembled its prompt with
+    # f-strings and called ``context.format_reasoning_prompt()``. That legacy
+    # branch is the accidental bypass the gate had to remove: with Context
+    # Engineering enabled the selected, budgeted, attributed context existed on
+    # the ExecutionContext but was never what the model actually received.
+    #
+    # ``_canonical_payload`` converges the adapter onto the single canonical
+    # constructor (``prompt_assembly.build_messages`` via
+    # ``ExecutionContext.build_canonical_messages``). It degrades to the previous
+    # payload only when Context Engineering produced nothing to deliver, which is
+    # what keeps explicit CE OFF a working rollback mode.
+
+    def _canonical_payload(
+        self,
+        context: ExecutionContext,
+        *,
+        task_name: str,
+        instruction: str,
+        system: str = "",
+        extras: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Build the provider payload from the canonical Context Engineering path.
+
+        The returned payload carries ``messages`` — the exact ``{"role",
+        "content"}`` shape ``BaseProviderAdapter.normalize_messages`` consumes —
+        so no provider-specific formatting appears and no adapter change is
+        required. The operation-specific instruction is appended as a final user
+        turn so the model still receives its directive, while the *context body*
+        comes exclusively from the canonical, budgeted selection.
+        """
+        messages = context.build_canonical_messages(task_name=task_name)
+        if not messages:
+            # Context Engineering is off, or selected nothing. Return None-ish
+            # signal by omitting "messages" so the caller keeps its legacy body.
+            return {**(extras or {}), "_canonical": False}
+
+        framed: list[dict[str, str]] = []
+        if system:
+            framed.append({"role": "system", "content": system})
+        framed.extend({"role": m["role"], "content": m["content"]} for m in messages)
+        if instruction:
+            framed.append({"role": "user", "content": instruction})
+
+        return {**(extras or {}), "messages": framed, "_canonical": True}
+
+    def _prompt_assembly_observability(
+        self,
+        context: ExecutionContext,
+        *,
+        used_canonical: bool,
+    ) -> dict[str, Any]:
+        """Content-free proof of which prompt-assembly path an operation used."""
+        record = getattr(context, "context_assembly_record", None)
+        return {
+            "context_engineering_enabled": bool(
+                getattr(context, "context_assembly_record", None)
+            ),
+            "prompt_assembly_path": (
+                "canonical_context_engineering" if used_canonical else "legacy"
+            ),
+            "selected_context_count": len(
+                getattr(context, "selected_context_items", []) or []
+            ),
+            "budget_source": getattr(record, "budget_source", ""),
+            "context_window_tokens": getattr(record, "context_window_tokens", 0),
+        }
 
     def _has_explicit_fallback_policy(self, context: ExecutionContext) -> bool:
         reqs = context.effective_model_requirements or {}
@@ -308,9 +395,10 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
                 "You are an expert software engineering assistant. "
                 "Produce a structured, high-level, step-by-step implementation plan for the given task."
             )
-            user_msg = (
-                f"Task: {context.task_name}\n"
-                f"Description:\n{context.task_description}\n\n"
+            # Gate 4B: the prompt body comes from the canonical Context
+            # Engineering selection. The fixed planning directive below is the
+            # operation's instruction, not context, so it rides as a final turn.
+            planning_instruction = (
                 f"Produce the implementation plan covering:\n"
                 f"1. Architecture & components\n"
                 f"2. Data models & schemas\n"
@@ -321,18 +409,29 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
             # Phase 18-D: append retrieved-knowledge evidence block
             evidence_block = assemble_evidence(context.retrieved_knowledge)
             if evidence_block:
-                user_msg = user_msg + "\n\n" + evidence_block
+                planning_instruction = f"{planning_instruction}\n\n{evidence_block}"
             max_toks = (
                 context.effective_model_requirements.get("max_tokens")
                 or context.effective_model_requirements.get("max_output_tokens")
                 or 350
             )
-            req = ExecutionRequest(
-                payload={
-                    "system": system_msg,
-                    "prompt": user_msg,
+            payload = self._canonical_payload(
+                context,
+                task_name=context.task_name,
+                system=system_msg,
+                instruction=planning_instruction,
+                extras={
+                    "task": "plan",
+                    "prompt": (
+                        f"Task: {context.task_name}\n"
+                        f"Description:\n{context.task_description}"
+                    ),
                     "context": context.format_reasoning_prompt(1),
                 },
+            )
+            canonical = bool(payload.pop("_canonical", False))
+            req = ExecutionRequest(
+                payload=payload,
                 parameters={"temperature": 0.2, "max_tokens": int(max_toks)},
             )
             routing = self._build_routing_request(
@@ -341,6 +440,9 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
             try:
                 res: ExecutionResult = await self._execute_request(req, routing)
                 self._record_result(res)
+                self._last_prompt_observability = self._prompt_assembly_observability(
+                    context, used_canonical=canonical
+                )
                 plan_text = res.output.get("plan") or res.output.get("content")
                 if plan_text:
                     return str(plan_text).strip()
@@ -362,24 +464,44 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
         plan: str,
     ) -> list[dict[str, Any]]:
         if self._executor and (self._router or self._capacity_router):
-            prompt_content = (
-                f"You are an expert software engineer implementing a software task.\n"
-                f"Task: {context.task_name}\n"
-                f"Plan: {plan}\n"
-                f"Context: {context.format_reasoning_prompt(1)}\n\n"
-                f"Generate the exact file modifications required. "
-                f"Return JSON format:\n"
-                f'{{"file_edits": [{{"path": "relative/path/to/file.py", "content": "complete file content"}}]}}'
-            )
-            req = ExecutionRequest(
-                payload={
-                    "system": "You are an expert software engineer implementing software tasks. Always output valid JSON.",
+            # Gate 4B: canonical Context Engineering prompt body. The edit
+            # directive and the plan are the operation's inputs, not context, so
+            # they ride as the final instruction turn.
+            payload = self._canonical_payload(
+                context,
+                task_name=context.task_name,
+                system=(
+                    "You are an expert software engineer implementing software "
+                    "tasks. Always output valid JSON."
+                ),
+                instruction=(
+                    f"Plan:\n{plan}\n\n"
+                    f"Generate the exact file modifications required. "
+                    f"Return JSON format:\n"
+                    f'{{"file_edits": [{{"path": "relative/path/to/file.py", '
+                    f'"content": "complete file content"}}]}}'
+                ),
+                extras={
                     "task": "implementation",
-                    "prompt": prompt_content,
+                    "prompt": (
+                        f"You are an expert software engineer implementing a "
+                        f"software task.\n"
+                        f"Task: {context.task_name}\n"
+                        f"Plan: {plan}\n"
+                        f"Context: {context.format_reasoning_prompt(1)}\n\n"
+                        f"Generate the exact file modifications required. "
+                        f"Return JSON format:\n"
+                        f'{{"file_edits": [{{"path": "relative/path/to/file.py", '
+                        f'"content": "complete file content"}}]}}'
+                    ),
                     "plan": plan,
                     "format": "json",
                     "structured_output": True,
                 },
+            )
+            canonical = bool(payload.pop("_canonical", False))
+            req = ExecutionRequest(
+                payload=payload,
                 parameters={"temperature": 0.1, "structured_output": True},
             )
             routing = self._build_routing_request(
@@ -388,6 +510,9 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
             try:
                 res: ExecutionResult = await self._execute_request(req, routing)
                 self._record_result(res)
+                self._last_prompt_observability = self._prompt_assembly_observability(
+                    context, used_canonical=canonical
+                )
                 out = res.output
                 
                 # Check for file_edits in top-level output or structured_output
@@ -428,22 +553,48 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
         failure_evidence: dict[str, Any],
     ) -> DiagnosisReport:
         if self._executor and (self._router or self._capacity_router):
-            prompt_content = (
-                f"Analyze the following verification or test failure and diagnose the root cause.\n"
-                f"Task: {context.task_name}\n"
-                f"Failure Evidence: {json.dumps(failure_evidence, indent=2)}\n\n"
-                f"Return JSON format:\n"
-                f'{{"root_cause": "description of root cause", "failure_mechanism": "how it failed", "affected_files": ["path/to/file.py"], "suggested_fix": "how to fix it", "confidence_score": 0.95}}'
-            )
-            req = ExecutionRequest(
-                payload={
-                    "system": "You are an automated software test failure diagnosis expert. Output JSON only.",
+            # Gate 4B: canonical Context Engineering prompt body; the failure
+            # evidence is the operation's input and rides as the final turn.
+            payload = self._canonical_payload(
+                context,
+                task_name=context.task_name,
+                system=(
+                    "You are an automated software test failure diagnosis "
+                    "expert. Output JSON only."
+                ),
+                instruction=(
+                    f"Analyze the following verification or test failure and "
+                    f"diagnose the root cause.\n"
+                    f"Failure Evidence: {json.dumps(failure_evidence, indent=2)}"
+                    f"\n\nReturn JSON format:\n"
+                    f'{{"root_cause": "description of root cause", '
+                    f'"failure_mechanism": "how it failed", '
+                    f'"affected_files": ["path/to/file.py"], '
+                    f'"suggested_fix": "how to fix it", '
+                    f'"confidence_score": 0.95}}'
+                ),
+                extras={
                     "task": "diagnose",
-                    "prompt": prompt_content,
+                    "prompt": (
+                        f"Analyze the following verification or test failure and "
+                        f"diagnose the root cause.\n"
+                        f"Task: {context.task_name}\n"
+                        f"Failure Evidence: {json.dumps(failure_evidence, indent=2)}"
+                        f"\n\nReturn JSON format:\n"
+                        f'{{"root_cause": "description of root cause", '
+                        f'"failure_mechanism": "how it failed", '
+                        f'"affected_files": ["path/to/file.py"], '
+                        f'"suggested_fix": "how to fix it", '
+                        f'"confidence_score": 0.95}}'
+                    ),
                     "evidence": failure_evidence,
                     "format": "json",
                     "structured_output": True,
                 },
+            )
+            canonical = bool(payload.pop("_canonical", False))
+            req = ExecutionRequest(
+                payload=payload,
                 parameters={"temperature": 0.1, "structured_output": True},
             )
             routing = self._build_routing_request(
@@ -452,6 +603,9 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
             try:
                 res: ExecutionResult = await self._execute_request(req, routing)
                 self._record_result(res)
+                self._last_prompt_observability = self._prompt_assembly_observability(
+                    context, used_canonical=canonical
+                )
                 out = res.output
                 struct = out.get("structured_output") if isinstance(out.get("structured_output"), dict) else out
                 
@@ -493,22 +647,40 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
         diagnosis: DiagnosisReport,
     ) -> list[dict[str, Any]]:
         if self._executor and (self._router or self._capacity_router):
-            prompt_content = (
-                f"Given the following diagnosis of a test/execution failure, generate the repaired file content.\n"
-                f"Task: {context.task_name}\n"
-                f"Diagnosis:\n{diagnosis.model_dump_json(indent=2)}\n\n"
-                f"Return JSON format:\n"
-                f'{{"file_edits": [{{"path": "relative/path/to/file.py", "content": "complete repaired file content"}}]}}'
-            )
-            req = ExecutionRequest(
-                payload={
-                    "system": "You are a software repair expert fixing code defects. Output JSON only.",
+            # Gate 4B: canonical Context Engineering prompt body; the diagnosis
+            # is the operation's input and rides as the final turn.
+            diagnosis_json = diagnosis.model_dump_json(indent=2)
+            payload = self._canonical_payload(
+                context,
+                task_name=context.task_name,
+                system="You are a software repair expert fixing code defects. Output JSON only.",
+                instruction=(
+                    f"Given the following diagnosis of a test/execution failure, "
+                    f"generate the repaired file content.\n"
+                    f"Diagnosis:\n{diagnosis_json}\n\n"
+                    f"Return JSON format:\n"
+                    f'{{"file_edits": [{{"path": "relative/path/to/file.py", '
+                    f'"content": "complete repaired file content"}}]}}'
+                ),
+                extras={
                     "task": "repair",
-                    "prompt": prompt_content,
+                    "prompt": (
+                        f"Given the following diagnosis of a test/execution "
+                        f"failure, generate the repaired file content.\n"
+                        f"Task: {context.task_name}\n"
+                        f"Diagnosis:\n{diagnosis_json}\n\n"
+                        f"Return JSON format:\n"
+                        f'{{"file_edits": [{{"path": "relative/path/to/file.py", '
+                        f'"content": "complete repaired file content"}}]}}'
+                    ),
                     "diagnosis": diagnosis.model_dump(),
                     "format": "json",
                     "structured_output": True,
                 },
+            )
+            canonical = bool(payload.pop("_canonical", False))
+            req = ExecutionRequest(
+                payload=payload,
                 parameters={"temperature": 0.1, "structured_output": True},
             )
             routing = self._build_routing_request(
@@ -517,6 +689,9 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
             try:
                 res: ExecutionResult = await self._execute_request(req, routing)
                 self._record_result(res)
+                self._last_prompt_observability = self._prompt_assembly_observability(
+                    context, used_canonical=canonical
+                )
                 out = res.output
                 
                 edits = out.get("file_edits")

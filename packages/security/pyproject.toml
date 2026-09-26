@@ -10,7 +10,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0.0",
-    "autoforge-shared",
     "autoforge-events",
     "autoforge-event-platform",
     "autoforge-runtime",

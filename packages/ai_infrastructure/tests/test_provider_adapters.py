@@ -1,9 +1,14 @@
 """
 Comprehensive tests for AI Infrastructure Provider Adapters (Phase 17).
 
-Verifies Ollama, OpenAI-compatible, Anthropic, and Gemini provider adapters,
-streaming, structured output, token accounting, error classification, timeout handling,
-and security secret redaction using deterministic test doubles.
+Verifies the local runtime, OpenAI-compatible, Anthropic, and Gemini provider
+adapters, streaming, structured output, token accounting, error classification,
+timeout handling, and security secret redaction using deterministic test doubles.
+
+Gate 4 note: ``OllamaProviderAdapter`` is still a supported *optional* provider
+adapter, but it is no longer re-exported from the package root because it is no
+longer a default runtime dependency. Its tests import it from its own module
+path, which is where an optional adapter belongs.
 """
 
 from __future__ import annotations
@@ -17,11 +22,12 @@ from autoforge_ai_infrastructure.adapters import (
     AnthropicProviderAdapter,
     BaseProviderAdapter,
     GeminiProviderAdapter,
-    OllamaProviderAdapter,
+    LocalRuntimeProviderAdapter,
     OpenAICompatibleProviderAdapter,
     extract_json_payload,
 )
 from autoforge_ai_infrastructure.adapters.base import UNAVAILABLE
+from autoforge_ai_infrastructure.adapters.ollama import OllamaProviderAdapter
 from autoforge_ai_infrastructure.errors import (
     ExecutionFailedError,
     ExecutionTimeoutError,

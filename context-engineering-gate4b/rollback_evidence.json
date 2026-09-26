@@ -1,0 +1,54 @@
+{
+  "constructor_default_is_true": true,
+  "default_config": {
+    "flag": true,
+    "record_present": true,
+    "selected_items": 2,
+    "canonical_messages": 1,
+    "project_files_discovered": 1,
+    "legacy_prompt_payload_keys": [
+      "description",
+      "input_data",
+      "iteration",
+      "known_files",
+      "project_files",
+      "task_id",
+      "task_name",
+      "task_type"
+    ]
+  },
+  "explicit_on_config": {
+    "flag": true,
+    "record_present": true,
+    "selected_items": 2,
+    "canonical_messages": 1,
+    "project_files_discovered": 1,
+    "legacy_prompt_payload_keys": [
+      "description",
+      "input_data",
+      "iteration",
+      "known_files",
+      "project_files",
+      "task_id",
+      "task_name",
+      "task_type"
+    ]
+  },
+  "explicit_off_rollback_config": {
+    "flag": false,
+    "record_present": false,
+    "selected_items": 0,
+    "canonical_messages": 0,
+    "project_files_discovered": 1,
+    "legacy_prompt_payload_keys": [
+      "description",
+      "input_data",
+      "iteration",
+      "known_files",
+      "project_files",
+      "task_id",
+      "task_name",
+      "task_type"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "normal_lifecycle_committed": true,
+  "reproduction": {
+    "exception_type": "InvalidTransitionError",
+    "message": "Invalid artifact transition committed \u2192 staging: Invalid artifact transition: <DurableArtifactStatus.COMMITTED: 'committed'> -> <DurableArtifactStatus.STAGING: 'staging'>",
+    "details": {
+      "artifact_id": "5cf4e0d7-6c05-51b3-9ece-743d8ef1fc41",
+      "current_status": "committed",
+      "target_status": "staging"
+    }
+  },
+  "raises_invalid_transition": true,
+  "classification": "pre-existing 18-J defect (durable artifact lifecycle)",
+  "fixed_in_gate4b": false,
+  "validation_weakened": false
+}

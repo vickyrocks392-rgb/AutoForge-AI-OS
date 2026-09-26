@@ -1,0 +1,22 @@
+{
+  "context_engineering": "ON",
+  "context_compaction": "ON",
+  "compactor_enabled": true,
+  "compaction_store_owned_by_root": true,
+  "builder_consumes_root_store": true,
+  "catalog_is_canonical": true,
+  "physical_store_is_canonical": true,
+  "git_head": "9cc09bc",
+  "commits_ahead_of_origin": "0",
+  "committed_this_gate": false,
+  "pushed": false,
+  "protected": {
+    "18-J": "PROTECTED / RE-FROZEN",
+    "18-K": "PROTECTED",
+    "inference_lab": "PROTECTED",
+    "m6_authority_model": "PROTECTED",
+    "model_router": "PROTECTED",
+    "context_engineering_architecture": "PROTECTED",
+    "reference_wiring": "PROTECTED (still unwired)"
+  }
+}

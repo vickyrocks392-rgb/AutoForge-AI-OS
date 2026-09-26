@@ -22,8 +22,10 @@ from autoforge_ai_infrastructure import (
     ExecutorRegistry,
     InMemoryCapabilityRegistry,
     ModelRouterService,
-    OllamaProviderAdapter,
     RetryPolicy,
+)
+from autoforge_ai_infrastructure.adapters.local_runtime import (
+    LocalRuntimeProviderAdapter,
 )
 from autoforge_ai_infrastructure.metadata import (
     CapabilityIds,
@@ -84,15 +86,19 @@ class AutonomousBuildEngine:
         self.router_service = ModelRouterService(self.ai_registry)
         self.capacity_router = CapacityAwareRouter(self.ai_registry, self.capacity_manager)
 
-        # Provider Adapters (local-m1 and local-hp)
-        self.local_m1_adapter = OllamaProviderAdapter(
+        # Provider Adapters (local-m1 and local-hp).
+        # Gate 4: these are local OpenAI-compatible runtime endpoints
+        # (llama.cpp `llama-server` / MLX), not an Ollama daemon. The base URL is
+        # environment-overridable via AUTOFORGE_LOCAL_RUNTIME_URL / the explicit
+        # per-node URLs below, so no runtime is hard-coded into the architecture.
+        self.local_m1_adapter = LocalRuntimeProviderAdapter(
             provider_id="local-m1",
-            base_url="http://127.0.0.1:11434",
+            base_url="http://127.0.0.1:8080/v1",
             default_timeout_seconds=5.0,
         )
-        self.local_hp_adapter = OllamaProviderAdapter(
+        self.local_hp_adapter = LocalRuntimeProviderAdapter(
             provider_id="local-hp",
-            base_url="http://192.168.1.105:11434",
+            base_url="http://192.168.1.105:8080/v1",
             default_timeout_seconds=5.0,
         )
 
@@ -788,7 +794,7 @@ def test_smoke():
             "latency_ms": 1240.0,
         }
 
-        # Attempt real LLM generation via Ollama continuity service
+        # Attempt real LLM generation via the execution continuity service
         try:
             system_prompt = (
                 "You are AutoForge BackendEngineer. Write a complete, working, bug-free Python application "
@@ -807,13 +813,13 @@ def test_smoke():
             )
             target = ExecutionTarget(model_id="qwen2.5-coder-7b", provider_id="local-m1")
             
-            # Execute on live local Ollama
+            # Execute against the configured local runtime provider
             res = await self.local_m1_adapter.execute(req, target)
             llm_output_text = res.get("raw_text", "")
             inference_metrics["tokens"] = res.get("total_tokens", 520)
             inference_metrics["latency_ms"] = res.get("latency_ms", 1500.0)
         except Exception as e:
-            # Fallback to deterministic clean generator if Ollama is unresponsive
+            # Fallback to the deterministic generator if the runtime is unresponsive
             llm_output_text = ""
 
         # Extract or generate clean files

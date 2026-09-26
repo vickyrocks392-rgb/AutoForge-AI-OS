@@ -1,0 +1,45 @@
+{
+  "local_runtime": "http://127.0.0.1:64937/v1",
+  "context_engineering_enabled": true,
+  "model_allocator_wired": "RouterModelAllocationPort",
+  "dispatcher_shares_canonical_builder": true,
+  "provider_adapter": "LocalRuntimeProviderAdapter",
+  "local_runtime_reachable": true,
+  "model_allocation": "ModelRouterService",
+  "direct_provider_round_trip_ok": true,
+  "workflow_status": "completed",
+  "prompt_observability": {
+    "context_engineering_enabled": true,
+    "prompt_assembly_path": "canonical_context_engineering",
+    "selected_context_count": 2,
+    "budget_source": "model_metadata",
+    "context_window_tokens": 32768
+  },
+  "ce_selected_context_count": 2,
+  "ce_budget_source": "model_metadata",
+  "ce_context_window_tokens": 32768,
+  "prompt_assembly_path": "canonical_context_engineering",
+  "model_executions": 2,
+  "last_allocation": {
+    "model_id": "qwen2.5-coder-7b",
+    "provider_id": "local-m1",
+    "attempts": 1,
+    "failovers": 0,
+    "latency_ms": 0.45
+  },
+  "local_runtime_chat_calls": 3,
+  "runtime_received_turns": 3,
+  "runtime_received_roles": [
+    "system",
+    "user",
+    "user"
+  ],
+  "runtime_saw_canonical_sections": [
+    "# Task:",
+    "## Project Context",
+    "## Task"
+  ],
+  "canonical_context_reached_runtime": true,
+  "artifact_root_exists": true,
+  "durable_artifacts_registered": 3
+}
