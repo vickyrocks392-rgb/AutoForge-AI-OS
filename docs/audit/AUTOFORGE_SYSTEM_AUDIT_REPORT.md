@@ -1002,8 +1002,8 @@ cleanly* — further evidence that the Ollama de-gating is complete and graceful
 | Action | Count | Detail |
 |---|---|---|
 | Files staged | 1 | `docs/audit/AUTOFORGE_SYSTEM_AUDIT_REPORT.md` only |
-| Commits created | 3 | `e51f9ec` (add the audit report), `c57abf2` (record the verified post-push state), `6508b29` (reconcile report counts with the final state) |
-| Commits pushed | 3 | Every one a verified clean fast-forward; `force pushes: 0` |
+| Commits created | 5 | `e51f9ec` (add the report), `c57abf2` (record post-push state), `6508b29` (reconcile counts), `21adcd5` (symbolic tip reference), and this commit (final tally) |
+| Commits pushed | 5 | Every one a verified clean fast-forward; `force pushes: 0` |
 | `git push --force` / `-f` / `--force-with-lease` | **0** | **Prohibited and never used** |
 | History rewrites (`rebase`, `amend`, `filter-branch`, `reset --hard`) | **0** | None |
 | Commit date alterations | **0** | None |
@@ -1069,8 +1069,8 @@ commit     : are ones already documented in existing committed evidence files.
 
 ## 23. Files Committed
 
-**Exactly one file was committed during this audit**, across three documentation commits
-(`e51f9ec`, `c57abf2`, `6508b29`):
+**Exactly one file was committed during this audit**, across five documentation commits
+(`e51f9ec`, `c57abf2`, `6508b29`, `21adcd5`, plus the final tally commit):
 
 | File | Classification | Rationale |
 |---|---|---|
@@ -1158,8 +1158,8 @@ Tracked modifications:  0
 Staged modifications:   0
 Untracked files:        7 (all intentional, all classified in §24)
 
-Commits created during audit: 3
-Commits pushed during audit:  3
+Commits created during audit: 5
+Commits pushed during audit:  5
 
 Force pushes:           0
 Published history rewrites: 0
@@ -1271,7 +1271,7 @@ no test regression.
 2. **F-2** — the certified inference topology is not recorded in the canonical repository. A
    documentation-completeness observation, **not a correctness issue**. Worth resolving before
    Brain relies on the topology as a standing contract.
-3. **Closed** — all three audit commits were pushed as verified clean fast-forwards.
+3. **Closed** — all five audit commits were pushed as verified clean fast-forwards.
    No force push was required. Local and remote are now identical.
 
 ### Conditions after push: 2 open, both non-blocking
@@ -1327,13 +1327,13 @@ Untracked entries:     7 (all intentional - see 24)
 
 
 **Q: What was pushed?**
-**Three documentation commits, all touching this report alone:** `e51f9ec` (add the audit
-report), `c57abf2` (record the verified post-push state), and `6508b29` (reconcile the report's
-own counts with the final published state). Each was pushed as a clean fast-forward
-(`238c6bc..e51f9ec`, `e51f9ec..c57abf2`, `c57abf2..<audit-head>`). The first push attempt was
-blocked by the SSH **key passphrase** because the session was non-interactive; the passphrase was
-deliberately **not** bypassed, and the push completed normally once authenticated. **No force push
-was used, and no published commit was rewritten.**
+**Five documentation commits, all touching this report alone:** `e51f9ec` (add the audit
+report), `c57abf2` (record the verified post-push state), `6508b29` (reconcile the report's own
+counts), `21adcd5` (replace the self-referential tip hash with the symbolic `<audit-head>`), and
+one final commit carrying the closing tally. Each was pushed as a clean fast-forward. The first
+push attempt was blocked by the SSH **key passphrase** because the session was non-interactive;
+the passphrase was deliberately **not** bypassed, and the push completed normally once
+authenticated. **No force push was used, and no published commit was rewritten.**
 
 **Q: What was deliberately NOT pushed?**
 All 7 untracked artifact groups (§24), including the inference-lab raw evidence, the five
