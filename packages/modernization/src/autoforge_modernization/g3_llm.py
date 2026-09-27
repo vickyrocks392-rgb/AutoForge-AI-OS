@@ -353,7 +353,14 @@ class G3LLMIntegration:
                 logger.warning("G3LLM canonical adapter fail %s: %s; falling back to direct adapter", tk, exc)
 
         try:
-            from autoforge_ai_infrastructure.adapters import OllamaProviderAdapter
+            # Gate 4 removed OllamaProviderAdapter from the adapters package
+            # re-exports, so this health-gated optional path must import the
+            # adapter from its own module. Ollama is NOT a production
+            # dependency: production binds LocalRuntimeProviderAdapter, and
+            # Ollama is reachable only through the explicit opt-in
+            # bind_optional_ollama_adapter(). Reaching this block already
+            # required is_available, which health-checks the endpoint.
+            from autoforge_ai_infrastructure.adapters.ollama import OllamaProviderAdapter
             from autoforge_ai_infrastructure.execution import ExecutionRequest, ExecutionTarget
             a = OllamaProviderAdapter(
                 provider_id="local-m1",

@@ -236,8 +236,8 @@ class RAGKnowledgePowerEngine(PowerEngine):
                 from autoforge_ai_infrastructure import (
                     InMemoryCapabilityRegistry,
                     ModelRouterService,
-                    OllamaProviderAdapter,
                 )
+                from autoforge_ai_infrastructure.adapters import LocalRuntimeProviderAdapter
                 from autoforge_workforce.model_allocator import register_workforce_models
                 from autoforge_ai_infrastructure.metadata import RoutingRequest, CapabilityIds
                 from autoforge_ai_infrastructure.execution import ExecutionRequest, ExecutionTarget
@@ -253,7 +253,17 @@ class RAGKnowledgePowerEngine(PowerEngine):
                 routed_model_id = dec.selected.model.model_id
                 provider_id = dec.selected.model.provider_id
 
-                adapter = OllamaProviderAdapter(provider_id=provider_id, base_url="http://127.0.0.1:11434")
+                # Gate 4: the production local-inference abstraction is
+                # LocalRuntimeProviderAdapter (llama.cpp / MLX, OpenAI-compatible).
+                # It inherits execute() from OpenAICompatibleProviderAdapter and
+                # returns the same content / input_tokens / output_tokens /
+                # tokens contract this block already reads. The endpoint is
+                # resolved by the adapter (AUTOFORGE_LOCAL_RUNTIME_URL, else
+                # http://127.0.0.1:8080/v1) so it stays a deployment concern
+                # rather than a hard-coded assumption. Health is still probed
+                # below, so an absent local runtime falls back to the extractive
+                # answer exactly as before.
+                adapter = LocalRuntimeProviderAdapter(provider_id=provider_id)
                 if await adapter.check_health(timeout=3.0):
                     prompt_msg = (
                         f"You are a technical knowledge assistant. Answer the query strictly from the context below.\\n\\n"
