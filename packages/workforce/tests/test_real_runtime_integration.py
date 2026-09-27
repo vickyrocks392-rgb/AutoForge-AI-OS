@@ -28,7 +28,15 @@ from __future__ import annotations
 import pytest
 import uuid
 
-from autoforge_ai_infrastructure.adapters import OllamaProviderAdapter
+# Import the adapter from its own module rather than the adapters package.
+# Gate 4 deliberately removed OllamaProviderAdapter from the package-level
+# re-exports in `adapters/__init__.py`, because Ollama must stay OPTIONAL and is
+# not a production dependency (production binds LocalRuntimeProviderAdapter).
+# The class itself still exists and is still exercised here, purely as a
+# vehicle for the injected `http_client` test double below — this test never
+# talks to a real Ollama daemon. This mirrors the pattern already used by
+# packages/ai_infrastructure/tests/test_provider_adapters.py.
+from autoforge_ai_infrastructure.adapters.ollama import OllamaProviderAdapter
 from autoforge_ai_infrastructure.continuity import ExecutionContinuityService, RetryPolicy
 from autoforge_ai_infrastructure.execution import ExecutionRequest, ExecutorRegistry, RoutedModelExecutor
 from autoforge_ai_infrastructure.metadata import CapabilityIds
