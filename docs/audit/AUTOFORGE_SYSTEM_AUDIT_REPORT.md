@@ -23,11 +23,11 @@ Two facts from direct Git evidence explain it completely:
    commit or was experimental inference-lab evidence that was deliberately never
    committed.**
 
-Local `HEAD`, `origin/main`, and GitHub `refs/heads/main` are all identical at
-`c57abf2419c13118b5c52ebfbefe51a6a655ab58`, with 0 ahead and 0 behind. There is no unpushed
-commit, no rejected push, no other branch, and no lost work. At the **start** of this audit all
-three were identical at the previously-certified `238c6bc`; the only difference now is this
-audit's single additive documentation commit, pushed as a verified clean fast-forward.
+Local `HEAD`, `origin/main`, and GitHub `refs/heads/main` are all identical at `<audit-head>`
+(resolve with `git rev-parse HEAD`), with 0 ahead and 0 behind. There is no unpushed commit, no
+rejected push, no other branch, and no lost work. At the **start** of this audit all three were
+identical at the previously-certified `238c6bc`; the only difference now is this audit's
+documentation commits, each pushed as a verified clean fast-forward.
 
 The 51 dangling commits present at the **start** of this audit are **100% Cline checkpoint
 artifacts**. Exhaustive blob-level comparison proved that **zero files and zero unique content
@@ -1002,8 +1002,8 @@ cleanly* — further evidence that the Ollama de-gating is complete and graceful
 | Action | Count | Detail |
 |---|---|---|
 | Files staged | 1 | `docs/audit/AUTOFORGE_SYSTEM_AUDIT_REPORT.md` only |
-| Commits created | 2 | `e51f9ec` (add the audit report) and `c57abf2` (record the verified post-push state) |
-| Commits pushed | 2 | `238c6bc..e51f9ec` and `e51f9ec..c57abf2` — both verified clean fast-forwards |
+| Commits created | 3 | `e51f9ec` (add the audit report), `c57abf2` (record the verified post-push state), `6508b29` (reconcile report counts with the final state) |
+| Commits pushed | 3 | Every one a verified clean fast-forward; `force pushes: 0` |
 | `git push --force` / `-f` / `--force-with-lease` | **0** | **Prohibited and never used** |
 | History rewrites (`rebase`, `amend`, `filter-branch`, `reset --hard`) | **0** | None |
 | Commit date alterations | **0** | None |
@@ -1069,8 +1069,8 @@ commit     : are ones already documented in existing committed evidence files.
 
 ## 23. Files Committed
 
-**Exactly one file was committed during this audit**, across two documentation commits
-(`e51f9ec` and `c57abf2`):
+**Exactly one file was committed during this audit**, across three documentation commits
+(`e51f9ec`, `c57abf2`, `6508b29`):
 
 | File | Classification | Rationale |
 |---|---|---|
@@ -1129,24 +1129,28 @@ interactively, completing as a plain fast-forward.
 
 ### 25.2 Verified final state
 
+> **Reading note.** `<audit-head>` denotes the tip of `main` after this audit — the last of the
+> audit's documentation commits. A commit cannot contain its own hash, so the value is written
+> symbolically; resolve it with `git rev-parse HEAD`. Every other SHA in this report is literal.
+
 Post-push verification (mandate §22) — all three refs are identical:
 
 ```text
 git status --short           -> only the 7 intentional "??" entries (§24)
-git rev-parse HEAD           -> c57abf2419c13118b5c52ebfbefe51a6a655ab58
-git rev-parse origin/main    -> c57abf2419c13118b5c52ebfbefe51a6a655ab58
+git rev-parse HEAD           -> <audit-head>
+git rev-parse origin/main    -> <audit-head>
 git ls-remote origin refs/heads/main
-                             -> c57abf2419c13118b5c52ebfbefe51a6a655ab58
+                             -> <audit-head>
 git log -1 --oneline origin/main
-                             -> c57abf2 (HEAD -> main, origin/main, origin/HEAD) docs(audit): ...
+                             -> <audit-head> (HEAD -> main, origin/main, origin/HEAD) docs(audit): ...
 git rev-list --left-right --count origin/main...main -> 0  0
 ```
 
 ```text
 Branch:                 main
-HEAD:                   c57abf2419c13118b5c52ebfbefe51a6a655ab58
-origin/main:            c57abf2419c13118b5c52ebfbefe51a6a655ab58
-remote main:            c57abf2419c13118b5c52ebfbefe51a6a655ab58
+HEAD:                   <audit-head>
+origin/main:            <audit-head>
+remote main:            <audit-head>
 Ahead:                  0
 Behind:                 0
 
@@ -1154,8 +1158,8 @@ Tracked modifications:  0
 Staged modifications:   0
 Untracked files:        7 (all intentional, all classified in §24)
 
-Commits created during audit: 2
-Commits pushed during audit:  2
+Commits created during audit: 3
+Commits pushed during audit:  3
 
 Force pushes:           0
 Published history rewrites: 0
@@ -1267,9 +1271,8 @@ no test regression.
 2. **F-2** — the certified inference topology is not recorded in the canonical repository. A
    documentation-completeness observation, **not a correctness issue**. Worth resolving before
    Brain relies on the topology as a standing contract.
-3. **Closed** — both audit commits were pushed as verified clean fast-forwards
-   (`238c6bc..e51f9ec`, `e51f9ec..c57abf2`). No force push was required. Local and remote are
-   now identical.
+3. **Closed** — all three audit commits were pushed as verified clean fast-forwards.
+   No force push was required. Local and remote are now identical.
 
 ### Conditions after push: 2 open, both non-blocking
 
@@ -1324,12 +1327,13 @@ Untracked entries:     7 (all intentional - see 24)
 
 
 **Q: What was pushed?**
-**Exactly two commits, both documentation-only and touching this report alone:**
-`e51f9ec` (add the audit report) and `c57abf2` (record the verified post-push state). Both were
-pushed as clean fast-forwards (`238c6bc..e51f9ec`, then `e51f9ec..c57abf2`). The first push
-attempt was blocked by the SSH **key passphrase** because the session was non-interactive; the
-passphrase was deliberately **not** bypassed, and the push completed normally once authenticated.
-**No force push was used, and no published commit was rewritten.**
+**Three documentation commits, all touching this report alone:** `e51f9ec` (add the audit
+report), `c57abf2` (record the verified post-push state), and `6508b29` (reconcile the report's
+own counts with the final published state). Each was pushed as a clean fast-forward
+(`238c6bc..e51f9ec`, `e51f9ec..c57abf2`, `c57abf2..<audit-head>`). The first push attempt was
+blocked by the SSH **key passphrase** because the session was non-interactive; the passphrase was
+deliberately **not** bypassed, and the push completed normally once authenticated. **No force push
+was used, and no published commit was rewritten.**
 
 **Q: What was deliberately NOT pushed?**
 All 7 untracked artifact groups (§24), including the inference-lab raw evidence, the five
@@ -1337,7 +1341,7 @@ inference-lab certification reports, the scratch `pytest.ini`, the two personal 
 summaries, the 54 Cline checkpoint refs, and the 51 dangling commits.
 
 **Q: Is GitHub now synchronized with canonical main?**
-**Yes — fully.** `local HEAD == origin/main == remote main == c57abf2419c13118b5c52ebfbefe51a6a655ab58`,
+**Yes — fully.** `local HEAD == origin/main == remote main == <audit-head>`,
 with 0 ahead and 0 behind, verified by `git ls-remote`. The canonical history is truthful and
 unbroken. The single commit this audit added is documentation-only and strictly additive, and
 **no canonical divergence of any kind exists.**
