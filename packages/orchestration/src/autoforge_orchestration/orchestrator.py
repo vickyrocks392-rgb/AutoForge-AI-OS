@@ -288,8 +288,11 @@ class OrchestrationEngine:
             if rgr is None:
                 continue
             verdict = getattr(rgr, "verdict", None)
+            # Only an explicit APPROVED verdict is an approval. NEEDS_REVISION,
+            # BLOCKED and any other non-approving verdict must never be reported
+            # as an approval in the governance evidence.
             decision_str = (
-                "REJECTED" if str(verdict).upper().endswith("REJECTED") else "APPROVED"
+                "APPROVED" if str(verdict).upper().endswith("APPROVED") else "REJECTED"
             )
             findings = list(getattr(rgr, "findings", []) or [])
             blocking_findings = 0
@@ -1371,17 +1374,43 @@ class OrchestrationEngine:
         context: Any,
         produced_artifacts: list[Any],
     ) -> None:
-        """Execute the REVIEW stage: run review engine and handle verdict."""
-        verdict = ReviewVerdict.APPROVED
+        """Execute the REVIEW stage: run review engine and handle verdict.
+
+        SAFETY — fail closed. The stage succeeds ONLY on an explicit
+        ``ReviewVerdict.APPROVED``. A review that raises, returns nothing, or
+        returns a value this engine cannot interpret yields no verdict at all
+        and is therefore recorded as ``ReviewVerdict.BLOCKED`` and routed to
+        the existing stage-failure path. A review failure must NEVER become an
+        approval.
+        """
+        # ``None`` means "no explicit approval was obtained". This fail-closed
+        # default is replaced by a real verdict only when the review engine
+        # actually returns one that this engine can interpret.
+        verdict: ReviewVerdict | None = None
         review_output: dict[str, Any] = {}
+        review_error: BaseException | None = None
+        review_failure_reason: str = ""
 
         review_result: Any = None
-        if self._review_engine is not None:
+        if self._review_engine is None:
+            # The review gate is an OPTIONAL dependency of this engine. When no
+            # review engine is wired, no review was attempted and therefore no
+            # review outcome exists to honour. This is configured optionality,
+            # not a review failure, and is deliberately NOT treated as one.
+            verdict = ReviewVerdict.APPROVED
+            review_output = {"review_engine": "not_configured"}
+            logger.info(
+                "No review engine configured; REVIEW stage %s proceeding without a review verdict.",
+                stage_state.stage_id,
+            )
+        else:
             try:
                 review_req = _build_review_request(state, stage_state, context)
                 review_result = await self._review_engine.review(review_req)
                 # Use .decision (ReviewDecision enum) from ReviewResult as the verdict source.
-                if hasattr(review_result, "decision"):
+                if review_result is None:
+                    review_failure_reason = "Review engine returned no result."
+                elif hasattr(review_result, "decision"):
                     decision_val = review_result.decision
                     if isinstance(decision_val, ReviewDecision):
                         # CHANGES_REQUESTED and REQUIRES_HITL are non-approving —
@@ -1403,20 +1432,51 @@ class OrchestrationEngine:
                     verdict = ReviewVerdict(review_result.verdict)
                     review_output = review_result.model_dump() if hasattr(review_result, "model_dump") else {}
                 elif isinstance(review_result, dict):
-                    verdict = ReviewVerdict(review_result.get("decision", review_result.get("verdict", "approved")))
+                    raw_decision = review_result.get("decision", review_result.get("verdict"))
+                    if raw_decision is None:
+                        # A payload with no decision at all is NOT an approval.
+                        review_failure_reason = "Review result carried no decision or verdict."
+                    else:
+                        verdict = ReviewVerdict(raw_decision)
                     review_output = review_result
+                else:
+                    review_failure_reason = (
+                        f"Uninterpretable review result of type {type(review_result).__name__}."
+                    )
             except Exception as exc:
-                logger.warning(f"Review engine failed: {exc}. Defaulting to approved.")
-                review_output = {"error": str(exc)}
+                # A review that could not be completed is not an approval.
+                review_error = exc
+                review_failure_reason = f"Review engine raised {type(exc).__name__}: {exc}"
+                logger.warning(
+                    "Review engine failed for stage %s: %s. Failing closed (no approval).",
+                    stage_state.stage_id,
+                    exc,
+                )
+
+        # No explicit approval was obtained: record the gate as BLOCKED so the
+        # reason stays inspectable, and keep ``review_output`` error-bearing.
+        if verdict is None:
+            verdict = ReviewVerdict.BLOCKED
+            review_output = {**review_output, "error": review_failure_reason}
 
         stage_state.output = {"review_output": review_output}
 
         # Phase 18-F: persist the ReviewGateResult on stage state so the
         # governance evidence collection can surface real review evidence
         # (findings, blocking_findings, decision) to the GOVERNANCE_REPORT.
-        if review_result is not None:
-            try:
-                review_id_val = getattr(review_result, "review_id", "") or ""
+        #
+        # SAFETY: this is recorded whenever a review was actually ATTEMPTED —
+        # including when it raised, returned nothing, or returned something
+        # uninterpretable. A review gate that could not be evaluated must still
+        # leave a typed, durable, inspectable record rather than silently
+        # vanishing. ``stage_state.review`` is the durable field: unlike
+        # ``stage_state.output`` it is not overwritten by the finalizers, and it
+        # is restored by ``StageExecutionState.from_snapshot``.
+        if self._review_engine is not None:
+            review_id_val = ""
+            findings_payload: list[dict[str, Any]] = []
+            if review_result is not None:
+                review_id_val = str(getattr(review_result, "review_id", "") or "")
                 findings_list = getattr(review_result, "findings", []) or []
                 try:
                     findings_payload = [
@@ -1425,13 +1485,11 @@ class OrchestrationEngine:
                     ]
                 except Exception:
                     findings_payload = []
-                stage_state.review = ReviewGateResult(
-                    verdict=verdict,
-                    review_id=str(review_id_val),
-                    findings=findings_payload,
-                )
-            except Exception as exc:
-                logger.debug(f"Failed to persist ReviewGateResult on stage state: {exc}")
+            stage_state.review = ReviewGateResult(
+                verdict=verdict,
+                review_id=review_id_val,
+                findings=findings_payload,
+            )
 
         # Phase 18-F: register the ReviewEngine result as a REVIEW_ARTIFACT
         if self._artifact_manager is not None and review_result is not None:
@@ -1446,10 +1504,22 @@ class OrchestrationEngine:
             except Exception as exc:
                 logger.debug(f"Review artifact registration failed (non-fatal): {exc}")
 
-        if verdict == ReviewVerdict.REJECTED:
+        # Fail closed: ONLY an explicit approval lets the stage succeed. Any
+        # other outcome (rejection, indeterminate, or a review that produced no
+        # verdict at all) fails the stage through the existing failure path.
+        if verdict != ReviewVerdict.APPROVED:
+            reason = review_output.get("reason", "No reason provided")
+            if review_failure_reason:
+                await self._finalize_stage_failure(
+                    state, stage_state,
+                    f"Code review did not approve (verdict={verdict.value}): {review_failure_reason}",
+                    [],
+                    exception=review_error,
+                )
+                return
             await self._finalize_stage_failure(
                 state, stage_state,
-                f"Code review rejected: {review_output.get('reason', 'No reason provided')}",
+                f"Code review rejected: {reason}",
                 [],
             )
             return
