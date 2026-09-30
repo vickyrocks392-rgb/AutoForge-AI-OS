@@ -1,0 +1,934 @@
+{
+  "phase": "18-L-B greenfield autonomous engineering",
+  "model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+  "runtime_url": "http://127.0.0.1:8080/v1",
+  "m6_aliases": [
+    "local-m1:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-m1:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-m1:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-hp:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-hp:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-hp:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "openai-compatible:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "openai-compatible:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "openai-compatible:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2"
+  ],
+  "catalog_models": [],
+  "workspace": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp",
+  "request_text": "Build a greenfield Python package named 'tokenizer_lite'. It is a small, self-contained text token-counting library with a CLI. Create exactly these four files:\n1. 'tokenizer_lite/__init__.py' - exports TokenizerLite and count_tokens.\n2. 'tokenizer_lite/core.py' - defines class TokenizerLite with methods count(text), count_words(text), and a module-level function count_tokens(text) that returns a dict with keys 'tokens', 'characters' and 'words'. Splitting must be whitespace based, must treat consecutive whitespace as one separator, and must return zeros for empty or whitespace-only input.\n3. 'tokenizer_lite/cli.py' - a 'main()' function with an argparse parser accepting one positional 'text' argument, printing 'tokens=<n> characters=<n> words=<n>' and returning exit code 0.\n4. 'test_tokenizer_lite.py' - pytest tests covering: empty string, whitespace-only string, single word, multiple words, and character count.\nAlso create 'README.md' with a title line, an Overview section and a Usage section. All code must be plain Python 3 with no third-party dependencies except pytest for the tests.",
+  "verify_command": [
+    "/Users/kalachanddash/Developer/AutoForge-AI-OS/.venv/bin/python",
+    "-m",
+    "pytest",
+    "test_tokenizer_lite.py",
+    "-q"
+  ],
+  "timeline": [
+    {
+      "phase": "workspace_created",
+      "at": "2026-09-29T07:11:22.605056+00:00",
+      "t_sec": 0.0,
+      "workspace": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp"
+    },
+    {
+      "phase": "workspace_pre_existing_files",
+      "at": "2026-09-29T07:11:22.605329+00:00",
+      "t_sec": 0.0,
+      "files": []
+    },
+    {
+      "phase": "m6_runtime_preflight",
+      "at": "2026-09-29T07:11:22.616779+00:00",
+      "t_sec": 0.01,
+      "runtime_url": "http://127.0.0.1:8080/v1",
+      "model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+      "models_endpoint_http": "200"
+    },
+    {
+      "phase": "system_initialized",
+      "at": "2026-09-29T07:11:22.622256+00:00",
+      "t_sec": 0.02,
+      "o2_type": "DefaultOrchestrationEngine"
+    },
+    {
+      "phase": "m6_deployment_binding",
+      "at": "2026-09-29T07:11:22.622264+00:00",
+      "t_sec": 0.02,
+      "model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+      "aliases": [
+        "local-m1:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "local-m1:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "local-m1:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "local-hp:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "local-hp:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "local-hp:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "openai-compatible:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "openai-compatible:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "openai-compatible:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2"
+      ],
+      "catalog_models": []
+    },
+    {
+      "phase": "request_accepted",
+      "at": "2026-09-29T07:11:22.623843+00:00",
+      "t_sec": 0.02,
+      "project_id": "5bdad31f-d13c-42b9-9e39-14db4c80aa99",
+      "status": "created"
+    },
+    {
+      "phase": "intent_and_plan_formed",
+      "at": "2026-09-29T07:11:22.624009+00:00",
+      "t_sec": 0.02,
+      "status": "planning",
+      "acceptance_criteria": {},
+      "quality_gates": null,
+      "task_count": 0
+    },
+    {
+      "phase": "executable_workflow_correlated",
+      "at": "2026-09-29T07:11:22.624012+00:00",
+      "t_sec": 0.02,
+      "workflow_id": "39b1fba3-f57e-4f20-8336-47c6bfa7a10d"
+    },
+    {
+      "phase": "o2_execution_returned",
+      "at": "2026-09-29T07:13:06.863915+00:00",
+      "t_sec": 104.26,
+      "result_keys": [
+        "project_id",
+        "status"
+      ]
+    },
+    {
+      "phase": "source_files_on_disk",
+      "at": "2026-09-29T07:13:06.865853+00:00",
+      "t_sec": 104.26,
+      "files": [
+        "README.md",
+        "artifacts/README.md",
+        "artifacts/README.md.v2",
+        "artifacts/README.md.v3",
+        "artifacts/architecture_proposal.md",
+        "artifacts/changes_iter_1.diff",
+        "artifacts/changes_iter_2.diff.v2",
+        "artifacts/changes_iter_3.diff.v3",
+        "artifacts/diagnosis_report_iter_1.json",
+        "artifacts/diagnosis_report_iter_2.json.v2",
+        "artifacts/diagnosis_report_iter_3.json.v3",
+        "artifacts/evaluation_report_iter_1.json",
+        "artifacts/evaluation_report_iter_2.json.v2",
+        "artifacts/evaluation_report_iter_3.json.v3",
+        "artifacts/qa_test_strategy.md",
+        "artifacts/qa_test_strategy.md.bac0c9b1-6b35-5720-850a-7ca2f4690baf",
+        "artifacts/test_tokenizer_lite.py",
+        "artifacts/test_tokenizer_lite.py.v2",
+        "artifacts/test_tokenizer_lite.py.v3",
+        "artifacts/tokenizer_lite/__init__.py",
+        "artifacts/tokenizer_lite/__init__.py.v2",
+        "artifacts/tokenizer_lite/__init__.py.v3",
+        "artifacts/tokenizer_lite/cli.py",
+        "artifacts/tokenizer_lite/cli.py.v2",
+        "artifacts/tokenizer_lite/cli.py.v3",
+        "artifacts/tokenizer_lite/core.py",
+        "artifacts/tokenizer_lite/core.py.v2",
+        "artifacts/tokenizer_lite/core.py.v3",
+        "test_tokenizer_lite.py",
+        "tokenizer_lite/__init__.py",
+        "tokenizer_lite/cli.py",
+        "tokenizer_lite/core.py"
+      ]
+    },
+    {
+      "phase": "durable_artifacts_collected",
+      "at": "2026-09-29T07:13:06.866489+00:00",
+      "t_sec": 104.26,
+      "total": 27
+    },
+    {
+      "phase": "project_tests_run",
+      "at": "2026-09-29T07:13:07.013968+00:00",
+      "t_sec": 104.41,
+      "returncode": 1
+    },
+    {
+      "phase": "final_review_completed",
+      "at": "2026-09-29T07:13:07.017062+00:00",
+      "t_sec": 104.41,
+      "approved": true,
+      "evidence_files": 16
+    },
+    {
+      "phase": "finalize_project",
+      "at": "2026-09-29T07:13:07.017205+00:00",
+      "t_sec": 104.41,
+      "success": true
+    },
+    {
+      "phase": "final_state",
+      "at": "2026-09-29T07:13:07.017225+00:00",
+      "t_sec": 104.41,
+      "status": "finished",
+      "finished_at": null
+    },
+    {
+      "phase": "durability_recovery_verified",
+      "at": "2026-09-29T07:13:07.018042+00:00",
+      "t_sec": 104.41,
+      "recovered_committed": 27,
+      "all_hash_verified": true
+    }
+  ],
+  "intent": {
+    "status": "planning",
+    "acceptance_criteria": {},
+    "quality_gates": null,
+    "task_count": 0
+  },
+  "workflow_id": "39b1fba3-f57e-4f20-8336-47c6bfa7a10d",
+  "execute_project_result": {
+    "project_id": "5bdad31f-d13c-42b9-9e39-14db4c80aa99",
+    "status": "finished"
+  },
+  "generated_source_files": [
+    "README.md",
+    "artifacts/README.md",
+    "artifacts/README.md.v2",
+    "artifacts/README.md.v3",
+    "artifacts/architecture_proposal.md",
+    "artifacts/changes_iter_1.diff",
+    "artifacts/changes_iter_2.diff.v2",
+    "artifacts/changes_iter_3.diff.v3",
+    "artifacts/diagnosis_report_iter_1.json",
+    "artifacts/diagnosis_report_iter_2.json.v2",
+    "artifacts/diagnosis_report_iter_3.json.v3",
+    "artifacts/evaluation_report_iter_1.json",
+    "artifacts/evaluation_report_iter_2.json.v2",
+    "artifacts/evaluation_report_iter_3.json.v3",
+    "artifacts/qa_test_strategy.md",
+    "artifacts/qa_test_strategy.md.bac0c9b1-6b35-5720-850a-7ca2f4690baf",
+    "artifacts/test_tokenizer_lite.py",
+    "artifacts/test_tokenizer_lite.py.v2",
+    "artifacts/test_tokenizer_lite.py.v3",
+    "artifacts/tokenizer_lite/__init__.py",
+    "artifacts/tokenizer_lite/__init__.py.v2",
+    "artifacts/tokenizer_lite/__init__.py.v3",
+    "artifacts/tokenizer_lite/cli.py",
+    "artifacts/tokenizer_lite/cli.py.v2",
+    "artifacts/tokenizer_lite/cli.py.v3",
+    "artifacts/tokenizer_lite/core.py",
+    "artifacts/tokenizer_lite/core.py.v2",
+    "artifacts/tokenizer_lite/core.py.v3",
+    "test_tokenizer_lite.py",
+    "tokenizer_lite/__init__.py",
+    "tokenizer_lite/cli.py",
+    "tokenizer_lite/core.py"
+  ],
+  "generated_file_hashes": {
+    "README.md": "80784a4df9413ed7bcc5284ff418f8ff6cbcb578b6897be0775502a899f89728",
+    "artifacts/README.md": "20236eb369653b134153e68524ed1150b133185319959fea55a68edd933af461",
+    "artifacts/README.md.v2": "f202980d1472d612f214d54891c2f3ec309b3ccf6f974200bc573dc128f65f04",
+    "artifacts/README.md.v3": "80784a4df9413ed7bcc5284ff418f8ff6cbcb578b6897be0775502a899f89728",
+    "artifacts/architecture_proposal.md": "e5941523ccede7a2ff9dc0947b2bb22afc294b77148d3ef26b058844919cf57e",
+    "artifacts/changes_iter_1.diff": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+    "artifacts/changes_iter_2.diff.v2": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+    "artifacts/changes_iter_3.diff.v3": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+    "artifacts/diagnosis_report_iter_1.json": "6f9f6124483c3c768e021b2cad762fd30ad3e81fc7a987564599f8dc11f426b4",
+    "artifacts/diagnosis_report_iter_2.json.v2": "1b9548388863e1693bfbb9087d3568b2a16ada8ceb9db42879d3c0a2c4283b9b",
+    "artifacts/diagnosis_report_iter_3.json.v3": "87dcd073cb8f1f20e40097e8e34687a19a7a9ebbfbe5899daf6b81850b34534b",
+    "artifacts/evaluation_report_iter_1.json": "d7642938e660d7ace34670588f1c0b30c0b70bb30b7016b1a878d3743ee0fbbb",
+    "artifacts/evaluation_report_iter_2.json.v2": "80ccea19bef6ef364b516f5963883768fb826d32074ff0d3813edc3e83ef6d88",
+    "artifacts/evaluation_report_iter_3.json.v3": "06bc440b83354c2f0987fa8592c065a7422c6b691ba8a74b51e924812dd1e1f0",
+    "artifacts/qa_test_strategy.md": "28cb0293dfcfeb8ca78839ede89fb5329f958da7e789a9ce0b0bfe3228bb37d1",
+    "artifacts/qa_test_strategy.md.bac0c9b1-6b35-5720-850a-7ca2f4690baf": "9f7a20fcda4db69fb93b334d90df6e9b075a3ea60cb9a6b6fe6956d9f26fa63f",
+    "artifacts/test_tokenizer_lite.py": "42a8aae61ca3d726fd5905fe93c5b941fd9617921d91f367c0685ba431c7af6a",
+    "artifacts/test_tokenizer_lite.py.v2": "55db9f3c73de3762be03efb5970dd5d2ea40e5c5088b75ac7cea583e49ead58a",
+    "artifacts/test_tokenizer_lite.py.v3": "cb6afbf28c65da8be14c38a948a4b7fe65b8d44de7808a4f922ff9da174d51ae",
+    "artifacts/tokenizer_lite/__init__.py": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+    "artifacts/tokenizer_lite/__init__.py.v2": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+    "artifacts/tokenizer_lite/__init__.py.v3": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+    "artifacts/tokenizer_lite/cli.py": "e7a46d2a2ee26aa52179df4fae07a52fdc87cc85eb6da4c6625b258870dfe9a9",
+    "artifacts/tokenizer_lite/cli.py.v2": "320f7c9fe0c8d515d9f5dc7dfe861e501fdbe6910e3c78866a9547d03015c6d7",
+    "artifacts/tokenizer_lite/cli.py.v3": "ac4a3e01decee583b861e92d77a88f63644d32ad3669a6bd3ab5ebf2ec44c224",
+    "artifacts/tokenizer_lite/core.py": "fa37a1530c53963be4597cae17ad8cf30a6206b19004e10ad6bfa849ee4221bd",
+    "artifacts/tokenizer_lite/core.py.v2": "5fd55d477a400e383f9611a820e7970a87cdd7118f5aebeef16f6cb6052e56ad",
+    "artifacts/tokenizer_lite/core.py.v3": "99221685b2cac05d1f34670d211fad4f9e09b51539b44f642df747524bd170a5",
+    "test_tokenizer_lite.py": "cb6afbf28c65da8be14c38a948a4b7fe65b8d44de7808a4f922ff9da174d51ae",
+    "tokenizer_lite/__init__.py": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+    "tokenizer_lite/cli.py": "ac4a3e01decee583b861e92d77a88f63644d32ad3669a6bd3ab5ebf2ec44c224",
+    "tokenizer_lite/core.py": "99221685b2cac05d1f34670d211fad4f9e09b51539b44f642df747524bd170a5"
+  },
+  "durable_artifacts": [
+    {
+      "artifact_id": "6a23e8a4-2f71-575e-82bb-8ae4cc662778",
+      "artifact_name": "README.md",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "20236eb369653b134153e68524ed1150b133185319959fea55a68edd933af461",
+      "size_bytes": 715,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/README.md",
+      "physical_exists": true,
+      "physical_sha256": "20236eb369653b134153e68524ed1150b133185319959fea55a68edd933af461"
+    },
+    {
+      "artifact_id": "891e0eaa-582a-57a2-bd08-411925bd83b4",
+      "artifact_name": "README.md",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "f202980d1472d612f214d54891c2f3ec309b3ccf6f974200bc573dc128f65f04",
+      "size_bytes": 739,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/README.md.v2",
+      "physical_exists": true,
+      "physical_sha256": "f202980d1472d612f214d54891c2f3ec309b3ccf6f974200bc573dc128f65f04"
+    },
+    {
+      "artifact_id": "b61486cc-f654-5dc7-ac59-1f31719d9e52",
+      "artifact_name": "README.md",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "80784a4df9413ed7bcc5284ff418f8ff6cbcb578b6897be0775502a899f89728",
+      "size_bytes": 653,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/README.md.v3",
+      "physical_exists": true,
+      "physical_sha256": "80784a4df9413ed7bcc5284ff418f8ff6cbcb578b6897be0775502a899f89728"
+    },
+    {
+      "artifact_id": "55e9cf70-a973-5da6-b612-3bad79837691",
+      "artifact_name": "architecture_proposal.md",
+      "artifact_type": "summary",
+      "status": "committed",
+      "content_hash": "e5941523ccede7a2ff9dc0947b2bb22afc294b77148d3ef26b058844919cf57e",
+      "size_bytes": 1688,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/architecture_proposal.md",
+      "physical_exists": true,
+      "physical_sha256": "e5941523ccede7a2ff9dc0947b2bb22afc294b77148d3ef26b058844919cf57e"
+    },
+    {
+      "artifact_id": "c65353c1-a308-5d2c-a07c-5f9b594fe656",
+      "artifact_name": "changes_iter_1.diff",
+      "artifact_type": "diff",
+      "status": "committed",
+      "content_hash": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+      "size_bytes": 124,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/changes_iter_1.diff",
+      "physical_exists": true,
+      "physical_sha256": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5"
+    },
+    {
+      "artifact_id": "5683aeaa-d05e-527c-a9e0-a8014c09b780",
+      "artifact_name": "changes_iter_2.diff",
+      "artifact_type": "diff",
+      "status": "committed",
+      "content_hash": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+      "size_bytes": 124,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/changes_iter_2.diff.v2",
+      "physical_exists": true,
+      "physical_sha256": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5"
+    },
+    {
+      "artifact_id": "f0144c55-84bf-5065-9305-5ac8c3f41d15",
+      "artifact_name": "changes_iter_3.diff",
+      "artifact_type": "diff",
+      "status": "committed",
+      "content_hash": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+      "size_bytes": 124,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/changes_iter_3.diff.v3",
+      "physical_exists": true,
+      "physical_sha256": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5"
+    },
+    {
+      "artifact_id": "4082fd1b-a5dc-5286-9637-5a886e652688",
+      "artifact_name": "diagnosis_report_iter_1.json",
+      "artifact_type": "diagnosis_report",
+      "status": "committed",
+      "content_hash": "6f9f6124483c3c768e021b2cad762fd30ad3e81fc7a987564599f8dc11f426b4",
+      "size_bytes": 1224,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/diagnosis_report_iter_1.json",
+      "physical_exists": true,
+      "physical_sha256": "6f9f6124483c3c768e021b2cad762fd30ad3e81fc7a987564599f8dc11f426b4"
+    },
+    {
+      "artifact_id": "07a34682-8ab5-56ee-8e6d-717ed6e4610a",
+      "artifact_name": "diagnosis_report_iter_2.json",
+      "artifact_type": "diagnosis_report",
+      "status": "committed",
+      "content_hash": "1b9548388863e1693bfbb9087d3568b2a16ada8ceb9db42879d3c0a2c4283b9b",
+      "size_bytes": 1298,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/diagnosis_report_iter_2.json.v2",
+      "physical_exists": true,
+      "physical_sha256": "1b9548388863e1693bfbb9087d3568b2a16ada8ceb9db42879d3c0a2c4283b9b"
+    },
+    {
+      "artifact_id": "b360352d-c358-542a-8902-e9cbbc3113fd",
+      "artifact_name": "diagnosis_report_iter_3.json",
+      "artifact_type": "diagnosis_report",
+      "status": "committed",
+      "content_hash": "87dcd073cb8f1f20e40097e8e34687a19a7a9ebbfbe5899daf6b81850b34534b",
+      "size_bytes": 1255,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/diagnosis_report_iter_3.json.v3",
+      "physical_exists": true,
+      "physical_sha256": "87dcd073cb8f1f20e40097e8e34687a19a7a9ebbfbe5899daf6b81850b34534b"
+    },
+    {
+      "artifact_id": "d3b0b48d-09b3-5abb-a337-61858f9b0a86",
+      "artifact_name": "evaluation_report_iter_1.json",
+      "artifact_type": "evaluation_report",
+      "status": "committed",
+      "content_hash": "d7642938e660d7ace34670588f1c0b30c0b70bb30b7016b1a878d3743ee0fbbb",
+      "size_bytes": 233,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/evaluation_report_iter_1.json",
+      "physical_exists": true,
+      "physical_sha256": "d7642938e660d7ace34670588f1c0b30c0b70bb30b7016b1a878d3743ee0fbbb"
+    },
+    {
+      "artifact_id": "15d9b68a-94c7-52b0-aafd-7a7333b350b3",
+      "artifact_name": "evaluation_report_iter_2.json",
+      "artifact_type": "evaluation_report",
+      "status": "committed",
+      "content_hash": "80ccea19bef6ef364b516f5963883768fb826d32074ff0d3813edc3e83ef6d88",
+      "size_bytes": 233,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/evaluation_report_iter_2.json.v2",
+      "physical_exists": true,
+      "physical_sha256": "80ccea19bef6ef364b516f5963883768fb826d32074ff0d3813edc3e83ef6d88"
+    },
+    {
+      "artifact_id": "380f5a4e-3d20-52e8-a5ec-fa3bd4a3a272",
+      "artifact_name": "evaluation_report_iter_3.json",
+      "artifact_type": "evaluation_report",
+      "status": "committed",
+      "content_hash": "06bc440b83354c2f0987fa8592c065a7422c6b691ba8a74b51e924812dd1e1f0",
+      "size_bytes": 233,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/evaluation_report_iter_3.json.v3",
+      "physical_exists": true,
+      "physical_sha256": "06bc440b83354c2f0987fa8592c065a7422c6b691ba8a74b51e924812dd1e1f0"
+    },
+    {
+      "artifact_id": "b206608d-cb07-583b-9be9-98da7bde51a0",
+      "artifact_name": "qa_test_strategy.md",
+      "artifact_type": "summary",
+      "status": "committed",
+      "content_hash": "28cb0293dfcfeb8ca78839ede89fb5329f958da7e789a9ce0b0bfe3228bb37d1",
+      "size_bytes": 1628,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/qa_test_strategy.md",
+      "physical_exists": true,
+      "physical_sha256": "28cb0293dfcfeb8ca78839ede89fb5329f958da7e789a9ce0b0bfe3228bb37d1"
+    },
+    {
+      "artifact_id": "bac0c9b1-6b35-5720-850a-7ca2f4690baf",
+      "artifact_name": "qa_test_strategy.md",
+      "artifact_type": "summary",
+      "status": "committed",
+      "content_hash": "9f7a20fcda4db69fb93b334d90df6e9b075a3ea60cb9a6b6fe6956d9f26fa63f",
+      "size_bytes": 1477,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/qa_test_strategy.md.bac0c9b1-6b35-5720-850a-7ca2f4690baf",
+      "physical_exists": true,
+      "physical_sha256": "9f7a20fcda4db69fb93b334d90df6e9b075a3ea60cb9a6b6fe6956d9f26fa63f"
+    },
+    {
+      "artifact_id": "ed05aea9-1101-559a-84de-4be3d9c3b13e",
+      "artifact_name": "test_tokenizer_lite.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "42a8aae61ca3d726fd5905fe93c5b941fd9617921d91f367c0685ba431c7af6a",
+      "size_bytes": 1201,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/test_tokenizer_lite.py",
+      "physical_exists": true,
+      "physical_sha256": "42a8aae61ca3d726fd5905fe93c5b941fd9617921d91f367c0685ba431c7af6a"
+    },
+    {
+      "artifact_id": "99cfd256-d32c-5cbf-8f58-ee66c457d9ce",
+      "artifact_name": "test_tokenizer_lite.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "55db9f3c73de3762be03efb5970dd5d2ea40e5c5088b75ac7cea583e49ead58a",
+      "size_bytes": 1470,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/test_tokenizer_lite.py.v2",
+      "physical_exists": true,
+      "physical_sha256": "55db9f3c73de3762be03efb5970dd5d2ea40e5c5088b75ac7cea583e49ead58a"
+    },
+    {
+      "artifact_id": "a2e2dfc9-6a70-51c7-aa44-3ac36a993e85",
+      "artifact_name": "test_tokenizer_lite.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "cb6afbf28c65da8be14c38a948a4b7fe65b8d44de7808a4f922ff9da174d51ae",
+      "size_bytes": 1704,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/test_tokenizer_lite.py.v3",
+      "physical_exists": true,
+      "physical_sha256": "cb6afbf28c65da8be14c38a948a4b7fe65b8d44de7808a4f922ff9da174d51ae"
+    },
+    {
+      "artifact_id": "b4951d83-b37d-5b9b-b9aa-1de1fa3120ab",
+      "artifact_name": "tokenizer_lite/__init__.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+      "size_bytes": 90,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/__init__.py",
+      "physical_exists": true,
+      "physical_sha256": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e"
+    },
+    {
+      "artifact_id": "1d00b01c-590d-5ac5-ad6c-7b16e9b5fc17",
+      "artifact_name": "tokenizer_lite/__init__.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+      "size_bytes": 90,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/__init__.py.v2",
+      "physical_exists": true,
+      "physical_sha256": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e"
+    },
+    {
+      "artifact_id": "2edaece0-fb58-52da-85f8-93bc201b8fff",
+      "artifact_name": "tokenizer_lite/__init__.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+      "size_bytes": 90,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/__init__.py.v3",
+      "physical_exists": true,
+      "physical_sha256": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e"
+    },
+    {
+      "artifact_id": "136b06e8-f330-53f9-8499-84eaec793c7a",
+      "artifact_name": "tokenizer_lite/cli.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "e7a46d2a2ee26aa52179df4fae07a52fdc87cc85eb6da4c6625b258870dfe9a9",
+      "size_bytes": 445,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/cli.py",
+      "physical_exists": true,
+      "physical_sha256": "e7a46d2a2ee26aa52179df4fae07a52fdc87cc85eb6da4c6625b258870dfe9a9"
+    },
+    {
+      "artifact_id": "a94046ed-000e-5ec9-9196-4d1a03f3c383",
+      "artifact_name": "tokenizer_lite/cli.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "320f7c9fe0c8d515d9f5dc7dfe861e501fdbe6910e3c78866a9547d03015c6d7",
+      "size_bytes": 455,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/cli.py.v2",
+      "physical_exists": true,
+      "physical_sha256": "320f7c9fe0c8d515d9f5dc7dfe861e501fdbe6910e3c78866a9547d03015c6d7"
+    },
+    {
+      "artifact_id": "cadb5889-a35e-5b6e-b188-a5143e6b00b2",
+      "artifact_name": "tokenizer_lite/cli.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "ac4a3e01decee583b861e92d77a88f63644d32ad3669a6bd3ab5ebf2ec44c224",
+      "size_bytes": 450,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/cli.py.v3",
+      "physical_exists": true,
+      "physical_sha256": "ac4a3e01decee583b861e92d77a88f63644d32ad3669a6bd3ab5ebf2ec44c224"
+    },
+    {
+      "artifact_id": "e6d84235-1e8e-543e-9870-2a8bb96f5080",
+      "artifact_name": "tokenizer_lite/core.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "fa37a1530c53963be4597cae17ad8cf30a6206b19004e10ad6bfa849ee4221bd",
+      "size_bytes": 1184,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/core.py",
+      "physical_exists": true,
+      "physical_sha256": "fa37a1530c53963be4597cae17ad8cf30a6206b19004e10ad6bfa849ee4221bd"
+    },
+    {
+      "artifact_id": "bfa70267-014e-55d1-9e57-204216950070",
+      "artifact_name": "tokenizer_lite/core.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "5fd55d477a400e383f9611a820e7970a87cdd7118f5aebeef16f6cb6052e56ad",
+      "size_bytes": 1342,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/core.py.v2",
+      "physical_exists": true,
+      "physical_sha256": "5fd55d477a400e383f9611a820e7970a87cdd7118f5aebeef16f6cb6052e56ad"
+    },
+    {
+      "artifact_id": "778f84b6-3799-5c84-9162-4745672fe3cb",
+      "artifact_name": "tokenizer_lite/core.py",
+      "artifact_type": "source_code",
+      "status": "committed",
+      "content_hash": "99221685b2cac05d1f34670d211fad4f9e09b51539b44f642df747524bd170a5",
+      "size_bytes": 1117,
+      "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/core.py.v3",
+      "physical_exists": true,
+      "physical_sha256": "99221685b2cac05d1f34670d211fad4f9e09b51539b44f642df747524bd170a5"
+    }
+  ],
+  "durable_artifact_counts": {
+    "total": 27,
+    "committed": 27,
+    "source_code": [
+      {
+        "artifact_id": "6a23e8a4-2f71-575e-82bb-8ae4cc662778",
+        "artifact_name": "README.md",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "20236eb369653b134153e68524ed1150b133185319959fea55a68edd933af461",
+        "size_bytes": 715,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/README.md",
+        "physical_exists": true,
+        "physical_sha256": "20236eb369653b134153e68524ed1150b133185319959fea55a68edd933af461"
+      },
+      {
+        "artifact_id": "891e0eaa-582a-57a2-bd08-411925bd83b4",
+        "artifact_name": "README.md",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "f202980d1472d612f214d54891c2f3ec309b3ccf6f974200bc573dc128f65f04",
+        "size_bytes": 739,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/README.md.v2",
+        "physical_exists": true,
+        "physical_sha256": "f202980d1472d612f214d54891c2f3ec309b3ccf6f974200bc573dc128f65f04"
+      },
+      {
+        "artifact_id": "b61486cc-f654-5dc7-ac59-1f31719d9e52",
+        "artifact_name": "README.md",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "80784a4df9413ed7bcc5284ff418f8ff6cbcb578b6897be0775502a899f89728",
+        "size_bytes": 653,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/README.md.v3",
+        "physical_exists": true,
+        "physical_sha256": "80784a4df9413ed7bcc5284ff418f8ff6cbcb578b6897be0775502a899f89728"
+      },
+      {
+        "artifact_id": "ed05aea9-1101-559a-84de-4be3d9c3b13e",
+        "artifact_name": "test_tokenizer_lite.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "42a8aae61ca3d726fd5905fe93c5b941fd9617921d91f367c0685ba431c7af6a",
+        "size_bytes": 1201,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/test_tokenizer_lite.py",
+        "physical_exists": true,
+        "physical_sha256": "42a8aae61ca3d726fd5905fe93c5b941fd9617921d91f367c0685ba431c7af6a"
+      },
+      {
+        "artifact_id": "99cfd256-d32c-5cbf-8f58-ee66c457d9ce",
+        "artifact_name": "test_tokenizer_lite.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "55db9f3c73de3762be03efb5970dd5d2ea40e5c5088b75ac7cea583e49ead58a",
+        "size_bytes": 1470,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/test_tokenizer_lite.py.v2",
+        "physical_exists": true,
+        "physical_sha256": "55db9f3c73de3762be03efb5970dd5d2ea40e5c5088b75ac7cea583e49ead58a"
+      },
+      {
+        "artifact_id": "a2e2dfc9-6a70-51c7-aa44-3ac36a993e85",
+        "artifact_name": "test_tokenizer_lite.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "cb6afbf28c65da8be14c38a948a4b7fe65b8d44de7808a4f922ff9da174d51ae",
+        "size_bytes": 1704,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/test_tokenizer_lite.py.v3",
+        "physical_exists": true,
+        "physical_sha256": "cb6afbf28c65da8be14c38a948a4b7fe65b8d44de7808a4f922ff9da174d51ae"
+      },
+      {
+        "artifact_id": "b4951d83-b37d-5b9b-b9aa-1de1fa3120ab",
+        "artifact_name": "tokenizer_lite/__init__.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+        "size_bytes": 90,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/__init__.py",
+        "physical_exists": true,
+        "physical_sha256": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e"
+      },
+      {
+        "artifact_id": "1d00b01c-590d-5ac5-ad6c-7b16e9b5fc17",
+        "artifact_name": "tokenizer_lite/__init__.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+        "size_bytes": 90,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/__init__.py.v2",
+        "physical_exists": true,
+        "physical_sha256": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e"
+      },
+      {
+        "artifact_id": "2edaece0-fb58-52da-85f8-93bc201b8fff",
+        "artifact_name": "tokenizer_lite/__init__.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+        "size_bytes": 90,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/__init__.py.v3",
+        "physical_exists": true,
+        "physical_sha256": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e"
+      },
+      {
+        "artifact_id": "136b06e8-f330-53f9-8499-84eaec793c7a",
+        "artifact_name": "tokenizer_lite/cli.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "e7a46d2a2ee26aa52179df4fae07a52fdc87cc85eb6da4c6625b258870dfe9a9",
+        "size_bytes": 445,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/cli.py",
+        "physical_exists": true,
+        "physical_sha256": "e7a46d2a2ee26aa52179df4fae07a52fdc87cc85eb6da4c6625b258870dfe9a9"
+      },
+      {
+        "artifact_id": "a94046ed-000e-5ec9-9196-4d1a03f3c383",
+        "artifact_name": "tokenizer_lite/cli.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "320f7c9fe0c8d515d9f5dc7dfe861e501fdbe6910e3c78866a9547d03015c6d7",
+        "size_bytes": 455,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/cli.py.v2",
+        "physical_exists": true,
+        "physical_sha256": "320f7c9fe0c8d515d9f5dc7dfe861e501fdbe6910e3c78866a9547d03015c6d7"
+      },
+      {
+        "artifact_id": "cadb5889-a35e-5b6e-b188-a5143e6b00b2",
+        "artifact_name": "tokenizer_lite/cli.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "ac4a3e01decee583b861e92d77a88f63644d32ad3669a6bd3ab5ebf2ec44c224",
+        "size_bytes": 450,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/cli.py.v3",
+        "physical_exists": true,
+        "physical_sha256": "ac4a3e01decee583b861e92d77a88f63644d32ad3669a6bd3ab5ebf2ec44c224"
+      },
+      {
+        "artifact_id": "e6d84235-1e8e-543e-9870-2a8bb96f5080",
+        "artifact_name": "tokenizer_lite/core.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "fa37a1530c53963be4597cae17ad8cf30a6206b19004e10ad6bfa849ee4221bd",
+        "size_bytes": 1184,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/core.py",
+        "physical_exists": true,
+        "physical_sha256": "fa37a1530c53963be4597cae17ad8cf30a6206b19004e10ad6bfa849ee4221bd"
+      },
+      {
+        "artifact_id": "bfa70267-014e-55d1-9e57-204216950070",
+        "artifact_name": "tokenizer_lite/core.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "5fd55d477a400e383f9611a820e7970a87cdd7118f5aebeef16f6cb6052e56ad",
+        "size_bytes": 1342,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/core.py.v2",
+        "physical_exists": true,
+        "physical_sha256": "5fd55d477a400e383f9611a820e7970a87cdd7118f5aebeef16f6cb6052e56ad"
+      },
+      {
+        "artifact_id": "778f84b6-3799-5c84-9162-4745672fe3cb",
+        "artifact_name": "tokenizer_lite/core.py",
+        "artifact_type": "source_code",
+        "status": "committed",
+        "content_hash": "99221685b2cac05d1f34670d211fad4f9e09b51539b44f642df747524bd170a5",
+        "size_bytes": 1117,
+        "storage_path": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_greenfield_ws_1hsehbcp/artifacts/tokenizer_lite/core.py.v3",
+        "physical_exists": true,
+        "physical_sha256": "99221685b2cac05d1f34670d211fad4f9e09b51539b44f642df747524bd170a5"
+      }
+    ]
+  },
+  "project_test_run": {
+    "command": [
+      "/Users/kalachanddash/Developer/AutoForge-AI-OS/.venv/bin/python",
+      "-m",
+      "pytest",
+      "test_tokenizer_lite.py",
+      "-q"
+    ],
+    "returncode": 1,
+    "stdout_tail": ".F..F.                                                                   [100%]\n=================================== FAILURES ===================================\n_________________________ test_whitespace_only_string __________________________\n\n    def test_whitespace_only_string():\n        tokenizer = TokenizerLite()\n        result = tokenizer.count('   \\t\\n  ')\n>       assert result == {'tokens': 0, 'characters': 5, 'words': 0}\nE       AssertionError: assert {'tokens': 0,...0, 'words': 0} == {'tokens': 0,...5, 'words': 0}\nE         \nE         Omitting 2 identical items, use -vv to show\nE         Differing items:\nE         {'characters': 0} != {'characters': 5}\nE         Use -v to get more diff\n\ntest_tokenizer_lite.py:17: AssertionError\n_____________________________ test_multiple_spaces _____________________________\n\n    def test_multiple_spaces():\n        tokenizer = TokenizerLite()\n        result = tokenizer.count('hello    world   test')\n>       assert result == {'tokens': 3, 'characters': 20, 'words': 3}\nE       AssertionError: assert {'tokens': 3,...1, 'words': 3} == {'tokens': 3,...0, 'words': 3}\nE         \nE         Omitting 2 identical items, use -vv to show\nE         Differing items:\nE         {'characters': 21} != {'characters': 20}\nE         Use -v to get more diff\n\ntest_tokenizer_lite.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED test_tokenizer_lite.py::test_whitespace_only_string - AssertionError: ...\nFAILED test_tokenizer_lite.py::test_multiple_spaces - AssertionError: assert ...\n2 failed, 4 passed in 0.01s\n",
+    "stderr_tail": ""
+  },
+  "final_review": {
+    "approved": true,
+    "reason": "Final review explicitly approved the project.",
+    "evidence_files": 16,
+    "review_result": {
+      "approved": true,
+      "status": "approved",
+      "decision": "approved",
+      "findings": [],
+      "findings_count": 0,
+      "evidence_files": 16
+    }
+  },
+  "finalize_project": {
+    "success": true,
+    "already_terminal": true,
+    "refusal": "InvalidTransitionError: Project is in terminal state <ProjectStatus.FINISHED: 'finished'>"
+  },
+  "finalize_note": "execute_project already ran the completion gate; the project state machine refused a second finalization, which is the documented fail-closed behaviour for a terminal project",
+  "final_state": {
+    "status": "finished",
+    "finished_at": null
+  },
+  "recovery": {
+    "recovered_committed": 27,
+    "all_recovered": true,
+    "all_hash_verified": true,
+    "detail": [
+      {
+        "artifact_name": "architecture_proposal.md",
+        "content_hash": "e5941523ccede7a2ff9dc0947b2bb22afc294b77148d3ef26b058844919cf57e",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/__init__.py",
+        "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/core.py",
+        "content_hash": "fa37a1530c53963be4597cae17ad8cf30a6206b19004e10ad6bfa849ee4221bd",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/cli.py",
+        "content_hash": "e7a46d2a2ee26aa52179df4fae07a52fdc87cc85eb6da4c6625b258870dfe9a9",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "test_tokenizer_lite.py",
+        "content_hash": "42a8aae61ca3d726fd5905fe93c5b941fd9617921d91f367c0685ba431c7af6a",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "README.md",
+        "content_hash": "20236eb369653b134153e68524ed1150b133185319959fea55a68edd933af461",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "changes_iter_1.diff",
+        "content_hash": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "evaluation_report_iter_1.json",
+        "content_hash": "d7642938e660d7ace34670588f1c0b30c0b70bb30b7016b1a878d3743ee0fbbb",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "diagnosis_report_iter_1.json",
+        "content_hash": "6f9f6124483c3c768e021b2cad762fd30ad3e81fc7a987564599f8dc11f426b4",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/__init__.py",
+        "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/core.py",
+        "content_hash": "5fd55d477a400e383f9611a820e7970a87cdd7118f5aebeef16f6cb6052e56ad",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/cli.py",
+        "content_hash": "320f7c9fe0c8d515d9f5dc7dfe861e501fdbe6910e3c78866a9547d03015c6d7",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "test_tokenizer_lite.py",
+        "content_hash": "55db9f3c73de3762be03efb5970dd5d2ea40e5c5088b75ac7cea583e49ead58a",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "README.md",
+        "content_hash": "f202980d1472d612f214d54891c2f3ec309b3ccf6f974200bc573dc128f65f04",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "changes_iter_2.diff",
+        "content_hash": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "evaluation_report_iter_2.json",
+        "content_hash": "80ccea19bef6ef364b516f5963883768fb826d32074ff0d3813edc3e83ef6d88",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "diagnosis_report_iter_2.json",
+        "content_hash": "1b9548388863e1693bfbb9087d3568b2a16ada8ceb9db42879d3c0a2c4283b9b",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/__init__.py",
+        "content_hash": "6feea92f0875e546c5e397a277ccd6b6ecde71d9ed939f21133659ecaa3c029e",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/core.py",
+        "content_hash": "99221685b2cac05d1f34670d211fad4f9e09b51539b44f642df747524bd170a5",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "tokenizer_lite/cli.py",
+        "content_hash": "ac4a3e01decee583b861e92d77a88f63644d32ad3669a6bd3ab5ebf2ec44c224",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "test_tokenizer_lite.py",
+        "content_hash": "cb6afbf28c65da8be14c38a948a4b7fe65b8d44de7808a4f922ff9da174d51ae",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "README.md",
+        "content_hash": "80784a4df9413ed7bcc5284ff418f8ff6cbcb578b6897be0775502a899f89728",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "changes_iter_3.diff",
+        "content_hash": "94d4e3c1021a64f7fb0e965b831d8032366a4ca76f4ecf50c595fcf8f736d6a5",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "evaluation_report_iter_3.json",
+        "content_hash": "06bc440b83354c2f0987fa8592c065a7422c6b691ba8a74b51e924812dd1e1f0",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "diagnosis_report_iter_3.json",
+        "content_hash": "87dcd073cb8f1f20e40097e8e34687a19a7a9ebbfbe5899daf6b81850b34534b",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "qa_test_strategy.md",
+        "content_hash": "28cb0293dfcfeb8ca78839ede89fb5329f958da7e789a9ce0b0bfe3228bb37d1",
+        "recovered": true,
+        "sha256_matches": true
+      },
+      {
+        "artifact_name": "qa_test_strategy.md",
+        "content_hash": "9f7a20fcda4db69fb93b334d90df6e9b075a3ea60cb9a6b6fe6956d9f26fa63f",
+        "recovered": true,
+        "sha256_matches": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "phase": "18-LR Layer-A legacy modernization",
+  "real_legacy_input": {
+    "root": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LR_legacy_src_4pe7qiuh",
+    "files": {
+      "cbl/LEDGER.cbl": {
+        "bytes": 616,
+        "sha256": "14a1aad0623c773d4d6ffe1129db351700ab491c888e84db348716a0c446c340"
+      },
+      "jcl/LEDGER.jcl": {
+        "bytes": 174,
+        "sha256": "5163a941ed16896ad0dddcd39d5752362651d0d00a9bafa95f8a37da2ace9b57"
+      }
+    }
+  },
+  "boundary_1_ingestion": {
+    "scanned_file_count": 2,
+    "scanned_files": [
+      {
+        "relative_path": "jcl/LEDGER.jcl",
+        "category": "source",
+        "detected_language": "jcl",
+        "detected_technologies": []
+      },
+      {
+        "relative_path": "cbl/LEDGER.cbl",
+        "category": "source",
+        "detected_language": "cobol",
+        "detected_technologies": []
+      }
+    ]
+  },
+  "boundary_2_3_pipeline": {
+    "status": "complete",
+    "analysis_present": true,
+    "plan_units": 2,
+    "wave_units_transformed": 2,
+    "wave_units_failed": 0,
+    "wave_error": null,
+    "pipeline_error": null,
+    "transformation_boundary_capture": [
+      {
+        "file_path_arg": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LR_legacy_src_4pe7qiuh/jcl/LEDGER.jcl",
+        "before_content_arg": "//LEDGER  JOB (ACCT),'LEDGER BATCH',CLASS=A\n//STEP1   EXEC PGM=IEFBR14\n//DD1     DD DSN=LEDGER.INPUT,DISP=SHR\n//SYSPRINT DD SYSOUT=*\n//SYSIN   DD DSN=LEDGER.CTRL,DISP=SHR\n//\n",
+        "before_content_type": "str"
+      },
+      {
+        "file_path_arg": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LR_legacy_src_4pe7qiuh/cbl/LEDGER.cbl",
+        "before_content_arg": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. LEDGER.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01  WS-AMOUNT      PIC 9(7)V99.\n       01  WS-ENTRY-TOTAL PIC 9(9)V99 VALUE 0.\n       01  WS-COUNT       PIC 9(4) VALUE 0.\n       01  WS-STATUS      PIC X(10) VALUE \"OK\".\n       PROCEDURE DIVISION.\n       MAIN-PARA.\n           MOVE 1250.50 TO WS-AMOUNT.\n           ADD WS-AMOUNT TO WS-ENTRY-TOTAL.\n           ADD 1 TO WS-COUNT.\n           IF WS-ENTRY-TOTAL > 1000\n               MOVE \"HIGH\" TO WS-STATUS\n           END-IF.\n           DISPLAY \"LEDGER TOTAL: \" WS-ENTRY-TOTAL.\n           STOP RUN.\n",
+        "before_content_type": "str"
+      }
+    ],
+    "records": [
+      {
+        "unit_id": "5f43e77f-c6ad-4ca4-b296-09dbf1d880a1",
+        "file_path": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LR_legacy_src_4pe7qiuh/jcl/LEDGER.jcl",
+        "before_content": "//LEDGER  JOB (ACCT),'LEDGER BATCH',CLASS=A\n//STEP1   EXEC PGM=IEFBR14\n//DD1     DD DSN=LEDGER.INPUT,DISP=SHR\n//SYSPRINT DD SYSOUT=*\n//SYSIN   DD DSN=LEDGER.CTRL,DISP=SHR\n//\n",
+        "before_is_placeholder": false,
+        "after_content_head": "# Auto-generated from JCL job: LEDGER\n# Steps: 1, Datasets: 3\n# Verification: JC"
+      },
+      {
+        "unit_id": "c8a92a66-9b41-4899-b15c-4fd9698280d4",
+        "file_path": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LR_legacy_src_4pe7qiuh/cbl/LEDGER.cbl",
+        "before_content": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. LEDGER.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01  WS-AMOUNT      PIC 9(7)V99.\n       01  WS-ENTRY-TOTAL PIC 9(9)V99 VALUE 0.\n       01  WS-COUNT       PIC 9(4) VALUE 0.\n       01  WS-STATUS      PIC X(10) VALUE \"OK\".\n       PROCEDURE DIVISION.\n       MAIN-PARA.\n           MOVE 1250.50 TO WS-AMOUNT.\n           ADD WS-AMOUNT TO WS-ENTRY-TOTAL.\n           ADD 1 TO WS-COUNT.\n           IF WS-ENTRY-TOTAL > 1000\n               MOVE \"HIGH\" TO WS-STATUS\n           END-IF.\n           DISPLAY \"LEDGER TOTAL: \" WS-ENTRY-TOTAL.\n           STOP RUN.\n",
+        "before_is_placeholder": false,
+        "after_content_head": "// =============================================================\n// Transformed "
+      }
+    ]
+  },
+  "boundary_4_engine_on_real_source": {
+    "scan": {
+      "COBOL": 1,
+      "JCL": 1,
+      "BMS": 0,
+      "SQL": 0,
+      "COPY": 0,
+      "DBD": 0,
+      "PSB": 0,
+      "CSD": 0,
+      "Other": 0,
+      "Total": 2
+    },
+    "applied_count": 2,
+    "blocked_count": 0,
+    "failed_count": 0,
+    "applied": [
+      {
+        "path": "LEDGER.cbl",
+        "before_sha256": null,
+        "after_sha256": null,
+        "output": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LR_legacy_out_pmtwdjsn/transformed/LEDGER.java",
+        "is_identity": false
+      },
+      {
+        "path": "LEDGER.jcl",
+        "before_sha256": null,
+        "after_sha256": null,
+        "output": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LR_legacy_out_pmtwdjsn/transformed/LEDGER.yaml",
+        "is_identity": false
+      }
+    ]
+  },
+  "engine_output_derives_from_real_source": {
+    "java_files": [
+      "LEDGER.java"
+    ],
+    "contains_program_id_LEDGER": true,
+    "contains_ws_amount": false,
+    "contains_main_para": true,
+    "contains_placeholder_marker": false,
+    "head": "// Transformed from: LEDGER.cbl\n// Source SHA256: 14a1aad0623c773d\n// Constructs: 10\n// Technologies: []\n// Paragraphs: 1\n// External calls: []\n\n// =============================================================\n// Transformed from COBOL: LEDGER\n//   Working-storage fields: 4\n//   Paragraphs: 1\n//   File declarations: 0\n//   COPY references: none\n// =============================================================\n\n/**\n * Java equivalent of COBOL program LEDGER.\n * Generated by AutoForge Modernization G.3 bounded transpiler.\n * REVIEW REQUIRED: semantic skeleton, not a 1:1 translation.\n */\n\nimport j"
+  },
+  "verdict": {
+    "A_engine_on_real_source": "PASS",
+    "B_pipeline_uses_placeholder": false,
+    "conclusion": "see per-boundary results"
+  }
+}

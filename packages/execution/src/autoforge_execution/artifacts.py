@@ -57,6 +57,39 @@ class ArtifactPipeline:
         self._by_task: dict[str, list[uuid.UUID]] = {}
         self._by_worker: dict[str, list[uuid.UUID]] = {}
 
+    def _target_owned_by_other(
+        self,
+        target_rel: Any,
+        artifact_id: Any,
+        workflow_id: Any = None,
+    ) -> bool:
+        """DEF-18L-06: is this publish target already owned by a different
+        committed artifact?
+
+        Returns True only when the resolved target already exists AND a
+        *different* durable artifact record for the same workflow claims that
+        same storage path. An inspection failure is treated as "no collision",
+        so this guard can never itself block a legitimate publish.
+        """
+        if self._physical_store is None or self._durable_catalog is None:
+            return False
+        if workflow_id is None:
+            return False
+        try:
+            resolved = self._physical_store.resolve_artifact_path(target_rel)
+            if not resolved.exists():
+                return False
+            for state in self._durable_catalog.find_by_workflow(workflow_id) or []:
+                if str(getattr(state, "storage_path", "") or "") != str(resolved):
+                    continue
+                if getattr(state, "artifact_id", None) != artifact_id:
+                    return True
+            # Either no other record claims it, or the only claimant IS this
+            # artifact (a legitimate re-publish of its own content).
+            return False
+        except Exception:  # pragma: no cover - defensive only
+            return False
+
     def record_artifact(
         self,
         name: str,
@@ -92,6 +125,39 @@ class ArtifactPipeline:
                     operation_type=artifact_type.value if hasattr(artifact_type, "value") else str(artifact_type),
                 )
 
+                # DEF-18L-05: a revised deliverable is a NEW logical version,
+                # not a replay of the previous one.
+                #
+                # ``derive_artifact_key`` deliberately excludes the iteration,
+                # because a retry must reuse the SAME key (18-J idempotent
+                # replay). But an engineering loop legitimately re-writes the
+                # same file on a later iteration with different content -- that
+                # is a new version of the deliverable, not a retry. Registering
+                # it under the iteration-less key made the second write collide
+                # with the COMMITTED artifact and raise ``ArtifactConflictError``,
+                # which aborted the loop.
+                #
+                # The 18-K catalog already models this: ``register_artifact``
+                # returns the existing record for a known key, and the artifact
+                # platform already mints a versioned key for a new revision
+                # (``DurableArtifactStoreBridge.store_version``). The iteration
+                # is therefore folded into the OPERATION SCOPE, which is the
+                # existing, non-protected place for it, leaving the 18-J replay
+                # guarantee untouched: a genuine retry reuses the same
+                # iteration, so it still produces the same key.
+                iteration = provenance.iteration or 1
+                if iteration and iteration > 1:
+                    key = derive_artifact_key(
+                        artifact_name=name,
+                        workflow_id=provenance.workflow_id,
+                        task_id=provenance.task_id,
+                        execution_id=exec_id,
+                        operation_type=(
+                            f"{artifact_type.value if hasattr(artifact_type, 'value') else artifact_type}"
+                            f".iter{iteration}"
+                        ),
+                    )
+
                 durable_state = self._durable_catalog.register_artifact(
                     artifact_key=key,
                     artifact_name=name,
@@ -99,7 +165,7 @@ class ArtifactPipeline:
                     workflow_id=provenance.workflow_id,
                     task_id=provenance.task_id,
                     execution_id=exec_id,
-                    logical_version=provenance.iteration or 1,
+                    logical_version=iteration,
                     provenance={
                         "worker_id": provenance.worker_id,
                         "iteration": provenance.iteration,
@@ -174,7 +240,38 @@ class ArtifactPipeline:
                         checksum = c_hash
                         size_bytes = s_bytes
 
+                        # DEF-18L-05: publish a later revision to its OWN
+                        # physical path. Publishing v2 to the same relative
+                        # target as v1 would atomically replace the earlier
+                        # COMMITTED bytes, so a distinct catalog record would
+                        # point at content that no longer matches its recorded
+                        # hash. The first version keeps its exact path.
                         target_rel = path or name
+                        if iteration and iteration > 1:
+                            target_rel = f"{target_rel}.v{iteration}"
+
+                        # DEF-18L-06: never overwrite ANOTHER logical
+                        # artifact's committed bytes.
+                        #
+                        # Two genuinely different artifacts can carry the same
+                        # ``artifact_name`` (e.g. two QALoop runs both emit
+                        # "qa_test_strategy.md"). They mint different catalog
+                        # keys and different artifact_ids, but both resolved to
+                        # the same relative target, so the second publish
+                        # atomically REPLACED the first artifact's bytes. The
+                        # first record stayed COMMITTED while its recorded
+                        # content_hash no longer matched the file on disk --
+                        # a silent durability violation.
+                        #
+                        # Disambiguation is applied only on an actual collision
+                        # and only for a target this artifact does not already
+                        # own, so the ordinary single-artifact path is byte
+                        # identical to before.
+                        if self._target_owned_by_other(
+                            target_rel, artifact_id, provenance.workflow_id
+                        ):
+                            target_rel = f"{target_rel}.{artifact_id}"
+
                         published_p = self._physical_store.atomic_publish(
                             staging_path,
                             target_rel,

@@ -1,0 +1,101 @@
+{
+  "phase": "18-L-D failure-path certification",
+  "total": 10,
+  "passed": 6,
+  "failed": 4,
+  "results": [
+    {
+      "case": "1_review_rejection_blocks_completion",
+      "passed": true,
+      "detail": {
+        "gate_approved": false,
+        "gate_reason": "Final review decision: changes_requested.",
+        "status": "completing"
+      }
+    },
+    {
+      "case": "2_review_exception_blocks_completion",
+      "passed": true,
+      "detail": {
+        "gate_approved": false,
+        "gate_reason": "Final review raised RuntimeError: review engine exploded",
+        "status": "completing"
+      }
+    },
+    {
+      "case": "3_missing_evidence_blocks_completion",
+      "passed": true,
+      "detail": {
+        "evidence_files": 1,
+        "gate_approved": false,
+        "gate_reason": "Final review decision: changes_requested.",
+        "status": "completing"
+      }
+    },
+    {
+      "case": "3b_absent_review_gate_blocks_completion",
+      "passed": true,
+      "detail": {
+        "gate_approved": false,
+        "gate_reason": "No review engine is configured; the mandatory final review gate cannot be satisfied.",
+        "status": "completing"
+      }
+    },
+    {
+      "case": "4_invalid_artifact_conflict_is_rejected",
+      "passed": true,
+      "detail": {
+        "conflict_raised": true,
+        "committed_bytes_intact": true,
+        "status": "finished"
+      }
+    },
+    {
+      "case": "5_validation_failure_blocks_completion",
+      "passed": true,
+      "detail": {
+        "valid": true,
+        "errors": [],
+        "gate_approved": false,
+        "status": "completing"
+      }
+    },
+    {
+      "case": "6_publication_failure_blocks_completion",
+      "passed": false,
+      "detail": {
+        "status": "finished",
+        "note": "no artifact could be published, so no reviewable deliverable"
+      }
+    },
+    {
+      "case": "7_model_runtime_failure_blocks_completion",
+      "passed": false,
+      "detail": {
+        "status": "finished",
+        "note": "no source was generated, so the mandatory review gate has no deliverable"
+      }
+    },
+    {
+      "case": "8_interrupted_execution_blocks_completion",
+      "passed": false,
+      "detail": {
+        "initial_status": "planning",
+        "gate_approved": true,
+        "gate_reason": "Final review explicitly approved the project."
+      }
+    },
+    {
+      "case": "9_vacuous_approval_on_empty_evidence",
+      "passed": false,
+      "detail": {
+        "evidence_files": 1,
+        "gate_approved": false,
+        "gate_reason": "Final review decision: changes_requested.",
+        "project_reached_finished": false,
+        "status": "completing",
+        "note": "PROBE: a project with no reviewable deliverable is reported here exactly as observed. If project_reached_finished is true, vacuous 'no_target' approval permitted completion."
+      }
+    }
+  ]
+}

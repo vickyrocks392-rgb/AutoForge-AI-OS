@@ -372,6 +372,37 @@ class AIInfrastructureAdapter(AIEngineeringProvider):
                         model_id=candidate.model.model_id,
                         provider_id=candidate.model.provider_id,
                     )
+
+                # DEF-18L-02: honour the routed model's declared output budget.
+                #
+                # The Capability Registry already declares ``max_output_tokens``
+                # per model, but the request never carried one, so the local
+                # runtime applied its own small default and returned
+                # ``finish_reason="length"`` -- a truncated response that
+                # contains no parseable ``file_edits``. Real deliverables
+                # therefore could not be produced at all.
+                #
+                # The budget is taken from the model the router ACTUALLY
+                # selected, so it stays provider-neutral and introduces no new
+                # constant or hard-coded limit. An explicit caller-supplied
+                # budget is never overridden.
+                selected_model = (
+                    allocated_model if allocated_model is not None
+                    else getattr(candidate, "model", None)
+                )
+                declared_budget = getattr(selected_model, "max_output_tokens", None)
+                if declared_budget and "max_tokens" not in (req.parameters or {}):
+                    # ``ExecutionRequest`` is a frozen model, so the budget is
+                    # applied by rebuilding the request rather than mutating it.
+                    req = req.model_copy(
+                        update={
+                            "parameters": {
+                                **(req.parameters or {}),
+                                "max_tokens": int(declared_budget),
+                            }
+                        }
+                    )
+
                 return await execute_attempt(self._executor, req, target)
 
             try:

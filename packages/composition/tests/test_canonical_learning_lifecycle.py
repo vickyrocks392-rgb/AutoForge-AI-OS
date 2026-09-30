@@ -21,6 +21,7 @@ import pytest
 from autoforge_composition.composition_root import build_autoforge_system
 from autoforge_kernel.interfaces import Request
 from autoforge_kernel.learning_engine import EngineeringLearningEngine
+from tests.review_evidence_helpers import register_project_deliverable
 
 
 @pytest.mark.asyncio
@@ -50,17 +51,35 @@ async def test_canonical_learning_lifecycle_wired_and_invoked(tmp_path: Path):
 
         system.learning_engine.reflect_and_learn = spy_reflect_and_learn  # type: ignore
 
-        # 3. Submit request through canonical Kernel lifecycle
+        # 3. Plan through the canonical Kernel lifecycle, then execute.
+        #
+        # DEF-P1-EVIDENCE: planning and execution are separated so the project can
+        # first produce its real reviewable deliverable. The Kernel's completion
+        # gate requires an explicit final-review approval, and the Learning
+        # Engine is invoked by the Kernel only after that gate genuinely passes.
+        # Learning is therefore still triggered by the platform, never by the
+        # test calling the engine directly.
         req = Request(
             user_id=uuid.uuid4(),
             request_text="Build an authenticated payment webhook endpoint with tests",
-            configuration={"environment": "production", "execute": True},
+            configuration={"environment": "production", "execute": False},
         )
         res = await system.kernel.submit_request(req)
 
         assert "project_id" in res
         project_id = res["project_id"]
         assert project_id is not None
+
+        # Register the project's real deliverables through the authoritative 18-K
+        # durable artifact pipeline so the real Review Engine evaluates real bytes.
+        state = await system.runtime_facade.get_project_state(project_id)
+        workflow_id = system.kernel.completion_module._project_workflow_id(state)
+        assert workflow_id, "the project must record its workflow correlation"
+        register_project_deliverable(system, workflow_id)
+
+        # Run the canonical Kernel execution lifecycle: orchestration ->
+        # completion validation -> final review gate -> learning/reflection.
+        await system.kernel.execute_project(project_id)
 
         # 4. Verify learning stage was automatically invoked by Kernel (NOT manually called by test!)
         assert len(learning_invocations) >= 1, (

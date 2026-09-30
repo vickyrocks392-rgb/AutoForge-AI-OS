@@ -1,0 +1,70 @@
+{
+  "phase": "18-L-E legacy modernization certification",
+  "workspace": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18L_legacy_ws_csza5y56",
+  "legacy_files": [
+    {
+      "name": "LEDGER.cobol",
+      "sha256": "b3faf401dd9961550b8a014ec73a406c73d3f78dc2f6fedaf2817708900f4156",
+      "bytes": 459
+    },
+    {
+      "name": "report.py",
+      "sha256": "6823a145138b7d7ea10d991aed2fe5ac9d29c45352f5fb075910dd50c9a7a0fb",
+      "bytes": 328
+    }
+  ],
+  "started": "2026-09-28T18:21:55.782262+00:00",
+  "pipeline_status": "failed",
+  "pipeline_error": null,
+  "wave_results": [
+    {
+      "wave_id": "wave-1",
+      "status": "failed",
+      "transformed": 0,
+      "failed": 2,
+      "error": "TransformationError: Transformation of 49dbcfc8-4473-4ab5-b722-b0a2dcaf863f failed: Transformation of Python is not supported. Set transformation_type to BLOCKED and use REWRITE for partial approaches. This transformation requires specialist tooling and human review."
+    }
+  ],
+  "pipeline_transforms_real_file_content": false,
+  "pipeline_uses_placeholder_content": true,
+  "analysis_report_present": true,
+  "migration_plan_present": true,
+  "transformation_records": 0,
+  "gate_decision": "",
+  "durable_artifacts": [
+    {
+      "artifact_id": "480a24da-1d83-57df-8ad1-6f654b46f4a9",
+      "name": "legacy/LEDGER.cobol",
+      "type": "source_code",
+      "status": "committed",
+      "content_hash": "b3faf401dd9961550b8a014ec73a406c73d3f78dc2f6fedaf2817708900f4156",
+      "physical_sha256": "b3faf401dd9961550b8a014ec73a406c73d3f78dc2f6fedaf2817708900f4156"
+    },
+    {
+      "artifact_id": "ae3f1ab4-712b-5a4a-b8ee-4c7327b31772",
+      "name": "legacy/report.py",
+      "type": "source_code",
+      "status": "committed",
+      "content_hash": "6823a145138b7d7ea10d991aed2fe5ac9d29c45352f5fb075910dd50c9a7a0fb",
+      "physical_sha256": "6823a145138b7d7ea10d991aed2fe5ac9d29c45352f5fb075910dd50c9a7a0fb"
+    }
+  ],
+  "durable_all_committed": true,
+  "durable_hashes_verify": true,
+  "registered_count": 2,
+  "kernel_project_id": "1d1ef7ae-7282-4063-93c1-786accb3d7ab",
+  "kernel_workflow_id": "b6f6a345-4b00-4e32-a1fa-aa9a3dc5b8eb",
+  "final_review": {
+    "approved": false,
+    "reason": "Final review decision: changes_requested.",
+    "evidence_files": 2,
+    "decision": "changes_requested",
+    "findings": [
+      {
+        "severity": "high",
+        "title": "Required Files"
+      }
+    ]
+  },
+  "verdict": "legacy artifacts became COMMITTED durable artifacts and were presented to the real final review"
+}

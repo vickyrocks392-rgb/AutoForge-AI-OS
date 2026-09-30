@@ -50,6 +50,19 @@ def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _count_lines(path: str) -> int:
+    """Line count of a real source file; 0 when unreadable.
+
+    Used only for the plan's effort estimate, so a failure degrades the estimate
+    rather than the transformation.
+    """
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return sum(1 for _ in fh)
+    except OSError:
+        return 0
+
+
 class PipelineStatus(str, Enum):
     """Overall status of the modernization pipeline."""
 
@@ -101,6 +114,11 @@ class PipelineResult(BaseModel):
     wave_results: list[PipelineWaveResult] = Field(default_factory=list)
 
     migration_plan: "MigrationPlan | None" = None
+
+    #: DEF-18LR-B2: how many REAL source files were bound to the derived plan.
+    #: A pipeline that planned units but bound no source file could not have
+    #: modernized anything, so this is reported rather than inferred.
+    source_file_inventory: int = 0
 
     provenance_chain: ModernizationProvenanceChain | None = None
 
@@ -279,7 +297,16 @@ class ModernizationPipeline:
 
             # ── Step 3: Migration Plan ──────────────────────────────────
             if plan is None:
-                plan = self._derive_default_plan(project_id, result.analysis_report)
+                # DEF-18LR-B2: bind the REAL legacy source files to the plan so
+                # transformation operates on the customer's actual code rather
+                # than a synthetic placeholder.
+                source_inventory = self._extract_source_inventory(
+                    reconnaissance_output
+                )
+                result.source_file_inventory = len(source_inventory)
+                plan = self._derive_default_plan(
+                    project_id, result.analysis_report, source_inventory
+                )
             result.migration_plan = plan
 
             # ── Step 4: Transformation ──────────────────────────────────
@@ -368,6 +395,82 @@ class ModernizationPipeline:
         except TypeError:
             return []
 
+    def _extract_source_inventory(self, reconnaissance_output) -> list[tuple[str, str]]:
+        """Extract ``(technology, absolute_path)`` pairs from reconnaissance.
+
+        DEF-18LR-B2. The reconnaissance stage already walked the customer's
+        repository and produced a ``scanned_files`` inventory with each file's
+        detected language. The pipeline previously discarded that inventory and
+        kept only the technology NAMES, which is precisely why transformation
+        had no real file to read.
+
+        This reads the existing reconnaissance result; it does not rescan and
+        introduces no new discovery mechanism. Returns ``[]`` when the caller
+        supplied a technology-only reconnaissance shape, in which case the wave
+        fails explicitly rather than transforming a placeholder.
+        """
+        if reconnaissance_output is None:
+            return []
+
+        scanned = None
+        for attr in ("scanned_files", "files"):
+            candidate = getattr(reconnaissance_output, attr, None)
+            if candidate:
+                scanned = list(candidate)
+                break
+        if not scanned and isinstance(reconnaissance_output, dict):
+            for key in ("scanned_files", "files"):
+                candidate = reconnaissance_output.get(key)
+                if candidate:
+                    scanned = list(candidate)
+                    break
+        if not scanned:
+            return []
+
+        # Map the reconnaissance language label onto the G.3 strategy
+        # vocabulary -- the same vocabulary the analysis stage reports as
+        # ``detected_name``, so the plan's source_technology and the bound
+        # files always agree.
+        aliases = {
+            "cobol": "COBOL",
+            "jcl": "JCL",
+            "job_control_language": "JCL",
+            "shell": "SHELL",
+            "bash": "BASH",
+            "sql": "SQL",
+            "pl_sql": "PL_SQL",
+            "asm": "ASSEMBLER",
+            "hlasm": "HLASM",
+            "xml": "XML",
+            "yaml": "YAML",
+            "json": "JSON",
+            "properties": "PROPERTIES",
+        }
+
+        inventory: list[tuple[str, str]] = []
+        for sf in scanned:
+            if isinstance(sf, dict):
+                path = sf.get("path") or sf.get("relative_path")
+                detected = sf.get("detected_language")
+                if not detected:
+                    techs = sf.get("detected_technologies") or []
+                    detected = techs[0] if techs else None
+            else:
+                path = getattr(sf, "path", None) or getattr(
+                    sf, "relative_path", None
+                )
+                detected = getattr(sf, "detected_language", None)
+                if not detected:
+                    techs = list(getattr(sf, "detected_technologies", None) or [])
+                    detected = techs[0] if techs else None
+
+            if not path or not detected:
+                continue
+            key = str(detected).strip().lower().replace("-", "_")
+            technology = aliases.get(key, str(detected).upper())
+            inventory.append((technology, str(path)))
+        return inventory
+
     def _build_gate_record(
         self,
         project_id: str,
@@ -432,12 +535,96 @@ class ModernizationPipeline:
         return record
 
 
-    def _derive_default_plan(self, project_id: str, analysis_report) -> "MigrationPlan":
+    @staticmethod
+    def _select_transformation_type(source_tech: str | None):
+        """Choose a ``TransformationType`` the certified G.3 engine supports.
+
+        DEF-18LR-B2. The wave runner previously derived the G.3 transformation
+        type from ``unit.strategy`` -- the plan-level "6 R's" vocabulary
+        (retain/rehost/replatform/refactor/rewrite/...). That is a different
+        vocabulary from the execution-level types the G.3 strategies key on, so
+        the lookup silently fell through to ``_unsupported_transform`` for
+        several certified technologies (JCL, COBOL->Java) and the unit failed by
+        design. That is an orchestration defect, not an engine defect.
+
+        The supported set is read from the engine's own existing
+        ``supported_types_for`` API -- the same source of truth the certified
+        tests assert against -- so no new language capability is invented and the
+        certified contract is unchanged.
+
+        Within that set the *substantive* transformation is preferred over a
+        cosmetic one. For COBOL, ``refactor`` is a comment/indentation cleanup
+        that legitimately produces byte-identical output on already-clean code;
+        the engine correctly refuses a no-op ("Transformation produced identical
+        content"), which is right, but it would mean the pipeline modernizes
+        nothing. ``transpilation`` is the certified COBOL -> Java transform and
+        is therefore preferred. For JCL, ``reconfiguration`` is the substantive
+        one.
+
+        The plan-level ``MigrationStrategy`` is deliberately NOT mapped onto the
+        transformation type: it is a different vocabulary (the "6 R's"), the
+        derived plan always sets ``REFACTOR``, and letting that cosmetic default
+        win would restore exactly the defect being repaired.
+        """
+        from autoforge_modernization.transformation import TransformationType
+
+        if not source_tech:
+            return TransformationType.REFACTOR
+        try:
+            supported = G3TransformationStrategies.supported_types_for(
+                str(source_tech)
+            )
+        except Exception:
+            return TransformationType.REFACTOR
+        if not supported or supported == ["blocked"]:
+            return TransformationType.REFACTOR
+
+        # Most-substantive first. Only types the engine itself reported as
+        # supported are ever considered.
+        preference = (
+            "transpilation",
+            "rewrite",
+            "reconfiguration",
+            "data_migration",
+            "extraction",
+            "refactor",
+        )
+        for candidate in preference:
+            if candidate in supported:
+                try:
+                    return TransformationType(candidate)
+                except ValueError:
+                    continue
+        return TransformationType.REFACTOR
+
+    def _derive_default_plan(
+        self,
+        project_id: str,
+        analysis_report,
+        source_files: "list[tuple[str, str]] | None" = None,
+    ) -> "MigrationPlan":
         """
         Derive a default MigrationPlan from the analysis report.
 
         Creates one unit per detected technology with a recommended strategy.
         Units are all placed in wave-1 for auto-mode.
+
+        DEF-18LR-B2: units are now bound to the REAL legacy source files.
+
+        Previously the plan carried only a technology *name*, so
+        ``_run_wave`` had no file to read and fabricated
+        ``f"# legacy {tech} unit {id}"`` as the transformation input. The
+        transformation therefore ran on a placeholder and could never
+        modernize a customer's code, however good the strategy was.
+
+        ``source_files`` is the ``(technology, absolute_path)`` inventory the
+        reconnaissance stage already produced. It is threaded into the existing
+        ``MigrationUnitSpec.source_files`` field -- the field that exists for
+        precisely this binding -- so no new model, contract or planner is
+        introduced. When no inventory is available the previous
+        technology-only behaviour is preserved exactly, and the wave records an
+        explicit "no source file" failure instead of silently transforming a
+        placeholder.
         """
         from autoforge_modernization.strategy import (
             MigrationPlan,
@@ -452,6 +639,11 @@ class ModernizationPipeline:
             list(getattr(analysis_report, "technologies", []) or [])
             if analysis_report else []
         )
+        # Group the real source inventory by detected technology.
+        by_tech: dict[str, list[str]] = {}
+        for tech_name, path in source_files or []:
+            by_tech.setdefault(str(tech_name).upper(), []).append(path)
+
         for tech in techs:
             name = getattr(tech, "detected_name", None) or "unknown"
             # Preserve the discovered source technology from analysis. This is
@@ -460,6 +652,14 @@ class ModernizationPipeline:
             # falls back to "java" for every unit and the strategy lookup
             # never finds a match (D3).
             source_tech = getattr(tech, "detected_name", None)
+            bound = by_tech.get(str(source_tech).upper(), []) if source_tech else []
+            # DEF-18LR-B2: the transformation TYPE is selected in ``_run_wave``
+            # from the certified engine's own supported set for this source
+            # technology, because ``MigrationStrategy`` is the plan-level "6 R's"
+            # vocabulary (retain/rehost/replatform/refactor/rewrite/...) and
+            # cannot express the execution-level types the G.3 strategies key on
+            # (transpilation/reconfiguration/...). The plan-level strategy is
+            # therefore left exactly as it was.
             units.append(
                 MigrationUnitSpec(
                     wave_id="wave-1",
@@ -467,9 +667,12 @@ class ModernizationPipeline:
                     strategy=MigrationStrategy.REFACTOR,
                     description=f"Modernize {name} technology",
                     source_technology=source_tech,
+                    source_files=list(bound),
                     target_language="java",
                     target_framework="spring-boot",
-                    estimated_loc=1000,
+                    estimated_loc=sum(
+                        _count_lines(p) for p in bound
+                    ) or 1000,
                     estimated_effort_hours=80.0,
                     estimated_risk="medium",
                 )
@@ -535,52 +738,91 @@ class ModernizationPipeline:
                 if not wave_result.error_message:
                     wave_result.error_message = msg
                 continue
-            target_tech = unit.target_language or "java"
-            tt = (getattr(unit, "strategy", None) or "refactor")
-            tt_value = getattr(tt, "value", str(tt)).lower()
-            try:
-                strategy_fn = G3TransformationStrategies.get_strategy(
-                    source_technology=source_tech,
-                    transformation_type=tt_value,
-                )
-            except NotImplementedError:
-                strategy_fn = None
 
-            if strategy_fn is None:
-                # Unsupported source/target combination — count as failed but continue
+            # DEF-18LR-B2: transform the REAL legacy source.
+            #
+            # A unit now carries the actual source files discovered during
+            # reconnaissance (``MigrationUnitSpec.source_files``). Previously
+            # this loop invented ``f"# legacy {tech} unit {id}"`` and fed that
+            # placeholder to the strategy, so no amount of strategy quality
+            # could ever modernize the customer's code.
+            #
+            # Each real file becomes its own transformation record, so the
+            # audit trail is per-file and the record's ``before_content`` is the
+            # customer's actual bytes. A unit with no bound source file is an
+            # explicit, inspectable failure -- never a silent placeholder.
+            source_files = list(getattr(unit, "source_files", None) or [])
+            if not source_files:
                 wave_result.units_failed += 1
                 msg = (
-                    f"No G.3 strategy for source={source_tech} type={tt_value}"
+                    f"Unit {unit.component_id} ({source_tech}) has no bound source "
+                    "file; refusing to transform a synthetic placeholder. "
+                    "Reconciliation must supply the real legacy file paths."
                 )
                 if not wave_result.error_message:
                     wave_result.error_message = msg
                 continue
 
-            # The strategy callables take (content, tech) and return transformed text
-            def _transform_fn(content: str) -> str:
-                return strategy_fn(content, source_tech)
+            for source_path in source_files:
+                target_tech = unit.target_language or "java"
+                # DEF-18LR-B2: resolve the transformation type against the
+                # engine's certified supported set for THIS source technology,
+                # instead of blindly reusing the plan-level "6 R's" label.
+                transformation_type = self._select_transformation_type(source_tech)
+                tt_value = transformation_type.value
+                try:
+                    strategy_fn = G3TransformationStrategies.get_strategy(
+                        source_technology=source_tech,
+                        transformation_type=tt_value,
+                    )
+                except NotImplementedError:
+                    strategy_fn = None
 
-            before_content = f"# legacy {source_tech} unit {unit.component_id}"
-            try:
-                record = transformation_engine.apply(
-                    project_id=project_id,
-                    job_id=job_id,
-                    unit_id=unit.unit_id,
-                    file_path=f"src/{unit.component_id}.{target_tech}",
-                    transformation_fn=_transform_fn,
-                    transformation_type=TransformationType.REFACTOR,
-                    target_technology=target_tech,
-                    before_content=before_content,
-                    gate_approved=True,
-                )
-                if record.status == TransformationStatus.APPLIED:
-                    wave_result.units_transformed += 1
-                else:
+                if strategy_fn is None:
+                    # Unsupported source/target combination — count as failed but continue
                     wave_result.units_failed += 1
-                wave_result.transformation_record_ids.append(record.record_id)
-            except Exception as e:
-                wave_result.units_failed += 1
-                wave_result.error_message = f"{type(e).__name__}: {e}"
+                    msg = (
+                        f"No G.3 strategy for source={source_tech} type={tt_value}"
+                    )
+                    if not wave_result.error_message:
+                        wave_result.error_message = msg
+                    continue
+
+                # The strategy callables take (content, tech) and return transformed text
+                def _transform_fn(content: str, _fn=strategy_fn, _t=source_tech) -> str:
+                    return _fn(content, _t)
+
+                # The customer's ACTUAL source bytes are the transformation input.
+                try:
+                    with open(source_path, encoding="utf-8", errors="replace") as fh:
+                        before_content = fh.read()
+                except OSError as exc:
+                    wave_result.units_failed += 1
+                    msg = f"Cannot read legacy source {source_path}: {exc}"
+                    if not wave_result.error_message:
+                        wave_result.error_message = msg
+                    continue
+
+                try:
+                    record = transformation_engine.apply(
+                        project_id=project_id,
+                        job_id=job_id,
+                        unit_id=unit.unit_id,
+                        file_path=source_path,
+                        transformation_fn=_transform_fn,
+                        transformation_type=transformation_type,
+                        target_technology=target_tech,
+                        before_content=before_content,
+                        gate_approved=True,
+                    )
+                    if record.status == TransformationStatus.APPLIED:
+                        wave_result.units_transformed += 1
+                    else:
+                        wave_result.units_failed += 1
+                    wave_result.transformation_record_ids.append(record.record_id)
+                except Exception as e:
+                    wave_result.units_failed += 1
+                    wave_result.error_message = f"{type(e).__name__}: {e}"
 
         if wave_result.units_failed == 0:
             wave_result.status = PipelineStatus.COMPLETE

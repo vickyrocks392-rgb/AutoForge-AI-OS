@@ -8,8 +8,11 @@ component of the Kernel.
 
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from autoforge_events.event_types import EventCategory, EventType
 
@@ -112,12 +115,56 @@ class DefaultOrchestrationEngine(OrchestrationEngine):
         )
 
         # Execute each loop in the workflow
+        #
+        # DEF-18L-03: carry the ORIGINAL user request into every loop context.
+        #
+        # ``KernelExecutionEngineAdapter.execute_loop`` builds the task's
+        # ``input_data`` from ``context["request_text"]`` when the loop supplies
+        # none. O-2 never populated that key, so the engineering model was
+        # handed a task NAME ("Core Implementation") instead of the actual
+        # specification, and produced a generic single file that could not
+        # satisfy the project.
+        #
+        # The request is read from the authoritative Runtime state -- the same
+        # source the rest of the completion path uses -- so no new state is
+        # invented and the correlation stays durable. A read failure is
+        # non-fatal: it degrades to the previous behaviour rather than
+        # blocking execution.
+        request_text = ""
+        if self.runtime_state_manager is not None:
+            try:
+                project_state = await self.runtime_state_manager.get_project_state(
+                    project_id
+                )
+                if isinstance(project_state, dict):
+                    # The authoritative Runtime state keeps the full, untruncated
+                    # request under ``request["description"]`` (the shape the
+                    # KernelRuntimeFacade projects). Callers that wrote
+                    # ``description`` directly or ``metadata["original_request"]``
+                    # are accepted as fallbacks rather than assumed.
+                    req = project_state.get("request")
+                    desc = ""
+                    if isinstance(req, dict):
+                        desc = str(req.get("description") or "")
+                    request_text = desc or str(
+                        project_state.get("description")
+                        or (project_state.get("metadata") or {}).get(
+                            "original_request", ""
+                        )
+                        or ""
+                    )
+            except Exception as exc:  # pragma: no cover - defensive only
+                logger.warning(
+                    "Could not read request text for project %s: %s", project_id, exc
+                )
+
         for loop in executable_workflow.loops:
             loop_type = loop.get("type", "unknown")
             loop_context = {
                 "project_id": str(project_id),
                 "workflow_id": str(executable_workflow.workflow_id),
                 "loop": loop,
+                "request_text": request_text,
             }
 
             # Publish loop.started event

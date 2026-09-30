@@ -53,6 +53,7 @@ from autoforge_power_engines.delivery.spec import (
 from autoforge_power_engines.delivery.packaging import CustomerDeliveryBuilder
 from autoforge_power_engines.delivery.sanitizer import ProprietaryBoundarySanitizer
 from tests.helpers import FakeExecutor
+from tests.review_evidence_helpers import register_project_deliverable
 
 
 @pytest.fixture
@@ -112,6 +113,13 @@ async def test_end_to_end_kernel_request_lifecycle(temp_workspace: Path):
     Verify complete request lifecycle:
     submit_request -> Intent Analysis -> Strategic Planning -> Executable Workflow ->
     Loop Dispatch -> Completion Validation -> Project State Projection.
+
+    DEF-P1-EVIDENCE: project completion is gated by the mandatory final review
+    (``architecture/ARCHITECTURE.md`` section 10), so a project only reaches
+    ``finished`` when the real Review Engine approves its real durable
+    deliverables. The deliverable is registered through the authoritative 18-K
+    durable artifact pipeline before finalization, and the test asserts the
+    review genuinely received and approved that evidence.
     """
     system: AutoForgeSystem = build_autoforge_system(workspace_root=str(temp_workspace))
     await system.initialize()
@@ -135,6 +143,21 @@ async def test_end_to_end_kernel_request_lifecycle(temp_workspace: Path):
         state = await system.runtime_facade.get_project_state(project_id)
         assert state is not None
         assert state["project_id"] == project_id
+
+        # DEF-P1-EVIDENCE: register the project's real deliverables, then run the
+        # genuine completion + review gate over them.
+        workflow_id = system.kernel.completion_module._project_workflow_id(state)
+        assert workflow_id, "the project must record its workflow correlation"
+        registered = register_project_deliverable(system, workflow_id)
+        assert "README.md" in registered
+
+        finalize = await system.kernel.completion_module.finalize_project(project_id)
+
+        # The gate must have evaluated REAL evidence and approved it explicitly.
+        assert finalize["final_review"]["approved"] is True
+        assert finalize["final_review"]["evidence_files"] >= len(registered)
+
+        state = await system.runtime_facade.get_project_state(project_id)
         assert state["status"] == "finished"
     finally:
         await system.shutdown()

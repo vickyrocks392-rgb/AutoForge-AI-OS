@@ -435,6 +435,22 @@ class TestCompletionFlow:
         project_id = uuid.uuid4()
         services["runtime_state_manager"].get_project.return_value = MagicMock()
 
+        # Completion requires an explicit final-review approval. The shared
+        # review mock is an ``AsyncMock(spec=ReviewEngine)``, whose bare return
+        # value is not an interpretable approval, so an explicit approval is
+        # supplied here. ``review_project`` is supplied by the production
+        # ``KernelReviewEngineAdapter`` rather than the Kernel ``ReviewEngine``
+        # ABC, so it is attached explicitly.
+        services["review_engine"].review_project = AsyncMock(
+            return_value={
+                "approved": True,
+                "decision": "approved",
+                "status": "approved",
+                "findings": [],
+                "findings_count": 0,
+            }
+        )
+
         # Validate completion
         validation = await kernel.completion_module.validate_completion(project_id)
         assert validation["valid"] is True
@@ -442,6 +458,7 @@ class TestCompletionFlow:
         # Finalize project
         result = await kernel.completion_module.finalize_project(project_id)
         assert result["success"] is True
+        assert result["final_review"]["approved"] is True
 
     @pytest.mark.asyncio
     async def test_completion_fails_with_failed_tasks(self, configured_kernel):

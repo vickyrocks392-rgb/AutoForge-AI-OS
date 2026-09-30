@@ -1,0 +1,81 @@
+{
+  "phase": "18-L-K architectural integrity audit",
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "results": [
+    {
+      "check": "A1_o2_is_production_orchestrator",
+      "passed": true,
+      "evidence": {
+        "file": "packages/composition/src/autoforge_composition/composition_root.py",
+        "constructs_DefaultOrchestrationEngine": true
+      }
+    },
+    {
+      "check": "A2_o1_not_instantiated_by_production",
+      "passed": true,
+      "evidence": {
+        "non_test_code_constructing_O1": [],
+        "note": "orchestrator.py:11 is a docstring example and interfaces.py:621 is the ABC definition; neither is a production construction"
+      }
+    },
+    {
+      "check": "A3_single_artifact_system",
+      "passed": true,
+      "evidence": {
+        "catalog_ctor_sites": [
+          "packages/composition/src/autoforge_composition/composition_root.py"
+        ],
+        "store_ctor_sites": [
+          "packages/composition/src/autoforge_composition/composition_root.py"
+        ]
+      }
+    },
+    {
+      "check": "A5_single_completion_path",
+      "passed": true,
+      "evidence": {
+        "finished_transition_sites": [
+          "packages/kernel/src/autoforge_kernel/completion.py"
+        ],
+        "unexpected": []
+      }
+    },
+    {
+      "check": "A7_provider_neutral_local_path",
+      "passed": true,
+      "evidence": {
+        "per_file": {
+          "packages/ai_infrastructure/src/autoforge_ai_infrastructure/adapters/local_runtime.py": {
+            "ollama_port_only_inside_opt_in_adapter": true,
+            "canonical_default_is_local_8080": true,
+            "has_opt_in_ollama_adapter": true,
+            "references_remote_m1_or_hp_host": false
+          },
+          "packages/composition/src/autoforge_composition/ai_infrastructure_wiring.py": {
+            "ollama_port_only_inside_opt_in_adapter": true,
+            "canonical_default_is_local_8080": true,
+            "has_opt_in_ollama_adapter": false,
+            "references_remote_m1_or_hp_host": false
+          },
+          "packages/execution/src/autoforge_execution/ai_adapter.py": {
+            "ollama_port_only_inside_opt_in_adapter": true,
+            "canonical_default_is_local_8080": false,
+            "has_opt_in_ollama_adapter": false,
+            "references_remote_m1_or_hp_host": false
+          }
+        },
+        "note": "local-m1/local-hp are provider LABELS bound to 127.0.0.1; Ollama is opt-in only and was NOT used in this certification"
+      }
+    },
+    {
+      "check": "A8_context_engineering_and_compaction_globally_enabled",
+      "passed": true,
+      "evidence": {
+        "context_engineering_default": "True",
+        "context_compaction_default": "True"
+      }
+    }
+  ]
+}

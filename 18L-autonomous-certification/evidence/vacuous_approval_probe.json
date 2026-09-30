@@ -1,0 +1,16 @@
+{
+  "review_engine_empty_evidence": {
+    "approved": true,
+    "decision": "approved",
+    "findings": []
+  },
+  "platform_behaviour": {
+    "execute_status": "finished",
+    "final_project_status": "finished",
+    "gate_approved": true,
+    "gate_reason": "Final review explicitly approved the project.",
+    "evidence_files": 0,
+    "reached_finished": true
+  },
+  "verdict": "FAIL-OPEN CONFIRMED: empty evidence produced an explicit approval and the project reached Finished with no deliverable"
+}

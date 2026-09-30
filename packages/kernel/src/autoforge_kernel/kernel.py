@@ -11,10 +11,16 @@ and external Platform Engines.
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Coroutine
 from enum import Enum
+
+#: Module logger. ``logger`` was previously referenced on the learning-stage
+#: exception paths without ever being defined, which raised ``NameError`` and
+#: masked the original failure whenever the learning engine raised.
+logger = logging.getLogger(__name__)
 
 from autoforge_models.project import Project
 from autoforge_models.task import Task
@@ -364,6 +370,45 @@ class Kernel:
         if project_id in self.active_projects:
             self.active_projects[project_id]["strategic_plan"] = strategic_plan
             self.active_projects[project_id]["executable_workflow"] = executable_workflow
+
+        # DEF-P1-EVIDENCE: persist the project's workflow identity in the
+        # authoritative Runtime state.
+        #
+        # Execution artifacts are correlated to a project by ``workflow_id``
+        # (``ArtifactProvenance.workflow_id`` / ``DurableArtifactState``), but
+        # the Kernel kept the planned workflow only in its in-memory
+        # ``active_projects`` map, so the correlation was not durable and was
+        # lost on restart. Without it the Completion Module cannot determine
+        # which durable artifacts belong to a project, and the final review has
+        # no authoritative evidence source.
+        #
+        # ``update_project`` is an existing declared API of this Kernel's
+        # ``RuntimeStateManager`` interface (interfaces.py:211) that projects
+        # ``project.metadata`` into ``ProjectState.configuration``. This adds no
+        # new persistence model, no new state field, and changes no Runtime
+        # behaviour: it records an identity the platform already generates and
+        # already publishes on planning events.
+        if self.runtime_state_manager is not None:
+            try:
+                correlated_project = project.model_copy(
+                    update={
+                        "metadata": {
+                            **dict(project.metadata or {}),
+                            "workflow_id": str(executable_workflow.workflow_id),
+                        }
+                    }
+                )
+                await self.runtime_state_manager.update_project(correlated_project)
+                self.active_projects[project_id]["project"] = correlated_project
+            except Exception as exc:  # pragma: no cover - defensive only
+                # Failing to persist the correlation must not abort the request.
+                # The final review gate still fails closed if evidence cannot be
+                # resolved, so a silent gap here cannot produce a false approval.
+                logger.warning(
+                    "Could not persist workflow correlation for project %s: %s",
+                    project_id,
+                    exc,
+                )
 
         # Step 4 & 5: Orchestration -> Execution Engine -> Engineering Loops
         should_execute = True

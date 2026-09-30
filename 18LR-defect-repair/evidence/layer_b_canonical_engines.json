@@ -1,0 +1,281 @@
+{
+  "phase": "18-LR Layer-B canonical architecture invocation",
+  "method": "The REAL composed system is driven end to end for each engine. The O-2 loop dispatch seam is instrumented to record which concrete component actually executed each loop.",
+  "results": {
+    "rag_knowledge": {
+      "engine": "RAGKnowledgePowerEngine",
+      "request_text": "Build a customer knowledge assistant that ingests our PDF and Markdown documents, embeds them, retrieves relevant passages and answers questions with grounded source citations.",
+      "canonical_path_steps": [
+        "Kernel.submit_request",
+        "IntentAnalysis (DefaultIntentAnalyzer)",
+        "StrategicEngine (DefaultStrategicEngine)",
+        "PlanningCoordinator -> ExecutableWorkflow",
+        "O-2 DefaultOrchestrationEngine.orchestrate",
+        "LoopOrchestrator.orchestrate_loop",
+        "KernelExecutionEngineAdapter.execute_loop"
+      ],
+      "loops_executed": [
+        {
+          "loop_type": "architecture",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "coding",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "qa",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "review",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        }
+      ],
+      "reached_commercial_engine": false,
+      "engine_invoked": [
+        "ExecutionEngine"
+      ],
+      "orchestration_engine": "DefaultOrchestrationEngine",
+      "project_id": "73fb7b7c-346c-4056-9747-f906376cd16d",
+      "intent": {
+        "status": "planning",
+        "acceptance_criteria": {},
+        "task_count": 0
+      },
+      "workflow_id": "7ecd5022-b0ef-4b8c-8880-1ca88aac214f",
+      "distinct_executors": [
+        "ExecutionEngine"
+      ]
+    },
+    "custom_ai_agent": {
+      "engine": "CustomAIAgentPowerEngine",
+      "request_text": "Build a custom AI customer-support agent that can read order files, use the calculator and current_time tools, and answer within a bounded loop.",
+      "canonical_path_steps": [
+        "Kernel.submit_request",
+        "IntentAnalysis (DefaultIntentAnalyzer)",
+        "StrategicEngine (DefaultStrategicEngine)",
+        "PlanningCoordinator -> ExecutableWorkflow",
+        "O-2 DefaultOrchestrationEngine.orchestrate",
+        "LoopOrchestrator.orchestrate_loop",
+        "KernelExecutionEngineAdapter.execute_loop"
+      ],
+      "loops_executed": [
+        {
+          "loop_type": "architecture",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "coding",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "qa",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "review",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        }
+      ],
+      "reached_commercial_engine": false,
+      "engine_invoked": [
+        "ExecutionEngine"
+      ],
+      "orchestration_engine": "DefaultOrchestrationEngine",
+      "project_id": "b8d3b3d0-86dd-4829-90ed-b82ff4c46fda",
+      "intent": {
+        "status": "planning",
+        "acceptance_criteria": {},
+        "task_count": 0
+      },
+      "workflow_id": "684afb8d-cdbe-4a0b-8bdf-899608e0897e",
+      "distinct_executors": [
+        "ExecutionEngine"
+      ]
+    },
+    "ai_automation": {
+      "engine": "AIAutomationPowerEngine",
+      "request_text": "Build an AI automation that watches a drop folder, triggers on new files, runs a multi-step workflow with conditions and error handling, and records state transitions and outputs.",
+      "canonical_path_steps": [
+        "Kernel.submit_request",
+        "IntentAnalysis (DefaultIntentAnalyzer)",
+        "StrategicEngine (DefaultStrategicEngine)",
+        "PlanningCoordinator -> ExecutableWorkflow",
+        "O-2 DefaultOrchestrationEngine.orchestrate",
+        "LoopOrchestrator.orchestrate_loop",
+        "KernelExecutionEngineAdapter.execute_loop"
+      ],
+      "loops_executed": [
+        {
+          "loop_type": "architecture",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "coding",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "qa",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "review",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        }
+      ],
+      "reached_commercial_engine": false,
+      "engine_invoked": [
+        "ExecutionEngine"
+      ],
+      "orchestration_engine": "DefaultOrchestrationEngine",
+      "project_id": "831ccc37-4c39-4960-ba55-de932cd29636",
+      "intent": {
+        "status": "planning",
+        "acceptance_criteria": {},
+        "task_count": 0
+      },
+      "workflow_id": "734f81ab-6863-4717-a01c-613bc4a1eb22",
+      "distinct_executors": [
+        "ExecutionEngine"
+      ]
+    },
+    "code_migration": {
+      "engine": "CodeMigrationPowerEngine",
+      "request_text": "Migrate the existing Python 2 order-processing module to modern typed Python 3, transforming the real source files and verifying the result.",
+      "canonical_path_steps": [
+        "Kernel.submit_request",
+        "IntentAnalysis (DefaultIntentAnalyzer)",
+        "StrategicEngine (DefaultStrategicEngine)",
+        "PlanningCoordinator -> ExecutableWorkflow",
+        "O-2 DefaultOrchestrationEngine.orchestrate",
+        "LoopOrchestrator.orchestrate_loop",
+        "KernelExecutionEngineAdapter.execute_loop"
+      ],
+      "loops_executed": [
+        {
+          "loop_type": "architecture",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "coding",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "qa",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "review",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        }
+      ],
+      "reached_commercial_engine": false,
+      "engine_invoked": [
+        "ExecutionEngine"
+      ],
+      "orchestration_engine": "DefaultOrchestrationEngine",
+      "project_id": "03976187-462e-42ef-99ae-d0f58d219f93",
+      "intent": {
+        "status": "planning",
+        "acceptance_criteria": {},
+        "task_count": 0
+      },
+      "workflow_id": "884baf3f-f62a-402d-a559-f47defbaf185",
+      "distinct_executors": [
+        "ExecutionEngine"
+      ]
+    },
+    "legacy_modernization": {
+      "engine": "ModernizationPipeline",
+      "request_text": "Modernize the legacy COBOL batch ledger and its JCL job into a modern Java service, consuming the actual repository source.",
+      "canonical_path_steps": [
+        "Kernel.submit_request",
+        "IntentAnalysis (DefaultIntentAnalyzer)",
+        "StrategicEngine (DefaultStrategicEngine)",
+        "PlanningCoordinator -> ExecutableWorkflow",
+        "O-2 DefaultOrchestrationEngine.orchestrate",
+        "LoopOrchestrator.orchestrate_loop",
+        "KernelExecutionEngineAdapter.execute_loop"
+      ],
+      "loops_executed": [
+        {
+          "loop_type": "architecture",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "coding",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "qa",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        },
+        {
+          "loop_type": "review",
+          "executor": "KernelExecutionEngineAdapter",
+          "concrete_engine": "ExecutionEngine",
+          "status": "remediate"
+        }
+      ],
+      "reached_commercial_engine": false,
+      "engine_invoked": [
+        "ExecutionEngine"
+      ],
+      "orchestration_engine": "DefaultOrchestrationEngine",
+      "project_id": "8e8bb795-1918-41bf-aba9-dfa662c7f318",
+      "intent": {
+        "status": "planning",
+        "acceptance_criteria": {},
+        "task_count": 0
+      },
+      "workflow_id": "c94b41b8-5bdb-4037-8ccc-13c023446f9d",
+      "distinct_executors": [
+        "ExecutionEngine"
+      ]
+    }
+  },
+  "summary": {
+    "engines_tested": 5,
+    "engines_reached_by_canonical_path": [],
+    "canonical_integration_pass": false
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "autoforge_power_engines": {
+    "internal_importing_files": 49,
+    "external_importing_packages": {}
+  },
+  "autoforge_modernization": {
+    "internal_importing_files": 49,
+    "external_importing_packages": {}
+  },
+  "canonical_path_engine_reachability": {
+    "packages/kernel/src/autoforge_kernel/kernel.py": [],
+    "packages/kernel/src/autoforge_kernel/orchestration.py": [],
+    "packages/kernel/src/autoforge_kernel/completion.py": [],
+    "packages/kernel/src/autoforge_kernel/strategic_engine.py": [],
+    "packages/composition/src/autoforge_composition/composition_root.py": [],
+    "packages/composition/src/autoforge_composition/kernel_adapters.py": [],
+    "packages/execution/src/autoforge_execution/engine.py": []
+  },
+  "canonical_path_reaches_any_engine": false
+}

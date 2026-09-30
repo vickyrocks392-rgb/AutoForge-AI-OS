@@ -49,11 +49,13 @@ from autoforge_composition.ai_infrastructure_wiring import (
     build_ai_infrastructure,
 )
 from autoforge_composition.artifact_wiring import build_artifact_platform_from_bus
+from autoforge_composition.capability_router import build_default_router
 from autoforge_composition.context_allocation import RouterModelAllocationPort
 from autoforge_composition.event_bus_adapter import CanonicalKernelEventBus
 from autoforge_composition.execution_wiring import build_execution_engine
 from autoforge_composition.runtime_facade import KernelRuntimeFacade
 from autoforge_composition.security_wiring import build_security_platform_from_bus
+from autoforge_composition.validation_wiring import WorkspaceValidationPort
 from autoforge_composition.workflow_wiring import build_workflow_engine
 
 from autoforge_execution.engine import ExecutionEngine
@@ -67,7 +69,10 @@ from autoforge_kernel.intent_analysis import DefaultIntentAnalyzer
 from autoforge_kernel.planning_coordination import DefaultPlanningCoordinator
 from autoforge_kernel.orchestration import DefaultOrchestrationEngine
 from autoforge_kernel.infrastructure import DefaultInfrastructureCoordinator
-from autoforge_kernel.completion import DefaultCompletionModule
+from autoforge_kernel.completion import (
+    DefaultCompletionModule,
+    FinalReviewEvidenceCollector,
+)
 from autoforge_kernel.approval import DefaultApprovalCoordinator
 from autoforge_kernel.recovery import DefaultRecoveryCoordinator
 from autoforge_kernel.learning_engine import EngineeringLearningEngine
@@ -185,6 +190,7 @@ class AutoForgeSystem:
     planning_coordinator: DefaultPlanningCoordinator | None = None
     orchestration_engine: DefaultOrchestrationEngine | None = None
     completion_module: DefaultCompletionModule | None = None
+    capability_router: Any | None = None
     infrastructure_coordinator: DefaultInfrastructureCoordinator | None = None
     recovery_coordinator: DefaultRecoveryCoordinator | None = None
     approval_coordinator: DefaultApprovalCoordinator | None = None
@@ -405,8 +411,34 @@ def build_autoforge_system(
     concrete_review_engine = ConcreteReviewEngine(event_sink=canonical_bus)
 
     # 11. Kernel Adapters — bridging platform engines to Kernel's abstract interfaces.
+    #
+    # DEF-18LE-A: the execution adapter is also the canonical capability-routing
+    # seam. The router is constructed here because this is the only place the
+    # canonical O-2 path becomes a consumer of the Commercial Power Engines --
+    # the edge 18-LD proved absent (``external_importing_packages == {}``).
+    # Engine imports are deferred inside the router's factories.
+    #
+    # The engines emit their own lifecycle telemetry through a plain callable;
+    # it is forwarded onto the canonical bus so engine activity is observable in
+    # the same event stream as everything else. Events that are not canonical
+    # ``BaseEvent`` instances are dropped rather than mis-typed (ADR-001).
+    def _publish_engine_event(payload: Any) -> None:
+        try:
+            if isinstance(payload, DomainBaseEvent):
+                canonical_bus.publish(payload)
+        except Exception:  # pragma: no cover - event sink must never break execution
+            pass
+
+    capability_router = build_default_router(event_publisher=_publish_engine_event)
     kernel_workflow_engine = KernelWorkflowEngineAdapter(concrete_engine=workflow_engine)
-    kernel_execution_engine = KernelExecutionEngineAdapter(concrete_engine=execution_engine)
+    kernel_execution_engine = KernelExecutionEngineAdapter(
+        concrete_engine=execution_engine,
+        capability_router=capability_router,
+        # The project-state reader is the EXISTING Kernel facade API; awaiting it
+        # here is what lets capability identity and the declared verification
+        # command arrive at the seam from durable state.
+        project_configuration_reader=facade.get_project_state,
+    )
     kernel_review_engine = KernelReviewEngineAdapter(concrete_engine=concrete_review_engine)
     kernel_model_router = KernelModelRouterAdapter(model_router=ai_infra.router)
 
@@ -436,10 +468,30 @@ def build_autoforge_system(
         knowledge_engine=kernel_knowledge_engine,
         model_router=kernel_model_router,
     )
+    # DEF-P1-EVIDENCE: the Completion Module needs the project's REAL durable
+    # artifacts to review. The DurableArtifactCatalog created in step 3c is the
+    # existing authoritative, 18-K-certified representation of what a project
+    # actually produced, so it is reused here rather than introducing a second
+    # artifact system or a new persistence model. No 18-K behaviour changes: the
+    # catalog is only READ (find_by_workflow).
+    final_review_evidence_collector = FinalReviewEvidenceCollector(
+        durable_catalog=durable_catalog
+    )
+    # DEF-18LR-D8: the mandatory final review must see the project's real
+    # deterministic validation truth, and completion must enforce it. The port
+    # reuses the SAME WorkspaceEnvironment the Execution Engine already runs
+    # in, so the project's own tests are executed where they were written and
+    # through the certified command-execution + output-parsing path.
+    project_validation_port = WorkspaceValidationPort(
+        environment=execution_engine.environment,
+        runtime_state_manager=facade,
+    )
     completion_module = DefaultCompletionModule(
         review_engine=kernel_review_engine,
         event_bus=kernel_bus,
         runtime_state_manager=facade,
+        evidence_collector=final_review_evidence_collector,
+        validation_port=project_validation_port,
     )
     approval_coordinator = DefaultApprovalCoordinator(
         event_bus=kernel_bus,
@@ -499,6 +551,7 @@ def build_autoforge_system(
         planning_coordinator=planning_coordinator,
         orchestration_engine=orchestration_engine,
         completion_module=completion_module,
+        capability_router=capability_router,
         infrastructure_coordinator=infrastructure_coordinator,
         recovery_coordinator=recovery_coordinator,
         approval_coordinator=approval_coordinator,

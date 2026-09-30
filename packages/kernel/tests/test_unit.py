@@ -751,14 +751,29 @@ class TestDefaultCompletionModule:
 
     @pytest.mark.asyncio
     async def test_finalize_project(self, mock_event_bus, mock_runtime_state_manager):
-        """Test project finalization."""
+        """Test project finalization.
+
+        Completion requires an explicit final-review approval, so this test
+        supplies an approving review engine. The production composition root
+        always wires one (composition_root.py).
+        """
         mock_runtime_state_manager.get_project.return_value = MagicMock()
+        review_engine = AsyncMock()
+        review_engine.review_project.return_value = {
+            "approved": True,
+            "decision": "approved",
+            "status": "approved",
+            "findings": [],
+            "findings_count": 0,
+        }
         module = DefaultCompletionModule(
+            review_engine=review_engine,
             event_bus=mock_event_bus,
             runtime_state_manager=mock_runtime_state_manager,
         )
         result = await module.finalize_project(uuid.uuid4())
         assert result["success"]
+        assert result["final_review"]["approved"] is True
 
 
 # ============================================================================

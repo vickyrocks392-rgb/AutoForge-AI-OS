@@ -1,0 +1,668 @@
+{
+  "phase": "18-LE canonical capability routing E2E",
+  "results": {
+    "rag_knowledge": {
+      "capability": "rag_knowledge",
+      "project_id": "700db686-7796-4b55-85d1-7aae380f9673",
+      "final_status": "ProjectStatus.COMPLETING",
+      "loops": [
+        {
+          "loop_type": "architecture",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "rag_knowledge",
+          "capability_source": "project_configuration",
+          "engine_class": "RAGKnowledgePowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_waag0zn1/700db686-7796-4b55-85d1-7aae380f9673/delivery-6ec278d6",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "grounding_score",
+            "real_inference",
+            "syntax_valid",
+            "tests_passed",
+            "tests_run"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "coding",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "rag_knowledge",
+          "capability_source": "project_configuration",
+          "engine_class": "RAGKnowledgePowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_waag0zn1/700db686-7796-4b55-85d1-7aae380f9673/delivery-151d63f9",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "grounding_score",
+            "real_inference",
+            "syntax_valid",
+            "tests_passed",
+            "tests_run"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "qa",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "rag_knowledge",
+          "capability_source": "project_configuration",
+          "engine_class": "RAGKnowledgePowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_waag0zn1/700db686-7796-4b55-85d1-7aae380f9673/delivery-84f020f6",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "grounding_score",
+            "real_inference",
+            "syntax_valid",
+            "tests_passed",
+            "tests_run"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "review",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "rag_knowledge",
+          "capability_source": "project_configuration",
+          "engine_class": "RAGKnowledgePowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_waag0zn1/700db686-7796-4b55-85d1-7aae380f9673/delivery-6fd686f9",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "grounding_score",
+            "real_inference",
+            "syntax_valid",
+            "tests_passed",
+            "tests_run"
+          ],
+          "artifacts": 1,
+          "error": null
+        }
+      ],
+      "routed_loops": 4,
+      "engines_invoked": [
+        "RAGKnowledgePowerEngine"
+      ],
+      "canonical_routing_pass": true
+    },
+    "custom_ai_agent": {
+      "capability": "custom_ai_agent",
+      "project_id": "8e50cbc9-178e-4104-870c-b8f4acbac74f",
+      "final_status": "ProjectStatus.COMPLETING",
+      "loops": [
+        {
+          "loop_type": "architecture",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "custom_ai_agent",
+          "capability_source": "project_configuration",
+          "engine_class": "CustomAIAgentPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_yudz937a/8e50cbc9-178e-4104-870c-b8f4acbac74f/delivery-e2b26262",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "defects_count",
+            "passed",
+            "proprietary_violations"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "coding",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "custom_ai_agent",
+          "capability_source": "project_configuration",
+          "engine_class": "CustomAIAgentPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_yudz937a/8e50cbc9-178e-4104-870c-b8f4acbac74f/delivery-9c6ae983",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "defects_count",
+            "passed",
+            "proprietary_violations"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "qa",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "custom_ai_agent",
+          "capability_source": "project_configuration",
+          "engine_class": "CustomAIAgentPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_yudz937a/8e50cbc9-178e-4104-870c-b8f4acbac74f/delivery-51168804",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "defects_count",
+            "passed",
+            "proprietary_violations"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "review",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "custom_ai_agent",
+          "capability_source": "project_configuration",
+          "engine_class": "CustomAIAgentPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_yudz937a/8e50cbc9-178e-4104-870c-b8f4acbac74f/delivery-851d54cb",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "defects_count",
+            "passed",
+            "proprietary_violations"
+          ],
+          "artifacts": 1,
+          "error": null
+        }
+      ],
+      "routed_loops": 4,
+      "engines_invoked": [
+        "CustomAIAgentPowerEngine"
+      ],
+      "canonical_routing_pass": true
+    },
+    "ai_automation": {
+      "capability": "ai_automation",
+      "project_id": "1f10b354-9716-458f-bbfd-b8ca3679342d",
+      "final_status": "ProjectStatus.COMPLETING",
+      "loops": [
+        {
+          "loop_type": "architecture",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "ai_automation",
+          "capability_source": "project_configuration",
+          "engine_class": "AIAutomationPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_3osl5cxw/1f10b354-9716-458f-bbfd-b8ca3679342d/delivery-a1525395",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "defects_count",
+            "passed",
+            "proprietary_violations"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "coding",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "ai_automation",
+          "capability_source": "project_configuration",
+          "engine_class": "AIAutomationPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_3osl5cxw/1f10b354-9716-458f-bbfd-b8ca3679342d/delivery-946b5b00",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "defects_count",
+            "passed",
+            "proprietary_violations"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "qa",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "ai_automation",
+          "capability_source": "project_configuration",
+          "engine_class": "AIAutomationPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_3osl5cxw/1f10b354-9716-458f-bbfd-b8ca3679342d/delivery-c9d9243a",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "defects_count",
+            "passed",
+            "proprietary_violations"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "review",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "ai_automation",
+          "capability_source": "project_configuration",
+          "engine_class": "AIAutomationPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_3osl5cxw/1f10b354-9716-458f-bbfd-b8ca3679342d/delivery-f40af601",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "defects_count",
+            "passed",
+            "proprietary_violations"
+          ],
+          "artifacts": 1,
+          "error": null
+        }
+      ],
+      "routed_loops": 4,
+      "engines_invoked": [
+        "AIAutomationPowerEngine"
+      ],
+      "canonical_routing_pass": true
+    },
+    "code_migration": {
+      "capability": "code_migration",
+      "project_id": "527b1392-0985-42f5-8f54-0b38cd0a2cda",
+      "final_status": "ProjectStatus.COMPLETING",
+      "loops": [
+        {
+          "loop_type": "architecture",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "code_migration",
+          "capability_source": "project_configuration",
+          "engine_class": "CodeMigrationPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_vclpzwgq/527b1392-0985-42f5-8f54-0b38cd0a2cda/delivery-1537bade",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "failed",
+            "inconclusive",
+            "passed",
+            "total"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "coding",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "code_migration",
+          "capability_source": "project_configuration",
+          "engine_class": "CodeMigrationPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_vclpzwgq/527b1392-0985-42f5-8f54-0b38cd0a2cda/delivery-3d7c0767",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "failed",
+            "inconclusive",
+            "passed",
+            "total"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "qa",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "code_migration",
+          "capability_source": "project_configuration",
+          "engine_class": "CodeMigrationPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_vclpzwgq/527b1392-0985-42f5-8f54-0b38cd0a2cda/delivery-2d1cfd1e",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "failed",
+            "inconclusive",
+            "passed",
+            "total"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "review",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "code_migration",
+          "capability_source": "project_configuration",
+          "engine_class": "CodeMigrationPowerEngine",
+          "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18le_out_vclpzwgq/527b1392-0985-42f5-8f54-0b38cd0a2cda/delivery-0dbd0012",
+          "stages": [
+            "INTAKE",
+            "UNDERSTAND_ANALYZE",
+            "PLAN",
+            "EXECUTE",
+            "OBSERVE",
+            "VERIFY",
+            "DIAGNOSE",
+            "REPAIR",
+            "RE_VERIFY",
+            "PACKAGE",
+            "DELIVER"
+          ],
+          "scorecard_keys": [
+            "failed",
+            "inconclusive",
+            "passed",
+            "total"
+          ],
+          "artifacts": 1,
+          "error": null
+        }
+      ],
+      "routed_loops": 4,
+      "engines_invoked": [
+        "CodeMigrationPowerEngine"
+      ],
+      "canonical_routing_pass": true
+    },
+    "legacy_modernization": {
+      "capability": "legacy_modernization",
+      "project_id": "fa790778-24a4-4f9c-8fa7-debdc449709e",
+      "final_status": "ProjectStatus.COMPLETING",
+      "loops": [
+        {
+          "loop_type": "architecture",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "legacy_modernization",
+          "capability_source": "project_configuration",
+          "engine_class": "ModernizationPipeline",
+          "delivery_dir": null,
+          "stages": [
+            "modernization:complete"
+          ],
+          "scorecard_keys": [
+            "analysis_present",
+            "gate_decisions",
+            "pipeline_status",
+            "real_source",
+            "transformation_records",
+            "units_failed",
+            "units_transformed",
+            "wave_count"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "coding",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "legacy_modernization",
+          "capability_source": "project_configuration",
+          "engine_class": "ModernizationPipeline",
+          "delivery_dir": null,
+          "stages": [
+            "modernization:complete"
+          ],
+          "scorecard_keys": [
+            "analysis_present",
+            "gate_decisions",
+            "pipeline_status",
+            "real_source",
+            "transformation_records",
+            "units_failed",
+            "units_transformed",
+            "wave_count"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "qa",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "legacy_modernization",
+          "capability_source": "project_configuration",
+          "engine_class": "ModernizationPipeline",
+          "delivery_dir": null,
+          "stages": [
+            "modernization:complete"
+          ],
+          "scorecard_keys": [
+            "analysis_present",
+            "gate_decisions",
+            "pipeline_status",
+            "real_source",
+            "transformation_records",
+            "units_failed",
+            "units_transformed",
+            "wave_count"
+          ],
+          "artifacts": 1,
+          "error": null
+        },
+        {
+          "loop_type": "review",
+          "status": "complete",
+          "passed": true,
+          "routed": true,
+          "capability": "legacy_modernization",
+          "capability_source": "project_configuration",
+          "engine_class": "ModernizationPipeline",
+          "delivery_dir": null,
+          "stages": [
+            "modernization:complete"
+          ],
+          "scorecard_keys": [
+            "analysis_present",
+            "gate_decisions",
+            "pipeline_status",
+            "real_source",
+            "transformation_records",
+            "units_failed",
+            "units_transformed",
+            "wave_count"
+          ],
+          "artifacts": 1,
+          "error": null
+        }
+      ],
+      "routed_loops": 4,
+      "engines_invoked": [
+        "ModernizationPipeline"
+      ],
+      "canonical_routing_pass": true
+    }
+  },
+  "summary": {
+    "capabilities_tested": 5,
+    "capabilities_routed": [
+      "rag_knowledge",
+      "custom_ai_agent",
+      "ai_automation",
+      "code_migration",
+      "legacy_modernization"
+    ],
+    "canonical_routing_pass": true
+  }
+}

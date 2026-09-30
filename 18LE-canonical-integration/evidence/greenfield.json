@@ -1,0 +1,93 @@
+{
+  "phase": "18-LE fresh greenfield certification",
+  "model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+  "model_aliases_bound": [
+    "local-m1:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-m1:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-m1:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-hp:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-hp:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "local-hp:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "openai-compatible:qwen2.5-coder-7b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "openai-compatible:qwen2.5-coder-3b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "openai-compatible:ornith-9b->mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2"
+  ],
+  "catalog_models": [],
+  "request_text": "Build a small Python package called 'textmetrics' in textmetrics/ with a core.py module. It must expose:\n  - word_count(text): returns len(text.split())\n  - char_count(text): returns len(text)\nDeliverables required by this request (all four must exist):\n  - textmetrics/__init__.py and textmetrics/core.py\n  - tests/test_textmetrics.py using pytest.\n  - README.md at the project root describing the package, its two public functions, and how to run the test suite with: python -m pytest -q tests\nCRITICAL CONSTRAINT on the test file: do NOT hard-code any numeric character or word count. Every assertion must call the function under test and compare against a Python expression computed at runtime, e.g. assert char_count(s) == len(s) and assert word_count(s) == len(s.split()), where s is a string literal defined in the same test. This makes the tests correct by construction and independent of manual counting.",
+  "verification_contract": "python -m pytest -q tests",
+  "workspace": "/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LE_greenfield_ws_jxb1qdjd",
+  "project_id": "1fc3280a-2a01-4660-9a5c-218e37432555",
+  "final_state": "ProjectStatus.FINISHED",
+  "durable_artifacts": {
+    "count": 10,
+    "by_status": {
+      "committed": 10
+    },
+    "by_type": {
+      "summary": 3,
+      "source_code": 4,
+      "diff": 1,
+      "execution_log": 1,
+      "evaluation_report": 1
+    }
+  },
+  "validation": {
+    "required": true,
+    "performed": true,
+    "passed": true,
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests"
+    ],
+    "exit_code": 0,
+    "reason": "Verification command passed (0 tests).",
+    "test_results": {
+      "total_tests": 0,
+      "passed_tests": 0,
+      "failed_tests": 0,
+      "error_tests": 0,
+      "skipped_tests": 0,
+      "failure_details": [],
+      "raw_summary_line": ""
+    }
+  },
+  "review_evidence_files": 9,
+  "review_evidence_names": [
+    "README.md",
+    "architecture_proposal.md",
+    "changes_iter_1.diff",
+    "cmd_python_iter_1.log",
+    "evaluation_report_iter_1.json",
+    "qa_test_strategy.md",
+    "tests/test_textmetrics.py",
+    "textmetrics/__init__.py",
+    "textmetrics/core.py"
+  ],
+  "generated_files": [
+    ".pytest_cache/README.md",
+    "README.md",
+    "artifacts/README.md",
+    "artifacts/architecture_proposal.md",
+    "artifacts/qa_test_strategy.md",
+    "artifacts/tests/test_textmetrics.py",
+    "artifacts/textmetrics/__init__.py",
+    "artifacts/textmetrics/core.py",
+    "tests/test_textmetrics.py",
+    "textmetrics/__init__.py",
+    "textmetrics/core.py"
+  ],
+  "readme_present": true,
+  "artifact_integrity": {
+    "checked": 10,
+    "all_exist": true,
+    "all_hashes_match": true
+  },
+  "finalize": {
+    "already_finalized_by_execute_project": true,
+    "validation_required": true,
+    "validation_passed": true
+  }
+}

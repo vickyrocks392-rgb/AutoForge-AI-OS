@@ -434,13 +434,28 @@ class TestOrchestrationCompletion:
 
     @pytest.mark.asyncio
     async def test_successful_completion(self, full_kernel):
-        """Test successful project completion."""
+        """Test successful project completion.
+
+        Completion requires an explicit final-review approval, so the completion
+        module is given an approving review engine before finalizing.
+        """
         kernel, services = full_kernel
         services["runtime_state_manager"].get_project.return_value = MagicMock()
+
+        review_engine = AsyncMock()
+        review_engine.review_project.return_value = {
+            "approved": True,
+            "decision": "approved",
+            "status": "approved",
+            "findings": [],
+            "findings_count": 0,
+        }
+        kernel.completion_module.review_engine = review_engine
 
         project_id = uuid.uuid4()
         result = await kernel.completion_module.finalize_project(project_id)
         assert result["success"] is True
+        assert result["final_review"]["approved"] is True
 
     @pytest.mark.asyncio
     async def test_completion_with_failed_tasks(self, full_kernel):

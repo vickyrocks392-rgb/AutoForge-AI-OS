@@ -13,10 +13,16 @@ Bridges the AutoForge Kernel's abstract service and platform engine interfaces
 
 from __future__ import annotations
 
+import inspect
 import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+
+from autoforge_composition.capability_router import (
+    UnknownCapabilityError,
+    read_capability,
+)
 
 from autoforge_kernel.interfaces import (
     ExecutionEngine as KernelExecutionEngineABC,
@@ -49,6 +55,56 @@ from autoforge_ai_infrastructure.metadata import RoutingRequest, CapabilityIds
 from autoforge_runtime import RuntimeStateManager
 
 logger = logging.getLogger("autoforge.composition.kernel_adapters")
+
+
+def _test_summary_from_context(ctx: Dict[str, Any]) -> Any | None:
+    """Build a real ``TestResultSummary`` from deterministic validation truth.
+
+    DEF-18LR-D8. The previous behaviour synthesised a one-test placeholder
+    (``total_tests=1, failed_tests=1``) whenever a boolean said "there were
+    failures", so the Review Engine never saw how many tests ran, how many
+    passed, or what actually failed. The final review is a quality gate over
+    evidence; it deserves the real numbers.
+
+    Precedence:
+      1. ``ctx["test_results"]`` -- a full structured summary from the
+         deterministic validation port. Used verbatim.
+      2. ``ctx["has_test_failures"]`` -- the legacy boolean, preserved exactly
+         for callers that still pass it.
+
+    Returns ``None`` when nothing is asserted, which preserves the existing
+    "absence is not a failure" review semantics.
+    """
+    from autoforge_execution.models import TestResultSummary
+
+    raw = ctx.get("test_results")
+    if isinstance(raw, dict):
+        try:
+            return TestResultSummary(
+                total_tests=int(raw.get("total_tests", 0) or 0),
+                passed_tests=int(raw.get("passed_tests", 0) or 0),
+                failed_tests=int(raw.get("failed_tests", 0) or 0),
+                error_tests=int(raw.get("error_tests", 0) or 0),
+                skipped_tests=int(raw.get("skipped_tests", 0) or 0),
+                failure_details=[str(d) for d in (raw.get("failure_details") or [])],
+                raw_summary_line=str(raw.get("raw_summary_line", "") or ""),
+            )
+        except (TypeError, ValueError):
+            # Malformed structured truth must not become a fabricated summary.
+            # Fall through to the legacy boolean so the caller still fails closed.
+            pass
+
+    if ctx.get("has_test_failures") or ctx.get("has_errors"):
+        return TestResultSummary(
+            total_tests=1,
+            passed_tests=0,
+            failed_tests=1,
+            error_tests=1 if ctx.get("has_errors") else 0,
+            skipped_tests=0,
+            failure_details=[str(ctx.get("test_error", "Test failed"))],
+            raw_summary_line="1 failed",
+        )
+    return None
 
 
 # ── 1. Workflow Engine Adapter ───────────────────────────────────────────────
@@ -214,10 +270,235 @@ class KernelExecutionEngineAdapter(KernelExecutionEngineABC):
     """
     Adapts the concrete autoforge_execution engine to satisfy the Kernel's
     ExecutionEngine interface.
+
+    DEF-18LE-A: this adapter is also the canonical capability-routing seam that
+    18-LD isolated. When a Commercial Power Engine is requested, the loop is
+    dispatched to that engine through its own existing contract and the result is
+    returned in the SAME dict shape ``handle_loop_completion`` already consumes.
+
+    When NO capability is declared the method is byte-for-byte the generic path:
+    generic engineering requests are unaffected.
     """
 
-    def __init__(self, concrete_engine: ConcreteExecutionEngine) -> None:
+    def __init__(
+        self,
+        concrete_engine: ConcreteExecutionEngine,
+        *,
+        capability_router: Any | None = None,
+        project_configuration_reader: Any | None = None,
+    ) -> None:
         self.concrete_engine = concrete_engine
+        self._router = capability_router
+        self._config_reader = project_configuration_reader
+
+    async def _project_configuration(self, project_id: Any) -> Dict[str, Any]:
+        """Read the project's durable configuration, if a reader is wired.
+
+        The existing ``KernelRuntimeFacade.get_project_state`` returns the
+        Runtime's ``ProjectState`` *model*, and the validation port's reader
+        returns a plain dict. Both shapes are accepted so the two consumers of
+        the same durable state can never disagree.
+        """
+        if self._config_reader is None:
+            return {}
+        try:
+            # Accept either a reader callable (production: the bound
+            # ``KernelRuntimeFacade.get_project_state``) or an object exposing
+            # ``get_project_state`` (a test double or an alternative facade).
+            reader = self._config_reader
+            if not callable(reader):
+                reader = reader.get_project_state
+            state = reader(project_id)
+            if inspect.isawaitable(state):
+                state = await state
+        except Exception as exc:  # pragma: no cover - defensive only
+            logger.warning("Could not read project configuration: %s", exc)
+            return {}
+        return _project_configuration_of(state)
+
+    @staticmethod
+    def _with_verification_commands(
+        input_data: Any, project_configuration: Dict[str, Any]
+    ) -> Any:
+        """Return ``input_data`` carrying the declared verification command.
+
+        DECISION B layer 1 transport. The declared command is read with the SAME
+        existing resolver the completion gate uses
+        (``validation_wiring.resolve_verification_command``), so the loop and the
+        gate can never disagree about what was declared. The value is placed in
+        ``input_data["verification_commands"]`` as an argv list, which is the
+        shape ``WorkforceWorker.execute_task`` already reads.
+
+        The input is copied, never mutated, and is returned unchanged when the
+        project declares no verification command.
+        """
+        if not project_configuration:
+            return input_data
+        from autoforge_composition.validation_wiring import (
+            resolve_verification_command,
+        )
+
+        argv = resolve_verification_command(project_configuration)
+        if not argv:
+            return input_data
+        if not isinstance(input_data, dict):
+            input_data = {}
+        else:
+            input_data = dict(input_data)
+        # Never overwrite an explicit, more specific declaration on the loop.
+        if not input_data.get("verification_commands"):
+            input_data["verification_commands"] = [list(argv)]
+        return input_data
+        # Never overwrite an explicit, more specific declaration on the loop.
+        if not input_data.get("verification_commands"):
+            input_data["verification_commands"] = [list(argv)]
+        return input_data
+
+    async def _execute_commercial_loop(
+        self,
+        *,
+        capability: str,
+        capability_source: Optional[str],
+        loop_type: str,
+        task_id: str,
+        task_name: str,
+        loop_input: Dict[str, Any],
+        context: Dict[str, Any],
+        project_id: Any,
+        project_configuration: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        """Dispatch this loop to the requested Commercial Power Engine.
+
+        The engine is invoked through its OWN existing contract and the outcome is
+        returned in the dict shape ``handle_loop_completion`` already consumes, so
+        O-2 completion, the durable artifact path, Review and Completion all work
+        unchanged.
+
+        Fail-closed: an unknown capability, an engine failure, or a routing error
+        is reported as a loop ``failed``/``remediate`` result. It is never silently
+        downgraded to the generic engine, which would hide the defect.
+        """
+        request_text = str(context.get("request_text") or "")
+        try:
+            routed = await self._router.invoke(
+                capability,
+                project_id=str(project_id or task_id),
+                request_text=request_text,
+                project_configuration=_unwrap_configuration(project_configuration),
+            )
+        except UnknownCapabilityError as exc:
+            logger.error("Unknown commercial capability %r: %s", capability, exc)
+            return {
+                "status": "failed",
+                "loop_type": loop_type,
+                "passed": False,
+                "error": str(exc),
+                "capability": capability,
+                "routed": False,
+            }
+        except Exception as exc:  # noqa: BLE001 - reported, never swallowed
+            logger.error(
+                "Commercial engine %r failed during %s: %s",
+                capability, loop_type, exc, exc_info=True,
+            )
+            return {
+                "status": "remediate",
+                "loop_type": loop_type,
+                "passed": False,
+                "error": f"{type(exc).__name__}: {exc}",
+                "capability": capability,
+                "engine_class": type(self._router).__name__,
+                "routed": True,
+            }
+
+        # Publish the engine's own deterministic evidence as a durable artifact so
+        # it flows through the SAME 18-K pipeline as everything else and reaches
+        # the final Review as real evidence (DECISION B layer 2).
+        artifacts = await self._publish_routed_evidence(
+            routed=routed,
+            task_id=task_id,
+            task_name=task_name,
+            context=context,
+        )
+
+        return {
+            "status": routed.status,
+            "loop_type": loop_type,
+            "passed": routed.success,
+            "artifacts": artifacts,
+            "evaluation": routed.status,
+            "findings": [] if routed.success else [routed.error_message or "engine reported failure"],
+            # Routing evidence: the ACTUAL engine that executed.
+            "routed": True,
+            "capability": capability,
+            "capability_source": capability_source,
+            "engine_class": routed.engine_class,
+            "delivery_dir": routed.delivery_dir,
+            "stages_executed": routed.stages_executed,
+            "repair_count": routed.repair_count,
+            "verification_scorecard": routed.verification_scorecard,
+            "summary_report": routed.summary_report,
+            "error": routed.error_message,
+        }
+
+    async def _publish_routed_evidence(
+        self,
+        *,
+        routed: Any,
+        task_id: str,
+        task_name: str,
+        context: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        """Record a routed engine's own verification scorecard as a durable artifact.
+
+        The Commercial Power Engines already produce deterministic verification
+        internally (``_stage_verify`` -> ``verification_scorecard``, or
+        ``PipelineResult`` for Legacy Modernization). DECISION B requires that
+        evidence to reach canonical validation/review/completion rather than be
+        replaced by a second authority, so it is published through the EXISTING
+        ``ArtifactPipeline`` (and therefore 18-K DurableArtifactCatalog +
+        PhysicalArtifactStore) instead of a private channel.
+        """
+        import json
+
+        from autoforge_execution.models import ArtifactProvenance, ArtifactType
+
+        wf_raw = context.get("workflow_id")
+        try:
+            wf_id = uuid.UUID(wf_raw) if wf_raw else None
+        except (ValueError, AttributeError, TypeError):
+            wf_id = None
+
+        try:
+            pipeline = getattr(self.concrete_engine, "artifacts", None)
+            if pipeline is None:
+                return []
+            record = pipeline.record_artifact(
+                name=f"commercial_verification_{routed.capability}_{task_id}.json",
+                artifact_type=ArtifactType.TEST_REPORT,
+                content=json.dumps(routed.to_dict(), indent=2, default=str),
+                provenance=ArtifactProvenance(
+                    task_id=str(task_id),
+                    worker_id=f"commercial-{routed.capability}",
+                    workflow_id=wf_id,
+                    metadata={
+                        "capability": routed.capability,
+                        "engine_class": routed.engine_class,
+                        "loop": task_name,
+                    },
+                ),
+            )
+            return [
+                record.model_dump(mode="json") if hasattr(record, "model_dump")
+                else dict(record.__dict__)
+            ]
+        except Exception as exc:  # noqa: BLE001 - evidence publication is best-effort
+            logger.warning(
+                "Could not publish routed verification evidence for %s: %s",
+                routed.capability, exc,
+            )
+            return []
+
 
     async def execute_loop(
         self,
@@ -230,6 +511,35 @@ class KernelExecutionEngineAdapter(KernelExecutionEngineABC):
         """
         task_id = loop_input.get("loop", {}).get("task_id", f"task-{loop_type}-{uuid.uuid4().hex[:6]}")
         task_name = loop_input.get("loop", {}).get("name", f"{loop_type.title()} Loop")
+
+        # ── DEF-18LE-A: canonical capability routing (DECISION A) ──────────
+        #
+        # 18-LD proved this is the last boundary before the generic engine
+        # commits, and that capability identity already arrives here through the
+        # durable configuration channel. A declared capability routes to its
+        # Commercial Power Engine; NO capability means the generic path below,
+        # which is unchanged.
+        project_id = context.get("project_id") or loop_input.get("project_id")
+        project_configuration: Dict[str, Any] = {}
+        if self._router is not None:
+            project_configuration = await self._project_configuration(project_id)
+            capability, capability_source = read_capability(
+                loop_input, project_configuration
+            )
+            if capability:
+                routed = await self._execute_commercial_loop(
+                    capability=capability,
+                    capability_source=capability_source,
+                    loop_type=loop_type,
+                    task_id=task_id,
+                    task_name=task_name,
+                    loop_input=loop_input,
+                    context=context,
+                    project_id=project_id,
+                    project_configuration=project_configuration,
+                )
+                if routed is not None:
+                    return routed
 
         # Map loop_type to appropriate worker type
         worker_map = {
@@ -248,9 +558,53 @@ class KernelExecutionEngineAdapter(KernelExecutionEngineABC):
         if not input_data and "request_text" in context:
             input_data = {"description": context.get("request_text")}
 
+        # DEF-18LE-B: transport the declared verification command.
+        #
+        # DECISION B layer 1. 18-LD proved the whole downstream chain already
+        # exists and is LIVE but is fed by nothing:
+        #   WorkforceWorker.execute_task  reads input_data["verification_commands"]
+        #   EngineeringLoop.run          honours verification_commands (and the
+        #                                  input_data["commands"] /
+        #                                  ["test_commands"] fallbacks)
+        # and that exactly ONE write was missing, here. This is that write.
+        #
+        # It is applied AFTER the DEF-18L-03 fallback above so a fallback-created
+        # input mapping cannot discard the declaration. The command is read with
+        # the SAME existing resolver the completion gate uses, so the loop and
+        # the gate can never disagree about what was declared. No new validation
+        # system is created: the existing WorkspaceEnvironment, EvaluationEngine,
+        # parse_test_output and durable evaluation artifacts do all the work.
+        input_data = self._with_verification_commands(
+            input_data, project_configuration
+        )
+
+        # DEF-18L-04: carry the specification onto ``TaskDefinition.description``.
+        #
+        # ``EngineeringContextBuilder`` builds the model's context from
+        # ``task_def.name`` and ``task_def.description``
+        # (context_builder.py:235,306). The description was never populated, so
+        # the canonical Context Engineering path -- the one that is globally
+        # enabled and certified -- assembled a prompt from the loop NAME alone
+        # ("Core Implementation"). The model therefore had no access to the
+        # project specification even though ``input_data`` carried it, and
+        # produced an unrelated generic project.
+        #
+        # ``input_data`` is preserved exactly as before; this only fills the
+        # field the context builder already reads. The request is used only when
+        # no more specific description was supplied.
+        description = str(loop_input.get("loop", {}).get("description") or "")
+        if not description and "request_text" in context:
+            description = str(context.get("request_text") or "")
+        if not description and isinstance(input_data, dict):
+            description = str(input_data.get("description") or "")
+
+        # ``input_data`` was already decorated with the declared verification
+        # command above, so the TaskDefinition carries it into the real worker
+        # contract (``WorkforceWorker.execute_task``) unchanged.
         task_def = TaskDefinition(
             task_id=task_id,
             name=task_name,
+            description=description,
             task_type=loop_type,
             input_data=input_data,
         )
@@ -306,6 +660,46 @@ class KernelExecutionEngineAdapter(KernelExecutionEngineABC):
         }
 
 
+def _project_configuration_of(state: Any) -> Dict[str, Any]:
+    """Return a project state's ``configuration`` from either supported shape.
+
+    The Runtime exposes the same durable state in two forms that already exist in
+    this repository:
+
+    * ``ProjectState`` (a model) via ``KernelRuntimeFacade.get_project_state``;
+    * a plain ``dict`` via ``model_dump(mode="python")`` (what the D-8 validation
+      port receives).
+
+    Both are read here so the routing seam and the validation gate resolve the
+    SAME project configuration. No new state model is introduced.
+    """
+    if state is None:
+        return {}
+    configuration = getattr(state, "configuration", None)
+    if configuration is None and isinstance(state, dict):
+        configuration = state.get("configuration")
+    return dict(configuration) if isinstance(configuration, dict) else {}
+
+
+def _unwrap_configuration(project_configuration: Dict[str, Any]) -> Dict[str, Any]:
+    """Return the requester's own configuration mapping.
+
+    The existing intake persists ``Request.configuration`` one level deep inside
+    ``ProjectState.configuration`` (``Project.metadata["configuration"]``). Both
+    the flat and nested shapes are accepted so callers cannot disagree about the
+    shape, exactly as ``resolve_verification_command`` already does.
+    """
+    if not isinstance(project_configuration, dict):
+        return {}
+    nested = project_configuration.get("configuration")
+    if isinstance(nested, dict):
+        merged = dict(project_configuration)
+        merged.pop("configuration", None)
+        merged.update(nested)
+        return merged
+    return dict(project_configuration)
+
+
 # ── 3. Review Engine Adapter ────────────────────────────────────────────────
 
 class KernelReviewEngineAdapter(KernelReviewEngineABC):
@@ -323,17 +717,15 @@ class KernelReviewEngineAdapter(KernelReviewEngineABC):
         project_id: uuid.UUID | None = None,
     ) -> Any:
         from autoforge_review.models import ReviewRequest
-        # ReviewEngine requires at least one file or signal
-        has_files = bool(evidence.source_files)
-        has_signals = (
-            evidence.test_results is not None
-            or evidence.build_exit_code is not None
-            or bool(evidence.metrics)
-            or bool(evidence.command_results)
-        )
-        if not has_files and not has_signals:
-            evidence = evidence.model_copy(update={"source_files": {"manifest.json": "{}"}})
 
+        # DEF-P1-EVIDENCE. The Review Engine does NOT require a file or signal to
+        # be present: it has an explicit, inspectable branch for genuinely empty
+        # evidence that returns APPROVED with a ``no_target`` gate
+        # (autoforge_review/engine.py). The previous code injected a synthetic
+        # ``{"manifest.json": "{}"}`` placeholder to "satisfy" that requirement,
+        # which instead defeated the empty-evidence branch and produced a real
+        # ``high / Required Files`` documentation finding, rejecting every
+        # project regardless of quality. No evidence is fabricated here.
         if hasattr(self.concrete_engine, "review"):
             req = ReviewRequest(
                 project_id=project_id,
@@ -370,20 +762,35 @@ class KernelReviewEngineAdapter(KernelReviewEngineABC):
         context: dict[str, Any] | None = None,
         evidence: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        """Run the canonical final project review over REAL project evidence.
+
+        DEF-P1-EVIDENCE. ``evidence`` may carry the project's actual deliverable
+        content as ``{filename: content}``. When supplied it is passed to the
+        Review Engine verbatim, so the review evaluates the real project output.
+
+        When no content is supplied the Review Engine's own explicitly-empty
+        branch runs and returns an inspectable ``no_target`` verdict. No
+        synthetic placeholder file is manufactured here: the previous
+        ``{"manifest.json": "{}"}`` fallback defeated that branch and rejected
+        every project with a spurious ``Required Files`` finding.
+        """
         from autoforge_execution.models import TestResultSummary
-        ctx = evidence or context or {}
-        test_results = None
-        if ctx.get("has_test_failures"):
-            test_results = TestResultSummary(
-                total_tests=1,
-                passed_tests=0,
-                failed_tests=1,
-                error_tests=0,
-                skipped_tests=0,
-                failure_details=[str(ctx.get("test_error", "Test failed"))],
-                raw_summary_line="1 failed",
-            )
+
+        # ``evidence`` is the authoritative source of reviewable content. The
+        # legacy ``context`` dict remains supported for callers that still pass
+        # the older shape.
+        source_files: dict[str, str] = {}
+        ctx: dict[str, Any] = {}
+        if isinstance(evidence, dict) and evidence:
+            source_files = {str(k): str(v) for k, v in evidence.items()}
+        if context:
+            ctx = dict(context)
+        elif isinstance(evidence, dict):
+            ctx = {k: v for k, v in evidence.items() if not isinstance(v, str)}
+
+        test_results = _test_summary_from_context(ctx)
         rev_evidence = ReviewEvidence(
+            source_files=source_files,
             artifact_ids=[str(project_id)],
             changed_files=ctx.get("changed_files", []),
             test_results=test_results,
@@ -398,6 +805,7 @@ class KernelReviewEngineAdapter(KernelReviewEngineABC):
             "decision": status_val,
             "findings": [f.model_dump(mode="json") for f in result.findings],
             "findings_count": len(result.findings),
+            "evidence_files": len(source_files),
         }
 
     async def review_artifact(

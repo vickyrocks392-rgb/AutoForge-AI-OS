@@ -234,6 +234,29 @@ class EngineeringLoop:
                 if edit_path:
                     self._env.filesystem.write_text(edit_path, edit_content, overwrite=True)
                     changed_files.append(edit_path)
+                    # DEF-18L-01: register the ACTUAL generated source as a
+                    # durable artifact, not just the file name.
+                    #
+                    # Before this, only a diff SUMMARY ("Modified files: ...")
+                    # became durable, so a project's real deliverable existed
+                    # only on the workspace filesystem and never reached the
+                    # authoritative 18-K catalog. The final review therefore
+                    # inspected platform bookkeeping instead of the project.
+                    #
+                    # This is the existing artifact boundary: the bytes flow
+                    # through the same ArtifactPipeline -> DurableArtifactCatalog
+                    # -> PhysicalArtifactStore -> COMMITTED path used by every
+                    # other execution artifact. No second artifact store, no new
+                    # persistence model, and no change to the 18-J/18-K state
+                    # machine (the pipeline already honours idempotent replay).
+                    source_art = self._artifacts.record_artifact(
+                        name=edit_path,
+                        artifact_type=ArtifactType.SOURCE_CODE,
+                        content=edit_content,
+                        provenance=provenance,
+                        path=edit_path,
+                    )
+                    produced_artifacts.append(source_art)
             if changed_files:
                 diff_summary = "Modified files: " + ", ".join(changed_files)
                 diff_art = self._artifacts.record_diff_artifact(diff_summary, provenance)

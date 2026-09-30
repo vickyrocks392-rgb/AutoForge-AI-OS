@@ -1,0 +1,70 @@
+{
+  "phase": "18-LE canonical architecture trace",
+  "capability": "custom_ai_agent",
+  "kernel": "Kernel",
+  "orchestration_engine": "DefaultOrchestrationEngine",
+  "strategic_engine": "DefaultStrategicEngine",
+  "execution_engine": "ExecutionEngine",
+  "durable_catalog": "DurableArtifactCatalog",
+  "physical_store": "PhysicalArtifactStore",
+  "review_engine": "ReviewEngine",
+  "capability_router": "CommercialCapabilityRouter",
+  "router_capabilities": [
+    "ai_automation",
+    "code_migration",
+    "custom_ai_agent",
+    "rag_knowledge"
+  ],
+  "project_id": "62774cd3-0276-4077-a70f-ec1fc8f3aa42",
+  "strategic_plan": {
+    "present": true,
+    "requirements": 2,
+    "acceptance_criteria": 4
+  },
+  "executable_workflow": {
+    "present": true,
+    "loop_count": 4
+  },
+  "loops_observed": 4,
+  "loops_routed": 4,
+  "engine_actually_invoked": [
+    "CustomAIAgentPowerEngine"
+  ],
+  "capability_resolution": [
+    {
+      "loop": "architecture",
+      "capability": "custom_ai_agent",
+      "source": "project_configuration"
+    }
+  ],
+  "engine_stages": [
+    "INTAKE",
+    "UNDERSTAND_ANALYZE",
+    "PLAN",
+    "EXECUTE",
+    "OBSERVE",
+    "VERIFY",
+    "DIAGNOSE",
+    "REPAIR",
+    "RE_VERIFY",
+    "PACKAGE",
+    "DELIVER"
+  ],
+  "engine_verification_scorecard": {
+    "defects_count": 0,
+    "passed": true,
+    "proprietary_violations": 0
+  },
+  "delivery_dir": "/private/var/folders/fv/8c67x0990dq8cb6c57ph4kmh0000gn/T/18LE_trace_out_p7lf1vea/62774cd3-0276-4077-a70f-ec1fc8f3aa42/delivery-acfaf043",
+  "delivery_exists": true,
+  "final_state": "ProjectStatus.COMPLETING",
+  "durable_artifacts": 4,
+  "durable_all_committed": true,
+  "review_evidence_files": 4,
+  "review_evidence_names": [
+    "commercial_verification_custom_ai_agent_task-arch-6c5f9b.json",
+    "commercial_verification_custom_ai_agent_task-code-e34d5d.json",
+    "commercial_verification_custom_ai_agent_task-qa-c4ea2e.json",
+    "commercial_verification_custom_ai_agent_task-review-c202a1.json"
+  ]
+}
