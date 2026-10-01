@@ -14,6 +14,7 @@ import asyncio
 import os
 import resource
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -612,15 +613,31 @@ class PodmanSandboxProvider(ContainerSandboxProvider):
         if shutil.which("podman") is None:
             self._is_avail = False
             return False
-        # Verify podman can respond and the sandbox image is present locally
+        # Verify podman can respond and the sandbox image is present locally.
+        #
+        # SECURITY (SEC-01): this must never go through a shell. The image
+        # reference is operator/configuration-supplied, and interpolating it
+        # into an ``os.system`` string let shell metacharacters in the image
+        # execute arbitrary commands. Both probes are argv-only.
         try:
-            res = os.system("podman --version > /dev/null 2>&1")
-            if res != 0:
+            ver = subprocess.run(
+                ["podman", "--version"],
+                capture_output=True,
+                timeout=10,
+                shell=False,
+            )
+            if ver.returncode != 0:
                 self._is_avail = False
                 return False
-            img_res = os.system(f"podman image exists {self.image} > /dev/null 2>&1")
-            self._is_avail = (img_res == 0)
+            img = subprocess.run(
+                ["podman", "image", "exists", self._image],
+                capture_output=True,
+                timeout=10,
+                shell=False,
+            )
+            self._is_avail = (img.returncode == 0)
         except Exception:
+            # Fail closed: an unreadable runtime is not an available runtime.
             self._is_avail = False
         return self._is_avail
 

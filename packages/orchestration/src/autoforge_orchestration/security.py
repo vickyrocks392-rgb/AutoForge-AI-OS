@@ -10,6 +10,7 @@ never execute unrestricted on the host — they run inside the existing
 from __future__ import annotations
 
 import re
+from pathlib import PurePosixPath
 from typing import Any
 
 from autoforge_orchestration.errors import SecurityBoundaryError
@@ -31,6 +32,19 @@ _FORBIDDEN_PATTERNS: list[re.Pattern[str]] = [
 
 _PATH_TRAVERSAL_TOKENS = {"..", "~", "$HOME", "$USER", "/etc", "/root", "/home",
                           "/proc", "/sys", "/usr/local", "/var"}
+
+#: SECURITY (SEC-03): interpreter / indirection binaries that re-introduce a
+#: shell even though the caller supplied an argv list. ``bash -c "<cmd>"``
+#: executes an arbitrary command string with no shell metacharacters in it, so
+#: the metacharacter and forbidden-pattern checks below could never see the
+#: payload. The guard's documented invariant is "no shell execution", so these
+#: binaries are refused as the command being run. Matching is on the resolved
+#: basename so absolute paths (``/bin/bash``) cannot slip through.
+_SHELL_INTERPRETERS = frozenset({
+    "sh", "bash", "zsh", "ksh", "dash", "csh", "tcsh", "fish", "ash",
+    "busybox", "env", "eval", "exec", "command", "xargs", "nohup",
+    "setsid", "script", "screen", "tmux", "expect", "sudo", "su", "doas",
+})
 
 
 class VerificationCommandError(SecurityBoundaryError):
@@ -75,6 +89,22 @@ class SecurityBoundaryGuard:
                 "Command must be a non-empty argv list (no shell execution permitted)"
             )
 
+        # SECURITY (SEC-03): refuse shell interpreters / indirection binaries.
+        # Done first so no later check can be bypassed through one.
+        exe = argv[0]
+        if not isinstance(exe, str) or not exe.strip():
+            raise VerificationCommandError(
+                "Command executable must be a non-empty string",
+                details={"executable": repr(exe)},
+            )
+        exe_name = PurePosixPath(exe.replace("\\", "/")).name
+        if exe_name.lower() in _SHELL_INTERPRETERS:
+            raise VerificationCommandError(
+                f"Shell/interpreter binary '{exe_name}' is not an approved "
+                f"execution boundary",
+                details={"executable": exe, "basename": exe_name},
+            )
+
         shell_chars = set(";|&$`<>(){}\n\r")
         for arg in argv:
             if not isinstance(arg, str):
@@ -92,9 +122,15 @@ class SecurityBoundaryGuard:
         for pattern in _FORBIDDEN_PATTERNS:
             match = pattern.search(cmd_str)
             if match:
+                # SECURITY (SEC-02): ``match`` is an ``re.Match``; it has no
+                # ``.pattern`` attribute. The previous ``match.pattern`` raised
+                # AttributeError, which the orchestrator's broad ``except
+                # Exception`` still failed closed on, but the denial reason was
+                # lost and the failure was misreported as an internal error
+                # rather than a security verdict. Use the compiled pattern.
                 raise VerificationCommandError(
-                    f"Command matches forbidden pattern: {match.pattern}",
-                    details={"command": cmd_str, "pattern": match.pattern},
+                    f"Command matches forbidden pattern: {pattern.pattern}",
+                    details={"command": cmd_str, "pattern": pattern.pattern},
                 )
 
         for arg in argv:
