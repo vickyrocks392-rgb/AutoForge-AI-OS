@@ -22,41 +22,113 @@ from autoforge_execution.models import (
 )
 
 
+#: Labels pytest uses in its terminal summary that denote an actual test
+#: outcome. Anything else on the summary line (notably ``warning``) is
+#: deliberately ignored so a warning is never counted as a test.
+_PYTEST_OUTCOME_LABELS: dict[str, str] = {
+    "passed": "passed",
+    "failed": "failed",
+    "skipped": "skipped",
+    "xfailed": "xfailed",
+    "error": "error",
+    "errors": "error",
+}
+
+
+def _parse_pytest_summary(combined: str) -> TestResultSummary | None:
+    """Parse a real pytest terminal summary line.
+
+    Real ``pytest -q`` output ends in an unwrapped timing line, e.g.::
+
+        2 passed in 0.04s
+        1 failed, 1 passed in 0.05s
+        1 passed, 1 xfailed, 1 skipped in 0.05s
+
+    The previous implementation required an ``=== ... in Xs ===`` wrapper that
+    pytest never emits, so a real run was reported as "0 tests". This parses the
+    summary line itself and is deliberately tolerant: the historical wrapped
+    form still matches because the ``===`` characters are simply not part of any
+    count label.
+
+    ``total_tests`` is defined as the sum of the *outcome* categories
+    (passed + failed + errors + skipped + xfailed). Warnings, deselections and
+    other non-outcome annotations are excluded, so they can never inflate the
+    total.
+
+    Returns ``None`` when no outcome-bearing summary line is present, which lets
+    the caller fall through to the unittest parser instead of fabricating an
+    empty summary.
+    """
+    best: dict[str, int] | None = None
+    best_line = ""
+
+    for line in combined.splitlines():
+        line = line.strip()
+        # The timing clause anchors the match: "… in 1.20s", optionally wrapped
+        # in "===" by the legacy format. ``re.search`` over the whole line keeps
+        # this independent of leading progress characters or dots.
+        timing = re.search(r"\bin\s+([\d.]+m?s)\b", line)
+        if timing is None:
+            continue
+        head = line[: timing.start()]
+
+        counts: dict[str, int] = {}
+        for count_m in re.finditer(r"(\d+)\s+([A-Za-z_]+)", head):
+            field = _PYTEST_OUTCOME_LABELS.get(count_m.group(2))
+            if field is not None:
+                counts[field] = counts.get(field, 0) + int(count_m.group(1))
+
+        if not counts:
+            continue
+        # Prefer the last outcome-bearing line: pytest emits its final summary
+        # after any progress output.
+        best = counts
+        best_line = line
+
+    if best is None:
+        return None
+
+    passed = best.get("passed", 0)
+    failed = best.get("failed", 0)
+    errors = best.get("error", 0)
+    skipped = best.get("skipped", 0)
+    xfailed = best.get("xfailed", 0)
+    total = passed + failed + errors + skipped + xfailed
+
+    failures: list[str] = []
+    if failed > 0 or errors > 0:
+        for line in combined.splitlines():
+            stripped = line.strip()
+            if (
+                stripped.startswith("FAILED ")
+                or stripped.startswith("ERROR ")
+                or "AssertionError" in stripped
+            ):
+                failures.append(stripped)
+
+    return TestResultSummary(
+        total_tests=total,
+        passed_tests=passed,
+        failed_tests=failed,
+        error_tests=errors,
+        skipped_tests=skipped,
+        xfailed_tests=xfailed,
+        failure_details=failures[:20],
+        raw_summary_line=best_line.strip(),
+    )
+
+
 def parse_test_output(stdout: str, stderr: str) -> TestResultSummary:
     """
     Parse standard test runner output (pytest, unittest, or generic) into TestResultSummary.
     """
     combined = f"{stdout}\n{stderr}"
-    
-    # 1. Look for pytest style: e.g. "=== 5 passed, 1 failed in 0.12s ===" or "=== 2 failed, 8 passed in 1.20s ==="
-    pytest_summary_match = re.search(r"===+\s*([^\n=]+in\s+[\d\.]+s)\s*===+", combined)
-    if pytest_summary_match:
-        summary_str = pytest_summary_match.group(1)
-        passed_m = re.search(r"(\d+)\s+passed", summary_str)
-        failed_m = re.search(r"(\d+)\s+failed", summary_str)
-        skipped_m = re.search(r"(\d+)\s+skipped", summary_str)
-        errors_m = re.search(r"(\d+)\s+error", summary_str)
 
-        passed = int(passed_m.group(1)) if passed_m else 0
-        failed = int(failed_m.group(1)) if failed_m else 0
-        skipped = int(skipped_m.group(1)) if skipped_m else 0
-        errors = int(errors_m.group(1)) if errors_m else 0
-        total = passed + failed + skipped + errors
-        if total > 0:
-            failures = []
-            if failed > 0 or errors > 0:
-                for line in combined.splitlines():
-                    if line.startswith("FAILED ") or line.startswith("ERROR ") or "AssertionError" in line:
-                        failures.append(line.strip())
-            return TestResultSummary(
-                total_tests=total,
-                passed_tests=passed,
-                failed_tests=failed,
-                error_tests=errors,
-                skipped_tests=skipped,
-                failure_details=failures[:20],
-                raw_summary_line=summary_str.strip(),
-            )
+    # 1. pytest terminal summary, wrapped ("=== 5 passed in 0.12s ===") or not
+    #    ("5 passed in 0.12s"). Real pytest emits the unwrapped form.
+    pytest_summary = _parse_pytest_summary(combined)
+    if pytest_summary is not None:
+        return pytest_summary
 
     # 2. Look for Python unittest style: "Ran 5 tests in 0.001s ... FAILED (failures=1)" or "OK"
     unittest_ran = re.search(r"Ran\s+(\d+)\s+tests?\s+in", combined)

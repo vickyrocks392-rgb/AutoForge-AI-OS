@@ -165,6 +165,7 @@ class TestResultSummary(BaseModel):
     passed_tests: int = Field(default=0, ge=0)
     failed_tests: int = Field(default=0, ge=0)
     error_tests: int = Field(default=0, ge=0)
+    xfailed_tests: int = Field(default=0, ge=0)
     skipped_tests: int = Field(default=0, ge=0)
     failure_details: list[str] = Field(default_factory=list)
     raw_summary_line: str = Field(default="")
