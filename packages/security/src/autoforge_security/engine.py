@@ -8,7 +8,13 @@ import contextvars
 from pathlib import Path
 from typing import Any, Mapping
 
+from autoforge_security.ai_guardrails import (
+    AIGuardrailsEngine,
+    GuardrailDecision,
+    GuardrailRequest,
+)
 from autoforge_security.audit import AuditEngine
+from autoforge_security.trust_boundary import TrustBoundary
 from autoforge_security.authentication import AuthenticationService
 from autoforge_security.authorization import AuthorizationEngine
 from autoforge_security.credentials import CredentialManager, CredentialStore, InMemoryCredentialStore
@@ -84,6 +90,68 @@ class SecurityPlatform:
             event_sink=self._events.publish_audit_event,
         )
         self._worker_guard = WorkforceSecurityGuard()
+        # AI Guardrails sit above identity/authorization and decide whether an
+        # AI-originated proposal is admissible. They delegate all authority
+        # decisions to the certified engines above; they never replace them.
+        self._guardrails = AIGuardrailsEngine()
+        self._trust_boundary = TrustBoundary()
+
+    # ── AI Guardrails ────────────────────────────────────────────────────────
+
+    @property
+    def guardrails(self) -> AIGuardrailsEngine:
+        return self._guardrails
+
+    @property
+    def trust_boundary(self) -> TrustBoundary:
+        return self._trust_boundary
+
+    def enforce_ai_action(self, request: GuardrailRequest | dict) -> GuardrailDecision:
+        """Canonical AI-guardrail enforcement, audited.
+
+        Composes guardrails with the certified authorization path and records the
+        outcome on the immutable audit trail. Returns DENY on any fault
+        (fail-closed); it never raises into the caller's side-effect path.
+        """
+        from autoforge_security.models import DecisionType
+
+        decision = self._guardrails.enforce(request)
+        try:
+            actor = self.get_current_subject()
+            mapping = {
+                "allow": DecisionType.ALLOW,
+                "deny": DecisionType.DENY,
+                "require_hitl": DecisionType.REQUIRE_HITL,
+                "require_elevated_authority": DecisionType.REQUIRE_ELEVATED_ROLE,
+                "invalid_request": DecisionType.DENY,
+            }
+            req = request if isinstance(request, GuardrailRequest) else None
+            self._audit.record_security_event(
+                actor=actor,
+                action=f"ai_guardrail.{decision.decision.value}",
+                resource=(req.resource if req else str(request))[:200],
+                decision=mapping.get(decision.decision, DecisionType.DENY),
+                reason=decision.reason,
+                outcome="success" if decision.is_allowed else "blocked",
+                project_id=req.project_id if req else None,
+                workflow_id=req.workflow_id if req else None,
+                task_id=req.task_id if req else None,
+                worker_id=req.worker_id if req else None,
+                execution_id=req.execution_id if req else None,
+                correlation_id=decision.correlation_id,
+                trace_id=req.trace_id if req else None,
+                details={
+                    "guardrail_decision": decision.decision.value,
+                    "action_class": decision.details.get("action_class"),
+                    "required_capabilities": sorted(c.value for c in decision.required_capabilities),
+                    "missing_capabilities": sorted(c.value for c in decision.missing_capabilities),
+                    "policy_version": decision.policy_version,
+                },
+            )
+        except Exception:
+            # Auditing must never convert a DENY into an ALLOW or vice versa.
+            pass
+        return decision
 
     # ── Subsystem Accessors ──────────────────────────────────────────────────
 

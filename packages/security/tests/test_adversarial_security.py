@@ -4,8 +4,13 @@ Adversarial Security & Penetration Tests for AutoForge Security & Governance Pla
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import pytest
+
+from autoforge_security.credentials import CredentialManager, InMemoryCredentialStore
+from autoforge_security.errors import CredentialStoreError
+from autoforge_security.models import CredentialType
 
 from autoforge_security.engine import SecurityPlatform
 from autoforge_security.errors import (
@@ -151,3 +156,64 @@ def test_adversarial_destructive_command_execution(security_platform: SecurityPl
     for cmd in destructive_commands:
         with pytest.raises(DangerousCommandBlockedError):
             security_platform.validate_command(cmd)
+
+# ── SHG-02: credential expiry enforcement ─────────────────────────────────
+
+
+def _mgr_with_expiry(delta: timedelta):
+    mgr = CredentialManager(store=InMemoryCredentialStore())
+    meta = mgr.register_credential(
+        name="probe",
+        credential_type=CredentialType.BEARER_TOKEN,
+        provider="test",
+        secret_value="super-secret",
+    )
+    updated = meta.model_copy(
+        update={"expires_at": datetime.now(timezone.utc) + delta}
+    )
+    _, sec = mgr._store.retrieve(meta.credential_id)
+    mgr._store.save(updated, sec)
+    return mgr, meta.credential_id
+
+
+def test_expired_credential_is_refused() -> None:
+    """SHG-02 regression: expires_at must be enforced on every read."""
+    mgr, cid = _mgr_with_expiry(timedelta(days=-1))
+    with pytest.raises(CredentialStoreError) as exc:
+        mgr.get_credential(cid)
+    assert "expired" in str(exc.value).lower()
+
+
+def test_unexpired_credential_is_returned() -> None:
+    """Enforcing expiry must not break legitimate credential reads."""
+    mgr, cid = _mgr_with_expiry(timedelta(days=1))
+    meta, sec = mgr.get_credential(cid)
+    assert meta.credential_id == cid
+    assert sec.raw_value == "super-secret"
+
+
+def test_credential_without_expiry_is_unaffected() -> None:
+    """Credentials with no expiry set keep working (no false-deny regression)."""
+    mgr = CredentialManager(store=InMemoryCredentialStore())
+    meta = mgr.register_credential(
+        name="no-expiry",
+        credential_type=CredentialType.API_KEY,
+        provider="test",
+        secret_value="abc",
+    )
+    _, sec = mgr.get_credential(meta.credential_id)
+    assert sec.raw_value == "abc"
+
+
+def test_revoked_credential_is_still_refused() -> None:
+    """Revocation precedence is preserved after the expiry change."""
+    mgr = CredentialManager(store=InMemoryCredentialStore())
+    meta = mgr.register_credential(
+        name="revoked",
+        credential_type=CredentialType.API_KEY,
+        provider="test",
+        secret_value="abc",
+    )
+    mgr.revoke_credential(meta.credential_id)
+    with pytest.raises(CredentialStoreError):
+        mgr.get_credential(meta.credential_id)

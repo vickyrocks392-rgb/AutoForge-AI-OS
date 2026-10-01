@@ -7,6 +7,30 @@ Authoritative, deterministic security subsystem for AutoForge AI OS.
 from __future__ import annotations
 
 from autoforge_security.audit import AuditEngine
+from autoforge_security.ai_guardrails import (
+    ACTION_CAPABILITIES,
+    DATA_ONLY_TRUST,
+    LEARNABLE_PROPOSAL_KINDS,
+    LEARNING_FORBIDDEN_CAPABILITIES,
+    NON_AUTHORITATIVE_TRUST,
+    SECURITY_SENSITIVE_CLASSES,
+    AIGuardrailsEngine,
+    ActionClass,
+    Capability,
+    GuardrailDecision,
+    GuardrailDecisionType,
+    GuardrailRequest,
+    LearningProposal,
+    LearningProposalDecision,
+    TrustLevel,
+)
+from autoforge_security.trust_boundary import (
+    BoundarySegment,
+    TrustBoundary,
+    TrustBoundaryViolation,
+    contains_instruction_injection,
+    neutralize_instruction_injection,
+)
 from autoforge_security.authentication import AuthenticationService
 from autoforge_security.authorization import AuthorizationEngine
 from autoforge_security.credentials import (
@@ -72,6 +96,27 @@ from autoforge_security.worker_guard import (
 )
 
 __all__ = [
+    # AI Guardrails Layer
+    "AIGuardrailsEngine",
+    "ActionClass",
+    "Capability",
+    "GuardrailDecision",
+    "GuardrailDecisionType",
+    "GuardrailRequest",
+    "LearningProposal",
+    "LearningProposalDecision",
+    "TrustLevel",
+    "TrustBoundary",
+    "BoundarySegment",
+    "TrustBoundaryViolation",
+    "ACTION_CAPABILITIES",
+    "DATA_ONLY_TRUST",
+    "LEARNABLE_PROPOSAL_KINDS",
+    "LEARNING_FORBIDDEN_CAPABILITIES",
+    "NON_AUTHORITATIVE_TRUST",
+    "SECURITY_SENSITIVE_CLASSES",
+    "contains_instruction_injection",
+    "neutralize_instruction_injection",
     # Engine & Facade
     "SecurityPlatform",
     "AuthenticationService",

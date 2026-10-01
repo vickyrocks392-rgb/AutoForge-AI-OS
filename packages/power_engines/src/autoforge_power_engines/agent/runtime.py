@@ -312,13 +312,42 @@ class StandaloneAgentRuntime:
                             continue
 
                     # 2. Execute Tool (B4)
+                    #
+                    # SECURITY (SHG-01): the specification's allowed_tools is the
+                    # capability declaration and is enforced HERE, immediately
+                    # before the side effect. Previously the allowlist only
+                    # controlled which schemas were advertised, so a model could
+                    # emit a tool call for any registered tool and reach real
+                    # capabilities (e.g. outbound HTTP) that were never granted.
                     sm.transition_to(AgentExecutionState.EXECUTING_TOOL)
                     total_tool_calls += 1
                     sm.telemetry.tool_call_count = total_tool_calls
                     t0 = time.perf_counter()
 
-                    tool_result = self.tool_registry.execute_tool(tool_call.tool_name, tool_call.arguments)
+                    tool_result = self.tool_registry.execute_tool(
+                        tool_call.tool_name,
+                        tool_call.arguments,
+                        allowed_tools=self.spec.allowed_tools,
+                    )
                     duration_ms = (time.perf_counter() - t0) * 1000.0
+
+                    # A blocked authorization is a security outcome, not a tool
+                    # result. It must never be reported as a successful execution.
+                    if isinstance(tool_result, dict) and tool_result.get("blocked_by"):
+                        sm.telemetry.errors.append(
+                            f"Tool '{tool_call.tool_name}' blocked by guardrail: "
+                            f"{tool_result.get('error')}"
+                        )
+                        context_messages.append({
+                            "role": "tool",
+                            "name": tool_call.tool_name,
+                            "content": json.dumps({
+                                "error": tool_result.get("error"),
+                                "status": "error",
+                                "blocked_by": tool_result.get("blocked_by"),
+                            }),
+                        })
+                        continue
 
                     tool_trace = {
                         "tool": tool_call.tool_name,

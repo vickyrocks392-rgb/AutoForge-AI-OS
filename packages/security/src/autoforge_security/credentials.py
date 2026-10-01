@@ -179,13 +179,29 @@ class CredentialManager:
         return meta
 
     def get_credential(self, credential_id: str) -> tuple[CredentialMetadata, SecretValue]:
-        """Retrieve a credential by ID."""
+        """Retrieve a credential by ID.
+
+        SECURITY (SHG-02): expiry is now enforced. ``CredentialMetadata.expires_at``
+        was previously recorded but never checked, so an expired credential
+        continued to return its secret value indefinitely. Expiry is evaluated on
+        every read so revocation-by-expiry is immediate and cannot be bypassed by
+        holding a previously resolved reference.
+        """
         result = self._store.retrieve(credential_id)
         if not result:
             raise CredentialNotFoundError(f"Credential '{credential_id}' not found.")
         meta, sec = result
         if meta.is_revoked:
             raise CredentialStoreError(f"Credential '{credential_id}' has been revoked.")
+        if meta.expires_at is not None:
+            expires_at = meta.expires_at
+            # Normalize naive datetimes to UTC so comparison is always total.
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if datetime.now(timezone.utc) >= expires_at:
+                raise CredentialStoreError(
+                    f"Credential '{credential_id}' expired at {meta.expires_at.isoformat()}."
+                )
         return meta, sec
 
     def rotate_credential(self, credential_id: str, new_secret_value: str | SecretValue) -> CredentialMetadata:

@@ -139,12 +139,39 @@ class TestAgentPowerEngine(unittest.TestCase):
 
     def test_04_unknown_tool_rejection(self):
         registry = ToolRegistry(workspace_root=self.workspace_dir)
-        with self.assertRaises(KeyError):
-            registry.execute_tool("non_existent_tool", {"foo": "bar"})
+        # SECURITY (SHG-01): an unregistered tool is refused at the execution
+        # point, before any handler lookup or side effect.
+        res = registry.execute_tool(
+            "non_existent_tool", {"foo": "bar"}, allowed_tools=["non_existent_tool"]
+        )
+        self.assertEqual(res.get("status"), "error")
+        self.assertEqual(res.get("blocked_by"), "tool_authorization")
+        self.assertIn("not registered", res.get("error", ""))
+
+    def test_04b_tool_outside_allowlist_is_blocked(self):
+        """A registered tool outside the declared allowlist must not execute."""
+        registry = ToolRegistry(workspace_root=self.workspace_dir)
+        res = registry.execute_tool(
+            "structured_http",
+            {"url": "http://example.com"},
+            allowed_tools=["calculator"],
+        )
+        self.assertEqual(res.get("status"), "error")
+        self.assertEqual(res.get("blocked_by"), "tool_authorization")
+        self.assertIn("not in the authorized tool allowlist", res.get("error", ""))
+
+    def test_04c_missing_allowlist_fails_closed(self):
+        """Omitting the capability declaration denies execution entirely."""
+        registry = ToolRegistry(workspace_root=self.workspace_dir)
+        res = registry.execute_tool("calculator", {"expression": "1+1"})
+        self.assertEqual(res.get("status"), "error")
+        self.assertEqual(res.get("blocked_by"), "tool_authorization")
 
     def test_05_malformed_tool_argument_rejection(self):
         registry = ToolRegistry(workspace_root=self.workspace_dir)
-        res = registry.execute_tool("calculator", {"wrong_param": "2+2"})
+        res = registry.execute_tool(
+            "calculator", {"wrong_param": "2+2"}, allowed_tools=["calculator"]
+        )
         self.assertEqual(res.get("status"), "error")
         self.assertIn("Invalid arguments for tool", res.get("error", ""))
 
@@ -207,11 +234,15 @@ class TestAgentPowerEngine(unittest.TestCase):
             encoding="utf-8"
         )
         registry = ToolRegistry(workspace_root=self.workspace_dir)
-        lookup_res = registry.execute_tool("document_lookup", {"query": "Server allocation"})
+        lookup_res = registry.execute_tool(
+            "document_lookup", {"query": "Server allocation"}, allowed_tools=["document_lookup"]
+        )
         self.assertEqual(lookup_res["status"], "success")
         self.assertGreaterEqual(lookup_res["total_matches"], 1)
 
-        read_res = registry.execute_tool("file_read", {"file_path": "quarterly_budget.txt"})
+        read_res = registry.execute_tool(
+            "file_read", {"file_path": "quarterly_budget.txt"}, allowed_tools=["file_read"]
+        )
         self.assertEqual(read_res["status"], "success")
         self.assertIn("$45,000", read_res["content"])
 

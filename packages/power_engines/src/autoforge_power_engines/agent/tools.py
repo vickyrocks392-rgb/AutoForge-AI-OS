@@ -13,7 +13,7 @@ import socket
 import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 import requests
 from pydantic import BaseModel, Field
@@ -384,6 +384,48 @@ def tool_structured_http(
 
 # ── Declarative Tool Registry ─────────────────────────────────────────────────
 
+def authorize_tool_call(
+    tool_name: str,
+    allowed_tools: Optional[List[str]] = None,
+    *,
+    registered_tools: Optional[Iterable[str]] = None,
+) -> None:
+    """Deterministically authorize a tool call immediately before execution.
+
+    SECURITY (SHG-01): ``allowed_tools`` is a *capability declaration*, so it must
+    be enforced at the moment of the side effect, not merely used to decide which
+    tool schemas are advertised to the model. Before this check, an agent whose
+    specification restricted it to ``["calculator"]`` could still execute
+    ``structured_http`` and perform a real outbound network request, because
+    ``execute_tool`` only verified that the tool was registered.
+
+    This function is fail-closed:
+
+    * unknown / unregistered tool -> ``PermissionError``
+    * registered but not in the allowlist -> ``PermissionError``
+    * ``allowed_tools=None`` means "no capability declaration available" and is
+      treated as *deny all*; callers that legitimately want the full registry must
+      pass an explicit allowlist.
+    """
+    if not isinstance(tool_name, str) or not tool_name.strip():
+        raise PermissionError("Tool name must be a non-empty string.")
+
+    if registered_tools is not None and tool_name not in set(registered_tools):
+        raise PermissionError(f"Tool '{tool_name}' is not registered.")
+
+    if allowed_tools is None:
+        raise PermissionError(
+            f"No tool allowlist was supplied; refusing to execute '{tool_name}' "
+            "without an explicit capability declaration."
+        )
+
+    if tool_name not in set(allowed_tools):
+        raise PermissionError(
+            f"Tool '{tool_name}' is not in the authorized tool allowlist "
+            f"{sorted(allowed_tools)}. Call was blocked before execution."
+        )
+
+
 class ToolRegistry:
     """
     Isolated Tool Registry for Customer Agents.
@@ -501,10 +543,31 @@ class ToolRegistry:
                 })
         return schemas
 
-    def execute_tool(self, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Executes a registered tool within isolated boundaries."""
-        if name not in self._tools or name not in self._handlers:
-            raise KeyError(f"Tool '{name}' is not registered or not authorized for this agent.")
+    def execute_tool(
+        self,
+        name: str,
+        arguments: Dict[str, Any],
+        *,
+        allowed_tools: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Executes a registered tool within isolated boundaries.
+
+        SECURITY (SHG-01): ``allowed_tools`` is now enforced *at the execution
+        point*, not only when advertising schemas to the model. Callers MUST pass
+        the agent specification's ``allowed_tools``. Omitting it is treated as
+        "no declared capability" and fails closed.
+
+        Enforcement happens immediately before the side effect so that a model
+        cannot reach an unauthorized tool by emitting a tool call directly.
+        """
+        try:
+            authorize_tool_call(
+                name,
+                allowed_tools,
+                registered_tools=self._tools.keys(),
+            )
+        except PermissionError as denied:
+            return {"error": str(denied), "status": "error", "blocked_by": "tool_authorization"}
 
         handler = self._handlers[name]
         try:
