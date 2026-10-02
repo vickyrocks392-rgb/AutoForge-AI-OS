@@ -25,6 +25,7 @@ dependencies = [
     "autoforge-models>=0.1.0",
     "autoforge-events>=0.1.0",
     "autoforge-runtime>=0.1.0",
+    "autoforge-learning>=1.0.0",
     "pydantic>=2.0.0",
     "typing-extensions>=4.5.0",
 ]

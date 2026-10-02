@@ -267,14 +267,40 @@ def test_future_m6_hardware_representation(autoforge_service):
     assert "not connected" in m6["notes"].lower() or "offline" in m6["notes"].lower()
 
 
-# ── Test 16: Self-Improvement Center is Gated and Non-Autonomous in Phase 16 ──
+# ── Test 16: Self-Improvement Center is Gated and Non-Autonomous ──────────────
 
 def test_self_improvement_center_is_non_autonomous(autoforge_service):
+    """Phase 19B-1 Gate 9 (GAP-12): truthful telemetry.
+
+    This test previously asserted ``len(si.learned_items) > 0`` and
+    ``len(si.regression_results) > 0``. Those assertions only held because the
+    service returned two hardcoded "heuristics" and a hardcoded
+    ``{"suite": ..., "passed": 1135, "status": "green"}`` block -- fabricated
+    claims about learning that had never happened.
+
+    Asserting that fabricated content is present is itself the defect, so the
+    assertions are inverted: the security properties are unchanged and now
+    also enforced, while the telemetry must be *derived from real state*
+    (zero when nothing has been learned, and never a manufactured pass count).
+    """
     si = autoforge_service.get_self_improvement_center()
+
+    # Unchanged security posture.
     assert si.is_autonomous_active is False
     assert si.gated_policy_enforced is True
-    assert len(si.learned_items) > 0
-    assert len(si.regression_results) > 0
+    assert si.safety_gating_mode == "STRICT_HUMAN_IN_THE_LOOP"
+
+    # Truthful telemetry: no fabricated heuristics or regression results.
+    assert si.learned_heuristics_count == 0
+    assert si.learned_heuristics == []
+    assert si.learned_items == []
+    assert si.regression_results == []
+
+    # A regression status must never be manufactured as green/passing when no
+    # regression harness ran.
+    assert si.last_regression_status == "UNAVAILABLE"
+    assert "1119" not in si.last_regression_status
+    assert "1135" not in si.last_regression_status
 
 
 # ── Test 17: Local-First HTTP API E2E Integration ────────────────────────────

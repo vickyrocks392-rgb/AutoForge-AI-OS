@@ -147,13 +147,25 @@ class NodeStatusResponse(BaseModel):
 
 
 class SelfImprovementResponse(BaseModel):
+    """Self-Improvement Center read model.
+
+    PHASE 19B-1 GATE 9 (GAP-12): the defaults were previously
+    ``learned_heuristics_count=14`` and
+    ``last_regression_status="ALL_PASSING (1119/1119)"``. Those are
+    fabricated claims about system state originating from no engine, so a
+    caller who forgot to set them still received false data.
+
+    The defaults are now truthful: zero learning artifacts, and an explicit
+    ``UNAVAILABLE`` regression status. Unknown is never rendered as success.
+    """
+
     is_autonomous_active: bool = False
     gated_policy_enforced: bool = True
-    learned_heuristics_count: int = 14
+    learned_heuristics_count: int = 0
     candidate_improvements_count: int = 0
     accepted_modifications_count: int = 0
     rejected_modifications_count: int = 0
-    last_regression_status: str = "ALL_PASSING (1119/1119)"
+    last_regression_status: str = "UNAVAILABLE"
     safety_gating_mode: str = "STRICT_HUMAN_IN_THE_LOOP"
     learned_heuristics: List[Dict[str, Any]] = Field(default_factory=list)
     learned_items: List[Dict[str, Any]] = Field(default_factory=list)
@@ -165,6 +177,11 @@ class SelfImprovementResponse(BaseModel):
     rejected_changes: List[Dict[str, Any]] = Field(default_factory=list)
     version_lineage: List[Dict[str, Any]] = Field(default_factory=list)
     rollback_history: List[Dict[str, Any]] = Field(default_factory=list)
+
+    #: True when these figures were read from real runtime state. Lets a UI
+    #: distinguish "genuinely zero" from "not measured".
+    data_available: bool = False
+    notes: str = ""
 
 
 

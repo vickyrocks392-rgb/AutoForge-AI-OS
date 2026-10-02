@@ -1347,45 +1347,73 @@ class AutoForgeApiService:
             ),
         ]
 
-    # ── Self-Improvement Center (Phase 19 Shell) ─────────────────────────
+    # ── Self-Improvement Center (Phase 19B-1: truthful telemetry) ───────────
 
     def get_self_improvement_center(self) -> SelfImprovementResponse:
-        # Display-only shell: no autonomous self-modification in Phase 16
-        heuristics = [
-            {
-                "heuristic_id": "LRN-001",
-                "domain": "Worker Model Routing",
-                "summary": "Routing COBOL parsing to Qwen2.5-Coder-7B achieves 99.4% AST precision with 40% lower latency than generic 70B models.",
-                "evidence_runs": 128,
-                "confidence": 0.97,
-            },
-            {
-                "heuristic_id": "LRN-002",
-                "domain": "Context Chunking",
-                "summary": "Boundary-aligned AST chunking reduces retrieval hallucination rate from 6.2% to 0.1% on legacy procedure division code.",
-                "evidence_runs": 84,
-                "confidence": 0.99,
-            },
-        ]
+        """Report learning state from authoritative runtime data only.
+
+        PHASE 19B-1 GATE 9 (GAP-12). This method previously returned
+        fabricated values that originated from no engine whatsoever:
+
+        * ``learned_heuristics_count=14``
+        * ``last_regression_status="ALL_PASSING (1119/1119)"``
+        * two hardcoded "heuristics" with invented evidence_runs/confidence
+        * a hardcoded ``{"suite": ..., "passed": 1135, "status": "green"}``
+
+        Claiming 14 learned heuristics and a fully green 1,119-test regression
+        run is a false statement about system state. The rules now applied:
+
+        1. Metrics come from real authoritative state.
+        2. If no real learning artifacts exist, report **zero**.
+        3. If validation data is unavailable, report **unknown/unavailable**.
+        4. Never manufacture a heuristic count, passing count, success rate,
+           confidence, or improvement count.
+
+        The non-autonomy posture is retained because it is both correct and
+        truthful: ``is_autonomous_active=False`` and
+        ``STRICT_HUMAN_IN_THE_LOOP`` describe the real enforced state.
+        """
+        # Read the live Learning Engine when one is present. Absent engine
+        # means "no learning state exists", which is zero, not fourteen.
+        learning_engine = getattr(self, "kernel", None)
+        learning_engine = getattr(learning_engine, "learning_engine", None)
+
+        candidates: List[Dict[str, Any]] = []
+        if learning_engine is not None:
+            recorded = getattr(learning_engine, "_promoted_candidate_ids", None)
+            if recorded:
+                candidates = [
+                    {"candidate_id": str(cid), "status": "permitted"}
+                    for cid in sorted(recorded, key=str)
+                ]
+
+        learned_heuristics_count = len(candidates)
+        candidate_improvements_count = len(candidates)
+
+        # Regression status is NOT known unless a real regression run exists.
+        # Phase 19B-1 implements no regression harness, so this is unknown.
+        regression_status = "UNAVAILABLE"
+        regression_results: List[Dict[str, Any]] = []
+
         return SelfImprovementResponse(
             is_autonomous_active=False,
             gated_policy_enforced=True,
-            learned_heuristics_count=14,
-            candidate_improvements_count=0,
+            learned_heuristics_count=learned_heuristics_count,
+            candidate_improvements_count=candidate_improvements_count,
             accepted_modifications_count=0,
             rejected_modifications_count=0,
-            last_regression_status="ALL_PASSING (1119/1119)",
+            last_regression_status=regression_status,
             safety_gating_mode="STRICT_HUMAN_IN_THE_LOOP",
-            learned_heuristics=heuristics,
-            learned_items=heuristics,
-            regression_results=[
-                {
-                    "suite": "Full Monorepo 1,135 Tests",
-                    "passed": 1135,
-                    "failed": 0,
-                    "status": "green",
-                }
-            ],
+            learned_heuristics=[],
+            learned_items=[],
+            candidate_improvements=candidates,
+            regression_results=regression_results,
+            data_available=True,
+            notes=(
+                "Counts derive from the live Learning Engine. Regression status "
+                "is UNAVAILABLE because Phase 19B-1 implements no regression "
+                "harness; it is never fabricated."
+            ),
         )
 
     # ── Engineering Experience (ADR-004) ─────────────────────────────────

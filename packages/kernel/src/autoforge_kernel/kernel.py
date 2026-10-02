@@ -96,6 +96,87 @@ class KernelRuntimeStatus(str, Enum):
     STOPPED = "stopped"
 
 
+def _authoritative_review_findings(finalize_result: Any) -> list[dict[str, Any]]:
+    """Extract the REAL review/validation evidence from a completion result.
+
+    Phase 19B-1 Gate 4. The Kernel's learning stage previously called
+    ``validation_result.get("findings", [])``, but ``validate_completion``
+    never populates a ``"findings"`` key, so the learning engine's
+    defect-prevention branch was permanently dead (Gate 19A GAP-03).
+
+    Rather than inventing a parallel ``"findings"`` field, this reads the
+    authoritative structures ``CompletionModule.finalize_project`` actually
+    produces:
+
+    * ``final_review["validation"]`` -- the genuine deterministic validation
+      truth (mapping with ``required``/``passed``), and
+    * ``final_review["approved"]`` -- the genuine final review verdict.
+
+    The returned list is *evidence*, not invented findings: each entry is a
+    verbatim projection of a field the completion module already computed. No
+    severity, message, or quality claim is synthesised, and completion and
+    validation semantics are untouched.
+    """
+    if not isinstance(finalize_result, dict):
+        return []
+
+    evidence: list[dict[str, Any]] = []
+
+    final_review = finalize_result.get("final_review")
+    if isinstance(final_review, dict):
+        validation = final_review.get("validation")
+        if isinstance(validation, dict):
+            evidence.append(
+                {
+                    "kind": "deterministic_validation",
+                    "required": validation.get("required"),
+                    "passed": validation.get("passed"),
+                    "reason": validation.get("reason", ""),
+                    "test_results": validation.get("test_results"),
+                    "authoritative": True,
+                }
+            )
+        if isinstance(final_review.get("approved"), bool):
+            evidence.append(
+                {
+                    "kind": "final_review",
+                    "approved": final_review.get("approved"),
+                    "reason": final_review.get("reason", ""),
+                    "evidence_files": final_review.get("evidence_files", 0),
+                    "authoritative": True,
+                }
+            )
+        return evidence
+
+    # Failure path: finalize_project reports validation at the top level.
+    validation = finalize_result.get("validation")
+    if isinstance(validation, dict):
+        evidence.append(
+            {
+                "kind": "deterministic_validation",
+                "required": validation.get("required"),
+                "passed": validation.get("passed"),
+                "reason": validation.get("reason", ""),
+                "test_results": validation.get("test_results"),
+                "authoritative": True,
+            }
+        )
+
+    review_gate = finalize_result.get("review_gate")
+    if isinstance(review_gate, dict):
+        evidence.append(
+            {
+                "kind": "final_review",
+                "approved": review_gate.get("approved"),
+                "reason": review_gate.get("reason", ""),
+                "evidence_files": review_gate.get("evidence_files", 0),
+                "authoritative": True,
+            }
+        )
+
+    return evidence
+
+
 class Kernel:
     """
     The AutoForge AI Kernel - Executive Orchestrator.
@@ -529,13 +610,29 @@ class Kernel:
                             },
                         )
 
-                    # Step 6: Learning & Reflection (Phase 18-K ADR-005)
+                    # Step 6: Learning & Reflection (Phase 18-K ADR-005; Phase 19B-1 evidence)
+                    #
+                    # PHASE 19B-1 GATE 4: ``review_findings`` previously read
+                    # ``validation_result.get("findings", [])``. ``validate_completion``
+                    # never populates a "findings" key, so that branch of the
+                    # learning engine was permanently dead.
+                    #
+                    # The correct repair is NOT to invent a "findings" field.
+                    # The real, authoritative evidence already exists in
+                    # ``finalize_result``:
+                    #   * ``final_review["validation"]`` -- the genuine
+                    #     deterministic validation truth, and
+                    #   * ``final_review["approved"]``  -- the genuine final
+                    #     review verdict.
+                    # We pass those through instead. No parallel validation data
+                    # is created, completion semantics are untouched, and
+                    # validation authority is unchanged.
                     if self.learning_engine and hasattr(self.learning_engine, "reflect_and_learn"):
                         try:
                             await self.learning_engine.reflect_and_learn(
                                 project_id=project_id,
                                 execution_summary=finalize_result,
-                                review_findings=validation_result.get("findings", []),
+                                review_findings=_authoritative_review_findings(finalize_result),
                             )
                         except Exception as ex:
                             logger.warning(f"Kernel learning stage failed: {ex}")

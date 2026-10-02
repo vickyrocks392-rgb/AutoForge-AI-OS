@@ -76,6 +76,8 @@ from autoforge_kernel.completion import (
 from autoforge_kernel.approval import DefaultApprovalCoordinator
 from autoforge_kernel.recovery import DefaultRecoveryCoordinator
 from autoforge_kernel.learning_engine import EngineeringLearningEngine
+from autoforge_learning.evidence import EvidenceCollector
+from autoforge_learning.gateway import ProposalGateway
 from autoforge_execution.context_builder import EngineeringContextBuilder
 from autoforge_execution.compaction import (
     CompactionPolicy,
@@ -306,13 +308,9 @@ def build_autoforge_system(
     kernel_memory_engine = KernelMemoryEngineAdapter(runtime=runtime)
     kernel_knowledge_engine = KernelKnowledgeEngineAdapter()
 
-    # 4b. Learning Engine (Phase 18-K Canonical Wiring).
-    learning_engine = EngineeringLearningEngine(
-        memory_engine=kernel_memory_engine,
-        knowledge_engine=kernel_knowledge_engine,
-        event_bus=kernel_bus,
-        runtime=runtime,
-    )
+    # NOTE (Phase 19B-1): the Learning Engine is constructed further below, in
+    # step 9b, because it now requires the ProposalGateway and that gateway is
+    # built from the certified SecurityPlatform, which is constructed in step 9.
 
     # 5. Workflow Engine — wired with event bus and runtime for state projection.
     workflow_engine = build_workflow_engine(
@@ -405,6 +403,29 @@ def build_autoforge_system(
     # 9. Security Platform — wired with canonical event bus.
     security_platform = build_security_platform_from_bus(
         canonical_bus=canonical_bus,
+    )
+
+    # 9b. Learning Engine (Phase 18-K wiring; Phase 19B-1 security boundary).
+    #
+    # PHASE 19B-1 M-04: the ProposalGateway is built here from the *certified*
+    # SecurityPlatform's AIGuardrailsEngine, so that every learning candidate
+    # passes through ``evaluate_learning_proposal`` on the real production path.
+    #
+    # Gate 19A established that this boundary had zero production callers. It
+    # now has one. If the security platform is unavailable the gateway is
+    # constructed with ``None``, which fails closed: no candidate may be
+    # proposed at all.
+    proposal_gateway = ProposalGateway(
+        getattr(security_platform, "guardrails", None)
+    )
+    evidence_collector = EvidenceCollector()
+    learning_engine = EngineeringLearningEngine(
+        memory_engine=kernel_memory_engine,
+        knowledge_engine=kernel_knowledge_engine,
+        event_bus=kernel_bus,
+        runtime=runtime,
+        proposal_gateway=proposal_gateway,
+        evidence_collector=evidence_collector,
     )
 
     # 10. Review Engine (concrete) — wired with canonical event bus.
