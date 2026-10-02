@@ -253,13 +253,46 @@ def test_12_completion_artifact_review_contracts_untouched():
 
 
 def test_kernel_change_is_additive_only():
-    """kernel.py removes at most the two dead-read lines it replaces."""
-    result = subprocess.run(
-        ["git", "diff", "--numstat", "HEAD", "--", "packages/kernel/src/autoforge_kernel/kernel.py"],
+    """kernel.py removes at most the two dead-read lines it replaces.
+
+    Compares against ``HEAD^`` (the pre-19B-1 baseline). Comparing against
+    ``HEAD`` would be self-invalidating once 19B-1 is committed, because the
+    working tree would then be identical to HEAD and the diff empty.
+    """
+    import subprocess as _sp
+
+    result = _sp.run(
+        [
+            "git",
+            "diff",
+            "--numstat",
+            "HEAD^",
+            "HEAD",
+            "--",
+            "packages/kernel/src/autoforge_kernel/kernel.py",
+        ],
         cwd=REPO,
         capture_output=True,
         text=True,
     )
+    if not result.stdout.strip():
+        # Fall back to the working tree when HEAD^ is unavailable (e.g. the
+        # first commit of a branch). Either way, the assertion below is the
+        # meaningful one: at most two lines were removed.
+        result = _sp.run(
+            [
+                "git",
+                "diff",
+                "--numstat",
+                "5d975bcfd3b32ab29ab0c8a69228913852af910f",
+                "--",
+                "packages/kernel/src/autoforge_kernel/kernel.py",
+            ],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+        )
+    assert result.stdout.strip(), "could not determine the kernel.py diff"
     added, removed, _ = result.stdout.split()
     assert int(removed) <= 2, f"kernel.py removed {removed} lines; expected <= 2"
 
