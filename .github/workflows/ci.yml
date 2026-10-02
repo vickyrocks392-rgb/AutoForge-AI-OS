@@ -17,7 +17,7 @@ jobs:
 
     env:
       AUTOFORGE_ALLOW_DETERMINISTIC_FALLBACK: "1"
-      PYTHONPATH: "packages/events/src:packages/event_platform/src:packages/runtime/src:packages/models/src:packages/ai_infrastructure/src:packages/workflows/src:packages/execution/src:packages/artifacts/src:packages/review/src:packages/security/src:packages/connectors/src:packages/orchestration/src:packages/kernel/src:packages/composition/src:packages/workforce/src:packages/power_engines/src:packages/modernization/src:packages/observability/src:packages/persistence/src:packages/knowledge_platform/src"
+      PYTHONPATH: "packages/events/src:packages/event_platform/src:packages/runtime/src:packages/models/src:packages/ai_infrastructure/src:packages/workflows/src:packages/execution/src:packages/artifacts/src:packages/review/src:packages/security/src:packages/connectors/src:packages/orchestration/src:packages/kernel/src:packages/composition/src:packages/workforce/src:packages/power_engines/src:packages/modernization/src:packages/observability/src:packages/persistence/src:packages/knowledge_platform/src:packages/learning/src"
 
     steps:
       - name: Checkout Code
@@ -84,7 +84,8 @@ jobs:
           import autoforge_observability
           import autoforge_persistence
           import autoforge_knowledge_platform
-          print('✓ All 20 core package namespaces imported successfully')
+          import autoforge_learning
+          print('✓ All 21 core package namespaces imported successfully')
           "
 
       - name: Run Kernel & Orchestration Test Suites
@@ -114,6 +115,10 @@ jobs:
         run: |
           pytest packages/security/tests/ -v
           pytest packages/connectors/tests/ -v
+
+      - name: Run Continuous Learning & Promotion Safety
+        run: |
+          pytest packages/learning/tests/ -v
 
       - name: Run AI Infrastructure & Review Quality Gates
         run: |
