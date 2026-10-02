@@ -5,8 +5,6 @@ Credential Storage & Lifecycle Management for AutoForge Security (Phase 15).
 from __future__ import annotations
 
 import abc
-import base64
-import hashlib
 import json
 import os
 import secrets
@@ -14,6 +12,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from autoforge_security.crypto import (
+    CredentialCipher,
+    DecryptionError,
+    EncryptedRecord,
+    MasterKeyProvider,
+    legacy_xor_decrypt,
+)
 from autoforge_security.errors import (
     CredentialNotFoundError,
     CredentialStoreError,
@@ -74,35 +79,47 @@ class InMemoryCredentialStore(CredentialStore):
 
 
 class LocalEncryptedStore(CredentialStore):
-    """
-    Local-first file-backed encrypted credential store.
-    Encrypts stored values using derived local key.
+    """Local-first file-backed credential store using authenticated encryption.
+
+    SECURITY (SHC-03): the previous implementation used a repeating-key XOR
+    keystream derived from a hardcoded default master key. That is obfuscation,
+    not encryption — it provides no integrity guarantee, and every installation
+    shared the same key. This implementation uses AES-256-GCM via the vetted
+    ``cryptography`` library, with a fresh random nonce per record and the
+    credential id bound as AAD.
+
+    Records written before this change are detected by the absence of a
+    ``version`` field and migrated once, on load, into the authenticated format.
+    Legacy XOR material is never treated as current-format ciphertext, and is
+    only ever decrypted inside :meth:`_migrate_legacy`.
     """
 
-    def __init__(self, storage_dir: str | Path, master_key: str = "autoforge-local-default-key") -> None:
+    def __init__(
+        self,
+        storage_dir: str | Path,
+        key_provider: MasterKeyProvider | None = None,
+        *,
+        legacy_master_key: str = "autoforge-local-default-key",
+        allow_legacy_migration: bool = True,
+    ) -> None:
         self._dir = Path(storage_dir)
         self._dir.mkdir(parents=True, exist_ok=True)
-        self._key = hashlib.sha256(master_key.encode("utf-8")).digest()
+        self._cipher = CredentialCipher(key_provider)
+        self._legacy_master_key = legacy_master_key
+        self._allow_legacy_migration = allow_legacy_migration
         self._index_file = self._dir / "credentials_index.json"
         self._store: dict[str, tuple[CredentialMetadata, SecretValue]] = {}
+        self._migrated_legacy_count = 0
         self._load()
 
-    def _encrypt(self, raw: str) -> str:
-        # Simple XOR keystream for portable local storage without external C-extensions
-        raw_bytes = raw.encode("utf-8")
-        key_bytes = self._key
-        encrypted = bytearray(len(raw_bytes))
-        for i, b in enumerate(raw_bytes):
-            encrypted[i] = b ^ key_bytes[i % len(key_bytes)]
-        return base64.b64encode(encrypted).decode("ascii")
+    @property
+    def migrated_legacy_count(self) -> int:
+        """Number of legacy XOR records migrated into the authenticated format."""
+        return self._migrated_legacy_count
 
-    def _decrypt(self, encoded: str) -> str:
-        encrypted = base64.b64decode(encoded.encode("ascii"))
-        key_bytes = self._key
-        decrypted = bytearray(len(encrypted))
-        for i, b in enumerate(encrypted):
-            decrypted[i] = b ^ key_bytes[i % len(key_bytes)]
-        return decrypted.decode("utf-8")
+    @property
+    def index_file(self) -> Path:
+        return self._index_file
 
     def _load(self) -> None:
         if not self._index_file.exists():
@@ -110,22 +127,69 @@ class LocalEncryptedStore(CredentialStore):
         try:
             with open(self._index_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            for item in data:
-                meta = CredentialMetadata.model_validate(item["metadata"])
-                raw_val = self._decrypt(item["encrypted_value"])
-                self._store[meta.credential_id] = (meta, SecretValue(raw_val))
         except Exception as err:
-            raise CredentialStoreError(f"Failed to load credentials index: {err}") from err
+            raise CredentialStoreError(f"Failed to read credentials index: {err}") from err
+
+        legacy_pending: list[tuple[CredentialMetadata, str]] = []
+        for item in data:
+            try:
+                meta = CredentialMetadata.model_validate(item["metadata"])
+            except Exception as err:
+                raise CredentialStoreError(
+                    f"Malformed credential metadata in index: {err}"
+                ) from err
+
+            if "version" in item:
+                # Current authenticated format — fail closed on tamper.
+                record = EncryptedRecord.from_json(item)
+                try:
+                    raw_val = self._cipher.open(record, meta.credential_id)
+                except DecryptionError as err:
+                    raise CredentialStoreError(
+                        f"Credential '{meta.credential_id}' failed integrity "
+                        f"verification: {err}"
+                    ) from err
+                self._store[meta.credential_id] = (meta, SecretValue(raw_val))
+            else:
+                # Legacy v1 envelope. Never decrypted on the read path.
+                legacy_pending.append((meta, item["encrypted_value"]))
+
+        if legacy_pending:
+            self._migrate_legacy(legacy_pending)
+            self._persist()
+
+    def _migrate_legacy(self, legacy_pending: list[tuple[CredentialMetadata, str]]) -> None:
+        """Decrypt legacy XOR records once and immediately re-encrypt as AEAD."""
+        if not self._allow_legacy_migration:
+            raise CredentialStoreError(
+                f"Found {len(legacy_pending)} legacy credential record(s) but legacy "
+                "migration is disabled. Run the explicit migration path first."
+            )
+        for meta, encoded in legacy_pending:
+            try:
+                raw_val = legacy_xor_decrypt(encoded, self._legacy_master_key)
+            except Exception as err:
+                raise CredentialStoreError(
+                    f"Failed to migrate legacy credential '{meta.credential_id}': {err}"
+                ) from err
+            self._store[meta.credential_id] = (meta, SecretValue(raw_val))
+            self._migrated_legacy_count += 1
 
     def _persist(self) -> None:
         data = []
         for meta, sec in self._store.values():
-            data.append({
-                "metadata": meta.model_dump(mode="json"),
-                "encrypted_value": self._encrypt(sec.raw_value),
-            })
-        with open(self._index_file, "w", encoding="utf-8") as f:
+            record = self._cipher.seal(sec.raw_value, meta.credential_id)
+            data.append({"metadata": meta.model_dump(mode="json"), **record.to_json()})
+        tmp = self._index_file.with_suffix(".json.tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
+        # Atomic replace so a crash cannot leave a truncated index.
+        os.replace(tmp, self._index_file)
+        try:
+            self._index_file.chmod(0o600)
+        except OSError:
+            pass
+
 
     def save(self, metadata: CredentialMetadata, secret_value: SecretValue) -> None:
         self._store[metadata.credential_id] = (metadata, secret_value)
@@ -163,6 +227,7 @@ class CredentialManager:
         scope: SecretScope = SecretScope.SYSTEM,
         credential_id: str | None = None,
         metadata: dict[str, Any] | None = None,
+        purpose_binding: Any | None = None,
     ) -> CredentialMetadata:
         """Register a new managed credential."""
         cid = credential_id or f"cred_{provider}_{name}_{secrets.token_hex(4)}"
@@ -173,19 +238,34 @@ class CredentialManager:
             provider=provider,
             scope=scope,
             metadata=metadata or {},
+            purpose_binding=purpose_binding,
         )
         sec_val = secret_value if isinstance(secret_value, SecretValue) else SecretValue(secret_value)
         self._store.save(meta, sec_val)
         return meta
 
-    def get_credential(self, credential_id: str) -> tuple[CredentialMetadata, SecretValue]:
-        """Retrieve a credential by ID.
+    def get_credential(
+        self,
+        credential_id: str,
+        *,
+        action_class: Any | None = None,
+        project_id: str | None = None,
+        destination: str | None = None,
+        subject_id: str | None = None,
+    ) -> tuple[CredentialMetadata, SecretValue]:
+        """Retrieve a credential by ID, enforcing lifecycle and purpose binding.
 
         SECURITY (SHG-02): expiry is now enforced. ``CredentialMetadata.expires_at``
         was previously recorded but never checked, so an expired credential
         continued to return its secret value indefinitely. Expiry is evaluated on
         every read so revocation-by-expiry is immediate and cannot be bypassed by
         holding a previously resolved reference.
+
+        SECURITY (SHC-04): when the credential carries a
+        ``purpose_binding``, the requested use must satisfy it. Supplying
+        ``action_class`` / ``project_id`` / ``destination`` / ``subject_id``
+        activates the binding check; a purpose-bound credential requested without
+        those facts is refused rather than allowed by default.
         """
         result = self._store.retrieve(credential_id)
         if not result:
@@ -202,11 +282,55 @@ class CredentialManager:
                 raise CredentialStoreError(
                     f"Credential '{credential_id}' expired at {meta.expires_at.isoformat()}."
                 )
+
+        binding = getattr(meta, "purpose_binding", None)
+        if binding is not None:
+            if action_class is None:
+                raise CredentialStoreError(
+                    f"Credential '{credential_id}' is purpose-bound to "
+                    f"'{binding.purpose}'; an action_class must be supplied to authorize use."
+                )
+            ok, reason = binding.permits(
+                action_class=action_class,
+                project_id=project_id,
+                destination=destination,
+                subject_id=subject_id,
+            )
+            if not ok:
+                raise CredentialStoreError(
+                    f"Credential '{credential_id}' purpose binding violated: {reason}"
+                )
+        return meta, sec
+
+    def _load_enforcing_lifecycle(
+        self, credential_id: str
+    ) -> tuple[CredentialMetadata, SecretValue]:
+        """Load a credential applying revocation + expiry but NOT purpose binding.
+
+        Purpose binding governs *use* of a secret. Rotation and revocation are
+        lifecycle operations that must keep working for a bound credential --
+        otherwise a bound credential could never be rotated or revoked, which
+        would be a security regression in the opposite direction.
+        """
+        result = self._store.retrieve(credential_id)
+        if not result:
+            raise CredentialNotFoundError(f"Credential '{credential_id}' not found.")
+        meta, sec = result
+        if meta.is_revoked:
+            raise CredentialStoreError(f"Credential '{credential_id}' has been revoked.")
+        if meta.expires_at is not None:
+            expires_at = meta.expires_at
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if datetime.now(timezone.utc) >= expires_at:
+                raise CredentialStoreError(
+                    f"Credential '{credential_id}' expired at {meta.expires_at.isoformat()}."
+                )
         return meta, sec
 
     def rotate_credential(self, credential_id: str, new_secret_value: str | SecretValue) -> CredentialMetadata:
         """Rotate the secret value of an existing credential."""
-        meta, _ = self.get_credential(credential_id)
+        meta, _ = self._load_enforcing_lifecycle(credential_id)
         now = datetime.now(timezone.utc)
         updated_meta = CredentialMetadata(
             credential_id=meta.credential_id,
@@ -219,6 +343,7 @@ class CredentialManager:
             last_rotated_at=now,
             is_revoked=False,
             metadata=meta.metadata,
+            purpose_binding=meta.purpose_binding,
         )
         sec_val = new_secret_value if isinstance(new_secret_value, SecretValue) else SecretValue(new_secret_value)
         self._store.save(updated_meta, sec_val)
@@ -226,7 +351,7 @@ class CredentialManager:
 
     def revoke_credential(self, credential_id: str) -> CredentialMetadata:
         """Revoke a credential."""
-        meta, sec = self.get_credential(credential_id)
+        meta, sec = self._load_enforcing_lifecycle(credential_id)
         revoked_meta = CredentialMetadata(
             credential_id=meta.credential_id,
             name=meta.name,
@@ -238,6 +363,7 @@ class CredentialManager:
             last_rotated_at=meta.last_rotated_at,
             is_revoked=True,
             metadata=meta.metadata,
+            purpose_binding=meta.purpose_binding,
         )
         self._store.save(revoked_meta, sec)
         return revoked_meta

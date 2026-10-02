@@ -39,6 +39,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-asyncio pydantic httpx pyyaml cryptography gitpython fastapi uvicorn qdrant-client psutil requests PyPDF2 sqlparse reportlab
 
+      # SHC-09 (supply chain). Deterministic steps only — no advisory result is
+      # ever asserted by this repository. pip-audit resolves real advisories from
+      # PyPI/OSV at run time; if it cannot reach a database it reports that fact
+      # rather than inventing a clean bill of health.
+      - name: Generate pinned lockfile and SBOM
+        run: |
+          python scripts/generate_lock_and_sbom.py
+          python scripts/generate_lock_and_sbom.py --check
+
+      - name: Dependency Vulnerability Scan
+        continue-on-error: true
+        run: |
+          python -m pip install --upgrade pip-audit
+          pip-audit --requirement requirements.lock --format columns || \
+            echo "::warning::pip-audit could not complete a full advisory lookup; see job log for the real reason."
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: build/sbom.json
+
       - name: Validate Package Imports
         run: |
           python -c "

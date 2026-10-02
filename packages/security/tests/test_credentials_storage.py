@@ -7,6 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 import pytest
 
+from autoforge_security.crypto import TestKeyProvider
 from autoforge_security.credentials import (
     CredentialManager,
     InMemoryCredentialStore,
@@ -50,7 +51,11 @@ def test_in_memory_credential_manager(credential_manager: CredentialManager) -> 
 
 def test_local_encrypted_store(tmp_path: Path) -> None:
     store_dir = tmp_path / "creds"
-    local_store = LocalEncryptedStore(storage_dir=store_dir, master_key="test-secure-master-key")
+    # SHC-03: the store now takes an explicit key provider. There is no
+    # hardcoded default master key; tests use the explicit test provider.
+    local_store = LocalEncryptedStore(
+        storage_dir=store_dir, key_provider=TestKeyProvider("storage-test")
+    )
     mgr = CredentialManager(store=local_store)
 
     meta = mgr.register_credential(
@@ -61,7 +66,9 @@ def test_local_encrypted_store(tmp_path: Path) -> None:
     )
 
     # Re-initialize store from disk to verify encryption & persistence round-trip
-    reloaded_store = LocalEncryptedStore(storage_dir=store_dir, master_key="test-secure-master-key")
+    reloaded_store = LocalEncryptedStore(
+        storage_dir=store_dir, key_provider=TestKeyProvider("storage-test")
+    )
     reloaded_mgr = CredentialManager(store=reloaded_store)
 
     ret_meta, ret_sec = reloaded_mgr.get_credential(meta.credential_id)
@@ -71,3 +78,7 @@ def test_local_encrypted_store(tmp_path: Path) -> None:
     # Verify that stored file on disk does NOT contain plaintext secret
     raw_disk_content = (store_dir / "credentials_index.json").read_text()
     assert "AKIAIOSFODNN7EXAMPLE" not in raw_disk_content
+
+    # SHC-03: records must use the authenticated (versioned) envelope.
+    assert '"version": 2' in raw_disk_content
+    assert "encrypted_value" not in raw_disk_content

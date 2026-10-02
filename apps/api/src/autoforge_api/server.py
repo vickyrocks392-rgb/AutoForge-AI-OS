@@ -11,9 +11,27 @@ from http import HTTPStatus
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from typing import Any, Dict, Optional
 
+from autoforge_api.auth import ApiAuthError, ApiAuthenticator, auth_is_disabled
 from autoforge_api.models import WorkspaceMode
 from autoforge_api.redaction import redact_secrets
 from autoforge_api.service import AutoForgeApiService
+
+#: API paths readable without authentication. Deliberately minimal: read-only
+#: liveness/metadata only. Every other /api path requires an authenticated caller.
+PUBLIC_API_PATHS: frozenset[str] = frozenset({"/api/system/status"})
+
+
+def _extract_project_id(path: str) -> str | None:
+    """Resolve the project identity encoded in an API path, if any.
+
+    Runs BEFORE the resource is fetched or mutated so authorization can be
+    evaluated against the real target rather than a caller-supplied claim.
+    """
+    parts = [p for p in path.split("/") if p]
+    if len(parts) >= 3 and parts[0] == "api" and parts[1] == "projects":
+        return urllib.parse.unquote(parts[2])
+    return None
+
 
 
 class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
@@ -23,6 +41,36 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
 
     service: AutoForgeApiService = None
     web_dir: str = ""
+    authenticator: Any = None
+
+    # ── Authentication / Authorization boundary (SHC-02) ───────────────────
+
+    def _authenticate_request(self, path: str):
+        """Single canonical authentication + project-authorization gate.
+
+        Called at the top of every /api verb handler. Returns the authenticated
+        caller, or ``None`` after having already written an error response.
+        """
+        if self.authenticator is None:
+            self._send_error_json(
+                HTTPStatus.SERVICE_UNAVAILABLE, "API authentication is not configured."
+            )
+            return None
+        try:
+            caller = self.authenticator.authenticate(self.headers)
+        except ApiAuthError as exc:
+            self._send_error_json(HTTPStatus(exc.status), exc.message)
+            return None
+        except Exception:
+            self._send_error_json(HTTPStatus.UNAUTHORIZED, "Authentication failed.")
+            return None
+
+        try:
+            self.authenticator.authorize_project(caller, _extract_project_id(path))
+        except ApiAuthError as exc:
+            self._send_error_json(HTTPStatus(exc.status), exc.message)
+            return None
+        return caller
 
     def __init__(self, *args, **kwargs):
         if not self.web_dir:
@@ -65,6 +113,10 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
             if path == "" or path == "/":
                 self.path = "/index.html"
             return super().do_GET()
+
+        # SHC-02: authentication gate. Public allowlist is read-only status only.
+        if path not in PUBLIC_API_PATHS and self._authenticate_request(path) is None:
+            return
 
         try:
             if path == "/api/system/status":
@@ -268,6 +320,11 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "Invalid request.")
             return
 
+        # SHC-02: every mutating endpoint requires an authenticated caller.
+        body_project = None
+        if self._authenticate_request(path) is None:
+            return
+
         content_length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
         try:
@@ -435,6 +492,10 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "Invalid request.")
             return
 
+        # SHC-02: deletions require an authenticated caller.
+        if self._authenticate_request(path) is None:
+            return
+
         try:
             if path.startswith("/api/models/"):
                 parts = path.split("/")
@@ -461,14 +522,28 @@ def create_server(
     port: int = 8080,
     service: Optional[AutoForgeApiService] = None,
     web_dir: Optional[str] = None,
+    authenticator: Optional[ApiAuthenticator] = None,
 ) -> HTTPServer:
     """
     Factory creating a configured HTTPServer instance with AutoForgeRequestHandler.
+
+    SECURITY (SHC-02): an ``ApiAuthenticator`` is now mandatory. When none is
+    supplied one is constructed from the certified ``SecurityPlatform``; if that
+    also fails (e.g. no API key configured and auth not explicitly disabled) the
+    server refuses to start rather than exposing an unauthenticated API.
     """
     svc = service or AutoForgeApiService()
     AutoForgeRequestHandler.service = svc
     if web_dir:
         AutoForgeRequestHandler.web_dir = web_dir
+
+    auth = authenticator
+    if auth is None:
+        from autoforge_security.engine import SecurityPlatform
+
+        auth = ApiAuthenticator(security_platform=SecurityPlatform())
+    AutoForgeRequestHandler.authenticator = auth
+
     return HTTPServer((host, port), AutoForgeRequestHandler)
 
 
@@ -478,7 +553,18 @@ if __name__ == "__main__":
     parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind")
     parser.add_argument("--port", type=int, default=8787, help="Port to bind")
     parser.add_argument("--web-dir", default=None, help="Directory containing web assets")
+    parser.add_argument(
+        "--allow-insecure-dev-auth",
+        action="store_true",
+        help="Explicitly disable API authentication (local development only).",
+    )
     args = parser.parse_args()
+
+    if args.allow_insecure_dev_auth:
+        import os
+
+        os.environ["AUTOFORGE_API_AUTH_DISABLED"] = "1"
+        print("WARNING: API authentication DISABLED — local development only.")
 
     print(f"Starting AutoForge AI OS Product Experience on http://{args.host}:{args.port}")
     server = create_server(host=args.host, port=args.port, web_dir=args.web_dir)

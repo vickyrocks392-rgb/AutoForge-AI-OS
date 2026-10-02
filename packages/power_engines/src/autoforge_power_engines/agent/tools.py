@@ -323,9 +323,17 @@ def tool_structured_http(
     timeout: float = 10.0,
     allowed_domains: Optional[List[str]] = None,
     allow_private: bool = False,
+    egress_policy: Optional[Any] = None,
     **kwargs: Any,
 ) -> Dict[str, Any]:
-    """Safe outbound HTTP request with SSRF protections."""
+    """Safe outbound HTTP request with SSRF and data-loss protections.
+
+    SECURITY (SHC-05/SHC-06): ``validate_outbound_url`` remains the first line of
+    defence (SSRF / DNS-rebinding). When an ``egress_policy`` is supplied, the
+    canonical :class:`autoforge_security.egress.EgressPolicy` additionally
+    applies destination *and* content control before transmission, so an approved
+    destination still cannot receive secrets, credentials, or API keys.
+    """
     try:
         safe_url = validate_outbound_url(url, allowed_domains=allowed_domains, allow_private=allow_private)
         m = method.upper()
@@ -334,6 +342,25 @@ def tool_structured_http(
 
         req_headers = headers or {}
         req_headers.setdefault("User-Agent", "CustomerAIAgent/1.0")
+
+        # SHC-06: content control runs before any bytes leave the process.
+        if egress_policy is not None:
+            verdict = egress_policy.enforce(
+                safe_url, headers=req_headers, params=params, body=json_body, method=m
+            )
+            from autoforge_security.egress import EgressDecision as _ED
+
+            if verdict.decision is _ED.DENY:
+                return {
+                    "url": url,
+                    "error": f"Egress policy denied the request: {verdict.reason}",
+                    "status": "error",
+                    "blocked_by": "egress_policy",
+                }
+            if verdict.decision is _ED.REDACT and verdict.sanitized_payload is not None:
+                req_headers = verdict.sanitized_payload.get("headers") or req_headers
+                params = verdict.sanitized_payload.get("params") or params
+                json_body = verdict.sanitized_payload.get("body")
 
         # Follow redirects safely up to 3 hops, validating each destination against SSRF policies
         session = requests.Session()
@@ -432,9 +459,11 @@ class ToolRegistry:
     Enforces that the agent can ONLY invoke explicitly registered and authorized tools.
     """
 
-    def __init__(self, workspace_root: Optional[Path | str] = None, allow_private_http: bool = False):
+    def __init__(self, workspace_root: Optional[Path | str] = None, allow_private_http: bool = False, egress_policy: Optional[Any] = None):
         self.workspace_root = Path(workspace_root or "./data/workspace").resolve()
         self.allow_private_http = allow_private_http
+        # SHC-06: canonical content control for the outbound HTTP tool.
+        self.egress_policy = egress_policy
         self._tools: Dict[str, AgentToolConfig] = {}
         self._handlers: Dict[str, Callable[..., Dict[str, Any]]] = {}
 
@@ -509,7 +538,9 @@ class ToolRegistry:
                 },
                 risk_level=ToolRiskLevel.NETWORK_IO,
             ),
-            lambda **kw: tool_structured_http(allow_private=self.allow_private_http, **kw),
+            lambda **kw: tool_structured_http(
+                allow_private=self.allow_private_http, egress_policy=self.egress_policy, **kw
+            ),
         )
 
     def register_tool(

@@ -17,6 +17,7 @@ import requests
 from pydantic import BaseModel, Field
 
 from autoforge_power_engines.agent.spec import CustomerAgentSpecification
+from autoforge_security.ai_guardrails import TrustLevel
 from autoforge_power_engines.agent.tools import ToolRegistry
 from autoforge_power_engines.agent.memory import AgentMemoryStore, ConversationMessage
 from autoforge_power_engines.agent.state_machine import AgentStateMachine, AgentExecutionState, AgentTelemetry
@@ -143,10 +144,22 @@ class StandaloneAgentRuntime:
         tool_registry: Optional[ToolRegistry] = None,
         memory_store: Optional[AgentMemoryStore] = None,
         model_provider: Optional[ModelProvider] = None,
+        trust_boundary: Optional[Any] = None,
+        egress_policy: Optional[Any] = None,
     ):
         self.spec = spec
+        # SECURITY (SHC-01): real trust-boundary enforcement on the live agent
+        # path. Defaults to the platform TrustBoundary so untrusted content is
+        # tagged and neutralized even when no caller injects one.
+        if trust_boundary is None:
+            from autoforge_security.trust_boundary import TrustBoundary
+
+            trust_boundary = TrustBoundary()
+        self.trust_boundary = trust_boundary
+        self.egress_policy = egress_policy
         self.tool_registry = tool_registry or ToolRegistry(
-            allow_private_http=not spec.safety_constraints.deny_private_networks
+            allow_private_http=not spec.safety_constraints.deny_private_networks,
+            egress_policy=egress_policy,
         )
         self.memory = memory_store or AgentMemoryStore(spec.memory_policy.database_path)
 
@@ -173,34 +186,60 @@ class StandaloneAgentRuntime:
         )
 
     def assemble_context(self, session_id: str, current_query: str) -> List[Dict[str, Any]]:
-        """
-        Assembles bounded context: system instruction, persistent memory,
+        """Assembles bounded context: system instruction, persistent memory,
         sliding turn history, and user input. (B8)
+
+        SECURITY (SHC-01): every untrusted block is routed through the platform
+        ``TrustBoundary`` so source/trust metadata is preserved and
+        instruction-shaped content inside customer text, retrieved documents, and
+        tool output is neutralized before the model sees it. The system prompt
+        remains the only INSTRUCTION segment.
         """
         messages: List[Dict[str, Any]] = []
+        boundary = self.trust_boundary
 
-        # 1. System prompt with memory injection
+        # 1. System prompt with memory injection (platform-authored authority)
         system_content = self.spec.system_instructions
         if self.spec.memory_policy.enabled:
             memories = self.memory.get_all_memories()
             if memories:
                 system_content += f"\n\n[Persistent Agent Memory Variables]:\n{json.dumps(memories, indent=2)}"
 
-        messages.append({"role": "system", "content": system_content})
+        sys_seg = boundary.segment(
+            system_content,
+            source="platform.system_instructions",
+            trust_level=TrustLevel.SYSTEM_POLICY,
+            force_data=False,
+        )
+        messages.append({"role": "system", "content": sys_seg.content})
 
-        # 2. Conversation history (bounded by max_history_turns)
+        # 2. Conversation history (bounded), tagged as untrusted by origin
         if self.spec.memory_policy.enabled:
             history = self.memory.get_messages(session_id, limit=self.spec.memory_policy.max_history_turns)
             for msg in history:
-                turn_dict: Dict[str, Any] = {"role": msg.role, "content": msg.content}
+                seg = boundary.segment(
+                    msg.content,
+                    source=f"history:{msg.role}",
+                    trust_level=(
+                        TrustLevel.MODEL_OUTPUT
+                        if msg.role == "assistant"
+                        else TrustLevel.CUSTOMER_INSTRUCTION
+                    ),
+                )
+                turn_dict: Dict[str, Any] = {"role": msg.role, "content": seg.content}
                 if msg.name:
                     turn_dict["name"] = msg.name
                 if msg.tool_calls:
                     turn_dict["tool_calls"] = msg.tool_calls
                 messages.append(turn_dict)
 
-        # 3. Current user input
-        messages.append({"role": "user", "content": current_query})
+        # 3. Current user input — untrusted; never rendered as an instruction
+        user_seg = boundary.segment(
+            current_query,
+            source="customer.user_input",
+            trust_level=TrustLevel.CUSTOMER_INSTRUCTION,
+        )
+        messages.append({"role": "user", "content": user_seg.content})
         return messages
 
     def run(self, user_input: str, session_id: Optional[str] = None) -> AgentRunResult:
