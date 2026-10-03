@@ -677,9 +677,17 @@ class DurableLearningStore:
         if payload is None:
             return None
         try:
-            return RollbackHandle.model_validate(payload)
+            handle = RollbackHandle.model_validate(payload)
         except ValidationError as ex:
             raise LearningRecordCorrupt(f"malformed rollback handle: {ex}") from ex
+        # Defence in depth: a handle is only ever usable inside the project that
+        # created it, even if a record were somehow relocated.
+        if handle.project_id != project_id:
+            raise LearningProjectIsolationError(
+                f"rollback handle belongs to project {handle.project_id}, "
+                f"not {project_id}"
+            )
+        return handle
 
     def list_rollback_handles(self, project_id: uuid.UUID) -> tuple[RollbackHandle, ...]:
         directory = self._project_dir(project_id) / "handles"
@@ -737,6 +745,11 @@ class DurableLearningStore:
         if state.project_id != project_id:
             raise LearningProjectIsolationError(
                 f"active state belongs to project {state.project_id}"
+            )
+        if envelope.content_hash and envelope.content_hash != state.record_hash():
+            raise LearningRecordCorrupt(
+                "active learning state failed integrity verification "
+                "(stored content hash does not match the record)"
             )
         return state
 

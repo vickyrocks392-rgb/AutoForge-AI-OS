@@ -83,13 +83,18 @@ def test_production_engines_are_untouched_by_19b2(rel):
     assert _git_unchanged(rel), f"{rel} was modified by Phase 19B-2"
 
 
-#: Prefix scopes Phase 19B-2 is permitted to change. Anything else is a
-#: scope violation. ``.github/workflows/ci.yml`` is in scope because this gate
-#: makes the learning suite part of CI; without that, 19B-2 would ship
-#: ungated.
+#: Prefix scopes the learning gates are permitted to change. Anything else is a
+#: scope violation. ``.github/workflows/ci.yml`` is in scope because these gates
+#: make the learning suite part of CI; without that, the work would ship
+#: ungated. Phase 19B-3 additionally certifies its findings under
+#: ``phase19/19B3-*`` and ships the reproducible evidence scripts under
+#: ``scripts/_verify_19b3_*``. Both are added narrowly and deliberately: the
+#: guard stays strict for every other path in the repository.
 ALLOWED_PREFIXES = (
     "packages/learning/",
     "19B2-VALIDATION-PROMOTION/",
+    "phase19/19B3-",
+    "scripts/_verify_19b3_",
     ".github/workflows/ci.yml",
 )
 
