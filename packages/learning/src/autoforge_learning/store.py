@@ -52,6 +52,14 @@ __test__ = False  # declares data models, not tests
 #: change to the record envelope.
 STORE_SCHEMA_VERSION = "19B2.1"
 
+#: On-disk schema version for the Phase 19 final lifecycle store. Phase 19
+#: FINAL persists the whole learning lifecycle — experiences, signals,
+#: hypotheses, experiments, runs, activations, regressions and lineage — so
+#: every critical record survives a process restart. It is a separate,
+#: versioned namespace from the 19B-2 store above so an older reader can never
+#: silently mis-parse a newer envelope.
+LIFECYCLE_SCHEMA_VERSION = "19F.1"
+
 
 class LearningStoreError(Exception):
     """Base class for every learning-store failure."""

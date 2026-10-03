@@ -80,6 +80,41 @@ from autoforge_learning.effectiveness import (
     EffectivenessReport,
     measure_effectiveness,
 )
+# ── Phase 19 FINAL ──────────────────────────────────────────────────────────
+from autoforge_learning.production import (
+    LEARNABLE_TARGETS,
+    PROTECTED_TARGETS,
+    ActiveLearningResolver,
+    ExecutionDecisionProvenance,
+    ProductionResolution,
+    assert_resolver_has_no_authority,
+)
+from autoforge_learning.sandbox import (
+    ArmExecutionRecord,
+    ResourceLimits,
+    SandboxPolicy,
+    SandboxResult,
+    SandboxTimeout,
+    SandboxUnavailable,
+    SandboxViolation,
+    run_sandboxed,
+    run_sandboxed_arm,
+    seatbelt_available,
+    supported_platform,
+)
+from autoforge_learning.outcomes import (
+    CustomerOutcomeMeasurement,
+    OutcomeComparison,
+    OutcomeObservation,
+    OutcomePopulationEmpty,
+    OutcomeSource,
+    compare_outcomes,
+)
+from autoforge_learning.lifecycle_store import (
+    DurableLearningLifecycleStore,
+    LifecycleEnvelope,
+    LifecycleIntegrityError,
+)
 from autoforge_learning.evaluation import (
     EvaluationOutcome,
     EvaluationReport,
@@ -362,4 +397,34 @@ __all__ = [
     "measure_effectiveness",
     "negative_signal",
     "positive_signal",
+    # ── Phase 19 FINAL: production integration (Gates 1-4, 23) ────────────────
+    "ActiveLearningResolver",
+    "ExecutionDecisionProvenance",
+    "ProductionResolution",
+    "LEARNABLE_TARGETS",
+    "PROTECTED_TARGETS",
+    "assert_resolver_has_no_authority",
+    # ── Phase 19 FINAL: real OS sandbox (Gates 5-7, 10) ───────────────────────
+    "ArmExecutionRecord",
+    "ResourceLimits",
+    "SandboxPolicy",
+    "SandboxResult",
+    "SandboxTimeout",
+    "SandboxUnavailable",
+    "SandboxViolation",
+    "run_sandboxed",
+    "run_sandboxed_arm",
+    "seatbelt_available",
+    "supported_platform",
+    # ── Phase 19 FINAL: PI-8 customer outcomes (Gates 11-13, 29) ──────────────
+    "CustomerOutcomeMeasurement",
+    "OutcomeComparison",
+    "OutcomeObservation",
+    "OutcomePopulationEmpty",
+    "OutcomeSource",
+    "compare_outcomes",
+    # ── Phase 19 FINAL: durable lifecycle (Gates 8-9) ─────────────────────────
+    "DurableLearningLifecycleStore",
+    "LifecycleEnvelope",
+    "LifecycleIntegrityError",
 ]
