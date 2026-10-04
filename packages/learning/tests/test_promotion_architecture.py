@@ -23,6 +23,12 @@ import pytest
 REPO = Path(__file__).resolve().parents[3]
 LEARNING_SRC = REPO / "packages" / "learning" / "src" / "autoforge_learning"
 
+#: The certified Phase 19 commit. The wiring-closure test diffs against THIS
+#: revision rather than ``HEAD``, so it keeps proving what the wiring changed
+#: after the change has been committed, instead of silently passing on an empty
+#: diff once HEAD moves past it.
+WIRING_BASELINE = "7263b69"
+
 #: Frozen by Gates 19B-1/18. Phase 19B-2 must not touch any of them.
 PROTECTED_FILES = (
     # Phase 18 security / guardrails
@@ -132,7 +138,7 @@ def test_the_wiring_closure_is_additive_and_read_only(rel):
         # The composition root must gain ONLY the learning wiring. Its Context
         # Engineering, model-router and every other certified wiring is untouched.
         result = subprocess.run(
-            ["git", "diff", "-U0", "HEAD", "--", rel],
+            ["git", "diff", "-U0", WIRING_BASELINE, "--", rel],
             cwd=REPO,
             capture_output=True,
             text=True,
