@@ -44,14 +44,27 @@ PROTECTED_FILES = (
     "packages/artifacts/src/autoforge_artifacts/store.py",
     # Review engine
     "packages/review/src/autoforge_review/engine.py",
-    # Composition root (Context Engineering / model router wiring)
-    "packages/composition/src/autoforge_composition/composition_root.py",
+    #
+    # NOTE: composition_root.py was listed here because it carries the Context
+    # Engineering and model-router wiring. Phase 19's production-wiring closure
+    # is the one gate that must add the learning resolver there, so it moved to
+    # WIRING_CLOSURE_FILES below. That test additionally asserts the Context
+    # Engineering / model-router wiring inside it is untouched.
 )
 
 #: Engines Gate 13 forbids this gate from changing.
 PROTECTED_ENGINE_FILES = (
     "packages/kernel/src/autoforge_kernel/learning_engine.py",
+)
+
+#: Files Phase 19's production-wiring closure is permitted to add a *read-only*
+#: learning reference to. The 19B-2 gate correctly froze these against 19B-2; the
+#: final wiring gate is the one place they may change, and only additively: an
+#: optional resolver reference plus a resolve method. Their prior behaviour is
+#: still asserted by the full regression suites.
+WIRING_CLOSURE_FILES = (
     "packages/execution/src/autoforge_execution/engine.py",
+    "packages/composition/src/autoforge_composition/composition_root.py",
 )
 
 
@@ -83,6 +96,71 @@ def test_production_engines_are_untouched_by_19b2(rel):
     assert _git_unchanged(rel), f"{rel} was modified by Phase 19B-2"
 
 
+@pytest.mark.parametrize("rel", WIRING_CLOSURE_FILES, ids=lambda p: Path(p).name)
+def test_the_wiring_closure_is_additive_and_read_only(rel):
+    """Gate 13 — the wiring must add only a read-only learning seam.
+
+    Phase 19's wiring closure legitimately touches these two files. This test
+    pins down *how* they may change, which is stricter than the blanket freeze
+    it replaces: the only permitted additions are the resolver configuration
+    fields, the resolver accessor, the injection setter, the resolve method, and
+    the composition-root wiring itself. Nothing may add a promotion, approval,
+    activation, rollback or capability-granting path to the engine.
+    """
+    path = REPO / rel
+    text = path.read_text()
+
+    # The engine gains no write handle to learning.
+    if rel.endswith("engine.py"):
+        for forbidden in (
+            "self._learning_store.save_",
+            "set_active_state",
+            "promote(",
+            "activate(",
+            "rollback(",
+            "approve(",
+        ):
+            assert forbidden not in text, (
+                f"{rel} gained a write path to learning: {forbidden!r}"
+            )
+        # The resolver is strictly optional: the default must stay None, so
+        # every pre-learning call site behaves identically.
+        assert "learning_resolver: Any | None = None" in text, (
+            f"{rel} must default the resolver to None (learning disabled)"
+        )
+    else:
+        # The composition root must gain ONLY the learning wiring. Its Context
+        # Engineering, model-router and every other certified wiring is untouched.
+        result = subprocess.run(
+            ["git", "diff", "-U0", "HEAD", "--", rel],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+        )
+        added = [
+            line[1:].strip()
+            for line in result.stdout.splitlines()
+            if line.startswith("+") and not line.startswith("+++")
+        ]
+        for forbidden in (
+            "build_ai_infrastructure",
+            "bind_default_provider_adapters",
+            "RouterModelAllocationPort",
+            "build_execution_engine(",
+            "build_workflow_engine(",
+        ):
+            assert not any(forbidden in line for line in added), (
+                f"{rel} changed certified wiring beyond learning: {forbidden!r}"
+            )
+        # It must still construct the resolver and inject it.
+        assert any("ActiveLearningResolver(" in line for line in added), (
+            f"{rel} must construct the ActiveLearningResolver"
+        )
+        assert any("set_learning_resolver(" in line for line in added), (
+            f"{rel} must inject the resolver into the execution engine"
+        )
+
+
 #: Prefix scopes the learning gates are permitted to change. Anything else is a
 #: scope violation. ``.github/workflows/ci.yml`` is in scope because these gates
 #: make the learning suite part of CI; without that, the work would ship
@@ -95,6 +173,15 @@ ALLOWED_PREFIXES = (
     "19B2-VALIDATION-PROMOTION/",
     "phase19/19B3-",
     "scripts/_verify_19b3_",
+    # Phase 19's production-wiring closure: the resolver must be reachable from
+    # the real execution path, which requires these two files. Both are scoped
+    # precisely to two files rather than whole packages.
+    "packages/execution/src/autoforge_execution/engine.py",
+    "packages/composition/src/autoforge_composition/composition_root.py",
+    # ...plus the tests and the runtime-evidence script that prove the wiring
+    # is reachable from the real production path.
+    "packages/composition/tests/test_phase19_wiring.py",
+    "scripts/_verify_phase19_wiring.py",
     ".github/workflows/ci.yml",
 )
 

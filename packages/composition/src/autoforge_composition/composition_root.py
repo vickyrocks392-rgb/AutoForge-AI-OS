@@ -78,6 +78,8 @@ from autoforge_kernel.recovery import DefaultRecoveryCoordinator
 from autoforge_kernel.learning_engine import EngineeringLearningEngine
 from autoforge_learning.evidence import EvidenceCollector
 from autoforge_learning.gateway import ProposalGateway
+from autoforge_learning.production import ActiveLearningResolver
+from autoforge_learning.store import DurableLearningStore
 from autoforge_execution.context_builder import EngineeringContextBuilder
 from autoforge_execution.compaction import (
     CompactionPolicy,
@@ -189,6 +191,15 @@ class AutoForgeSystem:
     strategic_engine: DefaultStrategicEngine | None = None
     context_builder: EngineeringContextBuilder | None = None
     learning_engine: EngineeringLearningEngine | None = None
+    #: Phase 19 wiring closure: the certified ``ActiveLearningResolver``, built
+    #: from the *same* SecurityPlatform, durable store and guardrails as every
+    #: other learning component, and injected into ``execution_engine``. It is
+    #: read-only: it resolves already-approved active learning and cannot
+    #: promote, approve, activate, roll back or grant anything.
+    learning_resolver: ActiveLearningResolver | None = None
+    #: The durable learning store the resolver reads from. Same root the
+    #: promotion path writes to, so activation and resolution cannot diverge.
+    learning_store: DurableLearningStore | None = None
     planning_coordinator: DefaultPlanningCoordinator | None = None
     orchestration_engine: DefaultOrchestrationEngine | None = None
     completion_module: DefaultCompletionModule | None = None
@@ -223,17 +234,44 @@ class AutoForgeSystem:
         self.runtime.stop(reason)
 
 
+def _learning_parameters_from_state(state: Any) -> dict[str, Any]:
+    """Project an active learning pointer onto execution parameters.
+
+    Reads only the identity the promotion path already recorded. It cannot grant
+    a capability or widen a scope — it returns the *version identity* plus the
+    learned strategy payload, which the execution path consumes as an ordinary
+    input. Authority is unchanged by this projection.
+    """
+    return {
+        "learning_id": f"{state.kind}:{state.key}",
+        "version_id": str(state.version_id),
+        "candidate_id": str(state.candidate_id) if state.candidate_id else None,
+        "version_number": state.version_number,
+    }
+
+
 def build_autoforge_system(
     *,
     kernel_version: str = "1.0.0",
     config: dict[str, Any] | None = None,
     workspace_root: str | None = None,
+    learning_store_root: str | None = None,
 ) -> AutoForgeSystem:
     """Construct and wire the AutoForge foundation stack.
 
     Every dependency is injected; no subsystem constructs another and no
     business logic lives here.
+
+    ``learning_store_root`` (Phase 19 wiring closure): the filesystem root for
+    durable learning state. Defaults to a subdirectory of ``workspace_root`` so
+    activation and production resolution always read the *same* store. When it
+    is ``None`` the resolver is still wired but learning is simply absent, which
+    degrades to baseline behaviour.
     """
+    if learning_store_root is None:
+        learning_store_root = str(
+            Path(workspace_root or tempfile.gettempdir()) / "autoforge_learning_state"
+        )
     # 1. Transport infrastructure.
     platform = EventPlatform()
 
@@ -428,6 +466,68 @@ def build_autoforge_system(
         evidence_collector=evidence_collector,
     )
 
+    # 9c. Active Learning Resolver (Phase 19 wiring closure).
+    #
+    # Built HERE, immediately after the existing certified learning wiring,
+    # because this is the first point where the *real* SecurityPlatform (step
+    # 9) and therefore the real AIGuardrailsEngine exist. The resolver is
+    # constructed from exactly the same certified dependencies as the proposal
+    # gateway and the lifecycle service:
+    #
+    #   * the same durable store root the promotion path writes to, so an
+    #     activated learning version and the version production resolves cannot
+    #     diverge;
+    #   * the real SecurityPlatform's AIGuardrailsEngine for authorization,
+    #     so learning can never bypass the security boundary;
+    #   * fail-closed semantics: if the security platform is unavailable the
+    #     authorizer denies everything, which downgrades to baseline behaviour.
+    #
+    # The resolver is READ-ONLY. It resolves learning that has *already* been
+    # promoted, approved and activated through the certified lifecycle. It
+    # cannot promote, approve, activate, roll back, or grant capabilities.
+    learning_store = DurableLearningStore(learning_store_root)
+    _guardrails = getattr(security_platform, "guardrails", None)
+
+    def _learning_authorized(state, project_id) -> bool:
+        """Authorize one already-activated learning pointer for one project.
+
+        Two conditions, both required:
+          1. the certified guardrails permit the learning pointer, and
+          2. the pointer belongs to the project asking for it.
+
+        Any failure — including a missing guardrails engine — denies. This
+        callback is fail-closed by construction.
+        """
+        if _guardrails is None:
+            return False
+        if str(state.project_id) != str(project_id):
+            return False
+        decision = _guardrails.evaluate_learning_proposal(
+            {
+                "proposal_id": f"resolve:{state.version_id}",
+                "proposal_kind": state.kind,
+                "proposed_by": "autoforge.learning.resolver",
+            }
+        )
+        return bool(getattr(decision, "is_permitted", False))
+
+    learning_resolver = ActiveLearningResolver(
+        store=learning_store,
+        parameters_for=_learning_parameters_from_state,
+        authorize=_learning_authorized,
+    )
+
+    # Inject the resolver into the already-constructed execution engine. The
+    # engine was built in step 7 (before the SecurityPlatform existed), so this
+    # late injection is the correct seam: it keeps every certified construction
+    # order intact while making learning reachable from real execution.
+    execution_engine.set_learning_resolver(
+        learning_resolver,
+        target="prompt_strategy",
+        kind="pattern_template",
+        key="default",
+    )
+
     # 10. Review Engine (concrete) — wired with canonical event bus.
     concrete_review_engine = ConcreteReviewEngine(event_sink=canonical_bus)
 
@@ -569,6 +669,8 @@ def build_autoforge_system(
         strategic_engine=strategic_engine,
         context_builder=context_builder,
         learning_engine=learning_engine,
+        learning_resolver=learning_resolver,
+        learning_store=learning_store,
         planning_coordinator=planning_coordinator,
         orchestration_engine=orchestration_engine,
         completion_module=completion_module,

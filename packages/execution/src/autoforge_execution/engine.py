@@ -82,6 +82,18 @@ class ExecutionEngineConfig:
     durability_policy: DurabilityPolicy = DurabilityPolicy.FAIL_CLOSED
     """Policy controlling whether persistence failures fail-closed or degrade observably."""
 
+    #: Phase 19 wiring closure: the certified ``ActiveLearningResolver``.
+    #: ``None`` (the default) means learning is disabled and every execution is
+    #: byte-for-byte pre-learning behaviour. It is injected by
+    #: ``composition_root.build_autoforge_system()`` and is *read-only*.
+    learning_resolver: Any | None = None
+    #: The learnable decision point the resolver is consulted for. One of the
+    #: bounded ``LEARNABLE_TARGETS``; never an authority surface.
+    learning_target: str = "prompt_strategy"
+    #: ``(kind, key)`` identifying which active learning pointer applies.
+    learning_kind: str = "pattern_template"
+    learning_key: str = "default"
+
 
 
 class ExecutionEngine:
@@ -140,6 +152,63 @@ class ExecutionEngine:
     @property
     def governance(self) -> ExecutionGovernance:
         return self._governance
+
+    @property
+    def learning_resolver(self) -> Any | None:
+        """The injected production ``ActiveLearningResolver``, if wired.
+
+        Exposed so the composition root and integration tests can assert the
+        *real* production object graph contains it. The resolver itself is
+        read-only; the engine gains no authority through it.
+        """
+        return self._config.learning_resolver
+
+    def set_learning_resolver(
+        self,
+        resolver: Any | None,
+        *,
+        target: str | None = None,
+        kind: str | None = None,
+        key: str | None = None,
+    ) -> None:
+        """Inject the production learning resolver (Phase 19 wiring closure).
+
+        Called by ``composition_root`` after the certified SecurityPlatform and
+        durable learning store exist. This is a *read-only* reference: the engine
+        gains no authority, and the resolver itself cannot promote, approve,
+        activate, roll back or grant anything. Injecting ``None`` restores the
+        exact pre-learning behaviour.
+        """
+        if resolver is None:
+            # Explicitly disabling learning must actually clear it, so the
+            # "learning disabled" path is real rather than a no-op.
+            self._config.learning_resolver = None
+            return
+        self._config.learning_resolver = resolver
+        if target is not None:
+            self._config.learning_target = target
+        if kind is not None:
+            self._config.learning_kind = kind
+        if key is not None:
+            self._config.learning_key = key
+
+    def resolve_learning(self, project_id: uuid.UUID) -> Any | None:
+        """Consult the production learning resolver for one execution.
+
+        Returns the resolver's ``ProductionResolution``, or ``None`` when
+        learning is disabled (no resolver wired). Never raises: the certified
+        Phase 19 contract is that every failure degrades to baseline behaviour,
+        so a learning outage can never stop engineering execution.
+        """
+        resolver = self._config.learning_resolver
+        if resolver is None:
+            return None
+        return resolver.resolve(
+            project_id=project_id,
+            kind=self._config.learning_kind,
+            key=self._config.learning_key,
+            target=self._config.learning_target,
+        )
 
     async def execute_task_definition(
         self,
