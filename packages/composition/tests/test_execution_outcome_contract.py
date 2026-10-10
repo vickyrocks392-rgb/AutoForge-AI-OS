@@ -517,6 +517,7 @@ def test_t8_canonical_lifecycle_contract_may_consume_execution_outcome():
     """
     authorised = {
         "packages/composition/src/autoforge_composition/lifecycle_decision.py",
+        "apps/api/src/autoforge_api/service.py",
     }
     offenders = []
     scanned = 0

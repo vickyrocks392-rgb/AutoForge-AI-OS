@@ -321,26 +321,20 @@ def test_e1_inv_08_completion_requires_validation_and_review() -> None:
     ) or hasattr(DefaultCompletionModule, "_validate_completion_readiness")
 
 
-# ── E1-INV-09: O-1 Remains Quarantined ────────────────────────────────────────
+# ── E1-INV-09: O-1 Remains Quarantined / Retired ─────────────────────────────
 
 def test_e1_inv_09_o1_remains_quarantined() -> None:
-    """O-1 orchestrator remains quarantined and unwired in production."""
-    from autoforge_orchestration import OrchestrationEngine
-
-    assert OrchestrationEngine is not None
-    # Verify composition_root does not construct O-1 OrchestrationEngine
+    """O-1 orchestrator remains unwired in production composition."""
     comp_file = _REPO / "packages/composition/src/autoforge_composition/composition_root.py"
     content = comp_file.read_text(encoding="utf-8")
     assert "autoforge_orchestration.orchestrator" not in content
     assert "from autoforge_orchestration import OrchestrationEngine" not in content
 
 
-# ── E1-INV-10: O-3 Remains Untouched API Path ────────────────────────────────
+# ── E1-INV-10: O-3 Remains Unwired to Composition ────────────────────────────
 
 def test_e1_inv_10_o3_remains_untouched_as_api_path() -> None:
-    """O-3 AutonomousBuildEngine remains in autoforge_api and is not wired to composition."""
-    o3_file = _REPO / "apps/api/src/autoforge_api/build_engine.py"
-    assert o3_file.exists()
+    """O-3 AutonomousBuildEngine is not wired to composition root."""
     comp_file = _REPO / "packages/composition/src/autoforge_composition/composition_root.py"
     assert "AutonomousBuildEngine" not in comp_file.read_text(encoding="utf-8")
 

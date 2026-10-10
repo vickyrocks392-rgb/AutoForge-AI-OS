@@ -94,8 +94,6 @@ from autoforge_orchestration.governance_service import (
 )
 
 
-from autoforge_orchestration.orchestrator import OrchestrationEngine
-
 __all__ = [
     # Enums
     "RunMode",
@@ -139,8 +137,6 @@ __all__ = [
     "is_stage_successful_terminal",
     "is_stage_failed_terminal",
     "transition_stage",
-    # Orchestration
-    "OrchestrationEngine",
     # Governance
     "GovernanceReportService",
     "GovernanceReport",

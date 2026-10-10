@@ -21,7 +21,6 @@ import urllib.request
 src_paths = [os.path.abspath(p) for p in glob.glob("packages/*/src") + glob.glob("apps/*/src")]
 sys.path = src_paths + sys.path
 
-from autoforge_api.build_engine import AutonomousBuildEngine
 from autoforge_api.runtime_manager import ApplicationRuntimeManager
 from autoforge_api.service import AutoForgeApiService
 from autoforge_api.models import IntentExecutionRequest
