@@ -63,6 +63,7 @@ from autoforge_artifacts.models import (
 )
 from autoforge_artifacts.store import ArtifactStoreProtocol, LocalArtifactStore
 from autoforge_artifacts.durable_bridge import DurableArtifactStoreBridge
+from autoforge_artifacts.artpackager import ArtifactPackager
 
 __all__ = [
     # Engine
@@ -92,4 +93,6 @@ __all__ = [
     "ArtifactStoreProtocol",
     "LocalArtifactStore",
     "DurableArtifactStoreBridge",
+    # New: Artifact Packager
+    "ArtifactPackager",
 ]

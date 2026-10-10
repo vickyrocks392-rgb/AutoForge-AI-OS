@@ -278,7 +278,7 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
 
             elif path.startswith("/api/projects/") and path.endswith("/download-source"):
                 proj_id = path.split("/")[3]
-                dist_dir = os.path.join(self.service.build_engine.dist_dir, proj_id)
+                dist_dir = os.path.join(getattr(self.service, "dist_dir", "dist"), proj_id)
                 src_tar = os.path.join(dist_dir, f"autoforge-src-{proj_id}.tar.gz")
                 if os.path.isfile(src_tar):
                     with open(src_tar, "rb") as f:
@@ -294,7 +294,7 @@ class AutoForgeRequestHandler(SimpleHTTPRequestHandler):
                     self._send_error_json(HTTPStatus.NOT_FOUND, "Source archive not found.")
 
             elif path == "/api/toolchains":
-                toolchains = self.service.build_engine.toolchain_mgr.discover_toolchains()
+                toolchains = self.service.toolchain_mgr.discover_toolchains()
                 self._send_json(HTTPStatus.OK, [t.model_dump() for t in toolchains])
 
             elif path == "/api/auth/me":

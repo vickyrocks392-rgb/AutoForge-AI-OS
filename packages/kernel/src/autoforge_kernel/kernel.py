@@ -1080,6 +1080,10 @@ class Kernel:
 
     async def _handle_loop_event(self, event: DomainBaseEvent) -> None:
         """Handle loop lifecycle events."""
+        if event.metadata.get("handled"):
+            # Event was already handled and published by orchestration_engine; do not create a re-entrant loop.
+            return
+
         project_id = event.aggregate_id
         loop_type = event.metadata.get("loop_type", "unknown")
         event_type = event.event_type

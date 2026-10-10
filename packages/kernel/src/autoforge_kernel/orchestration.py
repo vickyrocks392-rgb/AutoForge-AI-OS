@@ -230,7 +230,7 @@ class DefaultOrchestrationEngine(OrchestrationEngine):
                 event_category=EventCategory.LOOP,
                 aggregate_id=project_id,
                 aggregate_type="Project",
-                metadata={"loop_type": loop_type},
+                metadata={"loop_type": loop_type, "handled": True},
             )
 
         elif status == "remediate":
@@ -241,7 +241,7 @@ class DefaultOrchestrationEngine(OrchestrationEngine):
                 event_category=EventCategory.LOOP,
                 aggregate_id=project_id,
                 aggregate_type="Project",
-                metadata={"loop_type": loop_type, "findings": loop_result.get("findings", {})},
+                metadata={"loop_type": loop_type, "findings": loop_result.get("findings", {}), "handled": True},
             )
             await self._handle_remediation(project_id, loop_result)
 
@@ -253,7 +253,7 @@ class DefaultOrchestrationEngine(OrchestrationEngine):
                 event_category=EventCategory.LOOP,
                 aggregate_id=project_id,
                 aggregate_type="Project",
-                metadata={"loop_type": loop_type, "reason": loop_result.get("reason", "Unknown")},
+                metadata={"loop_type": loop_type, "reason": loop_result.get("reason", "Unknown"), "handled": True},
             )
             await self._handle_escalation(project_id, loop_result)
 
@@ -265,7 +265,7 @@ class DefaultOrchestrationEngine(OrchestrationEngine):
                 event_category=EventCategory.LOOP,
                 aggregate_id=project_id,
                 aggregate_type="Project",
-                metadata={"loop_type": loop_type, "error": loop_result.get("error", "Unknown error")},
+                metadata={"loop_type": loop_type, "error": loop_result.get("error", "Unknown error"), "handled": True},
             )
             await self.handle_failure(project_id, loop_result)
 
@@ -346,15 +346,135 @@ class DefaultOrchestrationEngine(OrchestrationEngine):
             project_id: The project.
             loop_result: The loop result.
         """
-        # Get remediation tasks
-        remediation_tasks = loop_result.get("remediation_tasks", [])
+        # ──────────────────────────────────────────────────────────────────
+        # C5 BOUNDED REMEDIATION RE-ENTRY
+        #
+        # Replaces the old (dead) remediation_task dispatch with a bounded
+        # re-entry into the canonical execution path:
+        #
+        # 1. Budget enforcement at the lifecycle boundary: a per-loop remediation
+        #    budget (from C3's RemediationBudget policy) is read from the result
+        #    metadata carried across re-entries. Re-entry happens only if the
+        #    budget allows; it is consumed BEFORE execution starts.
+        #
+        # 2. Re-entry uses the SAME loop declaration (loop dict) via
+        #    loop_orchestrator.orchestrate_loop — the canonical boundary shared
+        #    with the initial execution — so the corrected work follows the
+        #    identical capability routing (capability router -> power engines /
+        #    model router -> LLMs).
+        #
+        # 3. Terminal states never re-enter: this method is only invoked when the
+        #    completion path has status == "remediate"; on re-entry the result is
+        #    dispatched back through handle_loop_completion, whose own branch
+        #    logic routes COMPLETE / ESCALATE / FAILED to their terminal handlers
+        #    with NO further remediation call.
+        #
+        # 4. Fail-closed validation: missing loop type, missing loop declaration,
+        #    or exhausted budget all cause a terminal "failed" dispatch, never an
+        #    unbounded loop.
+        #
+        # Safety proof: the number of times loop_orchestrator.orchestrate_loop is
+        # invoked from a single _handle_remediation chain is exactly the budget
+        # (max_attempts minus attempts already performed). Each invocation is
+        # a distinct attempt on the same loop; the budget is decremented BEFORE
+        # the invocation, so actual total executions can never exceed the
+        # permitted budget.
+        # ──────────────────────────────────────────────────────────────────
 
-        # Dispatch workers for remediation tasks
-        for task in remediation_tasks:
-            await self.worker_dispatch_coordinator.dispatch_worker(
-                project_id=project_id,
-                task=task,
+        # --- Fail-closed: a remediation must name its loop ---
+        loop_type = str(loop_result.get("loop_type", "")).strip()
+        if not loop_type:
+            logger.warning("Refusing remediation: missing loop_type in loop_result")
+            await self.handle_loop_completion(
+                project_id,
+                {
+                    "status": "failed",
+                    "loop_type": "unknown",
+                    "passed": False,
+                    "error": "Remediation refused: missing loop type",
+                },
             )
+            return
+
+        # --- Read / enforce the C3 remediation budget ---
+        #
+        # The budget is carried in result metadata as "c5" across re-entries.
+        # On the first (initial) execution it is absent; we fall back to the
+        # canonical default (2) defined here to avoid importing lifecycle_decision
+        # in production code (C3 capability must stay unwired per C3/C5 contract).
+        # The actual budget is provided by the C3 lifecycle decision and carried
+        # in the loop_result metadata; this fallback is only used if metadata
+        # is missing (first execution).
+        c5_meta: dict = loop_result.get("c5") or {}
+        attempts_so_far = int(c5_meta.get("attempts_so_far", 0))
+        DEFAULT_STAGE_MAX_ATTEMPTS = 2  # matches composition.lifecycle_decision default
+
+        max_attempts = int(c5_meta.get("max_attempts", DEFAULT_STAGE_MAX_ATTEMPTS))
+        remaining = max_attempts - attempts_so_far
+
+        if remaining <= 0:
+            # Budget exhausted: fail fast, do not re-enter.
+            logger.warning(
+                "Bounded remediation budget exhausted (%d attempts, max=%d) for loop %r",
+                attempts_so_far,
+                max_attempts,
+                loop_type,
+            )
+            await self.handle_loop_completion(
+                project_id,
+                {
+                    "status": "failed",
+                    "loop_type": loop_type,
+                    "passed": False,
+                    "error": (
+                        f"Remediation budget exhausted after {max_attempts} attempts "
+                        f"for loop {loop_type!r}"
+                    ),
+                },
+            )
+            return
+
+        # --- Consume one re-entry and re-enter via the canonical path ---
+        new_meta: dict = dict(c5_meta, attempts_so_far=attempts_so_far + 1)
+
+        # The loop declaration must be present (orchestrate_loop guarantees it);
+        # without it we cannot re-enter a valid, deterministic loop.
+        original_loop = loop_result.get("loop")
+        if original_loop is None:
+            logger.error(
+                "Refusing remediation for loop %r: missing original loop declaration",
+                loop_type,
+            )
+            await self.handle_loop_completion(
+                project_id,
+                {
+                    "status": "failed",
+                    "loop_type": loop_type,
+                    "passed": False,
+                    "error": "Remediation: missing original loop declaration",
+                },
+            )
+            return
+
+        loop_context = {
+            "project_id": str(project_id),
+            "workflow_id": loop_result.get("workflow_id"),
+            "loop": original_loop,
+            "request_text": loop_result.get("request_text"),
+            "c5": new_meta,  # budget is carried forward for the next boundary check
+        }
+
+        re_entered = await self.loop_orchestrator.orchestrate_loop(
+            project_id=project_id,
+            loop_type=loop_type,
+            loop_context=loop_context,
+        )
+
+        # Dispatch the re-entry result through the canonical completion path.
+        # The branch logic in handle_loop_completion routes COMPLETE / ESCALATE /
+        # FAILED to their terminal handlers and remediate results trigger another
+        # budget-gated re-entry, so termination is guaranteed by the budget.
+        await self.handle_loop_completion(project_id, re_entered)
 
     async def _handle_escalation(self, project_id: uuid.UUID, loop_result: dict[str, Any]) -> None:
         """
@@ -467,6 +587,12 @@ class DefaultLoopOrchestrator(LoopOrchestrator):
 
         # Add loop type to result
         loop_result["loop_type"] = loop_type
+
+        # Carry the original loop declaration forward for remediation / re-entry
+        if "loop" not in loop_result and "loop" in loop_context:
+            loop_result["loop"] = loop_context["loop"]
+        if "c5" not in loop_result and "c5" in loop_context:
+            loop_result["c5"] = loop_context["c5"]
 
         return loop_result
 

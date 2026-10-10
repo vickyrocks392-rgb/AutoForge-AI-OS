@@ -858,6 +858,41 @@ class KernelModelRouterAdapter(KernelModelRouterABC):
     """
     Adapts autoforge_ai_infrastructure.ModelRouterService to satisfy the Kernel's
     ModelRouter interface.
+
+    Fail-closed (Gate C, Phase C6)
+    ------------------------------
+    This adapter previously caught every routing exception and returned a
+    hardcoded ``qwen2.5-coder:7b`` LOCAL profile. That is silent arbitrary model
+    selection: it names a specific model that the registry never allocated, and
+    it did so on precisely the path where routing had already failed. It also
+    masked the real cause, so a misconfigured registry looked like a healthy
+    local deployment.
+
+    The doctrine is now:
+
+        canonical allocation
+            OR
+        explicit failure
+
+    Verified before changing anything (Gate C C0 forensics):
+
+    * The fallback branch was **not** reachable on the happy path. In a fully
+      wired system ``ModelRouterService.route()`` succeeds and returns the
+      registry-allocated ``qwen2.5-coder-7b`` (dash form) -- a different model
+      identity from the fallback's ``qwen2.5-coder:7b`` (colon form). Removing
+      the fallback therefore does not change any healthy-path result.
+    * Both production callers already tolerate model-selection failure and
+      degrade honestly: ``DefaultWorkerDispatchCoordinator.dispatch_worker``
+      (``autoforge_kernel/orchestration.py:537-543``) and
+      ``_coordinate_task_start`` (``autoforge_kernel/infrastructure.py:237-243``)
+      each wrap the call in ``try/except Exception`` and continue *without* a
+      model rather than substituting one. No caller depends on this method
+      always returning a profile.
+
+    So the canonical routing errors -- ``NoEligibleModelError``,
+    ``UnsupportedCapabilityError``, ``MalformedRoutingRequestError`` -- now
+    propagate unchanged with their structured ``details``. A caller that wants to
+    degrade must say so, at the call site, where the decision is visible.
     """
 
     def __init__(
@@ -874,28 +909,44 @@ class KernelModelRouterAdapter(KernelModelRouterABC):
         task: dict[str, Any],
         exclude_provider: str | None = None,
     ) -> ModelProfile:
+        """Select a model through canonical allocation, or fail explicitly.
+
+        Raises:
+            RuntimeError: if the adapter was constructed without a router
+                service. This is a misconfiguration, not a runtime condition to
+                be papered over with a guessed model.
+            autoforge_ai_infrastructure.errors.AIInfrastructureError: propagated
+                unchanged from ``route()`` (``NoEligibleModelError``,
+                ``UnsupportedCapabilityError``,
+                ``MalformedRoutingRequestError``).
+        """
+        if self.router_service is None:
+            raise RuntimeError(
+                "KernelModelRouterAdapter has no ModelRouterService; cannot "
+                "perform canonical model allocation. Refusing to invent a model."
+            )
+
         req = RoutingRequest(
             required_capabilities=frozenset([CapabilityIds.TEXT_GENERATION]),
             offline_only=task.get("offline_only", False),
         )
-        try:
+
+        if exclude_provider:
+            # Honour the declared constraint instead of silently ignoring it.
+            decision = self.router_service.route_excluding_providers(
+                req, {exclude_provider}
+            )
+        else:
             decision = self.router_service.route(req)
-            m = decision.selected.model
-            prov = ModelProvider.LOCAL if "local" in m.provider_id.lower() else ModelProvider.CUSTOM
-            return ModelProfile(
-                id=uuid.uuid4(),
-                name=f"Profile for {m.model_id}",
-                provider=prov,
-                model_name=m.model_id,
-            )
-        except Exception:
-            # Safe default local-first model profile
-            return ModelProfile(
-                id=uuid.uuid4(),
-                name="Default Local Profile",
-                provider=ModelProvider.LOCAL,
-                model_name="qwen2.5-coder:7b",
-            )
+
+        m = decision.selected.model
+        prov = ModelProvider.LOCAL if "local" in m.provider_id.lower() else ModelProvider.CUSTOM
+        return ModelProfile(
+            id=uuid.uuid4(),
+            name=f"Profile for {m.model_id}",
+            provider=prov,
+            model_name=m.model_id,
+        )
 
     async def get_model_capabilities(self, model_id: str) -> dict[str, Any]:
         if self.registry and hasattr(self.registry, "get_model"):
