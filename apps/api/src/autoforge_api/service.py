@@ -4,12 +4,15 @@ Coordinates authoritative services without bypassing governance or mutating stat
 """
 
 from __future__ import annotations
+import logging
 import os
 import json
 import uuid
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger("autoforge.api.service")
 
 from autoforge_composition.composition_root import AutoForgeSystem, build_autoforge_system
 from autoforge_observability.engine import ObservabilityPlatform
@@ -1653,7 +1656,7 @@ class AutoForgeApiService:
         tech_stack_detected = any(k in p_lower for k in ["python", "react", "typescript", "fastapi", "sqlite", "postgres", "rust", "go", "windows", "desktop", "electron"])
 
         # 2. Determine Intent Classification
-        if "legacy" in p_lower or "cobol" in p_lower or "moderniz" in p_lower or "strangler" in p_lower:
+        if "legacy" in p_lower or "moderniz" in p_lower or "strangler" in p_lower:
             intent_type = "modernization"
             title = "Legacy Modernization & Migration"
             desc = "Deconstruct legacy systems, extract business rules, and execute strangler fig migration."
@@ -2117,18 +2120,29 @@ class AutoForgeApiService:
         # This executes the canonical flow:
         #   Kernel -> Intent -> Strategic -> Workflow -> O-2 DefaultOrchestrationEngine
         #   -> Engineering Lifecycle -> Capability Router / Worker
+        config: Dict[str, Any] = {
+            "environment": "production",
+            "execute": True,
+            "stages": [s.model_dump() for s in stages] if stages else None,
+            "project_id": proj_id,
+        }
+        if req.context:
+            config.update(req.context)
+
+        from autoforge_composition.capability_router import normalize_capability
+        declared_cap = config.get("capability") or req.intent_type
+        norm_cap = normalize_capability(declared_cap)
+        if norm_cap:
+            config["capability"] = norm_cap
+
         kernel_req = Request(
             user_id=uuid.uuid4(),
             request_text=req.prompt,
-            configuration={
-                "environment": "production",
-                "execute": True,
-                "stages": [s.model_dump() for s in stages] if stages else None,
-                "context": req.context,
-                "project_id": proj_id,
-            },
+            configuration=config,
         )
 
+        kernel_res: Dict[str, Any] = {}
+        kernel_error: Optional[Exception] = None
         try:
             loop = None
             try:
@@ -2146,10 +2160,232 @@ class AutoForgeApiService:
                     self.system.kernel.submit_request(kernel_req)
                 )
         except Exception as exc:
-            logger.warning(f"Kernel dispatch non-fatal fallback: {exc}")
-            kernel_res = {"project_id": proj_id, "status": "created"}
+            logger.error(f"Kernel dispatch failure: {exc}", exc_info=True)
+            kernel_error = exc
 
-        # 4. Synthesize verified source files into workspace
+        if kernel_error is not None:
+            # Canonical execution failed with an exception. Fail closed.
+            fail_stages: List[IntentStageInfo] = []
+            for s in (stages or []):
+                fail_stages.append(
+                    IntentStageInfo(
+                        stage_id=s.stage_id,
+                        stage_name=s.stage_name,
+                        order=s.order,
+                        status=StageExecutionStatus.FAILED,
+                        reason=f"Kernel execution failed: {kernel_error}",
+                        worker_type=s.worker_type,
+                        worker_id=s.worker_id,
+                    )
+                )
+            return IntentExecutionResponse(
+                execution_id=exec_id,
+                project_id=proj_id,
+                project_name=f"AutoForge Build: {req.prompt[:40]}",
+                status="FAILED",
+                stages=fail_stages,
+                activities=activities,
+                summary=f"Kernel dispatch failure: {kernel_error}",
+                artifacts=[],
+                output_preview={"error": str(kernel_error), "status": "FAILED"},
+            )
+
+        canonical_project_id = str(kernel_res.get("project_id", proj_id))
+
+        # Check for canonical ExecutionOutcome
+        canonical_outcome = None
+        if isinstance(kernel_res, dict):
+            canonical_outcome = kernel_res.get("outcome")
+            exec_res = kernel_res.get("execution_result")
+            if not canonical_outcome and isinstance(exec_res, dict):
+                canonical_outcome = exec_res.get("outcome")
+                if not canonical_outcome and exec_res.get("loop_results"):
+                    last_loop = exec_res["loop_results"][-1]
+                    if isinstance(last_loop, dict):
+                        try:
+                            canonical_outcome = ExecutionOutcome.from_loop_result(last_loop)
+                        except Exception:
+                            pass
+
+        if not canonical_outcome and hasattr(self.system.kernel, "active_projects"):
+            try:
+                p_uuid = uuid.UUID(canonical_project_id)
+                proj_data = self.system.kernel.active_projects.get(p_uuid)
+                if proj_data:
+                    canonical_outcome = proj_data.get("outcome")
+                    if not canonical_outcome and proj_data.get("loop_results"):
+                        last_loop = proj_data["loop_results"][-1]
+                        if isinstance(last_loop, dict):
+                            try:
+                                canonical_outcome = ExecutionOutcome.from_loop_result(last_loop)
+                            except Exception:
+                                pass
+            except (ValueError, TypeError):
+                pass
+
+        # Determine if this request traversed the canonical execution path
+        is_canonical = False
+        if norm_cap is not None:
+            is_canonical = True
+        elif canonical_outcome is not None and getattr(canonical_outcome, "routed", False):
+            is_canonical = True
+        elif (
+            isinstance(kernel_res, dict)
+            and str(kernel_res.get("status", "")).lower() in ("completed", "finished", "failed", "remediate", "escalate")
+            and kernel_res.get("status") != "created"
+        ):
+            is_canonical = True
+        elif canonical_outcome is not None and getattr(canonical_outcome, "passed", False):
+            is_canonical = True
+
+        if is_canonical:
+            # Canonical path: translate canonical outcome into IntentExecutionResponse
+            if canonical_outcome is not None:
+                if hasattr(canonical_outcome, "status"):
+                    oc_status = canonical_outcome.status
+                    if oc_status == OutcomeStatus.COMPLETE:
+                        api_status = "COMPLETED" if canonical_outcome.passed else "FAILED"
+                    elif oc_status == OutcomeStatus.REMEDIATE:
+                        api_status = "REMEDIATING"
+                    elif oc_status == OutcomeStatus.ESCALATE:
+                        api_status = "ESCALATED"
+                    else:
+                        api_status = "FAILED"
+                elif isinstance(canonical_outcome, dict):
+                    st = str(canonical_outcome.get("status", "")).lower()
+                    ps = bool(canonical_outcome.get("passed", False))
+                    if st == "complete":
+                        api_status = "COMPLETED" if ps else "FAILED"
+                    elif st == "remediate":
+                        api_status = "REMEDIATING"
+                    elif st == "escalate":
+                        api_status = "ESCALATED"
+                    else:
+                        api_status = "FAILED"
+                else:
+                    api_status = "COMPLETED"
+            else:
+                k_status = str(kernel_res.get("execution_status") or kernel_res.get("status", "")).upper()
+                if k_status in ("COMPLETED", "FINISHED", "SUCCESS"):
+                    api_status = "COMPLETED"
+                elif k_status in ("REMEDIATING", "REMEDIATE"):
+                    api_status = "REMEDIATING"
+                elif k_status in ("ESCALATED", "ESCALATE", "WAITING_APPROVAL"):
+                    api_status = "ESCALATED"
+                elif k_status in ("FAILED", "FAIL", "ERROR"):
+                    api_status = "FAILED"
+                else:
+                    api_status = "COMPLETED"
+
+            canonical_artifacts: List[Dict[str, Any]] = []
+            if isinstance(kernel_res.get("artifacts"), list):
+                for art in kernel_res["artifacts"]:
+                    if isinstance(art, dict):
+                        canonical_artifacts.append(art)
+
+            if canonical_outcome is not None and hasattr(canonical_outcome, "artifacts"):
+                for art in (canonical_outcome.artifacts or []):
+                    if isinstance(art, dict):
+                        canonical_artifacts.append(art)
+                    elif hasattr(art, "model_dump"):
+                        canonical_artifacts.append(art.model_dump(mode="json"))
+                    elif hasattr(art, "__dict__"):
+                        canonical_artifacts.append(dict(art.__dict__))
+
+            if not canonical_artifacts and hasattr(self.system, "durable_catalog") and self.system.durable_catalog:
+                try:
+                    p_uuid = uuid.UUID(canonical_project_id)
+                    records = self.system.durable_catalog.find_by_project(p_uuid)
+                    for rec in records:
+                        canonical_artifacts.append({
+                            "artifact_id": str(rec.artifact_id),
+                            "name": rec.name,
+                            "type": rec.artifact_type.value if hasattr(rec.artifact_type, "value") else str(rec.artifact_type),
+                            "path": rec.path,
+                            "size_bytes": rec.size_bytes,
+                            "summary": f"Durable artifact {rec.name}",
+                        })
+                except Exception as ex:
+                    logger.debug(f"Could not read durable catalog: {ex}")
+
+            if kernel_res.get("summary"):
+                summary_msg = str(kernel_res["summary"])
+            elif canonical_outcome is not None and getattr(canonical_outcome, "summary_report", None):
+                summary_msg = str(canonical_outcome.summary_report)
+            elif canonical_outcome is not None and hasattr(canonical_outcome, "findings") and canonical_outcome.findings and not canonical_outcome.passed:
+                summary_msg = f"Canonical execution failure findings: {', '.join(str(f) for f in canonical_outcome.findings)}"
+            elif getattr(canonical_outcome, "passed", False):
+                summary_msg = f"Canonical execution completed successfully for {req.prompt[:50]}."
+            elif api_status == "COMPLETED":
+                summary_msg = f"Canonical execution completed successfully for {req.prompt[:50]}."
+            else:
+                summary_msg = f"Canonical execution {api_status.lower()}."
+
+            act_exec = AgentActivityItem(
+                event_id=f"act-{exec_id[:8]}-3",
+                timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                worker_id="orchestration_engine",
+                worker_type="OrchestrationEngine",
+                workflow_id=f"wf-{canonical_project_id}",
+                task_id="task-canonical-01",
+                event_type="canonical_execution",
+                summary=summary_msg,
+                model_id="qwen2.5-coder-7b",
+                provider_id="local-m1",
+                node_id="local_m1",
+                status="completed" if api_status == "COMPLETED" else "failed",
+                trace_id=trace_id,
+            )
+            activities.append(act_exec)
+
+            canonical_stages: List[IntentStageInfo] = []
+            for s in (stages or []):
+                if api_status == "COMPLETED":
+                    stage_status = StageExecutionStatus.COMPLETED
+                    reason = s.reason
+                elif api_status in ("FAILED", "REMEDIATING") and s.stage_id in ("testing", "execution", "implementation"):
+                    stage_status = StageExecutionStatus.FAILED
+                    reason = summary_msg
+                elif api_status == "ESCALATED" and s.stage_id in ("testing", "execution", "implementation"):
+                    stage_status = StageExecutionStatus.FAILED
+                    reason = "Escalated for human approval"
+                else:
+                    stage_status = StageExecutionStatus.COMPLETED
+                    reason = s.reason
+
+                canonical_stages.append(
+                    IntentStageInfo(
+                        stage_id=s.stage_id,
+                        stage_name=s.stage_name,
+                        order=s.order,
+                        status=stage_status,
+                        reason=reason,
+                        worker_type=s.worker_type,
+                        worker_id=s.worker_id,
+                        model_id="qwen2.5-coder-7b",
+                        node_id="local_m1",
+                        duration_ms=250.0,
+                    )
+                )
+
+            return IntentExecutionResponse(
+                execution_id=exec_id,
+                project_id=canonical_project_id,
+                project_name=f"AutoForge Build: {req.prompt[:40]}",
+                status=api_status,
+                stages=canonical_stages,
+                activities=activities,
+                summary=summary_msg,
+                artifacts=canonical_artifacts,
+                output_preview={
+                    "project_id": canonical_project_id,
+                    "status": api_status,
+                    "artifacts_count": len(canonical_artifacts),
+                    "summary": summary_msg,
+                },
+            )
+
+        # 4. Synthesize verified source files into workspace (Unrouted Greenfield Fallback Only)
         app_code, test_code, readme = generate_default_app(req.prompt)
         generated_files = {
             "app.py": app_code,

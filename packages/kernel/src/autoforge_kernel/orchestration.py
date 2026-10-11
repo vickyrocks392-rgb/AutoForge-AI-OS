@@ -158,6 +158,7 @@ class DefaultOrchestrationEngine(OrchestrationEngine):
                     "Could not read request text for project %s: %s", project_id, exc
                 )
 
+        executed_loop_results: list[dict[str, Any]] = []
         for loop in executable_workflow.loops:
             loop_type = loop.get("type", "unknown")
             loop_context = {
@@ -203,9 +204,12 @@ class DefaultOrchestrationEngine(OrchestrationEngine):
                 loop_type=loop_type,
                 loop_context=loop_context,
             )
+            executed_loop_results.append(loop_result)
 
             # Handle loop completion
             await self.handle_loop_completion(project_id, loop_result)
+
+        return executed_loop_results
 
     async def handle_loop_completion(
         self,

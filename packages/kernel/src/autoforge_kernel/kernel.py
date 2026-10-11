@@ -500,8 +500,9 @@ class Kernel:
         elif request.configuration and "auto_execute" in request.configuration:
             should_execute = bool(request.configuration["auto_execute"])
 
+        exec_res = None
         if should_execute and self.orchestration_engine and executable_workflow:
-            await self.execute_project(project_id)
+            exec_res = await self.execute_project(project_id)
 
         # Return project info
         estimated_duration = 0.0
@@ -513,12 +514,16 @@ class Kernel:
             estimated_duration = executable_workflow.estimated_duration
             estimated_cost = executable_workflow.estimated_cost
 
-        return {
+        ret: dict[str, Any] = {
             "project_id": project_id,
             "status": "created",
             "estimated_duration": estimated_duration,
             "estimated_cost": estimated_cost,
         }
+        if exec_res is not None:
+            ret["execution_result"] = exec_res
+            ret["execution_status"] = exec_res.get("status")
+        return ret
 
     async def execute_project(
         self,
@@ -564,9 +569,14 @@ class Kernel:
                 metadata={"workflow_id": str(workflow_id)},
             )
 
-            await self.orchestration_engine.orchestrate(project_id, executable_workflow)
+            orch_res = await self.orchestration_engine.orchestrate(project_id, executable_workflow)
+            if isinstance(orch_res, list):
+                loop_results = orch_res
 
         # Step 5: Completion Validation
+        validation_result: dict[str, Any] | None = None
+        finalize_result: dict[str, Any] | None = None
+        execution_status = "finished"
         if self.completion_module:
             validation_result = await self.completion_module.validate_completion(project_id)
             if validation_result.get("valid"):
@@ -611,22 +621,6 @@ class Kernel:
                         )
 
                     # Step 6: Learning & Reflection (Phase 18-K ADR-005; Phase 19B-1 evidence)
-                    #
-                    # PHASE 19B-1 GATE 4: ``review_findings`` previously read
-                    # ``validation_result.get("findings", [])``. ``validate_completion``
-                    # never populates a "findings" key, so that branch of the
-                    # learning engine was permanently dead.
-                    #
-                    # The correct repair is NOT to invent a "findings" field.
-                    # The real, authoritative evidence already exists in
-                    # ``finalize_result``:
-                    #   * ``final_review["validation"]`` -- the genuine
-                    #     deterministic validation truth, and
-                    #   * ``final_review["approved"]``  -- the genuine final
-                    #     review verdict.
-                    # We pass those through instead. No parallel validation data
-                    # is created, completion semantics are untouched, and
-                    # validation authority is unchanged.
                     if self.learning_engine and hasattr(self.learning_engine, "reflect_and_learn"):
                         try:
                             await self.learning_engine.reflect_and_learn(
@@ -636,6 +630,10 @@ class Kernel:
                             )
                         except Exception as ex:
                             logger.warning(f"Kernel learning stage failed: {ex}")
+                else:
+                    execution_status = "failed"
+            else:
+                execution_status = "failed"
         elif self.learning_engine and hasattr(self.learning_engine, "reflect_and_learn"):
             try:
                 await self.learning_engine.reflect_and_learn(
@@ -645,7 +643,26 @@ class Kernel:
             except Exception as ex:
                 logger.warning(f"Kernel learning stage failed: {ex}")
 
-        return {"project_id": project_id, "status": "finished"}
+        # Check loop results for failure or non-success
+        for lr in loop_results:
+            if isinstance(lr, dict):
+                st = str(lr.get("status", "")).lower()
+                if st in ("failed", "remediate", "escalate") and execution_status == "finished":
+                    execution_status = st
+
+        res = {
+            "project_id": project_id,
+            "status": execution_status,
+            "validation_result": validation_result,
+            "finalize_result": finalize_result,
+            "loop_results": loop_results,
+        }
+        if project_id in self.active_projects:
+            self.active_projects[project_id]["execution_result"] = res
+            self.active_projects[project_id]["status"] = execution_status
+            self.active_projects[project_id]["loop_results"] = loop_results
+
+        return res
 
     async def get_status(self, project_id: uuid.UUID) -> dict[str, Any]:
         """
