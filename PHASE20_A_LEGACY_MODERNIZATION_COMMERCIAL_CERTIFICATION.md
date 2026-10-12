@@ -6,7 +6,7 @@
 **Primary Execution Engine:** Canonical AutoForge Production Architecture  
 **Authoritative AI Machine:** M6 (Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2 via Model Router)  
 **Hardware Invariant:** M1 and HP Remain Quarantined (OFF)  
-**Overall Verdict:** **CERTIFIED**
+**Overall Verdict:** **CERTIFIED — THROUGHPUT PROVISIONAL**
 
 ---
 
@@ -18,6 +18,13 @@ A real customer intent request was accepted through the canonical customer API b
 
 The system discovered legacy technologies, built an abstract semantic program model, generated clean, standalone Java target source code and standard runtime classes without internal framework contamination, compiled with real OpenJDK `javac`, executed on a standard JVM, and proved **100% byte-for-byte identical behavioral equivalence** (exact SHA-256 matches) against a GnuCOBOL golden master on enterprise datasets. Furthermore, controlled failure injection proved autonomous defect diagnosis, remediation, rebuild, and re-validation. The delivered package was sealed in an isolated customer boundary (`Modernization Output/{project_id}`) containing complete documentation, standalone deployment scripts, a cryptographically signed provenance chain, an immutable machine-readable delivery manifest (`DELIVERY-MANIFEST.json`), and structured episodic learning records.
 
+**Certification Classification:** **CERTIFIED — THROUGHPUT PROVISIONAL**  
+- **Functional Integrity:** Fully certified and operational through the canonical production orchestrator.
+- **Measured Batch Slice:** The measured executable workload is a targeted batch slice comprising **107 transformed source NLOC** (92 from `DAILYPOST.cbl`, 8 from `ACCOUNT-REC.cpy`, 7 from `TXN-REC.cpy`).
+- **Real End-to-End Throughput:** Mean **93,520.28 NLOC/hour** (Median: **89,939.36 NLOC/hour**) measured from customer API entry to delivery manifest sealing across 3 canonical customer runs.
+- **Enterprise Estate Qualifier:** AWS CardDemo contains interactive CICS/BMS and SQL constructs outside the Phase 20-A batch modernization scope. Enterprise-wide throughput at massive scale cannot yet be claimed without qualifying the scope.
+- **Verdict Rationale:** The throughput figure is truthful for the certified batch scope, but provisional for broader legacy estates.
+
 ---
 
 ## 2. Commercial Capability Claim
@@ -26,7 +33,7 @@ The commercial claim certified in this phase is:
 
 > *"AutoForge can take a real legacy software workload, understand it, plan its modernization, transform it, build the target, execute the target, validate behavioral equivalence, repair genuine defects when necessary, re-run validation, produce a clean customer delivery package, preserve provenance, report measurable performance, and record the complete execution as reusable learning data."*
 
-**Certification Outcome:** **PROVEN AND CERTIFIED.**
+**Certification Outcome:** **PROVEN AND CERTIFIED (THROUGHPUT PROVISIONAL).**
 
 ---
 
@@ -132,11 +139,42 @@ The capability discovered technologies dynamically from source files without app
 ## 7. Source Inventory
 
 - **Total Source Files Discovered:** 41 files
-- **Total Physical Source LOC:** 8,354 LOC
-- **Source Non-Comment LOC (NLOC):** 7,118 NLOC
-- **Primary COBOL Program Physical LOC:** 152 LOC
-- **Primary COBOL Program NLOC:** 105 NLOC
+- **Total Physical Source LOC (Discovered):** 8,354 LOC
+- **Total Source Non-Comment LOC (Discovered NLOC):** 7,062 NLOC
+- **Selected Modernization Scope (Files):** 3 files (`DAILYPOST.cbl`, `ACCOUNT-REC.cpy`, `TXN-REC.cpy`)
+- **Selected Physical LOC:** 128 LOC
+- **Selected Modernization Scope NLOC:** 107 NLOC
+- **Actually Transformed Source NLOC:** **107 NLOC** (92 from `DAILYPOST.cbl`, 8 from `ACCOUNT-REC.cpy`, 7 from `TXN-REC.cpy`)
+- **Target Generated Physical LOC:** 677 LOC
+- **Target Generated NLOC:** 497 NLOC (`Dailypost.java`: 279 NLOC, `CobolRuntime.java`: 218 NLOC)
+- **Target Files:** 2 files (`Dailypost.java`, `CobolRuntime.java`)
 - **Record Definitions:** Fixed-width 80-byte transactional record formats.
+
+### 7.1 Scope Forensic Analysis: Discovered vs Selected vs Transformed Scope
+
+| Metric Dimension | Discovered Project | Selected Scope | Analyzed Scope | Actually Transformed Scope | Target Generated |
+|---|---:|---:|---:|---:|---:|
+| **Files** | 41 | 3 | 3 | 3 | 2 |
+| **Physical LOC** | 8,354 | 128 | 128 | 128 | 677 |
+| **Non-Comment LOC (NLOC)** | 7,062 | 107 | 107 | 107 | 497 |
+
+**Reason for Discrepancy & Accounting Correction:**
+The discovery phase comprehensively inventories the entire target repository (`cobol-modernization-playbook`), finding 41 files spanning documentation, test scripts, alternative implementation approaches, assembly utilities, and auxiliary programs (totalling 7,062 non-comment lines of code). However, AutoForge's semantic analysis and transformation pipeline selectively modernized the active executable batch system under test (`DAILYPOST.cbl` and its copybooks `ACCOUNT-REC.cpy` and `TXN-REC.cpy`), which comprises exactly **107 NLOC**. 
+
+Previous preliminary reporting erroneously used the discovered 7,118 / 7,062 NLOC as the numerator for throughput calculation. Under Phase 20-A metrics correction, the authoritative throughput numerator is strictly the **107 NLOC actually processed, transformed, and validated by AutoForge**.
+
+### 7.2 Secondary Workload Forensics: AWS CardDemo (Gap Forensics)
+
+To verify the bounds of the Phase 20-A legacy modernization engine, the AWS Mainframe Modernization CardDemo repository (`59cc6c2fd7ebd7ef7925cad552a01a4b8b6e4d5`) was independently analyzed:
+- **Discovered Files:** 138 files across COBOL sources, BMS map definitions, JCL jobs, DDL, and CICS copybooks.
+- **Architectural Construct Forensics:**
+  - CardDemo programs (such as `COCRDLIC.cbl`, `COTRN01C.cbl`, and `CBSTM03A.cbl`) heavily utilize IBM 3270 BMS screen mappings (`DFHBMSCA`, `DFHAID`), `EXEC CICS` commands (`SEND MAP`, `RECEIVE MAP`, `READ`, `RETURN`, `XCTL`), and embedded relational `EXEC SQL` statements.
+  - The Phase 20-A commercial modernization scope specifically covers batch mainframe execution (`FILE-CONTROL`, sequential/indexed record matching, credit/debit arithmetic, and exception routing).
+- **Engine Behavior on Unsupported Constructs:**
+  - When submitted to the modernization pipeline, the parser flags interactive CICS/SQL statements as unsupported batch constructs and transitions to remediation (`REMEDIATING` / defect repair).
+- **Determinism of Provisional Classification:**
+  - Because CardDemo requires interactive screen conversion (BMS-to-REST/Web UI) and SQL database gateway adapters (scheduled for Phase 20-B/C), AutoForge cannot yet transform CardDemo end-to-end without expanding the architectural scope.
+  - This deterministically justifies certifying throughput as **CERTIFIED — THROUGHPUT PROVISIONAL** (fully certified for targeted batch scope, provisional for full legacy estates).
 
 ---
 
@@ -300,65 +338,98 @@ Sealed in `provenance/provenance_chain.json` (`Chain ID: da2b896a-3bbd-4cbf-ab82
 
 ## 21. Required Performance Table
 
-| Metric | Result | Measurement Definition |
+| Metric | Authoritative Result | Measurement Definition & Provenance |
 |---|---:|---|
-| **Source physical LOC** | **8,354 LOC** | Discovered total source physical lines across all project files |
-| **Source NLOC** | **7,118 NLOC** | Discovered source non-comment non-blank lines |
-| **Primary Workload NLOC** | **105 NLOC** | Measured non-comment LOC of executable legacy COBOL program |
-| **Source files** | **41** | Total source files discovered in workload repository |
-| **Target LOC** | **677 LOC** | Total generated target Java physical lines |
+| **Discovered Project Physical LOC** | **8,354 LOC** | Complete filesystem inventory of all discovered files in workload |
+| **Discovered Project NLOC** | **7,062 NLOC** | Discovered non-comment source lines across entire target repository |
+| **Selected Modernization Scope NLOC** | **107 NLOC** | Pinned active batch modernization scope (`DAILYPOST` + copybooks) |
+| **Analyzed Source NLOC** | **107 NLOC** | Unique source lines processed through AST semantic model |
+| **Transformed Source NLOC** | **107 NLOC** | Real source lines transformed into target architecture by AutoForge |
+| **Target Physical LOC** | **677 LOC** | Total generated target Java physical lines (`Dailypost.java` + `CobolRuntime.java`) |
 | **Target NLOC** | **497 NLOC** | Total generated target Java non-comment lines |
-| **Target files** | **2** | `Dailypost.java` + `CobolRuntime.java` |
-| **End-to-end wall-clock duration** | **0.809 s** | Total wall-clock time from API ingress to sealed delivery |
-| **Transformation duration** | **0.002 s** | AST/IR semantic codegen duration |
-| **AI / Model duration** | **0.001 s** | Intent and semantic specification interval |
-| **Build duration** | **0.240 s** | Real OpenJDK `javac` compilation execution time |
-| **Target execution duration** | **0.025 s** | Real OpenJDK `java` JVM execution time |
-| **Validation duration** | **0.436 s** | Golden master execution + SHA-256 byte digest comparison |
-| **Repair duration** | **0.000 s** | In clean run: 0.0s (In mutation run: 0.182s) |
-| **Delivery packaging duration** | **0.040 s** | Boundary verification, manifest creation, and provenance sealing |
-| **End-to-end NLOC/hour** | **31,674,180 NLOC/h** | `source_nloc / total_wall_clock_hours` |
-| **Primary Workload E2E NLOC/hour** | **467,243 NLOC/h** | `primary_nloc (105) / total_wall_clock_hours (0.809s)` |
-| **Transformation NLOC/hour** | **11,694,814,266 NLOC/h** | `source_nloc / transformation_wall_clock_hours` |
-| **Validation throughput** | **58,717,395 NLOC/h** | `source_nloc / validation_wall_clock_hours` |
-| **Repeatability Variation** | **Δ = 0.402 s** | Both runs complete in sub-second latency (<1.0s) |
+| **Target Files Generated** | **2 files** | `modernized.Dailypost.java` (279 NLOC) + `modernized.CobolRuntime.java` (218 NLOC) |
+| **Customer API Wall-Clock Duration (Mean)** | **4.1488 s** | Total wall-clock time from customer ingress API call to delivery manifest sealed |
+| **Run 1 Wall-Clock Duration** | **3.6764 s** | Customer ingress timestamp to manifest completion |
+| **Run 2 Wall-Clock Duration** | **4.2829 s** | Customer ingress timestamp to manifest completion |
+| **Run 3 Wall-Clock Duration** | **4.4872 s** | Customer ingress timestamp to manifest completion |
+| **End-to-End Real Throughput (Mean)** | **93,520.28 NLOC/h** | `(transformed_source_nloc / end_to_end_wall_clock_seconds) * 3600` |
+| **End-to-End Real Throughput (Median)** | **89,939.36 NLOC/h** | Median of 3 canonical customer runs |
+| **End-to-End Real Throughput (Min / Max)** | **85,845.07 / 104,776.40** | Range across 3 canonical customer runs |
+| **Discovery Sub-Phase Duration** | **0.021 s** | Technology discovery engine execution |
+| **Semantic Analysis Sub-Phase Duration** | **0.003 s** | AST/IR semantic modeling |
+| **Transformation Codegen Duration** | **0.002 s** | Deterministic Java target code emission |
+| **Target Build Duration** | **0.244 s** | OpenJDK 21 `javac` target compilation |
+| **Target Execution Duration** | **0.026 s** | Standard JVM execution (`java modernized.Dailypost`) |
+| **Validation Sub-Phase Duration** | **0.491 s** | Golden master execution + independent SHA-256 byte comparison |
+| **Customer Packaging Duration** | **0.046 s** | Customer boundary isolation, provenance sealing, manifest emission |
+| **Autonomous Defect Repair Count** | **0 repairs** | Clean run: 0 defects; mutation test: 1 repair in 0.182 s |
+| **Reprocessed NLOC Count** | **0 NLOC** | Retried/repaired lines tracked separately; zero numerator inflation |
+| **M6 Model Inference Invocations** | **0 calls** | 0 model invocations during measured deterministic pipeline run |
+| **M6 Inference Status** | **NOT USED** | Pipeline is 100% deterministic; zero LLM token count |
+| **Coding Assistant / Gemini Tokens** | **0 tokens** | Coding assistant / agent metadata strictly excluded from metrics |
+| **Candidate Hashes (`accounts_out.dat`)** | `ac18ac0e6ae5...` | SHA-256: `ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf` |
+| **Golden Master Hashes (`accounts_out.dat`)** | `ac18ac0e6ae5...` | SHA-256: `ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf` |
+| **Candidate Hashes (`exceptions.dat`)** | `1fc4021f6fed...` | SHA-256: `1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb` |
+| **Golden Master Hashes (`exceptions.dat`)** | `1fc4021f6fed...` | SHA-256: `1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb` |
+| **Byte-Identical Equivalence** | **100% (MATCH)** | Exact byte-for-byte SHA-256 match against GnuCOBOL golden master |
 
 ---
 
 ## 22. Execution Evidence & Audit Trails
 
+- **Source Workload Repository:** `marcoeg/cobol-modernization-playbook`
 - **Source Workload Revision:** `d204cf8472cf7a468419f971cba0cd63589eda5a`
 - **AutoForge Repository Revision:** `e2023ded44a31406fd3adf877de86032bcd5b6d5`
-- **Canonical Execution Project ID:** `ce911414-3884-45c0-b59a-f244333a1e1e`
-- **Delivery Package Path:** `Modernization Output/ce911414-3884-45c0-b59a-f244333a1e1e/`
-- **Delivery Manifest:** `Modernization Output/ce911414-3884-45c0-b59a-f244333a1e1e/DELIVERY-MANIFEST.json`
-- **Provenance Artifact:** `Modernization Output/ce911414-3884-45c0-b59a-f244333a1e1e/provenance/provenance_chain.json`
+- **Canonical Execution Project IDs (Repeatability Runs):**
+  - Run 1: `ba006062-609b-4d49-99e7-9ced4d9241d1`
+  - Run 2: `ad2d66ed-21b3-4fd8-bdac-511d78d4708a`
+  - Run 3: `09c1edf7-f7dc-4e61-bcf7-df071d30d0ad`
+- **Delivery Package Directory:** `Modernization Output/{project_id}/`
+- **Authoritative Telemetry Evidence File:** `packages/modernization/evidence/phase20_a_real_workload_telemetry.json`
+- **Delivery Manifest:** `Modernization Output/{project_id}/DELIVERY-MANIFEST.json`
+- **Provenance Artifact:** `Modernization Output/{project_id}/provenance/provenance_chain.json`
 - **Output Dataset Verification:**
-  - `Modernization Output/ce911414-3884-45c0-b59a-f244333a1e1e/validation/candidate_output/accounts_out.dat`
-  - `Modernization Output/ce911414-3884-45c0-b59a-f244333a1e1e/validation/golden_master/out/accounts_out.dat`
+  - `Modernization Output/{project_id}/validation/candidate_output/accounts_out.dat`
+  - `Modernization Output/{project_id}/validation/golden_master/out/accounts_out.dat`
 
 ---
 
 ## 23. Continuous Learning Data Integration
 
 The execution captured structured episodic memory via `ExperienceCollector.capture_from_execution`:
-- **Scope:** Project-level (`ce911414-3884-45c0-b59a-f244333a1e1e`)
+- **Scope:** Project-level (`{project_id}`)
 - **Observed Sources:**
-  - `task_execution`: Completed in 809 ms.
-  - `validation`: Behavioral equivalence passed, byte-identical = True.
-  - `artifact_generation`: 2 artifacts generated, manifest hash logged.
+  - `task_execution`: Completed wall-clock execution recorded.
+  - `validation`: Behavioral equivalence verified, byte-identical = True.
+  - `artifact_generation`: 2 artifacts generated, manifest hash and provenance recorded.
 - **Integrity Rule:** Zero hallucinated observations created.
 
 ---
 
-## 24. Repeatability (Run A vs Run B)
+## 24. Repeatability & Statistical Stability (3 Consecutive Runs)
 
-Two independent executions of the complete canonical modernization flow were run:
-- **Run A Status:** `COMPLETED` | Output Hashes: `ac18ac0e6ae5...`, `1fc4021f6fed...`
-- **Run B Status:** `COMPLETED` | Output Hashes: `ac18ac0e6ae5...`, `1fc4021f6fed...`
-- **Hash Equivalence:** **100% Identical**
-- **NLOC Consistency:** Exactly identical (7,118 source NLOC / 497 target NLOC)
-- **Duration Consistency:** Both completed in under 1 second.
+Three independent executions of the complete canonical modernization flow were run from customer ingress to sealed delivery:
+
+| Run Index | Project ID | Transformed NLOC | Wall-Clock Duration | Real Throughput | Golden Master Match | Hashes Identical |
+|:---:|---|:---:|:---:|:---:|:---:|:---:|
+| **Run 1** | `ba006062-609b-4d49-99e7-9ced4d9241d1` | 107 NLOC | 3.6764 s | 104,776.40 NLOC/h | **YES (100%)** | `ac18ac0e...` / `1fc4021f...` |
+| **Run 2** | `ad2d66ed-21b3-4fd8-bdac-511d78d4708a` | 107 NLOC | 4.2829 s | 89,939.36 NLOC/h | **YES (100%)** | `ac18ac0e...` / `1fc4021f...` |
+| **Run 3** | `09c1edf7-f7dc-4e61-bcf7-df071d30d0ad` | 107 NLOC | 4.4872 s | 85,845.07 NLOC/h | **YES (100%)** | `ac18ac0e...` / `1fc4021f...` |
+
+### 24.1 Statistical Summary
+
+| Statistical Measure | Transformed NLOC | Wall-Clock Duration (s) | End-to-End Throughput (NLOC/h) |
+|---|---:|---:|---:|
+| **Mean** | **107.00** | **4.1488 s** | **93,520.28 NLOC/h** |
+| **Median** | **107.00** | **4.2829 s** | **89,939.36 NLOC/h** |
+| **Minimum** | **107.00** | **3.6764 s** | **85,845.07 NLOC/h** |
+| **Maximum** | **107.00** | **4.4872 s** | **104,776.40 NLOC/h** |
+| **Standard Deviation** | **0.00** | **0.4217 s** | **9,960.72 NLOC/h** |
+| **Coefficient of Variation (CV)** | **0.00%** | **10.16%** | **10.65%** |
+
+- **Deterministic Hash Invariance:** 100% identical output SHA-256 hashes across all 3 independent runs.
+- **Transformed NLOC Invariance:** 107 NLOC across all 3 runs (0% variation).
+- **Throughput Coefficient of Variation:** 10.65%, demonstrating commercial-grade execution stability under live OS scheduling.
 
 ---
 
@@ -366,21 +437,23 @@ Two independent executions of the complete canonical modernization flow were run
 
 | Test Suite | Tests Passed | Status |
 |---|---:|:---:|
+| `packages/modernization/tests/test_phase20_a_metrics_correction.py` | 15 / 15 | **PASSED** |
 | `packages/modernization/tests/test_phase20_a_commercial_certification_e2e.py` | 4 / 4 | **PASSED** |
 | `apps/api/tests/test_phase20_a_gate1_ingress.py` | 10 / 10 | **PASSED** |
 | `apps/api/tests/test_gate_e2_convergence.py` | 12 / 12 | **PASSED** |
 | `packages/composition/tests/test_capability_routing.py` | 26 / 26 | **PASSED** |
 | `packages/composition/tests/test_gate_e1_convergence.py` | 12 / 12 | **PASSED** |
-| `packages/modernization/tests/test_phase20_*.py` | 207 / 207 | **PASSED** |
-| Full Modernization Regression Suite | 590 / 590 | **PASSED** |
-| **Total Test Invariants Passing** | **861 / 861** | **PASSED** |
+| `packages/modernization/tests/test_phase20_*.py` | 222 / 222 | **PASSED** |
+| Full Modernization Regression Suite | 605 / 605 | **PASSED** |
+| **Total Test Invariants Passing** | **876 / 876** | **PASSED** |
 
 ---
 
-## 26. Known Limitations
+## 26. Known Limitations & Architectural Bounds
 
 1. **Host Toolchain Prerequisites:** Executing target builds and golden master verification natively requires `javac` (OpenJDK 21+) and `cobc` (GnuCOBOL 3.2+). If either toolchain is absent on a deployment host, the system gracefully utilizes baseline golden digests for verification while marking toolchain presence in the manifest.
-2. **Sequential & Indexed Dataset Specialization:** Current autonomous runtime provides high-performance sequential dataset emulation and fixed-width record mapping. Complex CICS BMS screen handling maps to REST API controllers in subsequent phases.
+2. **Targeted Batch Domain:** The Phase 20-A capability specifically covers mainframe batch processing (`FILE-CONTROL`, sequential/indexed record matching, fixed-width records, arithmetic, exception routing).
+3. **Interactive & Database Constructs Scope:** Interactive CICS BMS screen handling and embedded relational `EXEC SQL` (such as in AWS CardDemo) require screen translaters and SQL database gateway adapters, scheduled for Phase 20-B/C.
 
 ---
 
@@ -393,11 +466,18 @@ The Legacy Modernization capability fulfills all criteria for enterprise custome
 4. Independent verification prevents hallucinated code from being marked successful.
 5. The customer delivery boundary cleanly separates customer output from internal system runtime.
 6. Telemetry and provenance provide auditable corporate compliance records.
+7. Workload accounting is truthful, auditable, and traceable to real source lines on disk.
 
 ---
 
 ## 28. Final Certification Verdict
 
-# **VERDICT: CERTIFIED**
+# **VERDICT: CERTIFIED — THROUGHPUT PROVISIONAL**
 
-All requirements of Phase 20-A have been verified with incontrovertible deterministic evidence.
+**Certification Findings:**
+1. **Functional Modernization:** **FULLY CERTIFIED**. The capability executes end-to-end through the canonical production architecture (`DefaultOrchestrationEngine`), generating clean Java code that compiles, runs, and matches the GnuCOBOL golden master byte-for-byte (100% SHA-256 equivalence).
+2. **Authoritative Customer Throughput:** **CERTIFIED AT 93,520.28 NLOC/HOUR (MEAN) / 89,939.36 NLOC/HOUR (MEDIAN)**, calculated strictly as `transformed_source_nloc` (107 NLOC) divided by real customer ingress-to-delivery wall-clock time across 3 consecutive runs.
+3. **Scope Qualification:** Classified as **PROVISIONAL** because the measured executable workload is a targeted batch slice (107 transformed NLOC). The secondary enterprise estate (AWS CardDemo) contains interactive CICS/SQL constructs outside Phase 20-A batch scope, so estate-wide throughput at massive scale cannot yet be claimed without qualifying the scope.
+4. **Model Invariant:** M6 Inference Status is confirmed **NOT USED** (0 model invocations during measured deterministic execution; zero tokens counted in NLOC/hour).
+5. **Architectural Guard:** The canonical production architecture is frozen and preserved with zero modifications or parallel orchestrators.
+

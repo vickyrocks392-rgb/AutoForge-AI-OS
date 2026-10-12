@@ -60,6 +60,12 @@ from autoforge_modernization.throughput_accounting import (
     ThroughputAccounting,
     UnitKind,
 )
+from autoforge_modernization.workload_accounting import (
+    SourceUnitRecord,
+    WorkloadAccountingLedger,
+    count_source_lines,
+    detect_file_language,
+)
 
 logger = logging.getLogger("autoforge.modernization.engine")
 
@@ -73,29 +79,8 @@ def _file_sha256(path: Path) -> str:
 
 
 def _count_lines(path: Path) -> Tuple[int, int]:
-    """Count physical LOC and non-comment LOC (NLOC)."""
-    try:
-        content = path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return 0, 0
-    lines = content.splitlines()
-    phys = len(lines)
-    nloc = 0
-    is_cobol = path.suffix.lower() in (".cbl", ".cob", ".cpy")
-    for ln in lines:
-        s = ln.strip()
-        if not s:
-            continue
-        if is_cobol:
-            if len(ln) >= 7 and ln[6] in ("*", "/"):
-                continue
-            if s.startswith("*") or s.startswith("//"):
-                continue
-        else:
-            if s.startswith("//") or s.startswith("#") or s.startswith("/*") or s.startswith("*"):
-                continue
-        nloc += 1
-    return phys, nloc
+    """Count physical LOC and non-comment LOC (NLOC) using technology-aware logic."""
+    return count_source_lines(path)
 
 
 class ModernizationExecutionResult(BaseModel):
@@ -118,6 +103,27 @@ class ModernizationExecutionResult(BaseModel):
     target_nloc: int = 0
     target_files_count: int = 0
     
+    # Authoritative Workload Accounting (Phase 20-A)
+    discovered_project_physical_loc: int = 0
+    discovered_project_nloc: int = 0
+    selected_modernization_scope_physical_loc: int = 0
+    selected_modernization_scope_nloc: int = 0
+    analyzed_source_physical_loc: int = 0
+    analyzed_source_nloc: int = 0
+    transformed_source_physical_loc: int = 0
+    transformed_source_nloc: int = 0
+    generated_target_physical_loc: int = 0
+    generated_target_nloc: int = 0
+    compiled_target_physical_loc: int = 0
+    compiled_target_nloc: int = 0
+    validated_source_nloc: int = 0
+    validated_target_nloc: int = 0
+    delivered_target_nloc: int = 0
+    reprocessed_nloc: int = 0
+    model_invocations_count: int = 0
+    model_metrics: Dict[str, Any] = Field(default_factory=dict)
+    source_unit_ledger: List[Dict[str, Any]] = Field(default_factory=list)
+
     # Results
     build_passed: bool = False
     execution_passed: bool = False
@@ -219,6 +225,7 @@ class LegacyModernizationEngine:
         """Execute end-to-end modernization through the real architecture."""
         t_global_start = time.perf_counter()
         config = dict(project_configuration or {})
+        t_ingress_start = float(config.get("customer_ingress_timestamp", t_global_start))
         source_path = Path(source_root).resolve()
         if not source_path.exists():
             raise FileNotFoundError(f"Legacy source root does not exist: {source_path}")
@@ -252,6 +259,14 @@ class LegacyModernizationEngine:
         except Exception:
             pass
 
+        # Initialize deterministic workload accounting ledger
+        repo_name = source_path.name
+        ledger = WorkloadAccountingLedger(
+            repository=repo_name,
+            commit=source_revision or "HEAD",
+            source_root=source_path,
+        )
+
         stages_executed: List[str] = []
 
         # ── 1. Security & Customer Delivery Boundary Guard ───────────────────────
@@ -277,27 +292,17 @@ class LegacyModernizationEngine:
         detected_techs = inventory.detected_technology_names()
         stages_executed.append("technology_discovery")
 
-        # Copy legacy source files to legacy-source/
+        # Register discovered files in ledger & copy legacy source files to legacy-source/
         for p in source_path.rglob("*"):
             if p.is_file():
                 rel = p.relative_to(source_path)
                 if any(x in rel.parts for x in (".git", "__pycache__", "target", ".venv", "node_modules")):
                     continue
+                ledger.register_discovered_file(p, root=source_path)
                 dest_file = legacy_source_dir / rel
                 dest_file.parent.mkdir(parents=True, exist_ok=True)
                 boundary.assert_writable_customer_path(dest_file)
                 shutil.copy2(p, dest_file)
-
-        # Compute source LOC / NLOC
-        source_phys = 0
-        source_nloc = 0
-        source_file_count = 0
-        for p in legacy_source_dir.rglob("*"):
-            if p.is_file():
-                p_phys, p_nloc = _count_lines(p)
-                source_phys += p_phys
-                source_nloc += p_nloc
-                source_file_count += 1
 
         # ── 3. Semantic Analysis & Program Modeling ──────────────────────────────
         t0 = time.perf_counter()
@@ -327,11 +332,25 @@ class LegacyModernizationEngine:
         if not primary_program:
             raise RuntimeError(f"No executable COBOL program found in {source_path}")
 
+        rel_primary = str(primary_program.relative_to(source_path))
+        ledger.mark_selected(rel_primary)
+        ledger.mark_analyzed(rel_primary)
+
         primary_model = build_program_model(
             primary_program.read_text(encoding="utf-8", errors="replace"),
-            source_path=str(primary_program.relative_to(source_path)),
+            source_path=rel_primary,
             copybook_dirs=copybook_dirs,
         )
+
+        for cb_name in primary_model.copybooks:
+            for cb_dir in copybook_dirs:
+                cand_cb = cb_dir / cb_name
+                if cand_cb.exists():
+                    rel_cb = str(cand_cb.relative_to(source_path))
+                    ledger.mark_selected(rel_cb)
+                    ledger.mark_analyzed(rel_cb)
+                    break
+
         semantic_duration = time.perf_counter() - t0
         stages_executed.append("semantic_analysis")
 
@@ -353,6 +372,17 @@ class LegacyModernizationEngine:
             raise RuntimeError(
                 f"Transformation failed with unsupported constructs: {gen_result.unsupported}"
             )
+
+        # Mark transformed in ledger
+        rel_target_artifacts = [str(gf.path) for gf in gen_result.files]
+        ledger.mark_transformed(rel_primary, target_artifacts=rel_target_artifacts, success=gen_result.ok)
+        for cb_name in primary_model.copybooks:
+            for cb_dir in copybook_dirs:
+                cand_cb = cb_dir / cb_name
+                if cand_cb.exists():
+                    rel_cb = str(cand_cb.relative_to(source_path))
+                    ledger.mark_transformed(rel_cb, target_artifacts=rel_target_artifacts, success=gen_result.ok)
+                    break
 
         # Controlled defect injection if requested
         inject_defect = inject_defect_for_repair_proof or bool(config.get("inject_defect_for_repair_proof", False))
@@ -483,7 +513,13 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             repair_event["repaired"] = recompile_proc.returncode == 0
             repair_event["repaired_hash"] = _file_sha256(dp_java_file)
             repair_events.append(repair_event)
-            repair_seconds = time.perf_counter() - t_rep
+            repair_sec = time.perf_counter() - t_rep
+            repair_seconds += repair_sec
+            ledger.record_repair_cycle(
+                target_unit="modernized/Dailypost.java",
+                reprocessed_units=[rel_primary],
+                duration_sec=repair_sec,
+            )
             build_passed = recompile_proc.returncode == 0
             if not build_passed:
                 raise RuntimeError(f"Target javac compilation failed after repair: {recompile_proc.stderr}")
@@ -497,7 +533,7 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
         target_nloc = 0
         target_file_count = 0
         for p in modern_app_dir.rglob("*.java"):
-            p_p, p_n = _count_lines(p)
+            p_p, p_n = count_source_lines(p, language="JAVA")
             target_phys += p_p
             target_nloc += p_n
             target_file_count += 1
@@ -609,6 +645,16 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
         validation_duration = time.perf_counter() - t0
         stages_executed.append("behavioral_validation")
 
+        # Record validation in ledger
+        ledger.mark_validated(rel_primary, passed=behavioral_equivalence_passed)
+        for cb_name in primary_model.copybooks:
+            for cb_dir in copybook_dirs:
+                cand_cb = cb_dir / cb_name
+                if cand_cb.exists():
+                    rel_cb = str(cand_cb.relative_to(source_path))
+                    ledger.mark_validated(rel_cb, passed=behavioral_equivalence_passed)
+                    break
+
         # Clean scratch run
         shutil.rmtree(scratch_run, ignore_errors=True)
 
@@ -622,7 +668,7 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             ProvenanceLink(
                 stage=ProvenanceStage.SOURCE,
                 actor="ProjectTechnologyDiscoveryEngine",
-                notes=f"Discovered {len(detected_techs)} technologies across {source_file_count} files.",
+                notes=f"Discovered {len(detected_techs)} technologies across {ledger.discovered_files} files.",
                 output_evidence_ids=detected_techs,
             )
         )
@@ -689,18 +735,22 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
                 "sha256": _file_sha256(f),
             })
 
-        t_global_end = time.perf_counter()
-        total_wall_clock = t_global_end - t_global_start
         delivery_duration = time.perf_counter() - t0
         stages_executed.append("delivery_packaging")
 
-        # Compute NLOC/hour throughput
-        hours = max(total_wall_clock, 0.001) / 3600.0
-        transform_hours = max(transform_duration, 0.001) / 3600.0
-        val_hours = max(validation_duration, 0.001) / 3600.0
-        e2e_nloc_per_hour = round(source_nloc / hours, 2)
-        trans_nloc_per_hour = round(source_nloc / transform_hours, 2)
-        val_throughput = round(source_nloc / val_hours, 2)
+        # The clock ends only after delivery packaging, manifest creation, and outcome completion!
+        t_global_end = time.perf_counter()
+        total_wall_clock = t_global_end - t_ingress_start
+
+        # Canonical Commercial Numerator
+        transformed_source_nloc = ledger.transformed_source_nloc
+        hours = max(total_wall_clock, 0.0001) / 3600.0
+        transform_hours = max(transform_duration, 0.0001) / 3600.0
+        val_hours = max(validation_duration, 0.0001) / 3600.0
+        e2e_nloc_per_hour = round(transformed_source_nloc / hours, 2)
+        e2e_nloc_per_sec = round(transformed_source_nloc / max(total_wall_clock, 0.0001), 2)
+        trans_nloc_per_hour = round(transformed_source_nloc / transform_hours, 2)
+        val_throughput = round(ledger.validated_source_nloc / val_hours, 2)
 
         # Record Throughput in ledger
         accounting = ThroughputAccounting(session_id=job_id)
@@ -708,19 +758,20 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             unit_id=f"modernize-{primary_model.program_id}",
             kind=UnitKind.PRODUCE if behavioral_equivalence_passed else UnitKind.FAILED,
             target_technology="Java",
-            source_file_count=source_file_count,
+            source_file_count=ledger.transformed_files,
             output_file_count=target_file_count,
             placeholder_count=0,
             generated_code_bytes=sum(len(f.content) for f in gen_result.files),
             verification_passed=behavioral_equivalence_passed,
             verification_report_id=f"val-{job_id}",
             latency_ms=total_wall_clock * 1000.0,
-            model="Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
-            provider="local_m6_authority",
+            model="NONE",
+            provider="NONE",
             metadata={
-                "source_nloc": source_nloc,
+                "source_nloc": transformed_source_nloc,
                 "target_nloc": target_nloc,
                 "nloc_per_hour": e2e_nloc_per_hour,
+                "m6_inference_status": "NOT USED",
             },
         )
 
@@ -733,6 +784,85 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             "HUMAN": "0 interventions required during execution",
             "REPAIRED": f"{repair_count} repair cycles executed and verified",
             "REJECTED": "0 rejected artifacts",
+        }
+
+        # Model Telemetry
+        model_metrics = {
+            "actual_model_invocations": 0,
+            "model_provider": "NONE",
+            "model": "NONE",
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "inference_seconds": 0.0,
+            "m6_inference_status": "NOT USED",
+            "telemetry_note": "M6 inference during measured modernization execution: NOT USED",
+        }
+
+        # Authoritative Performance Metrics
+        performance_metrics = {
+            # Workload Accounting
+            "discovered_project_physical_loc": ledger.discovered_project_physical_loc,
+            "discovered_project_nloc": ledger.discovered_project_nloc,
+            "discovered_files": ledger.discovered_files,
+            "selected_modernization_scope_physical_loc": ledger.selected_modernization_scope_physical_loc,
+            "selected_modernization_scope_nloc": ledger.selected_modernization_scope_nloc,
+            "selected_files": ledger.selected_files,
+            "analyzed_source_physical_loc": ledger.analyzed_source_physical_loc,
+            "analyzed_source_nloc": ledger.analyzed_source_nloc,
+            "analyzed_files": ledger.analyzed_files,
+            "transformed_source_physical_loc": ledger.transformed_source_physical_loc,
+            "transformed_source_nloc": transformed_source_nloc,
+            "transformed_files": ledger.transformed_files,
+            "generated_target_physical_loc": target_phys,
+            "generated_target_nloc": target_nloc,
+            "generated_target_files": target_file_count,
+            "compiled_target_physical_loc": target_phys,
+            "compiled_target_nloc": target_nloc,
+            "validated_source_nloc": ledger.validated_source_nloc,
+            "validated_target_nloc": target_nloc,
+            "delivered_target_nloc": target_nloc,
+
+            # Timing & Throughput
+            "end_to_end_wall_clock_seconds": round(total_wall_clock, 4),
+            "end_to_end_transformed_source_nloc_per_hour": e2e_nloc_per_hour,
+            "end_to_end_transformed_source_nloc_per_second": e2e_nloc_per_sec,
+            "selected_scope_nloc_per_hour": round(ledger.selected_modernization_scope_nloc / hours, 2),
+            "discovery_seconds": round(discovery_duration, 4),
+            "discovery_nloc_per_second": round(ledger.discovered_project_nloc / max(discovery_duration, 0.0001), 2),
+            "analysis_seconds": round(semantic_duration, 4),
+            "analysis_nloc_per_second": round(ledger.analyzed_source_nloc / max(semantic_duration, 0.0001), 2),
+            "transformation_seconds": round(transform_duration, 4),
+            "transformation_nloc_per_second": round(transformed_source_nloc / max(transform_duration, 0.0001), 2),
+            "transformation_nloc_per_hour": trans_nloc_per_hour,
+            "compilation_seconds": round(build_duration, 4),
+            "compilation_nloc_per_second": round(target_nloc / max(build_duration, 0.0001), 2),
+            "runtime_seconds": round(execution_duration, 4),
+            "validation_seconds": round(validation_duration, 4),
+            "validation_nloc_per_second": round(ledger.validated_source_nloc / max(validation_duration, 0.0001), 2),
+            "validation_throughput": val_throughput,
+            "packaging_seconds": round(delivery_duration, 4),
+            "repair_seconds": round(repair_seconds, 4),
+            "repair_count": repair_count,
+            "reprocessed_nloc": ledger.reprocessed_nloc,
+
+            # Derived Ratios
+            "source_to_target_ratio": round(target_nloc / max(transformed_source_nloc, 1), 3),
+            "repair_rate": round(repair_count / max(ledger.transformed_files, 1), 3),
+            "validation_pass_rate": 1.0 if behavioral_equivalence_passed else 0.0,
+            "artifact_completion_rate": 1.0,
+
+            # Backwards-compatible legacy keys
+            "source_physical_loc": ledger.transformed_source_physical_loc,
+            "source_nloc": transformed_source_nloc,
+            "source_file_count": ledger.transformed_files,
+            "target_physical_loc": target_phys,
+            "target_nloc": target_nloc,
+            "target_file_count": target_file_count,
+            "total_wall_clock_seconds": round(total_wall_clock, 4),
+            "build_seconds": round(build_duration, 4),
+            "execution_seconds": round(execution_duration, 4),
+            "delivery_packaging_seconds": round(delivery_duration, 4),
+            "end_to_end_nloc_per_hour": e2e_nloc_per_hour,
         }
 
         # Build DELIVERY-MANIFEST.json
@@ -770,24 +900,17 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             "repair_events": repair_events,
             "provenance_chain_id": chain.chain_id,
             "ai_contributions": ai_contributions,
-            "performance_metrics": {
-                "source_physical_loc": source_phys,
-                "source_nloc": source_nloc,
-                "source_file_count": source_file_count,
-                "target_physical_loc": target_phys,
-                "target_nloc": target_nloc,
-                "target_file_count": target_file_count,
-                "total_wall_clock_seconds": round(total_wall_clock, 3),
-                "transformation_seconds": round(transform_duration, 3),
-                "build_seconds": round(build_duration, 3),
-                "execution_seconds": round(execution_duration, 3),
-                "validation_seconds": round(validation_duration, 3),
-                "repair_seconds": round(repair_seconds, 3),
-                "delivery_packaging_seconds": round(delivery_duration, 3),
-                "end_to_end_nloc_per_hour": e2e_nloc_per_hour,
-                "transformation_nloc_per_hour": trans_nloc_per_hour,
-                "validation_throughput": val_throughput,
+            "performance_metrics": performance_metrics,
+            "model_metrics": model_metrics,
+            "validation": {
+                "golden_master": golden_master_passed,
+                "byte_identical": byte_identical,
+                "deterministic_validation": behavioral_equivalence_passed,
+                "golden_hashes": golden_hashes,
+                "candidate_hashes": candidate_hashes,
+                "output_files": output_files_verified,
             },
+            "source_unit_ledger": ledger.export_unit_records(),
             "artifact_inventory": manifest_artifacts,
         }
 
@@ -832,7 +955,7 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
 
         scorecard = {
             "pipeline_status": "complete" if behavioral_equivalence_passed else "failed",
-            "source_nloc": source_nloc,
+            "source_nloc": transformed_source_nloc,
             "target_nloc": target_nloc,
             "build_passed": build_passed,
             "execution_passed": execution_passed,
@@ -846,7 +969,7 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             "repair_events": repair_events,
             "end_to_end_nloc_per_hour": e2e_nloc_per_hour,
             "transformation_nloc_per_hour": trans_nloc_per_hour,
-            "total_wall_clock_seconds": round(total_wall_clock, 3),
+            "total_wall_clock_seconds": round(total_wall_clock, 4),
             "manifest_file": str(manifest_file),
             "real_source": True,
         }
@@ -859,13 +982,32 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             source_root=str(source_path),
             source_revision=source_revision,
             autoforge_commit=autoforge_commit,
-            source_physical_loc=source_phys,
-            source_nloc=source_nloc,
-            source_files_count=source_file_count,
+            source_physical_loc=ledger.transformed_source_physical_loc,
+            source_nloc=transformed_source_nloc,
+            source_files_count=ledger.transformed_files,
             detected_technologies=detected_techs,
             target_physical_loc=target_phys,
             target_nloc=target_nloc,
             target_files_count=target_file_count,
+            discovered_project_physical_loc=ledger.discovered_project_physical_loc,
+            discovered_project_nloc=ledger.discovered_project_nloc,
+            selected_modernization_scope_physical_loc=ledger.selected_modernization_scope_physical_loc,
+            selected_modernization_scope_nloc=ledger.selected_modernization_scope_nloc,
+            analyzed_source_physical_loc=ledger.analyzed_source_physical_loc,
+            analyzed_source_nloc=ledger.analyzed_source_nloc,
+            transformed_source_physical_loc=ledger.transformed_source_physical_loc,
+            transformed_source_nloc=transformed_source_nloc,
+            generated_target_physical_loc=target_phys,
+            generated_target_nloc=target_nloc,
+            compiled_target_physical_loc=target_phys,
+            compiled_target_nloc=target_nloc,
+            validated_source_nloc=ledger.validated_source_nloc,
+            validated_target_nloc=target_nloc,
+            delivered_target_nloc=target_nloc,
+            reprocessed_nloc=ledger.reprocessed_nloc,
+            model_invocations_count=0,
+            model_metrics=model_metrics,
+            source_unit_ledger=ledger.export_unit_records(),
             build_passed=build_passed,
             execution_passed=execution_passed,
             golden_master_passed=golden_master_passed,
@@ -876,7 +1018,7 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             output_files_verified=output_files_verified,
             repair_count=repair_count,
             repair_events=repair_events,
-            wall_clock_start=t_global_start,
+            wall_clock_start=t_ingress_start,
             wall_clock_end=t_global_end,
             total_wall_clock_seconds=total_wall_clock,
             transformation_seconds=transform_duration,

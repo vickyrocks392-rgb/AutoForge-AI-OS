@@ -2044,6 +2044,7 @@ class AutoForgeApiService:
         from autoforge_artifacts.artpackager import ArtifactPackager
         from autoforge_api.generator import generate_default_app
 
+        customer_ingress_timestamp = time.perf_counter()
         exec_id = f"exec-int-{str(uuid.uuid4())[:8]}"
         proj_id = f"proj-{str(uuid.uuid4())[:8]}"
         trace_id = f"trace-{str(uuid.uuid4())[:8]}"
@@ -2125,6 +2126,7 @@ class AutoForgeApiService:
             "execute": True,
             "stages": [s.model_dump() for s in stages] if stages else None,
             "project_id": proj_id,
+            "customer_ingress_timestamp": customer_ingress_timestamp,
         }
         if req.context:
             config.update(req.context)

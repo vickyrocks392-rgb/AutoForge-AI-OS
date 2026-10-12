@@ -1,0 +1,114 @@
+{
+  "workload_id": "cobol-modernization-playbook:DAILYPOST",
+  "repository": "marcoeg/cobol-modernization-playbook",
+  "commit": "d204cf8472cf7a468419f971cba0cd63589eda5a",
+  "source_root": "/Users/kalachanddash/Developer/.autoforge-p20-workloads/playbook",
+  "statistics": {
+    "runs_count": 3,
+    "transformed_source_nloc": {
+      "mean": 107,
+      "median": 107,
+      "min": 107,
+      "max": 107,
+      "stdev": 0.0
+    },
+    "end_to_end_wall_clock_seconds": {
+      "mean": 4.1488,
+      "median": 4.2829,
+      "min": 3.6764,
+      "max": 4.4872,
+      "stdev": 0.4217,
+      "coefficient_of_variation": 0.1016
+    },
+    "end_to_end_nloc_per_hour": {
+      "mean": 93520.28,
+      "median": 89939.36,
+      "min": 85845.07,
+      "max": 104776.4,
+      "stdev": 9960.72,
+      "coefficient_of_variation": 0.1065
+    },
+    "deterministic_hash_equivalence": true,
+    "golden_master_byte_identical": true
+  },
+  "runs": [
+    {
+      "run_index": 1,
+      "project_id": "ba006062-609b-4d49-99e7-9ced4d9241d1",
+      "transformed_source_nloc": 107,
+      "target_nloc": 497,
+      "end_to_end_wall_clock_seconds": 3.6764,
+      "end_to_end_nloc_per_hour": 104776.4,
+      "validation_passed": true,
+      "candidate_hashes": {
+        "accounts_out.dat": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+        "exceptions.dat": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+      },
+      "golden_hashes": {
+        "accounts_out.dat": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+        "exceptions.dat": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+      },
+      "discovery_seconds": 0.0207,
+      "analysis_seconds": 0.0025,
+      "transformation_seconds": 0.0022,
+      "compilation_seconds": 0.2458,
+      "runtime_seconds": 0.0261,
+      "validation_seconds": 0.49,
+      "packaging_seconds": 0.0457,
+      "repair_count": 0,
+      "reprocessed_nloc": 0
+    },
+    {
+      "run_index": 2,
+      "project_id": "ad2d66ed-21b3-4fd8-bdac-511d78d4708a",
+      "transformed_source_nloc": 107,
+      "target_nloc": 497,
+      "end_to_end_wall_clock_seconds": 4.2829,
+      "end_to_end_nloc_per_hour": 89939.36,
+      "validation_passed": true,
+      "candidate_hashes": {
+        "accounts_out.dat": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+        "exceptions.dat": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+      },
+      "golden_hashes": {
+        "accounts_out.dat": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+        "exceptions.dat": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+      },
+      "discovery_seconds": 0.0207,
+      "analysis_seconds": 0.0025,
+      "transformation_seconds": 0.0023,
+      "compilation_seconds": 0.2416,
+      "runtime_seconds": 0.0263,
+      "validation_seconds": 0.5201,
+      "packaging_seconds": 0.0468,
+      "repair_count": 0,
+      "reprocessed_nloc": 0
+    },
+    {
+      "run_index": 3,
+      "project_id": "09c1edf7-f7dc-4e61-bcf7-df071d30d0ad",
+      "transformed_source_nloc": 107,
+      "target_nloc": 497,
+      "end_to_end_wall_clock_seconds": 4.4872,
+      "end_to_end_nloc_per_hour": 85845.07,
+      "validation_passed": true,
+      "candidate_hashes": {
+        "accounts_out.dat": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+        "exceptions.dat": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+      },
+      "golden_hashes": {
+        "accounts_out.dat": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+        "exceptions.dat": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+      },
+      "discovery_seconds": 0.0206,
+      "analysis_seconds": 0.0025,
+      "transformation_seconds": 0.0022,
+      "compilation_seconds": 0.2452,
+      "runtime_seconds": 0.0257,
+      "validation_seconds": 0.4641,
+      "packaging_seconds": 0.0462,
+      "repair_count": 0,
+      "reprocessed_nloc": 0
+    }
+  ]
+}
