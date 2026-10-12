@@ -261,11 +261,15 @@ class CommercialCapabilityRouter:
         *,
         engine_factories: Optional[Dict[str, Callable[[], Any]]] = None,
         modernization_runner: Optional[Callable[..., Any]] = None,
+        ai_adapter: Any | None = None,
+        model_router: Any | None = None,
     ) -> None:
         self._engine_factories: Dict[str, Callable[[], Any]] = dict(
             engine_factories or {}
         )
         self._modernization_runner = modernization_runner
+        self._ai_adapter = ai_adapter
+        self._model_router = model_router
         self._instances: Dict[str, Any] = {}
 
     # ── registration ────────────────────────────────────────────────────────
@@ -508,12 +512,18 @@ class CommercialCapabilityRouter:
         from autoforge_modernization.reconnaissance.engine import run_reconnaissance
 
         reconnaissance = run_reconnaissance(str(source_root))
+        config_payload = dict(project_configuration or {})
+        if self._ai_adapter and "ai_adapter" not in config_payload:
+            config_payload["ai_adapter"] = self._ai_adapter
+        if self._model_router and "model_router" not in config_payload:
+            config_payload["model_router"] = self._model_router
+
         result = await asyncio.to_thread(
             self._modernization_runner,
             project_id=project_id,
             job_id=f"{capability}-{project_id}",
             reconnaissance_output=reconnaissance,
-            project_configuration=project_configuration,
+            project_configuration=config_payload,
         )
         return self._from_pipeline_result(capability, result)
 
@@ -573,6 +583,8 @@ class CommercialCapabilityRouter:
 def build_default_router(
     *,
     event_publisher: Optional[Callable[[Dict[str, Any]], None]] = None,
+    ai_adapter: Any | None = None,
+    model_router: Any | None = None,
 ) -> CommercialCapabilityRouter:
     """Construct the router bound to all five real Commercial Power Engines.
 
@@ -611,7 +623,7 @@ def build_default_router(
         from autoforge_modernization.pipeline import ModernizationPipeline
         return ModernizationPipeline().run(**kwargs)
 
-    router = CommercialCapabilityRouter()
+    router = CommercialCapabilityRouter(ai_adapter=ai_adapter, model_router=model_router)
     # The Automation and Migration engines reject a base specification by design
     # (their ``_resolve_spec`` raises on a type mismatch), so their typed specs
     # are built at the routing boundary. The engines are NOT modified.

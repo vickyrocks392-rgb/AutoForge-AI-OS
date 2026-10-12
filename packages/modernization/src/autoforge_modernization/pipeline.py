@@ -348,7 +348,10 @@ class ModernizationPipeline:
 
             if has_real_programs:
                 from autoforge_modernization.service.engine import LegacyModernizationEngine
-                modern_engine = LegacyModernizationEngine()
+                modern_engine = LegacyModernizationEngine(
+                    ai_adapter=cfg.get("ai_adapter"),
+                    model_router=cfg.get("model_router"),
+                )
                 exec_res = modern_engine.execute(
                     project_id=project_id,
                     job_id=job_id,

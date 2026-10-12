@@ -65,6 +65,10 @@ class LocalRuntimeProviderAdapter(OpenAICompatibleProviderAdapter):
         http_client: Any = None,
     ) -> None:
         resolved = (base_url or _env("AUTOFORGE_LOCAL_RUNTIME_URL", DEFAULT_LOCAL_RUNTIME_BASE_URL)).rstrip("/")
+        tags = dict(model_tag_map or {})
+        authority_model = _env("AUTOFORGE_AUTHORITY_MODEL", "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2")
+        for m in ("qwen2.5-coder-7b", "qwen2.5-coder-3b", "ornith-9b", "mac-mini-m6-node"):
+            tags.setdefault(m, authority_model)
         super().__init__(
             provider_id=provider_id,
             base_url=resolved,
@@ -72,7 +76,7 @@ class LocalRuntimeProviderAdapter(OpenAICompatibleProviderAdapter):
             # default produces spurious timeouts on exactly the long-context
             # work Context Engineering exists to enable.
             default_timeout_seconds=default_timeout_seconds,
-            model_tag_map=dict(model_tag_map or {}),
+            model_tag_map=tags,
             http_client=http_client,
         )
 

@@ -1,0 +1,80 @@
+{
+  "runs": [
+    {
+      "run_index": 1,
+      "project_id": "19a5241a-5360-4485-95ff-453530f968fa",
+      "status": "COMPLETED",
+      "e2e_seconds": 26.4849,
+      "throughput_nloc_per_hour": 14544.13,
+      "processed_files": 5,
+      "discovered_files": 41,
+      "processed_nloc": 107,
+      "target_nloc": 497,
+      "m6_calls": 1,
+      "m6_in_tokens": 97,
+      "m6_out_tokens": 350,
+      "m6_total_tokens": 447,
+      "m6_inference_seconds": 5.4359,
+      "m6_status": "M6 USED AND CONTRIBUTED",
+      "byte_identical": true,
+      "accounts_out_hash": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+      "exceptions_hash": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+    },
+    {
+      "run_index": 2,
+      "project_id": "d2673699-2624-46c2-a3ae-ca5ed7388699",
+      "status": "COMPLETED",
+      "e2e_seconds": 26.3318,
+      "throughput_nloc_per_hour": 14628.67,
+      "processed_files": 5,
+      "discovered_files": 41,
+      "processed_nloc": 107,
+      "target_nloc": 497,
+      "m6_calls": 1,
+      "m6_in_tokens": 97,
+      "m6_out_tokens": 350,
+      "m6_total_tokens": 447,
+      "m6_inference_seconds": 5.419,
+      "m6_status": "M6 USED AND CONTRIBUTED",
+      "byte_identical": true,
+      "accounts_out_hash": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+      "exceptions_hash": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+    },
+    {
+      "run_index": 3,
+      "project_id": "6b315946-28f4-4fa1-bbb0-24fbd92cc45b",
+      "status": "COMPLETED",
+      "e2e_seconds": 25.8641,
+      "throughput_nloc_per_hour": 14893.2,
+      "processed_files": 5,
+      "discovered_files": 41,
+      "processed_nloc": 107,
+      "target_nloc": 497,
+      "m6_calls": 1,
+      "m6_in_tokens": 97,
+      "m6_out_tokens": 350,
+      "m6_total_tokens": 447,
+      "m6_inference_seconds": 5.4238,
+      "m6_status": "M6 USED AND CONTRIBUTED",
+      "byte_identical": true,
+      "accounts_out_hash": "ac18ac0e6ae5f5a347164be00544e756536b567038f128d3b5b754ea8099f6cf",
+      "exceptions_hash": "1fc4021f6fed84f41cd4103adc781a4b91c9a4bcbe904013863f3c77702aa9cb"
+    }
+  ],
+  "e2e_seconds_stats": {
+    "mean": 26.2269,
+    "median": 26.3318,
+    "min": 25.8641,
+    "max": 26.4849,
+    "stdev": 0.3234,
+    "cv": 0.0123
+  },
+  "throughput_stats": {
+    "mean": 14688.67,
+    "median": 14628.67,
+    "min": 14544.13,
+    "max": 14893.2,
+    "stdev": 182.1,
+    "cv": 0.0124
+  }
+}

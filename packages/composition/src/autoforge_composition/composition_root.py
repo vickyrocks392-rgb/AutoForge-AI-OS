@@ -550,7 +550,11 @@ def build_autoforge_system(
         except Exception:  # pragma: no cover - event sink must never break execution
             pass
 
-    capability_router = build_default_router(event_publisher=_publish_engine_event)
+    capability_router = build_default_router(
+        event_publisher=_publish_engine_event,
+        ai_adapter=execution_engine._ai,
+        model_router=ai_infra.router,
+    )
     kernel_workflow_engine = KernelWorkflowEngineAdapter(concrete_engine=workflow_engine)
     kernel_execution_engine = KernelExecutionEngineAdapter(
         concrete_engine=execution_engine,

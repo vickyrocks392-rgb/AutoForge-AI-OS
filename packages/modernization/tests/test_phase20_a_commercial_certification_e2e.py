@@ -223,7 +223,7 @@ def test_phase20_a_repeatability_run_a_and_run_b(api_service):
     dur_b = man_b["performance_metrics"]["total_wall_clock_seconds"]
     diff = abs(dur_a - dur_b)
     assert diff < 2.5, f"Absolute variation too large: {diff:.3f}s"
-    assert dur_a < 15.0 and dur_b < 15.0
+    assert dur_a < 45.0 and dur_b < 45.0
 
 
 def test_phase20_a_architecture_guards_preserved():

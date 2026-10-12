@@ -69,6 +69,8 @@ def detect_file_language(path: Path) -> str:
         return "IMS_DBD"
     if suffix in (".dat", ".ps"):
         return "DATASET"
+    if suffix in (".png", ".jpg", ".jpeg", ".gif", ".ico", ".bmp", ".jar", ".zip", ".gz", ".tar", ".pdf", ".bin", ".exe"):
+        return "BINARY_ASSET"
     return "UNKNOWN"
 
 
@@ -77,6 +79,10 @@ def count_source_lines(path: Path, content: Optional[str] = None, language: Opti
     Technology-aware LOC and NLOC (non-comment non-blank line) counter.
     Returns (physical_loc, nloc).
     """
+    lang = language or detect_file_language(path)
+    if lang == "BINARY_ASSET":
+        return 0, 0
+
     if content is None:
         try:
             content = path.read_text(encoding="utf-8", errors="replace")
@@ -86,8 +92,6 @@ def count_source_lines(path: Path, content: Optional[str] = None, language: Opti
     lines = content.splitlines()
     phys = len(lines)
     nloc = 0
-
-    lang = language or detect_file_language(path)
 
     in_block_comment = False
 
@@ -159,9 +163,13 @@ class SourceUnitRecord(BaseModel):
     """Deterministic record of a single source unit entering the modernization pipeline."""
 
     source_path: str
+    relative_path: str = ""
     language: str
     physical_loc: int = 0
     nloc: int = 0
+    project_role: str = "LEGACY_SOURCE"
+    processing_status: str = "ANALYZED_ONLY"  # PROCESSED, ANALYZED_ONLY, UNSUPPORTED, EXCLUDED_WITH_EXPLICIT_REASON, FAILED, GENERATED, VALIDATED
+    exclusion_reason: str = ""
     selected_for_modernization: bool = False
     analyzed: bool = False
     transformed: bool = False
@@ -170,6 +178,7 @@ class SourceUnitRecord(BaseModel):
     validation_status: str = "NOT_VALIDATED"  # NOT_VALIDATED, PASSED, FAILED
     workload_identity: str = ""
     sha256: str = ""
+    source_hash: str = ""
     reprocessed_count: int = 0
 
 
@@ -180,6 +189,7 @@ class WorkloadAccountingLedger:
     - Unique work unit identity prevents double-counting across analysis, transformation, repair, and validation.
     - Canonical numerator is transformed_source_nloc.
     - Distinguishes discovered, selected, analyzed, transformed, and delivered scopes.
+    - Deterministic whole-project accounting: Every discovered file has an explicit disposition.
     """
 
     def __init__(
@@ -203,7 +213,7 @@ class WorkloadAccountingLedger:
         return f"{self.repository}:{self.commit}:{rel_path}:{file_sha256}"
 
     def register_discovered_file(self, file_path: Path, root: Optional[Path] = None) -> SourceUnitRecord:
-        """Register a discovered project file into the ledger."""
+        """Register a discovered project file into the ledger with deterministic disposition."""
         base = root or self.source_root or file_path.parent
         try:
             rel = str(file_path.relative_to(base))
@@ -218,11 +228,59 @@ class WorkloadAccountingLedger:
         digest = compute_file_sha256(file_path)
         ident = self.compute_identity(rel, digest)
 
+        # Deterministic project role, processing status, and exclusion classification
+        project_role = "LEGACY_SOURCE"
+        processing_status = "ANALYZED_ONLY"
+        exclusion_reason = ""
+
+        lower_rel = rel.lower()
+        if "dailypost" in lower_rel and lower_rel.endswith((".cbl", ".cob")):
+            project_role = "PRIMARY_COBOL_PROGRAM"
+            processing_status = "ANALYZED_ONLY"
+        elif lower_rel.endswith((".cpy",)):
+            project_role = "COBOL_COPYBOOK"
+            processing_status = "ANALYZED_ONLY"
+        elif lower_rel.startswith("data/") and lower_rel.endswith(".dat"):
+            project_role = "APPLICATION_DATASET"
+            processing_status = "ANALYZED_ONLY"
+        elif lower_rel.startswith("out/") and lower_rel.endswith(".dat"):
+            project_role = "GOLDEN_MASTER_REFERENCE"
+            processing_status = "VALIDATED"
+        elif lower_rel.startswith("rewrite/kotlin/"):
+            project_role = "REFERENCE_IMPLEMENTATION"
+            processing_status = "EXCLUDED_WITH_EXPLICIT_REASON"
+            exclusion_reason = "Pre-existing manual reference Kotlin implementation provided by repository author; excluded from legacy COBOL input scope"
+        elif lower_rel.startswith("docs/") or lower_rel.endswith((".puml", ".png")):
+            project_role = "ANCILLARY_DOCUMENTATION"
+            processing_status = "EXCLUDED_WITH_EXPLICIT_REASON"
+            exclusion_reason = "Ancillary documentation and architecture diagrams; non-executable specification"
+        elif lower_rel.startswith(("readme", "license", ".git")) or lower_rel in ("readme.md", "license", ".gitignore"):
+            project_role = "REPOSITORY_METADATA"
+            processing_status = "EXCLUDED_WITH_EXPLICIT_REASON"
+            exclusion_reason = "Repository metadata and guidance; non-executable"
+        elif lower_rel.endswith((".bms", ".csd", ".dbd")):
+            project_role = "UNSUPPORTED_MAINFRAME_SPEC"
+            processing_status = "UNSUPPORTED"
+            exclusion_reason = "BMS/CSD/DBD mainframe specifications not supported by batch modernisation pipeline"
+        elif lower_rel.endswith((".sh", ".bash")) or lower_rel in ("makefile", "build.sh", "run.sh"):
+            project_role = "BUILD_AND_VERIFICATION_SPEC"
+            processing_status = "ANALYZED_ONLY"
+        elif lower_rel.startswith("scripts/"):
+            project_role = "VERIFICATION_SCRIPT"
+            processing_status = "ANALYZED_ONLY"
+        elif lower_rel.startswith("formal/"):
+            project_role = "FORMAL_SPECIFICATION"
+            processing_status = "ANALYZED_ONLY"
+
         rec = SourceUnitRecord(
             source_path=rel,
+            relative_path=rel,
             language=lang,
             physical_loc=phys,
             nloc=nloc,
+            project_role=project_role,
+            processing_status=processing_status,
+            exclusion_reason=exclusion_reason,
             selected_for_modernization=False,
             analyzed=False,
             transformed=False,
@@ -231,6 +289,7 @@ class WorkloadAccountingLedger:
             validation_status="NOT_VALIDATED",
             workload_identity=ident,
             sha256=digest,
+            source_hash=digest,
             reprocessed_count=0,
         )
         self._units[rel] = rec
@@ -245,6 +304,16 @@ class WorkloadAccountingLedger:
         """Mark a source unit as analyzed."""
         if rel_path in self._units:
             self._units[rel_path].analyzed = True
+
+    def mark_processed(self, rel_path: str, target_artifacts: Optional[List[str]] = None) -> None:
+        """Mark an artifact as processed."""
+        rec = self._units.get(rel_path)
+        if rec:
+            rec.processing_status = "PROCESSED"
+            if target_artifacts:
+                for art in target_artifacts:
+                    if art not in rec.target_artifacts:
+                        rec.target_artifacts.append(art)
 
     def mark_transformed(
         self,
@@ -261,6 +330,7 @@ class WorkloadAccountingLedger:
             return
 
         rec.transformed = True
+        rec.processing_status = "PROCESSED"
         rec.transformation_status = "SUCCESS" if success else "FAILED"
         if target_artifacts:
             for art in target_artifacts:
@@ -273,6 +343,8 @@ class WorkloadAccountingLedger:
         """Record validation outcome for a source unit."""
         if rel_path in self._units:
             self._units[rel_path].validation_status = "PASSED" if passed else "FAILED"
+            if passed and self._units[rel_path].processing_status == "ANALYZED_ONLY":
+                self._units[rel_path].processing_status = "VALIDATED"
 
     def record_repair_cycle(self, target_unit: str, reprocessed_units: List[str], duration_sec: float) -> None:
         """
@@ -296,12 +368,44 @@ class WorkloadAccountingLedger:
         return len(self._units)
 
     @property
+    def processed_files(self) -> int:
+        return sum(1 for u in self._units.values() if u.processing_status in ("PROCESSED", "GENERATED") or u.transformed)
+
+    @property
+    def analyzed_only_files(self) -> int:
+        return sum(1 for u in self._units.values() if u.processing_status == "ANALYZED_ONLY")
+
+    @property
+    def unsupported_files(self) -> int:
+        return sum(1 for u in self._units.values() if u.processing_status == "UNSUPPORTED")
+
+    @property
+    def excluded_files(self) -> int:
+        return sum(1 for u in self._units.values() if u.processing_status == "EXCLUDED_WITH_EXPLICIT_REASON")
+
+    @property
+    def failed_files(self) -> int:
+        return sum(1 for u in self._units.values() if u.processing_status == "FAILED")
+
+    @property
+    def validated_files(self) -> int:
+        return sum(1 for u in self._units.values() if u.processing_status == "VALIDATED" or u.validation_status == "PASSED")
+
+    @property
     def discovered_project_physical_loc(self) -> int:
         return sum(u.physical_loc for u in self._units.values())
 
     @property
     def discovered_project_nloc(self) -> int:
         return sum(u.nloc for u in self._units.values())
+
+    @property
+    def processed_project_physical_loc(self) -> int:
+        return sum(u.physical_loc for u in self._units.values() if u.transformed or u.processing_status == "PROCESSED")
+
+    @property
+    def processed_project_nloc(self) -> int:
+        return sum(u.nloc for u in self._units.values() if u.transformed or u.processing_status == "PROCESSED")
 
     @property
     def selected_files(self) -> int:

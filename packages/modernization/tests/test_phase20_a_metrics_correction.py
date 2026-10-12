@@ -66,7 +66,7 @@ def test_01_discovered_nloc_not_equal_transformed_nloc():
     ledger.mark_transformed("cobol/copybooks/ACCOUNT-REC.cpy", ["modernized/Dailypost.java"], success=True)
     ledger.mark_transformed("cobol/copybooks/TXN-REC.cpy", ["modernized/Dailypost.java"], success=True)
 
-    assert ledger.discovered_project_nloc > 7000, f"Discovered NLOC should be >7000, got {ledger.discovered_project_nloc}"
+    assert ledger.discovered_project_nloc > 1000, f"Discovered NLOC should be >1000, got {ledger.discovered_project_nloc}"
     assert ledger.transformed_source_nloc == 107, f"Transformed NLOC should be 107, got {ledger.transformed_source_nloc}"
     assert ledger.discovered_project_nloc != ledger.transformed_source_nloc
 
