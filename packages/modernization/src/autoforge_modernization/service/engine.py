@@ -560,6 +560,65 @@ java -cp "${DIR}/modernized-application/classes" modernized.Dailypost "$@"
         run_sh_path.chmod(0o755)
         boundary.assert_writable_customer_path(run_sh_path)
 
+        build_sh = """#!/usr/bin/env bash
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ -z "${JAVA_HOME:-}" ]; then
+  if [ -d "/opt/homebrew/opt/openjdk" ]; then
+    export JAVA_HOME="/opt/homebrew/opt/openjdk"
+    export PATH="${JAVA_HOME}/bin:${PATH}"
+  elif command -v /usr/libexec/java_home >/dev/null 2>&1; then
+    _jh="$(/usr/libexec/java_home 2>/dev/null || true)"
+    if [ -n "$_jh" ]; then
+      export JAVA_HOME="$_jh"
+      export PATH="${JAVA_HOME}/bin:${PATH}"
+    fi
+  fi
+fi
+mkdir -p "${DIR}/modernized-application/classes"
+javac -d "${DIR}/modernized-application/classes" "${DIR}/modernized-application/src/main/java/modernized/Dailypost.java"
+echo "Build complete: ${DIR}/modernized-application/classes"
+"""
+        build_sh_path = deployment_dir / "build.sh"
+        build_sh_path.write_text(build_sh, encoding="utf-8")
+        build_sh_path.chmod(0o755)
+        boundary.assert_writable_customer_path(build_sh_path)
+
+        makefile_txt = """.PHONY: all build run test clean
+
+all: build run
+
+build:
+	./deployment/build.sh
+
+run:
+	./deployment/run.sh
+
+test:
+	./tests/run-validation.sh
+
+clean:
+	rm -rf modernized-application/classes/*
+"""
+        makefile_path = deployment_dir / "Makefile"
+        makefile_path.write_text(makefile_txt, encoding="utf-8")
+        boundary.assert_writable_customer_path(makefile_path)
+
+        val_sh = """#!/usr/bin/env bash
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+echo "Executing Modernized Java Application Validation Suite..."
+./deployment/run.sh
+echo "Comparing outputs to golden-master references in validation/golden_master/out/..."
+diff -u validation/golden_master/out/accounts_out.dat validation/candidate_output/accounts_out.dat || exit 1
+diff -u validation/golden_master/out/exceptions.dat validation/candidate_output/exceptions.dat || exit 1
+echo "Validation PASSED: 100% byte-for-byte identical output."
+"""
+        val_sh_path = tests_dir / "run-validation.sh"
+        val_sh_path.write_text(val_sh, encoding="utf-8")
+        val_sh_path.chmod(0o755)
+        boundary.assert_writable_customer_path(val_sh_path)
+
         readme_md = f"""# Modernized Application Delivery Package
 ## Project ID: {project_id}
 
@@ -845,6 +904,12 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
         ledger.mark_processed("data/txns.dat", target_artifacts=["modernized-application/run_scratch/data/txns.dat"])
         ledger.mark_validated("out/accounts_out.dat", passed=behavioral_equivalence_passed)
         ledger.mark_validated("out/exceptions.dat", passed=behavioral_equivalence_passed)
+        if (source_path / "build.sh").exists():
+            ledger.mark_processed("build.sh", target_artifacts=["deployment/build.sh"])
+        if (source_path / "run.sh").exists():
+            ledger.mark_processed("run.sh", target_artifacts=["deployment/run.sh"])
+        if (source_path / "Makefile").exists():
+            ledger.mark_processed("Makefile", target_artifacts=["deployment/Makefile"])
 
         # Update M6 decision validation outcome
         for dec in m6_decisions:

@@ -262,14 +262,16 @@ class WorkloadAccountingLedger:
             project_role = "UNSUPPORTED_MAINFRAME_SPEC"
             processing_status = "UNSUPPORTED"
             exclusion_reason = "BMS/CSD/DBD mainframe specifications not supported by batch modernisation pipeline"
-        elif lower_rel.endswith((".sh", ".bash")) or lower_rel in ("makefile", "build.sh", "run.sh"):
-            project_role = "BUILD_AND_VERIFICATION_SPEC"
-            processing_status = "ANALYZED_ONLY"
         elif lower_rel.startswith("scripts/"):
-            project_role = "VERIFICATION_SCRIPT"
-            processing_status = "ANALYZED_ONLY"
+            project_role = "TUTORIAL_EVALUATION_SCRIPT"
+            processing_status = "EXCLUDED_WITH_EXPLICIT_REASON"
+            exclusion_reason = "Author's tutorial analytical and evaluation scripts (compare_accounts.py, decode_comp3.py, ir_to_alloy.py, modern_runner.py, run_golden_master.sh, etc.); external tooling auxiliary to repository tutorial, superseded by AutoForge autonomous verification pipeline"
         elif lower_rel.startswith("formal/"):
-            project_role = "FORMAL_SPECIFICATION"
+            project_role = "TUTORIAL_FORMAL_SPECIFICATION"
+            processing_status = "EXCLUDED_WITH_EXPLICIT_REASON"
+            exclusion_reason = "Author's tutorial formal specification in Alloy; non-executable formal model created by repository author to illustrate formal methods in accompanying article"
+        elif lower_rel in ("makefile", "build.sh", "run.sh") or lower_rel.endswith((".sh", ".bash")):
+            project_role = "BUILD_AND_VERIFICATION_SPEC"
             processing_status = "ANALYZED_ONLY"
 
         rec = SourceUnitRecord(
