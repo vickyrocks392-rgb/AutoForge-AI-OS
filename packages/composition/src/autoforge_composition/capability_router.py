@@ -513,6 +513,7 @@ class CommercialCapabilityRouter:
             project_id=project_id,
             job_id=f"{capability}-{project_id}",
             reconnaissance_output=reconnaissance,
+            project_configuration=project_configuration,
         )
         return self._from_pipeline_result(capability, result)
 
@@ -547,19 +548,24 @@ class CommercialCapabilityRouter:
             "gate_decisions": len(getattr(result, "gate_decisions", []) or []),
             "real_source": True,
         }
+        if hasattr(result, "verification_scorecard") and result.verification_scorecard:
+            scorecard.update(result.verification_scorecard)
+
+        delivery_dir = getattr(result, "delivery_dir", None)
+        repair_count = int(getattr(result, "repair_count", 0))
+        stages_executed = list(getattr(result, "stages_executed", [f"modernization:{status_value}"]))
+        summary = getattr(result, "summary_report", f"Modernized {transformed} unit(s) from real legacy source.")
 
         return RoutedExecution(
             capability=capability,
             engine_class="ModernizationPipeline",
             success=complete and not error and failed_units == 0,
             status=loop_status,
-            delivery_dir=None,
-            stages_executed=[f"modernization:{status_value}"],
-            repair_count=0,
+            delivery_dir=delivery_dir,
+            stages_executed=stages_executed,
+            repair_count=repair_count,
             verification_scorecard=scorecard,
-            summary_report=(
-                f"Modernized {transformed} unit(s) from real legacy source."
-            ),
+            summary_report=summary,
             error_message=error,
         )
 

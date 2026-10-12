@@ -130,3 +130,6 @@ scripts/run_prg_with_profile.py
 # Local runtime state and databases
 data/
 
+# Phase 20 Customer Modernization Delivery Packages (Domain B)
+Modernization Output/
+

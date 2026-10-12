@@ -27,7 +27,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
@@ -124,6 +125,12 @@ class PipelineResult(BaseModel):
 
     overall_success: bool = False
     error_message: str | None = None
+    delivery_dir: str | None = None
+    verification_scorecard: dict[str, Any] = Field(default_factory=dict)
+    stages_executed: list[str] = Field(default_factory=list)
+    repair_count: int = 0
+    summary_report: str = ""
+    manifest_path: str | None = None
 
     def duration_seconds(self) -> float | None:
         """Return total duration in seconds."""
@@ -225,6 +232,7 @@ class ModernizationPipeline:
         job_id: str,
         reconnaissance_output,
         plan: "MigrationPlan | None" = None,
+        project_configuration: dict | None = None,
     ) -> PipelineResult:
         """
         Run the full pipeline.
@@ -314,6 +322,48 @@ class ModernizationPipeline:
                 result.status = PipelineStatus.BLOCKED
                 result.error_message = "Migration plan is not executable (not approved)"
                 self.llm_integration.stop_wall_clock()
+                result.completed_at = _utc_now()
+                return result
+
+            # ── Step 4: Transformation / Execution ──────────────────────────
+            # Phase 20: If a real legacy source root with executable programs is present,
+            # execute the complete Phase 20 modernization pipeline (toolchain, build,
+            # execution, golden-master equivalence, packaging, delivery manifest).
+            cfg = dict(project_configuration or {})
+            source_root_cand = (
+                cfg.get("legacy_source_root")
+                or cfg.get("source_root")
+                or getattr(reconnaissance_output, "root_path", None)
+                or (reconnaissance_output.get("root_path") if isinstance(reconnaissance_output, dict) else None)
+            )
+            has_real_programs = False
+            if source_root_cand:
+                src_cand_path = Path(source_root_cand)
+                if src_cand_path.exists() and (
+                    list(src_cand_path.glob("**/*.cbl"))
+                    or list(src_cand_path.glob("**/*.cob"))
+                    or list(src_cand_path.glob("**/*.jcl"))
+                ):
+                    has_real_programs = True
+
+            if has_real_programs:
+                from autoforge_modernization.service.engine import LegacyModernizationEngine
+                modern_engine = LegacyModernizationEngine()
+                exec_res = modern_engine.execute(
+                    project_id=project_id,
+                    job_id=job_id,
+                    source_root=Path(source_root_cand),
+                    project_configuration=cfg,
+                )
+                self.llm_integration.stop_wall_clock()
+                result.delivery_dir = exec_res.delivery_dir
+                result.verification_scorecard = exec_res.verification_scorecard
+                result.stages_executed = exec_res.stages_executed
+                result.repair_count = exec_res.repair_count
+                result.summary_report = exec_res.summary_report
+                result.manifest_path = exec_res.manifest_path
+                result.status = PipelineStatus.COMPLETE if exec_res.success else PipelineStatus.FAILED
+                result.overall_success = exec_res.success
                 result.completed_at = _utc_now()
                 return result
 
@@ -856,6 +906,7 @@ def _lazy_rebuild():
     from autoforge_modernization.transformation import TransformationRecord
     PipelineResult.model_rebuild(
         _types_namespace={
+            "Any": Any,
             "AnalysisReport": AnalysisReport,
             "GateDecisionRecord": GateDecisionRecord,
             "MigrationPlan": MigrationPlan,
