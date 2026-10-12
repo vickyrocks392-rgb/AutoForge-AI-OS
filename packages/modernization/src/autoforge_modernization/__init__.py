@@ -186,10 +186,14 @@ from autoforge_modernization.target import (
     TargetCapabilityDeriver,
 )
 from autoforge_modernization.composition import (
-    TransformationPlan,
-    GenericTransformationPlanner,
-    DynamicCapabilityWorkflow,
+    ApplicationScopeGraph,
+    ArtifactDisposition,
+    ArtifactScopeRecord,
     CompositionWorkflowReport,
+    DynamicCapabilityWorkflow,
+    GenericTransformationPlanner,
+    ScopeCompletenessResult,
+    TransformationPlan,
 )
 
 
@@ -381,6 +385,10 @@ __all__ = [
     "TargetCapabilityDeriver",
     "TransformationPlan",
     "GenericTransformationPlanner",
+    "ArtifactDisposition",
+    "ArtifactScopeRecord",
+    "ApplicationScopeGraph",
+    "ScopeCompletenessResult",
     "DynamicCapabilityWorkflow",
     "CompositionWorkflowReport",
 ]

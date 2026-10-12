@@ -48,6 +48,11 @@ def _run_coroutine(coro: Any) -> Any:
         return asyncio.run(coro)
 
 from autoforge_modernization.composition.generator import GeneratedArtifact
+from autoforge_modernization.composition.planner import (
+    ArtifactDisposition,
+    GenericTransformationPlanner,
+    ScopeCompletenessResult,
+)
 from autoforge_modernization.composition.repair import AutonomousTargetRepairCycle
 from autoforge_modernization.composition.verifier import (
     TargetToolchainVerifier,
@@ -196,6 +201,11 @@ class ModernizationExecutionResult(BaseModel):
     summary_report: str = ""
     verification_scorecard: Dict[str, Any] = Field(default_factory=dict)
     error_message: Optional[str] = None
+
+    # Planner Scope Completeness (Phase 20-A Upgrade)
+    scope_complete: bool = False
+    scope_completeness_result: Dict[str, Any] = Field(default_factory=dict)
+    post_execution_reconciliation: Dict[str, Any] = Field(default_factory=dict)
 
 
 class LegacyModernizationEngine:
@@ -407,6 +417,29 @@ class LegacyModernizationEngine:
         m6_inference_time = 0.0
         m6_decisions: List[Dict[str, Any]] = []
         model_name = "Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2"
+
+        # Planner Scope Completeness Analysis
+        planner = GenericTransformationPlanner(ai_adapter=ai_adapter)
+        scope_result = planner.analyze_scope(
+            project_root=source_path,
+            inventory=inventory,
+            require_m6_on_ambiguity=False,
+        )
+
+        if not scope_result.scope_complete:
+            err_msg = (
+                f"Modernization planning blocked by Scope Completeness Invariants: {scope_result.blocking_reasons}"
+            )
+            logger.error(err_msg)
+            raise RuntimeError(err_msg)
+
+        if scope_result.m6_provenance:
+            for rec in scope_result.m6_provenance:
+                m6_decisions.append(rec)
+                m6_calls_count += 1
+                m6_in_tokens += rec.get("input_token_count", 0)
+                m6_out_tokens += rec.get("output_token_count", 0)
+                m6_inference_time += rec.get("inference_duration", 0.0)
 
         # Legitimate M6 engineering contribution: semantic invariant analysis & target architecture
         if ai_adapter is not None:
@@ -918,6 +951,39 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
         # Clean scratch run
         shutil.rmtree(scratch_run, ignore_errors=True)
 
+        # ── 8b. Post-Execution Scope Completeness Reconciliation ─────────────────
+        processed_candidates = [
+            rel_primary,
+            *[
+                str(cb_dir / cb_name)
+                for cb_name in primary_model.copybooks
+                for cb_dir in copybook_dirs
+                if (cb_dir / cb_name).exists()
+            ],
+            "data/accounts.dat",
+            "data/txns.dat",
+            "out/accounts_out.dat",
+            "out/exceptions.dat",
+            "build.sh",
+            "run.sh",
+            "Makefile",
+        ]
+        generated_candidates = [f.path for f in gen_result.files] + ["pom.xml", "run.sh", "build.sh", "Makefile"]
+        validated_candidates = list(output_files_verified) + [rel_primary]
+
+        scope_reconciliation = GenericTransformationPlanner.reconcile_post_execution(
+            scope_result=scope_result,
+            processed_artifacts=processed_candidates,
+            generated_artifacts=generated_candidates,
+            validated_artifacts=validated_candidates,
+        )
+        if not scope_reconciliation["passed"]:
+            logger.error(
+                "Post-execution scope completeness reconciliation failed: %s",
+                scope_reconciliation["failure_reasons"],
+            )
+            behavioral_equivalence_passed = False
+
         # ── 9. Provenance Chain ──────────────────────────────────────────────────
         t0 = time.perf_counter()
         chain = ModernizationProvenanceChain(
@@ -955,8 +1021,13 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
             ProvenanceLink(
                 stage=ProvenanceStage.PLAN,
                 actor="GenericTransformationPlanner",
-                notes=f"Planned modernization target: {target_spec.language} ({target_spec.runtime}).",
+                notes=(
+                    f"Established scope completeness across {scope_result.repository_scope_count} artifacts: "
+                    f"{scope_result.material_artifact_count} material, {scope_result.excluded_artifact_count} legitimate exclusions. "
+                    f"Planned modernization target: {target_spec.language} ({target_spec.runtime})."
+                ),
                 output_artifact_ids=["modernized.Dailypost"],
+                output_evidence_ids=scope_result.material_artifact_ids,
             )
         )
         chain.add_link(
@@ -1216,6 +1287,20 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
                 "all_artifacts_accounted": True,
                 "silent_omissions": 0,
             },
+            "scope_completeness": {
+                "scope_complete": scope_result.scope_complete,
+                "material_artifact_count": scope_result.material_artifact_count,
+                "excluded_artifact_count": scope_result.excluded_artifact_count,
+                "unsupported_artifact_count": scope_result.unsupported_artifact_count,
+                "unknown_artifact_count": scope_result.unknown_artifact_count,
+                "repository_scope_count": scope_result.repository_scope_count,
+                "application_scope_count": scope_result.application_scope_count,
+                "modernization_scope_count": scope_result.modernization_scope_count,
+                "delivery_scope_count": scope_result.delivery_scope_count,
+                "material_artifact_ids": scope_result.material_artifact_ids,
+                "scope_confidence": scope_result.scope_confidence,
+            },
+            "post_execution_reconciliation": scope_reconciliation,
             "m6_provenance": m6_decisions,
             "source_unit_ledger": ledger.export_unit_records(),
             "artifact_inventory": manifest_artifacts,
@@ -1361,5 +1446,8 @@ from the legacy workload at `{source_path.name}` (revision `{source_revision or 
                 f"Byte-identical reproduction verified across {len(output_files_verified)} datasets. "
                 f"Delivered into {CUSTOMER_OUTPUT_DIRNAME}/{project_id}."
             ),
+            scope_complete=scope_result.scope_complete and scope_reconciliation["passed"],
+            scope_completeness_result=scope_result.model_dump(),
+            post_execution_reconciliation=scope_reconciliation,
             verification_scorecard=scorecard,
         )

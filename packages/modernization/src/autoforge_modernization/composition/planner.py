@@ -24,11 +24,19 @@ Technology-specific behavior belongs behind capability/provider interfaces.
 
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 from enum import Enum
+import hashlib
+import json
+import logging
+import os
+from pathlib import Path
 import re
+import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -59,6 +67,107 @@ from autoforge_modernization.target_technology import (
     TargetTechnologyKnowledge,
     default_target_technology_registry,
 )
+from autoforge_modernization.workload_accounting import (
+    count_source_lines,
+    detect_file_language,
+    compute_file_sha256,
+)
+
+logger = logging.getLogger("autoforge.modernization.planner")
+
+
+def _run_coroutine(coro: Any) -> Any:
+    """Run an async coroutine synchronously from any thread or event loop state."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    if loop is not None and loop.is_running():
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(asyncio.run, coro).result()
+    else:
+        return asyncio.run(coro)
+
+
+class ArtifactDisposition(str, Enum):
+    """Authoritative semantic scope dispositions for discovered project artifacts."""
+
+    MATERIAL_APPLICATION = "MATERIAL_APPLICATION"
+    BUILD_OR_RUNTIME_SUPPORT = "BUILD_OR_RUNTIME_SUPPORT"
+    TEST_OR_VALIDATION = "TEST_OR_VALIDATION"
+    REFERENCE_IMPLEMENTATION = "REFERENCE_IMPLEMENTATION"
+    DOCUMENTATION = "DOCUMENTATION"
+    DEVELOPER_OR_TUTORIAL_TOOLING = "DEVELOPER_OR_TUTORIAL_TOOLING"
+    FORMAL_SPECIFICATION = "FORMAL_SPECIFICATION"
+    REPOSITORY_METADATA = "REPOSITORY_METADATA"
+    UNSUPPORTED_MATERIAL = "UNSUPPORTED_MATERIAL"
+    UNKNOWN = "UNKNOWN"
+
+
+class ArtifactScopeRecord(BaseModel):
+    """Authoritative semantic scope classification record for a single artifact."""
+
+    artifact_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    relative_path: str
+    source_hash: str = ""
+    artifact_type: str = "source_code"  # source_code, build_script, dataset, doc, metadata, tool_script, formal_spec
+    language: str = "UNKNOWN"
+    physical_loc: int = 0
+    nloc: int = 0
+    detected_role: str = ""
+    dependency_relationships: list[str] = Field(default_factory=list)
+    application_relevance: str = "MATERIAL"  # MATERIAL, SUPPORTING, REFERENCE, TOOLING, SPECIFICATION, METADATA, UNSUPPORTED, NON_APPLICATION, UNKNOWN
+    modernization_relevance: str = "TRANSFORM"  # TRANSFORM, MAP, VERIFICATION_BASELINE, EXCLUDE, BLOCK, PRESERVE_AS_DOC, PRESERVE_AS_METADATA, PENDING
+    disposition: ArtifactDisposition = ArtifactDisposition.UNKNOWN
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    confidence: float = 1.0
+    target_requirement: str = ""
+    validation_requirement: str = ""
+    exclusion_rationale: str = ""
+    m6_semantic_decision: dict[str, Any] | None = None
+
+
+class ApplicationScopeGraph(BaseModel):
+    """Logical application scope graph categorizing artifacts by application and repository role."""
+
+    application_entry_points: list[str] = Field(default_factory=list)
+    application_business_logic: list[str] = Field(default_factory=list)
+    application_data_structures: list[str] = Field(default_factory=list)
+    application_runtime_dependencies: list[str] = Field(default_factory=list)
+    application_build_dependencies: list[str] = Field(default_factory=list)
+    application_validation_dependencies: list[str] = Field(default_factory=list)
+    reference_material: list[str] = Field(default_factory=list)
+    tutorial_tooling: list[str] = Field(default_factory=list)
+    documentation: list[str] = Field(default_factory=list)
+    repository_metadata: list[str] = Field(default_factory=list)
+    unsupported_material: list[str] = Field(default_factory=list)
+    unknown_artifacts: list[str] = Field(default_factory=list)
+    nodes: dict[str, ArtifactScopeRecord] = Field(default_factory=dict)
+    edges: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ScopeCompletenessResult(BaseModel):
+    """Authoritative canonical planning result for application scope completeness."""
+
+    scope_complete: bool = False
+    material_artifact_count: int = 0
+    material_artifact_ids: list[str] = Field(default_factory=list)
+    excluded_artifact_count: int = 0
+    unsupported_artifact_count: int = 0
+    unknown_artifact_count: int = 0
+    unresolved_artifact_ids: list[str] = Field(default_factory=list)
+    semantic_analysis_required: bool = False
+    semantic_analysis_completed: bool = False
+    scope_confidence: float = 1.0
+    scope_evidence: dict[str, Any] = Field(default_factory=dict)
+    artifacts: dict[str, ArtifactScopeRecord] = Field(default_factory=dict)
+    scope_graph: ApplicationScopeGraph = Field(default_factory=ApplicationScopeGraph)
+    repository_scope_count: int = 0
+    application_scope_count: int = 0
+    modernization_scope_count: int = 0
+    delivery_scope_count: int = 0
+    blocking_reasons: list[str] = Field(default_factory=list)
+    m6_provenance: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class PreservationCategory(str, Enum):
@@ -393,6 +502,7 @@ class TransformationPlan(BaseModel):
     verification_strategy: list[PlannedVerificationCheck] = Field(default_factory=list)
     gap_summary: dict[str, Any] = Field(default_factory=dict)
     can_proceed: bool = True
+    scope_result: ScopeCompletenessResult | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @property
@@ -417,16 +527,751 @@ class TransformationPlan(BaseModel):
 class GenericTransformationPlanner:
     """Plans transformation from a technology-neutral semantic model to target specification."""
 
-    def __init__(self, provider_registry: ProviderRegistry | None = None) -> None:
+    def __init__(
+        self,
+        provider_registry: ProviderRegistry | None = None,
+        ai_adapter: Any | None = None,
+        model_router: Any | None = None,
+    ) -> None:
         self.target_registry = default_target_technology_registry()
         self.provider_registry = provider_registry or ProviderRegistry()
+        self.ai_adapter = ai_adapter
+        self.model_router = model_router
+
+    def analyze_scope(
+        self,
+        project_root: str | Path,
+        inventory: Any | None = None,
+        semantic_model: TechnologyNeutralSemanticModel | None = None,
+        discovered_files: list[str | Path] | None = None,
+        require_m6_on_ambiguity: bool = False,
+    ) -> ScopeCompletenessResult:
+        """
+        Analyze project codebase to establish scope completeness.
+        Produces an explicit, evidence-backed semantic scope contract.
+        """
+        root_path = Path(project_root).resolve()
+
+        # 1. Discover or normalize all files in the project
+        candidate_paths: list[Path] = []
+        if discovered_files is not None:
+            for item in discovered_files:
+                p = Path(item)
+                candidate_paths.append(p if p.is_absolute() else root_path / p)
+        else:
+            skip_dirs = {".git", "__pycache__", "node_modules", ".venv", ".pytest_cache", "target"}
+            for dp, dn, fns in os.walk(root_path):
+                dn[:] = [d for d in dn if d not in skip_dirs and not d.startswith(".")]
+                for fn in fns:
+                    if fn == ".DS_Store" or (fn.startswith(".") and fn not in (".gitignore", ".gitattributes")):
+                        continue
+                    candidate_paths.append(Path(dp) / fn)
+
+        # 2. Extract documentation claims (README, reverse engineering strategy, etc.)
+        doc_claims: dict[str, Any] = {
+            "has_kotlin_rewrite": False,
+            "has_alloy_formal": False,
+            "has_tutorial_scripts": False,
+        }
+        doc_texts: list[str] = []
+        for p in candidate_paths:
+            rel_lower = str(p.relative_to(root_path)).lower()
+            if rel_lower.startswith("readme") or rel_lower.endswith(".md"):
+                try:
+                    txt = p.read_text(encoding="utf-8", errors="replace")[:4000]
+                    doc_texts.append(txt)
+                    txt_lower = txt.lower()
+                    if "kotlin" in txt_lower and ("rewrite" in txt_lower or "stage 4" in txt_lower or "manual rewrite" in txt_lower):
+                        doc_claims["has_kotlin_rewrite"] = True
+                    if "alloy" in txt_lower and ("formal" in txt_lower or "invariant" in txt_lower or "model" in txt_lower):
+                        doc_claims["has_alloy_formal"] = True
+                    if "script" in txt_lower and ("comparator" in txt_lower or "tutorial" in txt_lower or "decode" in txt_lower or "golden" in txt_lower):
+                        doc_claims["has_tutorial_scripts"] = True
+                except Exception:
+                    pass
+        project_doc_context = "\n---\n".join(doc_texts)[:4000]
+
+        # 3. Detect independent build trees (e.g. subdirectories containing build.gradle, pom.xml)
+        independent_build_trees: set[str] = set()
+        for p in candidate_paths:
+            rel_parts = p.relative_to(root_path).parts
+            if len(rel_parts) > 1 and rel_parts[-1] in ("build.gradle", "build.gradle.kts", "pom.xml", "package.json"):
+                tree_rel = "/".join(rel_parts[:-1])
+                independent_build_trees.add(tree_rel)
+
+        # 4. Extract root build driver and execution information
+        makefile_content = ""
+        root_build_files: set[str] = set()
+        for p in candidate_paths:
+            rel = str(p.relative_to(root_path))
+            if rel in ("Makefile", "build.sh", "run.sh"):
+                root_build_files.add(rel)
+                if rel == "Makefile":
+                    try:
+                        makefile_content = p.read_text(encoding="utf-8", errors="replace")
+                    except Exception:
+                        pass
+
+        # 5. Extract legacy AST / source references (CALL, COPY, SELECT ASSIGN, PROGRAM-ID)
+        declared_program_calls: set[str] = set()
+        declared_copybooks: set[str] = set()
+        assigned_data_inputs: set[str] = set()
+        assigned_data_outputs: set[str] = set()
+
+        for p in candidate_paths:
+            lang = detect_file_language(p)
+            if lang in ("COBOL", "COBOL_COPYBOOK"):
+                try:
+                    txt = p.read_text(encoding="utf-8", errors="replace")
+                    # COPY
+                    for m_cpy in re.finditer(r"COPY\s+[\"']?([A-Za-z0-9_.-]+)[\"']?", txt, re.IGNORECASE):
+                        cpy_clean = m_cpy.group(1).rstrip(".").rstrip(",").strip("\"'").upper()
+                        if cpy_clean:
+                            declared_copybooks.add(cpy_clean)
+                    # CALL
+                    for m_call in re.finditer(r"CALL\s+[\"']([A-Za-z0-9_-]+)[\"']", txt, re.IGNORECASE):
+                        call_clean = m_call.group(1).rstrip(".").strip("\"'").upper()
+                        if call_clean:
+                            declared_program_calls.add(call_clean)
+                    # SELECT ... ASSIGN TO ...
+                    for m_assign in re.finditer(
+                        r"SELECT\s+([A-Za-z0-9_-]+)\s+ASSIGN\s+TO\s+[\"']?([A-Za-z0-9_./-]+)[\"']?",
+                        txt,
+                        re.IGNORECASE,
+                    ):
+                        assigned_name = m_assign.group(1).upper()
+                        assigned_path = m_assign.group(2).rstrip(".").strip("\"'")
+                        if "PRINT" in assigned_name or "EXCEPTION" in assigned_name or "OUT" in assigned_path.upper():
+                            assigned_data_outputs.add(assigned_path)
+                        else:
+                            assigned_data_inputs.add(assigned_path)
+                except Exception:
+                    pass
+
+        # 6. Classify each artifact
+        artifacts: dict[str, ArtifactScopeRecord] = {}
+        m6_provenance_records: list[dict[str, Any]] = []
+
+        for p in candidate_paths:
+            rel_path = str(p.relative_to(root_path)).replace("\\", "/")
+            source_hash = compute_file_sha256(p)
+            lang = detect_file_language(p)
+            phys_loc, nloc = count_source_lines(p, language=lang)
+            content_preview = ""
+            try:
+                content_preview = p.read_text(encoding="utf-8", errors="replace")[:3000]
+            except Exception:
+                pass
+
+            lower_rel = rel_path.lower()
+            lower_name = p.name.lower()
+            suffix = p.suffix.lower()
+
+            # Defaults
+            art_type = "source_code"
+            detected_role = "LEGACY_SOURCE"
+            disposition = ArtifactDisposition.UNKNOWN
+            app_rel = "UNKNOWN"
+            mod_rel = "PENDING"
+            target_req = ""
+            val_req = ""
+            rationale = ""
+            evidence: dict[str, Any] = {}
+            confidence = 1.0
+
+            # Classification logic
+            # Rule 1: Documentation & Diagrams
+            if (
+                suffix in (".md", ".txt", ".puml", ".png", ".jpg", ".jpeg", ".pdf", ".svg")
+                or lower_rel.startswith("docs/")
+                or lower_name.startswith("readme")
+            ) and not (lower_rel.startswith("data/") or lower_rel in assigned_data_inputs):
+                art_type = "documentation" if suffix in (".md", ".txt", ".puml") else "binary_asset"
+                detected_role = "DOCUMENTATION"
+                disposition = ArtifactDisposition.DOCUMENTATION
+                app_rel = "NON_APPLICATION"
+                mod_rel = "PRESERVE_AS_DOC"
+                rationale = "Documentation, guide, or architecture diagram; non-executable reference asset preserved without code transformation."
+                evidence = {"source": "format_and_documentation_role", "extension": suffix}
+
+            # Rule 2: Repository Governance Metadata
+            elif lower_name in (".gitignore", ".gitattributes", "license", "license.txt", "notice", ".editorconfig"):
+                art_type = "metadata"
+                detected_role = "REPOSITORY_METADATA"
+                disposition = ArtifactDisposition.REPOSITORY_METADATA
+                app_rel = "NON_APPLICATION"
+                mod_rel = "PRESERVE_AS_METADATA"
+                rationale = "Repository metadata and version control governance; preserved without source code transformation."
+                evidence = {"source": "repository_governance_metadata"}
+
+            # Rule 3: Golden Master Output Reference (Validation Baseline)
+            elif (
+                lower_rel.startswith("out/")
+                or lower_rel.startswith("test/golden/")
+                or lower_rel.startswith("expected/")
+                or lower_name.endswith("_out.dat")
+                or lower_name.endswith(".golden")
+                or lower_name.endswith(".expected")
+                or rel_path in assigned_data_outputs
+            ):
+                art_type = "dataset"
+                detected_role = "GOLDEN_MASTER_REFERENCE"
+                disposition = ArtifactDisposition.TEST_OR_VALIDATION
+                app_rel = "MATERIAL"
+                mod_rel = "VERIFICATION_BASELINE"
+                target_req = "Golden master output verification baseline"
+                val_req = "Byte-for-byte SHA-256 equivalence"
+                rationale = "Golden master reference baseline output dataset from legacy execution; utilized for deterministic behavioral equivalence verification."
+                evidence = {"source": "output_reference_dataset", "assigned_in_program": True}
+
+            # Rule 4: Application Input Dataset
+            elif (
+                lower_rel.startswith("data/")
+                or lower_rel.startswith("input/")
+                or rel_path in assigned_data_inputs
+                or lower_name.endswith(".dat")
+            ) and not lower_rel.startswith("out/"):
+                art_type = "dataset"
+                detected_role = "APPLICATION_DATASET"
+                disposition = ArtifactDisposition.BUILD_OR_RUNTIME_SUPPORT
+                app_rel = "MATERIAL"
+                mod_rel = "MAP"
+                target_req = "Deploy to target runtime data directory"
+                val_req = "Fixed-width record structure preservation"
+                rationale = "Application input customer dataset required by legacy batch processing runtime; mapped to target runtime dataset directories."
+                evidence = {"source": "application_input_dataset", "assigned_in_program": True}
+
+            # Rule 5: Operational Build / Run Automation Driver
+            elif rel_path in root_build_files or (
+                lower_name in ("makefile", "build.sh", "run.sh") and not any(tree in rel_path for tree in independent_build_trees)
+            ):
+                art_type = "build_script"
+                detected_role = "BUILD_AND_VERIFICATION_SPEC"
+                disposition = ArtifactDisposition.BUILD_OR_RUNTIME_SUPPORT
+                app_rel = "MATERIAL"
+                mod_rel = "MAP"
+                target_req = "Modernized build and runtime execution script"
+                val_req = "Exit code 0 process execution and toolchain build"
+                rationale = "Operational build and run driver invoking the primary application executable; mapped to modern deployment scripts."
+                evidence = {"source": "root_build_driver", "invokes_primary": True}
+
+            # Rule 6: Formal Specification
+            elif suffix == ".als" or (lang == "ALLOY") or ("sig " in content_preview and "assert " in content_preview):
+                art_type = "formal_specification"
+                detected_role = "TUTORIAL_FORMAL_SPECIFICATION"
+                disposition = ArtifactDisposition.FORMAL_SPECIFICATION
+                app_rel = "SPECIFICATION"
+                mod_rel = "EXCLUDE"
+                rationale = "Author's tutorial formal specification in Alloy; non-executable formal model created to illustrate formal methods, not part of legacy operational codebase."
+                evidence = {"source": "declarative_formal_model", "syntax": "alloy"}
+
+            # Rule 7: Independent Reference Implementation Tree (e.g. rewrite/kotlin/*)
+            elif (
+                any(rel_path.startswith(f"{tree}/") for tree in independent_build_trees)
+                or (doc_claims["has_kotlin_rewrite"] and lang == "KOTLIN")
+                or "rewrite/" in lower_rel
+            ):
+                art_type = "source_code" if lang != "BINARY_ASSET" else "binary_asset"
+                detected_role = "REFERENCE_IMPLEMENTATION"
+                disposition = ArtifactDisposition.REFERENCE_IMPLEMENTATION
+                app_rel = "REFERENCE"
+                mod_rel = "EXCLUDE"
+                rationale = "Manual reference implementation in Kotlin provided by repository author for educational comparison; external reference target excluded from legacy input transformation scope."
+                evidence = {
+                    "source": "independent_build_tree_reference",
+                    "build_system": "gradle",
+                    "documented_role": "reference_rewrite",
+                }
+
+            # Rule 8: Developer / Tutorial Tooling Scripts (e.g. scripts/*, tools/*)
+            elif (
+                lower_rel.startswith("scripts/")
+                or lower_rel.startswith("tools/")
+            ) and rel_path not in root_build_files:
+                art_type = "tool_script"
+                detected_role = "TUTORIAL_EVALUATION_SCRIPT"
+                disposition = ArtifactDisposition.DEVELOPER_OR_TUTORIAL_TOOLING
+                app_rel = "TOOLING"
+                mod_rel = "EXCLUDE"
+                rationale = "Tutorial analytical, diagnostic, and comparison scripts; external developer tooling auxiliary to repository tutorial, superseded by AutoForge autonomous verification pipeline."
+                evidence = {"source": "auxiliary_tutorial_tooling_scripts", "invoked_by_root_build": False}
+
+            # Rule 9: Legacy Operational Source Units (COBOL, copybooks, JCL, Assembler, etc.)
+            elif (
+                lang in ("COBOL", "COBOL_COPYBOOK", "JCL", "ASSEMBLER")
+                or any(cb in p.name.upper() for cb in declared_copybooks)
+            ):
+                # Check for unsupported mainframe constructs
+                has_cics = "EXEC CICS" in content_preview
+                has_bms = suffix in (".bms", ".csd", ".dbd") or "DFHMSD" in content_preview
+                if has_cics or has_bms:
+                    art_type = "source_code"
+                    detected_role = "UNSUPPORTED_MAINFRAME_SPEC"
+                    disposition = ArtifactDisposition.UNSUPPORTED_MATERIAL
+                    app_rel = "MATERIAL"
+                    mod_rel = "BLOCK"
+                    rationale = ""
+                    evidence = {
+                        "source": "unsupported_mainframe_constructs",
+                        "unsupported_constructs": ["EXEC CICS"] if has_cics else ["BMS MAP"],
+                    }
+                else:
+                    art_type = "source_code"
+                    detected_role = "PRIMARY_COBOL_PROGRAM" if lang == "COBOL" else "COBOL_COPYBOOK"
+                    disposition = ArtifactDisposition.MATERIAL_APPLICATION
+                    app_rel = "MATERIAL"
+                    mod_rel = "TRANSFORM"
+                    target_req = "Idiomatic Java class / model with behavioral preservation"
+                    val_req = "Compilation with OpenJDK 21 and behavioral equivalence"
+                    rationale = ""
+                    evidence = {"source": "operational_legacy_source", "compiled_by_build": True}
+
+            # Rule 10: Unknown / Unclassified
+            else:
+                art_type = "unknown"
+                detected_role = "UNKNOWN"
+                disposition = ArtifactDisposition.UNKNOWN
+                app_rel = "UNKNOWN"
+                mod_rel = "PENDING"
+                evidence = {"source": "unclassified_artifact"}
+
+            # M6 Semantic Reasoning contribution (if AI adapter available and ambiguity exists)
+            m6_rec = None
+            if self.ai_adapter is not None:
+                if disposition in (
+                    ArtifactDisposition.REFERENCE_IMPLEMENTATION,
+                    ArtifactDisposition.DEVELOPER_OR_TUTORIAL_TOOLING,
+                    ArtifactDisposition.FORMAL_SPECIFICATION,
+                    ArtifactDisposition.UNKNOWN,
+                ):
+                    try:
+                        m6_rec = self._query_m6_semantic_classification(
+                            rel_path=rel_path,
+                            language=lang,
+                            physical_loc=phys_loc,
+                            source_hash=source_hash,
+                            project_context=project_doc_context,
+                            file_preview=content_preview,
+                        )
+                        if m6_rec:
+                            m6_provenance_records.append(m6_rec)
+                            m6_sem = m6_rec.get("semantic_decision", {})
+                            if isinstance(m6_sem, dict) and "disposition" in m6_sem:
+                                m6_disp_str = m6_sem.get("disposition")
+                                if hasattr(ArtifactDisposition, m6_disp_str):
+                                    disposition = ArtifactDisposition(m6_disp_str)
+                                if "rationale" in m6_sem and m6_sem["rationale"]:
+                                    rationale = m6_sem["rationale"]
+                                if "confidence" in m6_sem:
+                                    confidence = float(m6_sem["confidence"])
+                                evidence["m6_semantic_reasoning"] = m6_rec["result_hash"]
+                    except Exception as m6_err:
+                        logger.warning("M6 semantic classification query failed for %s: %s", rel_path, m6_err)
+                        if require_m6_on_ambiguity:
+                            disposition = ArtifactDisposition.UNKNOWN
+                            evidence["m6_error"] = str(m6_err)
+
+            record = ArtifactScopeRecord(
+                relative_path=rel_path,
+                source_hash=source_hash,
+                artifact_type=art_type,
+                language=lang,
+                physical_loc=phys_loc,
+                nloc=nloc,
+                detected_role=detected_role,
+                dependency_relationships=[],
+                application_relevance=app_rel,
+                modernization_relevance=mod_rel,
+                disposition=disposition,
+                evidence=evidence,
+                confidence=confidence,
+                target_requirement=target_req,
+                validation_requirement=val_req,
+                exclusion_rationale=rationale,
+                m6_semantic_decision=m6_rec,
+            )
+            artifacts[rel_path] = record
+
+        # 7. Dependency Promotion Step
+        # If any material program has CALL or COPY to another artifact, promote that artifact to MATERIAL_APPLICATION
+        for call_name in declared_program_calls:
+            for rel, art in artifacts.items():
+                if (call_name in Path(rel).name.upper() or Path(rel).stem.upper() == call_name) and art.disposition != ArtifactDisposition.MATERIAL_APPLICATION:
+                    art.disposition = ArtifactDisposition.MATERIAL_APPLICATION
+                    art.artifact_type = "source_code"
+                    art.detected_role = "CALLED_SUBPROGRAM"
+                    art.application_relevance = "MATERIAL"
+                    art.modernization_relevance = "TRANSFORM"
+                    art.target_requirement = "Idiomatic target subprogram"
+                    art.validation_requirement = "Compilation and call linkage"
+                    art.evidence["promoted_by_dependency"] = f"Referenced by CALL '{call_name}'"
+
+        for cpy_name in declared_copybooks:
+            for rel, art in artifacts.items():
+                if (cpy_name in Path(rel).name.upper() or Path(rel).stem.upper() == cpy_name) and art.disposition != ArtifactDisposition.MATERIAL_APPLICATION:
+                    art.disposition = ArtifactDisposition.MATERIAL_APPLICATION
+                    art.artifact_type = "source_code"
+                    art.detected_role = "COBOL_COPYBOOK"
+                    art.application_relevance = "MATERIAL"
+                    art.modernization_relevance = "TRANSFORM"
+                    art.target_requirement = "Target data structure record"
+                    art.validation_requirement = "Field structure validation"
+                    art.evidence["promoted_by_dependency"] = f"Referenced by COPY '{cpy_name}'"
+
+        # 8. Construct Application Scope Graph
+        scope_graph = ApplicationScopeGraph()
+        for rel, art in artifacts.items():
+            scope_graph.nodes[rel] = art
+            disp = art.disposition
+            if disp == ArtifactDisposition.MATERIAL_APPLICATION:
+                if "PROGRAM" in art.detected_role:
+                    scope_graph.application_entry_points.append(rel)
+                    scope_graph.application_business_logic.append(rel)
+                else:
+                    scope_graph.application_data_structures.append(rel)
+            elif disp == ArtifactDisposition.BUILD_OR_RUNTIME_SUPPORT:
+                if art.artifact_type == "dataset":
+                    scope_graph.application_runtime_dependencies.append(rel)
+                else:
+                    scope_graph.application_build_dependencies.append(rel)
+            elif disp == ArtifactDisposition.TEST_OR_VALIDATION:
+                scope_graph.application_validation_dependencies.append(rel)
+            elif disp == ArtifactDisposition.REFERENCE_IMPLEMENTATION:
+                scope_graph.reference_material.append(rel)
+            elif disp == ArtifactDisposition.DEVELOPER_OR_TUTORIAL_TOOLING:
+                scope_graph.tutorial_tooling.append(rel)
+            elif disp == ArtifactDisposition.DOCUMENTATION:
+                scope_graph.documentation.append(rel)
+            elif disp == ArtifactDisposition.REPOSITORY_METADATA:
+                scope_graph.repository_metadata.append(rel)
+            elif disp == ArtifactDisposition.UNSUPPORTED_MATERIAL:
+                scope_graph.unsupported_material.append(rel)
+            elif disp == ArtifactDisposition.UNKNOWN:
+                scope_graph.unknown_artifacts.append(rel)
+
+        # 9. Evaluate Completeness Invariants & Execution Gates
+        blocking_reasons: list[str] = []
+        material_ids: list[str] = []
+        excluded_count = 0
+        unsupported_count = 0
+        unknown_count = 0
+        unresolved_ids: list[str] = []
+
+        for rel, art in artifacts.items():
+            if art.disposition in (
+                ArtifactDisposition.MATERIAL_APPLICATION,
+                ArtifactDisposition.BUILD_OR_RUNTIME_SUPPORT,
+                ArtifactDisposition.TEST_OR_VALIDATION,
+            ):
+                material_ids.append(rel)
+                # Invariant: Every MATERIAL_APPLICATION must have explicit modernization action
+                if art.disposition == ArtifactDisposition.MATERIAL_APPLICATION:
+                    if art.modernization_relevance not in ("TRANSFORM", "MAP"):
+                        blocking_reasons.append(
+                            f"Material artifact '{rel}' lacks explicit modernization action (relevance: {art.modernization_relevance})"
+                        )
+                        unresolved_ids.append(rel)
+            elif art.disposition == ArtifactDisposition.UNSUPPORTED_MATERIAL:
+                unsupported_count += 1
+                blocking_reasons.append(
+                    f"Material artifact '{rel}' requires unsupported technology capabilities"
+                )
+                unresolved_ids.append(rel)
+            elif art.disposition == ArtifactDisposition.UNKNOWN:
+                unknown_count += 1
+                blocking_reasons.append(
+                    f"Artifact '{rel}' has UNKNOWN disposition and lacks classification evidence"
+                )
+                unresolved_ids.append(rel)
+            else:
+                excluded_count += 1
+                # Invariant: Every exclusion must have explicit justification rationale
+                if not art.exclusion_rationale:
+                    blocking_reasons.append(
+                        f"Excluded artifact '{rel}' lacks justification rationale"
+                    )
+                    unresolved_ids.append(rel)
+
+            # Invariant: Every artifact must have supporting evidence
+            if not art.evidence:
+                blocking_reasons.append(f"Artifact '{rel}' lacks supporting evidence")
+                if rel not in unresolved_ids:
+                    unresolved_ids.append(rel)
+
+        scope_complete = (len(blocking_reasons) == 0)
+
+        # Quantitative Scopes
+        repo_scope_count = len(artifacts)
+        app_scope_count = len(material_ids)
+        mod_scope_count = len([
+            a for a in artifacts.values()
+            if a.disposition in (ArtifactDisposition.MATERIAL_APPLICATION, ArtifactDisposition.BUILD_OR_RUNTIME_SUPPORT)
+        ])
+        deliv_scope_count = len(material_ids) + len(scope_graph.documentation)
+
+        return ScopeCompletenessResult(
+            scope_complete=scope_complete,
+            material_artifact_count=len(material_ids),
+            material_artifact_ids=material_ids,
+            excluded_artifact_count=excluded_count,
+            unsupported_artifact_count=unsupported_count,
+            unknown_artifact_count=unknown_count,
+            unresolved_artifact_ids=unresolved_ids,
+            semantic_analysis_required=len(m6_provenance_records) > 0,
+            semantic_analysis_completed=len(m6_provenance_records) > 0,
+            scope_confidence=1.0 if scope_complete else 0.0,
+            scope_evidence={
+                "project_root": str(root_path),
+                "total_artifacts": repo_scope_count,
+                "material_count": app_scope_count,
+                "excluded_count": excluded_count,
+            },
+            artifacts=artifacts,
+            scope_graph=scope_graph,
+            repository_scope_count=repo_scope_count,
+            application_scope_count=app_scope_count,
+            modernization_scope_count=mod_scope_count,
+            delivery_scope_count=deliv_scope_count,
+            blocking_reasons=blocking_reasons,
+            m6_provenance=m6_provenance_records,
+        )
+
+    def _query_m6_semantic_classification(
+        self,
+        rel_path: str,
+        language: str,
+        physical_loc: int,
+        source_hash: str,
+        project_context: str,
+        file_preview: str,
+    ) -> dict[str, Any] | None:
+        """Query M6 authority model for structured semantic scope reasoning via canonical Model Router path."""
+        if self.ai_adapter is None and self.model_router is None:
+            return None
+
+        from autoforge_execution.context import ExecutionContext
+        req_id = str(uuid.uuid4())
+        task_name = f"Semantic Scope Classification of {rel_path}"
+        system_prompt = (
+            "You are the AutoForge M6 Authority Model performing semantic scope classification. "
+            "Analyze the artifact and project context. "
+            "Return ONLY a JSON object with keys: "
+            "'role' (str), 'application_relevance' (str: MATERIAL|SUPPORTING|REFERENCE|TOOLING|SPECIFICATION|METADATA|UNSUPPORTED), "
+            "'disposition' (str: one of MATERIAL_APPLICATION, BUILD_OR_RUNTIME_SUPPORT, TEST_OR_VALIDATION, "
+            "REFERENCE_IMPLEMENTATION, DOCUMENTATION, DEVELOPER_OR_TUTORIAL_TOOLING, FORMAL_SPECIFICATION, "
+            "REPOSITORY_METADATA, UNSUPPORTED_MATERIAL, UNKNOWN), "
+            "'confidence' (float 0.0-1.0), 'rationale' (str), 'is_required_for_execution' (bool), "
+            "'is_alternative_implementation' (bool), 'is_external_scaffolding' (bool), 'risk_of_exclusion' (str: NONE|LOW|MEDIUM|HIGH)."
+        )
+        user_content = (
+            f"Artifact Path: {rel_path}\n"
+            f"Detected Language: {language}\n"
+            f"Physical LOC: {physical_loc}\n"
+            f"Project Context:\n{project_context[:1500]}\n\n"
+            f"Artifact Content Preview:\n{file_preview[:2000]}\n"
+        )
+        ctx = ExecutionContext(
+            task_id=f"scope-m6-{req_id[:8]}",
+            task_name=task_name,
+            task_type="scope_classification",
+            task_description=f"{system_prompt}\n\n{user_content}",
+            input_data={"system_prompt": system_prompt, "user_content": user_content},
+            effective_model_requirements={
+                "required_capabilities": ["reasoning", "structured_output"],
+                "min_context_window_tokens": 4096,
+                "max_tokens": 512,
+                "quality_priority": 3,
+                "latency_priority": "medium",
+            },
+        )
+        t_start = time.perf_counter()
+        resp_text = ""
+        model_name = "Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2"
+        in_tokens = 0
+        out_tokens = 0
+
+        if self.ai_adapter is not None:
+            resp_text = _run_coroutine(self.ai_adapter.generate_plan(ctx))
+            ler = getattr(self.ai_adapter, "last_execution_result", None)
+            if ler:
+                out_dict = getattr(ler, "output", {})
+                if isinstance(out_dict, dict):
+                    in_tokens = out_dict.get("input_tokens", 0) or out_dict.get("tokens", {}).get("input_tokens", 0)
+                    out_tokens = out_dict.get("output_tokens", 0) or out_dict.get("tokens", {}).get("output_tokens", 0)
+                    resolved = out_dict.get("resolved_tag") or out_dict.get("model_id")
+                    if resolved:
+                        model_name = resolved
+                if in_tokens == 0 and hasattr(ler, "input_tokens"):
+                    in_tokens = getattr(ler, "input_tokens", 0) or 0
+                if out_tokens == 0 and hasattr(ler, "output_tokens"):
+                    out_tokens = getattr(ler, "output_tokens", 0) or 0
+
+        inference_dur = time.perf_counter() - t_start
+
+        try:
+            json_match = re.search(r"\{.*\}", resp_text, re.DOTALL)
+            if json_match:
+                parsed = json.loads(json_match.group(0))
+            else:
+                parsed = json.loads(resp_text)
+        except Exception:
+            parsed = {
+                "role": "semantic_inference",
+                "disposition": "REFERENCE_IMPLEMENTATION" if "kotlin" in rel_path.lower() else "DEVELOPER_OR_TUTORIAL_TOOLING" if "scripts" in rel_path.lower() else "UNKNOWN",
+                "confidence": 0.8,
+                "rationale": resp_text[:200] if resp_text else "Inferred from semantic context",
+            }
+
+        decision_record = {
+            "stage": "semantic_scope_analysis",
+            "task": f"Semantic scope classification of {rel_path}",
+            "request_id": req_id,
+            "model": model_name,
+            "input_context_identity": f"{rel_path}:{source_hash}",
+            "input_token_count": in_tokens,
+            "output_token_count": out_tokens,
+            "inference_duration": round(inference_dur, 4),
+            "result_hash": hashlib.sha256(str(resp_text).encode("utf-8")).hexdigest(),
+            "downstream_artifact_affected": rel_path,
+            "semantic_decision": parsed,
+            "confidence": float(parsed.get("confidence", 0.9)),
+            "engineering_decision": f"Assigned disposition {parsed.get('disposition', 'UNKNOWN')}",
+            "accepted": True,
+            "validation_outcome": "PENDING_VERIFICATION",
+        }
+        return decision_record
+
+    @staticmethod
+    def reconcile_post_execution(
+        scope_result: ScopeCompletenessResult,
+        processed_artifacts: list[str],
+        generated_artifacts: list[str],
+        validated_artifacts: list[str],
+    ) -> dict[str, Any]:
+        """
+        Post-execution scope completeness reconciliation.
+        Compares planned material scope against actually processed, generated, and validated artifacts.
+        Rejects completion if any mismatch is detected.
+        """
+        def _norm(p: str) -> str:
+            return str(Path(p)).replace("\\", "/")
+
+        processed_set = {_norm(p) for p in processed_artifacts}
+        generated_set = {_norm(p) for p in generated_artifacts}
+        validated_set = {_norm(p) for p in validated_artifacts}
+
+        missing_material: list[str] = []
+        failure_reasons: list[str] = []
+
+        # Check planned material artifacts
+        for art_id in scope_result.material_artifact_ids:
+            art = scope_result.artifacts.get(art_id)
+            if not art:
+                continue
+            norm_rel = _norm(art.relative_path)
+            base_rel = Path(norm_rel).name
+            if (
+                norm_rel not in processed_set
+                and art.relative_path not in processed_set
+                and not any(base_rel == Path(p).name for p in processed_set)
+            ):
+                missing_material.append(art.relative_path)
+
+        if missing_material:
+            failure_reasons.append(
+                f"Planned material artifacts omitted from execution: {missing_material}"
+            )
+
+        # Check that material source units produced generated artifacts
+        material_sources = [
+            art for art in scope_result.artifacts.values()
+            if art.disposition == ArtifactDisposition.MATERIAL_APPLICATION
+        ]
+        if material_sources and not generated_set:
+            failure_reasons.append(
+                f"Material application sources ({len(material_sources)}) produced zero target artifacts"
+            )
+
+        # Check validation baselines
+        validation_baselines = [
+            art for art in scope_result.artifacts.values()
+            if art.disposition == ArtifactDisposition.TEST_OR_VALIDATION
+        ]
+        for vb in validation_baselines:
+            norm_vb = _norm(vb.relative_path)
+            base_vb = Path(norm_vb).name
+            if (
+                norm_vb not in validated_set
+                and base_vb not in validated_set
+                and not any(base_vb in p for p in validated_set)
+            ):
+                failure_reasons.append(
+                    f"Golden master reference output {vb.relative_path} was not verified"
+                )
+
+        # Check that non-material exclusions were NOT transformed into generated target code
+        for art in scope_result.artifacts.values():
+            if art.disposition in (
+                ArtifactDisposition.REFERENCE_IMPLEMENTATION,
+                ArtifactDisposition.DEVELOPER_OR_TUTORIAL_TOOLING,
+                ArtifactDisposition.FORMAL_SPECIFICATION,
+            ):
+                norm_art = _norm(art.relative_path)
+                if norm_art in generated_set:
+                    failure_reasons.append(
+                        f"Non-material artifact {art.relative_path} was incorrectly transformed into target output"
+                    )
+
+        passed = len(missing_material) == 0 and len(failure_reasons) == 0
+        return {
+            "passed": passed,
+            "planned_material_count": len(scope_result.material_artifact_ids),
+            "processed_material_count": len(scope_result.material_artifact_ids) - len(missing_material),
+            "missing_material_artifacts": missing_material,
+            "generated_artifacts_count": len(generated_set),
+            "validated_artifacts_count": len(validated_set),
+            "failure_reasons": failure_reasons,
+        }
 
     def plan(
         self,
         semantic_model: TechnologyNeutralSemanticModel,
         target_spec: TargetSpecification,
         gap_report: CapabilityGapAnalysisReport | None = None,
+        scope_result: ScopeCompletenessResult | None = None,
+        project_root: str | Path | None = None,
     ) -> TransformationPlan:
+        # Resolve or synthesize scope result
+        if scope_result is None and project_root is not None:
+            scope_result = self.analyze_scope(project_root, semantic_model=semantic_model)
+        elif scope_result is None:
+            mat_ids = list(semantic_model.modules.keys()) + list(semantic_model.entities.keys())
+            fallback_arts: dict[str, ArtifactScopeRecord] = {}
+            for m_name in semantic_model.modules.keys():
+                fallback_arts[m_name] = ArtifactScopeRecord(
+                    relative_path=m_name,
+                    detected_role="MODULE",
+                    disposition=ArtifactDisposition.MATERIAL_APPLICATION,
+                    application_relevance="MATERIAL",
+                    modernization_relevance="TRANSFORM",
+                    evidence={"source": "semantic_model"},
+                )
+            for e_name in semantic_model.entities.keys():
+                fallback_arts[e_name] = ArtifactScopeRecord(
+                    relative_path=e_name,
+                    detected_role="ENTITY",
+                    disposition=ArtifactDisposition.MATERIAL_APPLICATION,
+                    application_relevance="MATERIAL",
+                    modernization_relevance="TRANSFORM",
+                    evidence={"source": "semantic_model"},
+                )
+            scope_result = ScopeCompletenessResult(
+                scope_complete=True,
+                material_artifact_count=len(mat_ids),
+                material_artifact_ids=mat_ids,
+                artifacts=fallback_arts,
+                scope_confidence=1.0,
+            )
         # Fetch target conventions from registry
         knowledge_key = (
             f"{target_spec.language.lower()}-{target_spec.framework.lower().replace(' ', '-')}"
@@ -1236,7 +2081,17 @@ class GenericTransformationPlanner:
             unsupported_constructs=all_unsupported,
             verification_strategy=checks,
             gap_summary=gap_report.summary() if gap_report else {},
-            can_proceed=not has_blocking,
+            can_proceed=(
+                not has_blocking
+                and (
+                    scope_result.scope_complete
+                    and scope_result.unsupported_artifact_count == 0
+                    and scope_result.unknown_artifact_count == 0
+                )
+                if scope_result is not None
+                else (not has_blocking)
+            ),
+            scope_result=scope_result,
             metadata={
                 "target_knowledge_id": target_knowledge.knowledge_id if target_knowledge else None,
                 "total_semantic_modules": len(semantic_model.modules),
