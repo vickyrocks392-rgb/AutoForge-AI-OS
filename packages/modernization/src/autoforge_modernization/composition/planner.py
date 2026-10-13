@@ -838,12 +838,17 @@ class GenericTransformationPlanner:
             # M6 Semantic Reasoning contribution (if AI adapter available and ambiguity exists)
             m6_rec = None
             if self.ai_adapter is not None:
-                if disposition in (
-                    ArtifactDisposition.REFERENCE_IMPLEMENTATION,
-                    ArtifactDisposition.DEVELOPER_OR_TUTORIAL_TOOLING,
-                    ArtifactDisposition.FORMAL_SPECIFICATION,
-                    ArtifactDisposition.UNKNOWN,
-                ):
+                # Ambiguity exists when disposition is UNKNOWN, or when require_m6_on_ambiguity is explicitly requested
+                is_ambiguous = (
+                    disposition == ArtifactDisposition.UNKNOWN
+                    or (require_m6_on_ambiguity and disposition in (
+                        ArtifactDisposition.DEVELOPER_OR_TUTORIAL_TOOLING,
+                        ArtifactDisposition.REFERENCE_IMPLEMENTATION,
+                        ArtifactDisposition.FORMAL_SPECIFICATION,
+                        ArtifactDisposition.UNKNOWN,
+                    ))
+                )
+                if is_ambiguous:
                     try:
                         m6_rec = self._query_m6_semantic_classification(
                             rel_path=rel_path,
@@ -859,7 +864,31 @@ class GenericTransformationPlanner:
                             if isinstance(m6_sem, dict) and "disposition" in m6_sem:
                                 m6_disp_str = m6_sem.get("disposition")
                                 if hasattr(ArtifactDisposition, m6_disp_str):
-                                    disposition = ArtifactDisposition(m6_disp_str)
+                                    new_disp = ArtifactDisposition(m6_disp_str)
+                                    # Deterministic facts override model speculation (Section 5 guarantee):
+                                    # Independent build tree references and formal models cannot be turned into material application
+                                    if (
+                                        evidence.get("source") in ("independent_build_tree_reference", "declarative_formal_model")
+                                        and new_disp == ArtifactDisposition.MATERIAL_APPLICATION
+                                    ):
+                                        logger.info(
+                                            "Preserving deterministic exclusion for %s despite M6 speculation",
+                                            rel_path,
+                                        )
+                                    else:
+                                        disposition = new_disp
+                                        if disposition == ArtifactDisposition.MATERIAL_APPLICATION:
+                                            app_rel = "MATERIAL"
+                                            mod_rel = "TRANSFORM"
+                                        elif disposition in (
+                                            ArtifactDisposition.BUILD_OR_RUNTIME_SUPPORT,
+                                            ArtifactDisposition.TEST_OR_VALIDATION,
+                                        ):
+                                            app_rel = "SUPPORTING"
+                                            mod_rel = "MAP"
+                                        else:
+                                            app_rel = "NON_MATERIAL"
+                                            mod_rel = "EXCLUDE"
                                 if "rationale" in m6_sem and m6_sem["rationale"]:
                                     rationale = m6_sem["rationale"]
                                 if "confidence" in m6_sem:
