@@ -1,0 +1,94 @@
+{
+  "corpus_version": "1.0",
+  "description": "PolicyDesk Synthetic Benchmark Knowledge Corpus",
+  "documents": [
+    {
+      "doc_id": "coffee_machine_guide",
+      "filename": "coffee_machine_guide.txt",
+      "relative_path": "coffee_machine_guide.txt",
+      "format": "txt",
+      "size_bytes": 824,
+      "sha256": "dd50a505b2280f4f7054d9bf82dac519c9c46752e1c4a3885a41fd0edd861c4b",
+      "version": "1.0",
+      "effective_date": "2026-01-01",
+      "status": "active"
+    },
+    {
+      "doc_id": "consulting_rate_card",
+      "filename": "consulting_rate_card.pdf",
+      "relative_path": "consulting_rate_card.pdf",
+      "format": "pdf",
+      "size_bytes": 2736,
+      "sha256": "7aaf7aae9c01b1974f724c8ee9234ed0a2d65b0896c25fd6aacb212d2386301f",
+      "version": "1.0",
+      "effective_date": "2026-01-01",
+      "status": "active"
+    },
+    {
+      "doc_id": "information_security_policy",
+      "filename": "information_security_policy.pdf",
+      "relative_path": "information_security_policy.pdf",
+      "format": "pdf",
+      "size_bytes": 3637,
+      "sha256": "cde26fe807a1263d179b08a1d1b832b0a37616e2529a9776504415112cf83abc",
+      "version": "1.0",
+      "effective_date": "2026-01-01",
+      "status": "active"
+    },
+    {
+      "doc_id": "policydesk_overview",
+      "filename": "policydesk_overview.md",
+      "relative_path": "policydesk_overview.md",
+      "format": "md",
+      "size_bytes": 1808,
+      "sha256": "0696e2e686a9289f8c751410a106348bc6a2fa0eb055b9ec73da6746ad37af6e",
+      "version": "1.0",
+      "effective_date": "2026-01-01",
+      "status": "active"
+    },
+    {
+      "doc_id": "standard_operating_procedures",
+      "filename": "standard_operating_procedures.md",
+      "relative_path": "standard_operating_procedures.md",
+      "format": "md",
+      "size_bytes": 1477,
+      "sha256": "ebac1fd33d4c95f546e7b1ba6d569206e5ab04a0c2984ad8d6e113cd33584670",
+      "version": "1.0",
+      "effective_date": "2026-01-01",
+      "status": "active"
+    },
+    {
+      "doc_id": "travel_and_expense_policy_2024",
+      "filename": "travel_and_expense_policy_2024.md",
+      "relative_path": "travel_and_expense_policy_2024.md",
+      "format": "md",
+      "size_bytes": 1227,
+      "sha256": "99e5b289513622b0b74259fcff04ed093ba6f4a1e867e5a6c295a90e4375f1ec",
+      "version": "1.0",
+      "effective_date": "2024-01-01",
+      "status": "superseded"
+    },
+    {
+      "doc_id": "travel_and_expense_policy_2026",
+      "filename": "travel_and_expense_policy_2026.md",
+      "relative_path": "travel_and_expense_policy_2026.md",
+      "format": "md",
+      "size_bytes": 1663,
+      "sha256": "9c8378f234cc35a3b8e69c1a2f98f3598552acb7387e56e024789792124eb0b1",
+      "version": "2.0",
+      "effective_date": "2026-01-01",
+      "status": "active"
+    },
+    {
+      "doc_id": "vendor_invoice_notes",
+      "filename": "vendor_invoice_notes.txt",
+      "relative_path": "vendor_invoice_notes.txt",
+      "format": "txt",
+      "size_bytes": 857,
+      "sha256": "fa80bcfaa967c05e534fde8cde21114a1861dbdaa9219a2e72c009d5fb5c41de",
+      "version": "1.0",
+      "effective_date": "2026-01-01",
+      "status": "active"
+    }
+  ]
+}

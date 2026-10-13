@@ -133,3 +133,6 @@ data/
 # Phase 20 Customer Modernization Delivery Packages (Domain B)
 Modernization Output/
 
+# Ephemeral canonical execution delivery run snapshots
+Customer Deliverables/**/delivery-*/
+

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PolicyDesk — Knowledge Assistant</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Persistent Sidebar Navigation Shell -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <div class="brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div class="brand-meta">
+            <h1 class="brand-title">PolicyDesk</h1>
+            <span class="brand-tag">Knowledge Assistant</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="chat-view" id="nav-chat">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Knowledge Chat</span>
+        </button>
+
+        <button class="nav-item" data-view="docs-view" id="nav-docs">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Documents</span>
+          <span class="nav-badge" id="sidebar-doc-count">0</span>
+        </button>
+
+        <button class="nav-item" data-view="eval-view" id="nav-eval">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span>Evaluation</span>
+        </button>
+
+        <button class="nav-item" data-view="settings-view" id="nav-settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>System & Health</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-indicator-box">
+          <span class="status-dot healthy" id="system-status-dot"></span>
+          <div class="status-text">
+            <span class="status-label">Knowledge Store</span>
+            <span class="status-val" id="system-status-text">Online (ChromaDB)</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Workspace Area -->
+    <main class="app-main">
+      <!-- 1. Knowledge Chat Workspace (Primary Landing View) -->
+      <section class="workspace-view active" id="chat-view">
+        <header class="workspace-header">
+          <div>
+            <h2 class="view-title">Policy & Knowledge Assistant</h2>
+            <p class="view-subtitle">Ask questions regarding internal policies, operating procedures, and rates.</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-secondary" id="btn-reset-chat" title="Clear current conversation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              New Chat
+            </button>
+          </div>
+        </header>
+
+        <div class="chat-container">
+          <div class="chat-thread" id="chat-thread">
+            <!-- Empty state greeting -->
+            <div class="chat-empty-state" id="chat-empty-state">
+              <div class="empty-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                  <path d="M12 12 2.1 12a10 10 0 0 0 9.9 10V12z"></path>
+                </svg>
+              </div>
+              <h3>Welcome to PolicyDesk Assistant</h3>
+              <p>Your queries are grounded exclusively in approved internal documents. Answers cite verified source passages and explicitly disclose policy conflicts or missing information.</p>
+              
+              <div class="sample-queries-box">
+                <span class="sample-queries-title">Sample Inquiries:</span>
+                <div class="sample-chips">
+                  <button class="chip-btn" data-query="What is the hourly billing rate for an Associate Consultant?">
+                    Associate Consultant billing rate?
+                  </button>
+                  <button class="chip-btn" data-query="What is the daily meal per diem allowance for business travel?">
+                    Daily meal per diem allowance?
+                  </button>
+                  <button class="chip-btn" data-query="What is our deadline for submitting weekly timesheets?">
+                    Timesheet submission deadline?
+                  </button>
+                  <button class="chip-btn" data-query="What are the rules and mileage compensation if I drive my personal car?">
+                    Personal car mileage compensation?
+                  </button>
+                  <button class="chip-btn" data-query="What is PolicyDesk's parental leave policy duration?">
+                    Parental leave policy duration? (Test Abstention)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message Composer Area -->
+          <div class="chat-composer-wrapper">
+            <form class="chat-composer-form" id="chat-form">
+              <textarea
+                id="chat-input"
+                class="composer-textarea"
+                placeholder="Ask about consulting rates, travel policies, operating procedures..."
+                rows="1"
+                required
+              ></textarea>
+              <button type="submit" class="btn btn-primary btn-send" id="btn-send" title="Send query (Enter)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </form>
+            <div class="composer-footnote">
+              <span>Answers are verified against active persistent vector index. Document citations are fully inspectable.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Document Management Workspace -->
+      <section class="workspace-view" id="docs-view">
+        <header class="workspace-header">
+          <div>
+            <h2 class="view-title">Document Management</h2>
+            <p class="view-subtitle">Upload, replace, and remove approved PolicyDesk documentation.</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-secondary" id="btn-refresh-docs">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </header>
+
+        <div class="docs-container">
+          <!-- Upload Box -->
+          <div class="upload-dropzone" id="dropzone">
+            <div class="dropzone-inner">
+              <div class="dropzone-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+              <h4>Upload Approved Policy Document</h4>
+              <p>Drag & drop or browse files. Supported formats: <strong>.pdf, .md, .txt</strong></p>
+              <input type="file" id="file-input" class="hidden-file-input" accept=".pdf,.md,.txt">
+              <button class="btn btn-primary" id="btn-browse-files">Select File</button>
+              <div class="upload-progress-box" id="upload-progress-box" style="display: none;">
+                <span id="upload-status-text">Processing and indexing document...</span>
+                <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document List Table -->
+          <div class="docs-table-card">
+            <div class="table-card-header">
+              <h3>Indexed Knowledge Corpus</h3>
+              <span class="table-stats" id="docs-count-label">Loading documents...</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="docs-table">
+                <thead>
+                  <tr>
+                    <th>Document</th>
+                    <th>Format</th>
+                    <th>Version</th>
+                    <th>Size</th>
+                    <th>Chunks</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="docs-table-body">
+                  <tr>
+                    <td colspan="7" class="table-loading">Loading indexed documents...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Evaluation Workspace -->
+      <section class="workspace-view" id="eval-view">
+        <header class="workspace-header">
+          <div>
+            <h2 class="view-title">System Evaluation & Benchmarks</h2>
+            <p class="view-subtitle">Run the benchmark dataset to test grounding, citation accuracy, and abstention.</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-primary" id="btn-run-eval">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Run Benchmark Suite
+            </button>
+          </div>
+        </header>
+
+        <div class="eval-container">
+          <!-- Summary Metrics Cards -->
+          <div class="eval-metrics-grid">
+            <div class="metric-card">
+              <span class="metric-title">Test Accuracy</span>
+              <span class="metric-value" id="eval-acc-val">—</span>
+              <span class="metric-sub" id="eval-acc-sub">Awaiting run</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Grounding Score</span>
+              <span class="metric-value" id="eval-ground-val">—</span>
+              <span class="metric-sub">Zero unsupported claims</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Citation Precision</span>
+              <span class="metric-value" id="eval-cite-val">—</span>
+              <span class="metric-sub">Source attribution rate</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Abstention Rate</span>
+              <span class="metric-value" id="eval-abstain-val">—</span>
+              <span class="metric-sub">Properly declined out-of-scope</span>
+            </div>
+          </div>
+
+          <!-- Evaluation Case Details Table -->
+          <div class="docs-table-card">
+            <div class="table-card-header">
+              <h3>Evaluation Dataset Queries</h3>
+              <span class="table-stats" id="eval-case-count">8 benchmark test cases</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="eval-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Category</th>
+                    <th>Question</th>
+                    <th>Expected</th>
+                    <th>Result</th>
+                    <th>Attribution</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="eval-table-body">
+                  <tr>
+                    <td colspan="7" class="table-loading">Press "Run Benchmark Suite" to evaluate live assistant performance.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Settings & Health Workspace -->
+      <section class="workspace-view" id="settings-view">
+        <header class="workspace-header">
+          <div>
+            <h2 class="view-title">Settings & Runtime Health</h2>
+            <p class="view-subtitle">Inspect active model configurations, persistent storage paths, and vector store diagnostics.</p>
+          </div>
+        </header>
+
+        <div class="settings-container">
+          <div class="settings-grid">
+            <!-- Active Configuration Card -->
+            <div class="settings-card">
+              <h3>Runtime Architecture Configuration</h3>
+              <dl class="settings-list">
+                <div class="setting-row">
+                  <dt>Vector Database</dt>
+                  <dd id="st-vector-store">ChromaDB Persistent (DuckDB / Parquet)</dd>
+                </div>
+                <div class="setting-row">
+                  <dt>Vector Collection</dt>
+                  <dd id="st-collection">policydesk_kb</dd>
+                </div>
+                <div class="setting-row">
+                  <dt>Embedding Engine</dt>
+                  <dd id="st-embedding-model">all-MiniLM-L6-v2 (384 Dimensions)</dd>
+                </div>
+                <div class="setting-row">
+                  <dt>Generation Provider</dt>
+                  <dd id="st-llm-provider">local_runtime (OpenAI-compatible)</dd>
+                </div>
+                <div class="setting-row">
+                  <dt>Generation Model</dt>
+                  <dd id="st-llm-model">mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2</dd>
+                </div>
+                <div class="setting-row">
+                  <dt>External Data Root</dt>
+                  <dd class="code-font" id="st-data-dir">~/Library/Application Support/AutoForge/CustomerProjects/Phase20-B-PolicyDesk</dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- Health Diagnostics Card -->
+            <div class="settings-card">
+              <h3>Component Diagnostics</h3>
+              <div class="diagnostics-list" id="diagnostics-list">
+                <div class="diag-item">
+                  <div class="diag-meta">
+                    <strong>Vector Index</strong>
+                    <span id="diag-vector-detail">Loading...</span>
+                  </div>
+                  <span class="badge badge-success" id="diag-vector-badge">Active</span>
+                </div>
+                <div class="diag-item">
+                  <div class="diag-meta">
+                    <strong>Host Storage Confinement</strong>
+                    <span id="diag-store-detail">Physical external host isolation</span>
+                  </div>
+                  <span class="badge badge-success">Isolated</span>
+                </div>
+                <div class="diag-item">
+                  <div class="diag-meta">
+                    <strong>LLM Generation Server</strong>
+                    <span id="diag-llm-detail">Checking...</span>
+                  </div>
+                  <span class="badge badge-success" id="diag-llm-badge">Online</span>
+                </div>
+              </div>
+
+              <div class="danger-zone-box">
+                <h4>Knowledge Base Reset</h4>
+                <p>Purges all ingested documents and vector indices from PolicyDesk storage. This action preserves configuration but wipes indexed chunks.</p>
+                <button class="btn btn-danger" id="btn-reset-kb">Reset Knowledge Base</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Evidence Inspector Drawer / Modal -->
+  <div class="evidence-modal-backdrop" id="evidence-modal" style="display: none;">
+    <div class="evidence-modal-card">
+      <div class="evidence-modal-header">
+        <div class="evidence-modal-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span id="modal-doc-title">Document Citation</span>
+        </div>
+        <button class="btn-close" id="btn-close-modal" title="Close inspector">&times;</button>
+      </div>
+      <div class="evidence-modal-body">
+        <div class="evidence-meta-strip">
+          <div class="meta-tag"><strong>Source:</strong> <span id="modal-filename">—</span></div>
+          <div class="meta-tag"><strong>Page / Lines:</strong> <span id="modal-location">—</span></div>
+          <div class="meta-tag"><strong>Relevance:</strong> <span id="modal-score">—</span></div>
+          <div class="meta-tag"><strong>Version:</strong> <span id="modal-version">—</span></div>
+        </div>
+        <div class="evidence-passage-box">
+          <label>Verified Supporting Passage in Document:</label>
+          <div class="passage-text" id="modal-passage-text">Loading passage...</div>
+        </div>
+      </div>
+      <div class="evidence-modal-footer">
+        <span class="modal-footer-note">Verifiable source attribution generated directly from persistent vector store.</span>
+        <button class="btn btn-secondary" id="btn-modal-dismiss">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

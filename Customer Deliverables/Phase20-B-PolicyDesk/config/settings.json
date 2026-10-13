@@ -1,0 +1,15 @@
+{
+  "project_name": "PolicyDesk Knowledge Assistant",
+  "project_id": "Phase20-B-PolicyDesk",
+  "data_dir": "~/Library/Application Support/AutoForge/CustomerProjects/Phase20-B-PolicyDesk",
+  "port": 8080,
+  "vector_store": "chromadb",
+  "collection_name": "policydesk_kb",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "embedding_dimensions": 384,
+  "llm_provider": "local_runtime",
+  "llm_base_url": "http://127.0.0.1:19801/v1",
+  "llm_model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+  "top_k": 5,
+  "min_similarity_threshold": 0.25
+}

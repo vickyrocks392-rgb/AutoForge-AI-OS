@@ -1,0 +1,165 @@
+{
+  "benchmark_metadata": {
+    "title": "AutoForge AI-OS Phase 20-B PolicyDesk Customer RAG Delivery Certification",
+    "timestamp": "2026-10-13T19:12:28.784099+00:00",
+    "git_commit": "11c59e95af8b163fb16fb1daee9e9a4cc1ee85bd",
+    "git_branch": "main",
+    "customer_profile": {
+      "name": "PolicyDesk",
+      "type": "Synthetic consulting benchmark customer",
+      "deliverable_directory": "Customer Deliverables/Phase20-B-PolicyDesk",
+      "external_data_directory": "/Users/kalachanddash/Library/Application Support/AutoForge/CustomerProjects/Phase20-B-PolicyDesk"
+    },
+    "environment_and_models": {
+      "hardware": "Apple Mac mini (Mac18,5) Apple M6",
+      "os": "macOS 27.0",
+      "python": "3.12.14",
+      "vector_database": "ChromaDB Persistent (DuckDB/Parquet v1.5.9)",
+      "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+      "embedding_dimensions": 384,
+      "generation_model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+      "generation_endpoint": "http://127.0.0.1:19801/v1",
+      "worker_nodes": "M6 local only (M1 and HP workers OFF)",
+      "ollama_active": false
+    }
+  },
+  "verdict": "PASS",
+  "canonical_execution_summary": {
+    "warmup_duration_seconds": 14.5749,
+    "measured_runs_count": 5,
+    "success_rate": 1.0,
+    "latency_seconds": {
+      "mean": 14.511,
+      "median": 14.5158,
+      "min": 14.4502,
+      "max": 14.5715,
+      "sample_stdev": 0.0591,
+      "coefficient_of_variation": 0.0041
+    },
+    "runs": [
+      {
+        "attempt": 1,
+        "status": "COMPLETED",
+        "duration_seconds": 14.4502,
+        "summary": "Canonical execution completed successfully for Deliver a simple, reliable private knowledge assis.",
+        "passed": true
+      },
+      {
+        "attempt": 2,
+        "status": "COMPLETED",
+        "duration_seconds": 14.5158,
+        "summary": "Canonical execution completed successfully for Deliver a simple, reliable private knowledge assis.",
+        "passed": true
+      },
+      {
+        "attempt": 3,
+        "status": "COMPLETED",
+        "duration_seconds": 14.566,
+        "summary": "Canonical execution completed successfully for Deliver a simple, reliable private knowledge assis.",
+        "passed": true
+      },
+      {
+        "attempt": 4,
+        "status": "COMPLETED",
+        "duration_seconds": 14.4515,
+        "summary": "Canonical execution completed successfully for Deliver a simple, reliable private knowledge assis.",
+        "passed": true
+      },
+      {
+        "attempt": 5,
+        "status": "COMPLETED",
+        "duration_seconds": 14.5715,
+        "summary": "Canonical execution completed successfully for Deliver a simple, reliable private knowledge assis.",
+        "passed": true
+      }
+    ]
+  },
+  "product_operational_performance": {
+    "document_ingestion_latency_ms": {
+      "mean": 109.8926,
+      "median": 47.3538,
+      "min": 41.1126,
+      "max": 365.339,
+      "sample_stdev": 142.8855,
+      "coefficient_of_variation": 1.3002
+    },
+    "query_latency_ms": {
+      "mean": 15097.6285,
+      "median": 15103.4661,
+      "min": 15047.512,
+      "max": 15128.9993,
+      "sample_stdev": 30.2496,
+      "coefficient_of_variation": 0.002
+    },
+    "query_samples": [
+      {
+        "query": "What is the hourly billing rate for an Associate Consultant?",
+        "duration_ms": 15047.51,
+        "citations_count": 5,
+        "abstained": false,
+        "is_grounded": true
+      },
+      {
+        "query": "What is our deadline for submitting weekly timesheets?",
+        "duration_ms": 15129.0,
+        "citations_count": 5,
+        "abstained": false,
+        "is_grounded": true
+      },
+      {
+        "query": "What is the daily meal per diem allowance for business travel?",
+        "duration_ms": 15099.24,
+        "citations_count": 5,
+        "abstained": false,
+        "is_grounded": true
+      },
+      {
+        "query": "What is PolicyDesk's parental leave policy duration?",
+        "duration_ms": 15108.93,
+        "citations_count": 5,
+        "abstained": true,
+        "is_grounded": true
+      },
+      {
+        "query": "What does the vendor invoice notes document specify regarding supplier payment terms?",
+        "duration_ms": 15103.47,
+        "citations_count": 5,
+        "abstained": false,
+        "is_grounded": true
+      }
+    ]
+  },
+  "evaluation_dataset_metrics": {
+    "total_test_cases": 8,
+    "passed_test_cases": 8,
+    "accuracy": 1.0,
+    "grounding_score": 1.0,
+    "citation_precision": 1.0,
+    "abstention_accuracy": 1.0,
+    "unsupported_claims_rate": 0.0
+  },
+  "automated_tests_summary": {
+    "total_tests": 14,
+    "passed_tests": 14,
+    "failed_tests": 0,
+    "test_files": [
+      "test_ingestion.py",
+      "test_vector_store.py",
+      "test_retrieval_qa.py",
+      "test_conflicts.py",
+      "test_security_isolation.py",
+      "test_persistence.py"
+    ]
+  },
+  "isolation_and_confinement_gates": {
+    "source_directory_isolated": true,
+    "vector_database_outside_repo": true,
+    "model_cache_outside_repo": true,
+    "git_tracking_clean": true,
+    "unsafe_runtime_path_rejected": true,
+    "clean_restart_persists_index": true,
+    "document_deletion_purges_chunks": true,
+    "prompt_injection_defense_verified": true,
+    "secrets_unexposed": true
+  }
+}
