@@ -121,17 +121,23 @@ class RAGKnowledgePowerEngine(PowerEngine):
                 "config/deployment_manifest.json",
                 "src/app.py",
                 "src/retriever.py",
+                "src/document_manager.py",
+                "src/grounding.py",
                 "src/health.py",
                 "src/models.py",
+                "static/index.html",
                 "config/settings.json",
                 "config/requirements.txt",
                 "tests/test_service.py",
+                "tests/test_evaluation_harness.py",
                 "scripts/run.sh",
                 "scripts/query.sh",
                 "scripts/test.sh",
+                "scripts/evaluate.sh",
                 "scripts/health_check.py",
                 "artifacts/knowledge_index.json",
                 "data/index/knowledge_index.json",
+                "data/index/documents.json",
             ],
             "retrieval_strategy": "keyword_bm25_relevance",
             "grounding_guardrails": True,
@@ -358,11 +364,23 @@ class RAGKnowledgePowerEngine(PowerEngine):
 
         return verification_card
 
-    # ── Stage 7: DIAGNOSE ─────────────────────────────────────────────────────
     async def _stage_diagnose(self, ctx: PowerEngineContext) -> Dict[str, Any]:
         logger.info(f"Executing Stage 7 (DIAGNOSE) on {ctx.delivery_dir}")
         repair_engine = RAGClosedLoopRepairEngine(ctx.delivery_dir)
         defects = repair_engine.diagnose_defects()
+        test_result = repair_engine.run_customer_tests()
+        if not test_result.get("passed", True):
+            test_sig = "tests/test_service.py:test_failure:0:customer_tests_failed"
+            if not any(d.error_signature == test_sig for d in defects):
+                from autoforge_power_engines.rag.repair import DiagnosticDefect
+                defects.append(DiagnosticDefect(
+                    defect_id="test-failure-service",
+                    file_path="tests/test_service.py",
+                    defect_type="test_failure",
+                    description=f"Customer test failure: {test_result.get('stderr') or test_result.get('stdout') or test_result.get('error')}",
+                    error_signature=test_sig,
+                    suggested_repair="Inspect test failure output and repair corresponding logic or fixture",
+                ))
         self._in_flight_defects[ctx.execution_id] = defects
         return {
             "defects_detected": len(defects),

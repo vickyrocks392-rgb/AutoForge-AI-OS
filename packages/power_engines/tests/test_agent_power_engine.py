@@ -696,8 +696,9 @@ class TestAgentPowerEngine(unittest.TestCase):
 
         # Verify generated test suite passes within the customer package
         import subprocess
+        import sys
         proc = subprocess.run(
-            ["python3", "-m", "unittest", "tests/test_agent_runtime.py"],
+            [sys.executable, "-m", "unittest", "tests/test_agent_runtime.py"],
             cwd=str(self.delivery_dir),
             capture_output=True,
             text=True,
