@@ -5,6 +5,7 @@ from autoforge_power_engines.rag.ingestion import RAGIngestionPipeline, Processe
 from autoforge_power_engines.rag.grounding import GroundedContextBuilder, GroundingVerifier, GroundedAnswer
 from autoforge_power_engines.rag.generator import StandaloneCustomerRAGGenerator
 from autoforge_power_engines.rag.repair import RAGClosedLoopRepairEngine
+from autoforge_power_engines.rag.evaluator import StandaloneEvaluator
 
 __all__ = [
     "RAGKnowledgePowerEngine",
@@ -16,4 +17,5 @@ __all__ = [
     "GroundedAnswer",
     "StandaloneCustomerRAGGenerator",
     "RAGClosedLoopRepairEngine",
+    "StandaloneEvaluator",
 ]

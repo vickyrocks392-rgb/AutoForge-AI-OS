@@ -188,6 +188,7 @@ def _base_spec_kwargs(
         "require_api": bool(config.get("require_api", True)),
         "require_auth": bool(config.get("require_auth", False)),
         "knowledge_sources": list(config.get("knowledge_sources") or []),
+        "held_out_dataset": config.get("held_out_dataset"),
         "custom_parameters": custom,
     }
 

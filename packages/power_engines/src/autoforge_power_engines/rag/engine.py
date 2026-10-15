@@ -411,7 +411,8 @@ class RAGKnowledgePowerEngine(PowerEngine):
 
         all_clean = (len(remaining_defects) == 0) and test_result.get("passed", True)
         if not all_clean:
-            raise RuntimeError(f"Re-verification failed: {remaining_defects}")
+            err = test_result.get("stderr") or test_result.get("stdout") or test_result.get("error")
+            raise RuntimeError(f"Re-verification failed: defects={remaining_defects}, test_err={err}")
 
         return {
             "status": "re_verification_passed",
