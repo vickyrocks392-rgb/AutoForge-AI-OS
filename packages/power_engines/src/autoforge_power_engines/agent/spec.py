@@ -56,9 +56,9 @@ class AgentToolConfig(BaseModel):
 
 class AgentModelConfig(BaseModel):
     """Inference configuration for customer agent."""
-    provider: str = Field(default="ollama", description="Inference provider (ollama, external_http)")
-    model_name: str = Field(default="qwen2.5-coder:7b-instruct-q3_K_M", description="Model identifier")
-    base_url: str = Field(default="http://127.0.0.1:11434", description="Provider API base endpoint")
+    provider: str = Field(default="generic_http", description="Inference provider (generic_http, ollama, external_http)")
+    model_name: str = Field(default="mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2", description="Model identifier")
+    base_url: str = Field(default="http://127.0.0.1:19801/v1", description="Provider API base endpoint")
     temperature: float = Field(default=0.2, ge=0.0, le=2.0, description="Sampling temperature")
     max_tokens: int = Field(default=2048, ge=64, le=32768, description="Max generation tokens")
     timeout_seconds: float = Field(default=60.0, gt=0, description="HTTP request timeout")
@@ -264,7 +264,8 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
                     "HOST": "0.0.0.0",
                     "MODEL_PROVIDER": self.model_config_spec.provider,
                     "MODEL_NAME": self.model_config_spec.model_name,
-                    "OLLAMA_BASE_URL": "http://host.docker.internal:11434" if "127.0.0.1" in self.model_config_spec.base_url or "localhost" in self.model_config_spec.base_url else self.model_config_spec.base_url,
+                    "LLM_BASE_URL": self.model_config_spec.base_url.replace("127.0.0.1", "host.docker.internal").replace("localhost", "host.docker.internal") if ("127.0.0.1" in self.model_config_spec.base_url or "localhost" in self.model_config_spec.base_url) else self.model_config_spec.base_url,
+                    "OLLAMA_BASE_URL": self.model_config_spec.base_url.replace("127.0.0.1", "host.docker.internal").replace("localhost", "host.docker.internal") if ("127.0.0.1" in self.model_config_spec.base_url or "localhost" in self.model_config_spec.base_url) else self.model_config_spec.base_url,
                     "MAX_ITERATIONS": str(self.execution_limits.max_iterations),
                     "MAX_TOOL_CALLS": str(self.execution_limits.max_tool_calls_per_turn),
                     "REQUEST_TIMEOUT": str(int(self.execution_limits.total_timeout_seconds)),
@@ -306,6 +307,7 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
         global_env = {
             "MODEL_PROVIDER": self.model_config_spec.provider,
             "MODEL_NAME": self.model_config_spec.model_name,
+            "LLM_BASE_URL": self.model_config_spec.base_url,
             "OLLAMA_BASE_URL": self.model_config_spec.base_url,
             "MAX_ITERATIONS": str(self.execution_limits.max_iterations),
             "MAX_TOOL_CALLS": str(self.execution_limits.max_tool_calls_per_turn),

@@ -603,22 +603,23 @@ class TestAgentPowerEngine(unittest.TestCase):
         self.assertIn("Executive Delivery Scorecard", report)
         self.assertIn("OFFICIAL CUSTOMER DELIVERY REPORT", report)
 
-    # ── Test 29: Real Local Ollama Live Execution (B20) ───────────────────────
-    def test_29_real_ollama_model_execution_with_tools(self):
+    # ── Test 29: Real Local MLX Live Execution (Phase 20-C Gate 1) ───────────
+    def test_29_real_mlx_model_execution_with_tools(self):
         """
-        Executes against the real local Ollama runtime using qwen2.5-coder:7b-instruct-q3_K_M.
+        Executes against the real local MLX runtime using
+        mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2.
         Validates real model prompt, real tool invocation, real tool execution, and final answer.
         """
-        # Check if Ollama is accessible
+        # Check if MLX is accessible
         try:
-            r = requests.get("http://127.0.0.1:11434/api/tags", timeout=2)
+            r = requests.get("http://127.0.0.1:19801/v1/models", timeout=2)
             if r.status_code != 200:
-                self.skipTest("Local Ollama service not running on port 11434.")
+                self.skipTest("Local MLX service not running on port 19801.")
         except Exception:
-            self.skipTest("Local Ollama service not reachable on 127.0.0.1:11434.")
+            self.skipTest("Local MLX service not reachable on 127.0.0.1:19801.")
 
         spec = CustomerAgentSpecification(
-            project_name="Real Live Ollama Agent",
+            project_name="Real Live MLX Agent",
             agent_purpose="Evaluate arithmetic calculations and report current time.",
             system_instructions=(
                 "You are an accurate math and utility assistant. "
@@ -627,9 +628,9 @@ class TestAgentPowerEngine(unittest.TestCase):
             ),
             allowed_tools=["calculator", "current_time"],
             model_config_spec=AgentModelConfig(
-                provider="ollama",
-                model_name="qwen2.5-coder:7b-instruct-q3_K_M",
-                base_url="http://127.0.0.1:11434",
+                provider="generic_http",
+                model_name="mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+                base_url="http://127.0.0.1:19801/v1",
                 temperature=0.0,
             ),
             execution_limits=ExecutionLimits(max_iterations=5, total_timeout_seconds=60),
@@ -677,9 +678,9 @@ class TestAgentPowerEngine(unittest.TestCase):
             ),
             allowed_tools=["calculator", "document_lookup", "file_read", "current_time"],
             model_config_spec=AgentModelConfig(
-                provider="ollama",
-                model_name="qwen2.5-coder:7b-instruct-q3_K_M",
-                base_url="http://127.0.0.1:11434",
+                provider="generic_http",
+                model_name="mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+                base_url="http://127.0.0.1:19801/v1",
                 temperature=0.0,
             ),
         )
@@ -707,7 +708,7 @@ class TestAgentPowerEngine(unittest.TestCase):
 
         # Run real inference with document lookup + calculation
         try:
-            r = requests.get("http://127.0.0.1:11434/api/tags", timeout=2)
+            r = requests.get("http://127.0.0.1:19801/v1/models", timeout=2)
             if r.status_code != 200:
                 return
         except Exception:

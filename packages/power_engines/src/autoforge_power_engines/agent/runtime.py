@@ -80,7 +80,13 @@ class OllamaModelProvider(ModelProvider):
 class GenericHTTPModelProvider(ModelProvider):
     """Standard OpenAI-compatible HTTP inference provider."""
 
-    def __init__(self, base_url: str, model_name: str, api_key: Optional[str] = None, timeout: float = 60.0):
+    def __init__(
+        self,
+        base_url: str = "http://127.0.0.1:19801/v1",
+        model_name: str = "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        api_key: Optional[str] = None,
+        timeout: float = 60.0,
+    ):
         self.base_url = base_url.rstrip("/")
         self.model_name = model_name
         self.api_key = api_key
@@ -93,7 +99,14 @@ class GenericHTTPModelProvider(ModelProvider):
         temperature: float = 0.2,
         max_tokens: int = 2048,
     ) -> Dict[str, Any]:
-        endpoint = f"{self.base_url}/v1/chat/completions"
+        base = self.base_url.rstrip("/")
+        if base.endswith("/chat/completions"):
+            endpoint = base
+        elif base.endswith("/v1"):
+            endpoint = f"{base}/chat/completions"
+        else:
+            endpoint = f"{base}/v1/chat/completions"
+
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
@@ -320,7 +333,10 @@ class StandaloneAgentRuntime:
 
                 # ── Process Tool Calls ───────────────────────────────────────
                 # Append model thought to context
-                assistant_msg = {"role": "assistant", "content": parse_result.assistant_content or ""}
+                raw_msg = raw_response.get("message", {})
+                assistant_msg: Dict[str, Any] = {"role": "assistant", "content": parse_result.assistant_content or ""}
+                if raw_msg.get("tool_calls"):
+                    assistant_msg["tool_calls"] = raw_msg["tool_calls"]
                 context_messages.append(assistant_msg)
 
                 for tool_call in parse_result.tool_calls:
@@ -404,11 +420,14 @@ class StandaloneAgentRuntime:
                     # 4. Observe & Continuation (B2)
                     sm.transition_to(AgentExecutionState.OBSERVING)
                     obs_content = json.dumps(tool_result)
-                    context_messages.append({
+                    obs_dict: Dict[str, Any] = {
                         "role": "tool",
                         "name": tool_call.tool_name,
                         "content": obs_content,
-                    })
+                    }
+                    if tool_call.call_id:
+                        obs_dict["tool_call_id"] = tool_call.call_id
+                    context_messages.append(obs_dict)
 
                 # Loop continues back to THINKING
                 if not sm.is_terminal():

@@ -111,12 +111,12 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
                 {"variable": "PORT", "default": str(spec.port), "description": "Customer agent service port"},
                 {"variable": "MODEL_PROVIDER", "default": spec.model_config_spec.provider, "description": "Inference backend"},
                 {"variable": "MODEL_NAME", "default": spec.model_config_spec.model_name, "description": "Model identifier"},
-                {"variable": "OLLAMA_BASE_URL", "default": spec.model_config_spec.base_url, "description": "Ollama host URL"},
+                {"variable": "LLM_BASE_URL", "default": spec.model_config_spec.base_url, "description": "Inference endpoint base URL"},
                 {"variable": "MAX_ITERATIONS", "default": str(spec.execution_limits.max_iterations), "description": "Max thought/tool iterations per turn"},
                 {"variable": "REQUEST_TIMEOUT", "default": str(int(spec.execution_limits.total_timeout_seconds)), "description": "Execution timeout in seconds"},
             ],
             troubleshooting_items=[
-                "Model connection failed: Ensure Ollama is running (`ollama serve`) and model is pulled.",
+                "Model connection failed: Ensure inference endpoint is running at the configured LLM_BASE_URL and model is loaded.",
                 "Tool execution timeout: Increase REQUEST_TIMEOUT in .env.",
                 "Workspace path error: Files must reside inside ./data/workspace.",
             ],
@@ -126,7 +126,7 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
                 f"Model Provider -> Tool Registry -> Observation -> Verification -> Final Response. "
                 f"State is persisted in local SQLite."
             ),
-            verification_summary="100% test coverage across tool sandboxing, state machine, and real Ollama execution.",
+            verification_summary=f"100% test coverage across tool sandboxing, state machine, and real inference execution ({spec.model_config_spec.model_name}).",
         )
         (self.delivery_dir / "README.md").write_text(readme_content, encoding="utf-8")
 
@@ -173,6 +173,7 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             "port": spec.port,
             "model_provider": spec.model_config_spec.provider,
             "model_name": spec.model_config_spec.model_name,
+            "llm_base_url": spec.model_config_spec.base_url,
             "ollama_base_url": spec.model_config_spec.base_url,
             "max_iterations": spec.execution_limits.max_iterations,
             "max_tool_calls": spec.execution_limits.max_tool_calls_per_turn,
@@ -223,9 +224,10 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             '    return {\n'
             '        "host": os.environ.get("HOST", base.get("host", "127.0.0.1")),\n'
             '        "port": int(os.environ.get("PORT", base.get("port", 8000))),\n'
-            '        "model_provider": os.environ.get("MODEL_PROVIDER", base.get("model_provider", "ollama")),\n'
-            '        "model_name": os.environ.get("MODEL_NAME", base.get("model_name", "qwen2.5-coder:7b-instruct-q3_K_M")),\n'
-            '        "ollama_base_url": os.environ.get("OLLAMA_BASE_URL", base.get("ollama_base_url", "http://127.0.0.1:11434")),\n'
+            '        "model_provider": os.environ.get("MODEL_PROVIDER", base.get("model_provider", "generic_http")),\n'
+            '        "model_name": os.environ.get("MODEL_NAME", base.get("model_name", "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2")),\n'
+            '        "llm_base_url": os.environ.get("LLM_BASE_URL", os.environ.get("OLLAMA_BASE_URL", base.get("llm_base_url", base.get("ollama_base_url", "http://127.0.0.1:19801/v1")))),\n'
+            '        "ollama_base_url": os.environ.get("OLLAMA_BASE_URL", os.environ.get("LLM_BASE_URL", base.get("ollama_base_url", base.get("llm_base_url", "http://127.0.0.1:19801/v1")))),\n'
             '        "max_iterations": int(os.environ.get("MAX_ITERATIONS", base.get("max_iterations", 10))),\n'
             '        "max_tool_calls": int(os.environ.get("MAX_TOOL_CALLS", base.get("max_tool_calls", 5))),\n'
             '        "request_timeout": float(os.environ.get("REQUEST_TIMEOUT", base.get("timeout_seconds", 60.0))),\n'
@@ -642,12 +644,29 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             '        self.memory = AgentMemoryStore()\n'
             '        self.verifier = AgentVerifier(self.tools)\n\n'
             '    def _call_model(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:\n'
-            '        url = f"{self.settings[\'ollama_base_url\']}/api/chat"\n'
-            '        payload = {"model": self.settings["model_name"], "messages": messages, "stream": False}\n'
-            '        if tools: payload["tools"] = tools\n'
-            '        resp = requests.post(url, json=payload, timeout=self.settings["request_timeout"])\n'
-            '        resp.raise_for_status()\n'
-            '        return resp.json()\n\n'
+            '        provider = self.settings.get("model_provider", "generic_http")\n'
+            '        base_url = (self.settings.get("llm_base_url") or self.settings.get("ollama_base_url", "http://127.0.0.1:19801/v1")).rstrip("/")\n'
+            '        if provider == "ollama":\n'
+            '            url = f"{base_url}/api/chat"\n'
+            '            payload = {"model": self.settings["model_name"], "messages": messages, "stream": False}\n'
+            '            if tools: payload["tools"] = tools\n'
+            '            resp = requests.post(url, json=payload, timeout=self.settings["request_timeout"])\n'
+            '            resp.raise_for_status()\n'
+            '            return resp.json()\n'
+            '        else:\n'
+            '            if base_url.endswith("/chat/completions"):\n'
+            '                url = base_url\n'
+            '            elif base_url.endswith("/v1"):\n'
+            '                url = f"{base_url}/chat/completions"\n'
+            '            else:\n'
+            '                url = f"{base_url}/v1/chat/completions"\n'
+            '            payload = {"model": self.settings["model_name"], "messages": messages, "temperature": 0.2, "max_tokens": 2048}\n'
+            '            if tools: payload["tools"] = tools\n'
+            '            resp = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=self.settings["request_timeout"])\n'
+            '            resp.raise_for_status()\n'
+            '            data = resp.json()\n'
+            '            choices = data.get("choices", [])\n'
+            '            return {"message": choices[0].get("message", {})} if choices else {"message": {}}\n\n'
             '    def run(self, user_input: str, session_id: Optional[str] = None) -> AgentRunResult:\n'
             '        sid = session_id or f"sess-{uuid.uuid4().hex[:8]}"\n'
             '        eid = f"exec-{uuid.uuid4().hex[:8]}"\n'
