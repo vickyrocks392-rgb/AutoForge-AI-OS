@@ -265,7 +265,6 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
                     "MODEL_PROVIDER": self.model_config_spec.provider,
                     "MODEL_NAME": self.model_config_spec.model_name,
                     "LLM_BASE_URL": self.model_config_spec.base_url.replace("127.0.0.1", "host.docker.internal").replace("localhost", "host.docker.internal") if ("127.0.0.1" in self.model_config_spec.base_url or "localhost" in self.model_config_spec.base_url) else self.model_config_spec.base_url,
-                    "OLLAMA_BASE_URL": self.model_config_spec.base_url.replace("127.0.0.1", "host.docker.internal").replace("localhost", "host.docker.internal") if ("127.0.0.1" in self.model_config_spec.base_url or "localhost" in self.model_config_spec.base_url) else self.model_config_spec.base_url,
                     "MAX_ITERATIONS": str(self.execution_limits.max_iterations),
                     "MAX_TOOL_CALLS": str(self.execution_limits.max_tool_calls_per_turn),
                     "REQUEST_TIMEOUT": str(int(self.execution_limits.total_timeout_seconds)),

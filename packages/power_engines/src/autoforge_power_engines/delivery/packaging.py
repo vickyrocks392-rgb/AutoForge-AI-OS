@@ -205,11 +205,16 @@ class CustomerDeliveryBuilder:
         total_bytes = 0
 
         for root, dirs, files in os.walk(self.delivery_dir):
+            dirs[:] = [d for d in dirs if d not in ("__pycache__", ".pytest_cache", ".git")]
             for d in dirs:
                 dirs_created.append(str(Path(root, d).relative_to(self.delivery_dir)))
             for f in files:
+                if f.endswith(".pyc") or f.endswith(".pyo") or f == ".DS_Store":
+                    continue
                 fpath = Path(root, f)
                 rel = str(fpath.relative_to(self.delivery_dir))
+                if rel in ("artifacts/manifest.json", "artifacts/checksums.sha256"):
+                    continue
                 files_created.append(rel)
                 b = fpath.read_bytes()
                 total_bytes += len(b)
@@ -244,3 +249,69 @@ class CustomerDeliveryBuilder:
             manifest.sign_manifest()
 
         return manifest
+
+    def create_archive(
+        self,
+        archive_path: Optional[Path | str] = None,
+        reproducible: bool = True,
+        fixed_mtime: int = 1700000000,
+    ) -> tuple[Path, str]:
+        """Creates a .tar.gz distribution archive of the delivery directory.
+
+        When reproducible=True, normalizes file metadata (fixed mtime, uid=0, gid=0,
+        uname='', gname='', normalized permissions, files sorted lexicographically, and fixed gzip header mtime)
+        so that archiving the same unchanged directory twice produces byte-identical archives.
+        Returns (archive_path, sha256_checksum).
+        """
+        import gzip
+        import tarfile
+
+        if archive_path is None:
+            name = f"{self.delivery_dir.name}.tar.gz"
+            out_path = self.delivery_dir.parent / name
+        else:
+            out_path = Path(archive_path).resolve()
+
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = out_path.with_suffix(".tmp.tar.gz")
+
+        try:
+            if reproducible:
+                with open(tmp_path, "wb") as f_raw:
+                    with gzip.GzipFile(filename="", mode="wb", fileobj=f_raw, mtime=fixed_mtime) as gz_out:
+                        with tarfile.open(fileobj=gz_out, mode="w:") as tar:
+                            for root, dirs, files in os.walk(self.delivery_dir):
+                                dirs[:] = [d for d in dirs if d not in ("__pycache__", ".pytest_cache", ".git")]
+                                dirs.sort()
+                                for f in sorted(files):
+                                    if f.endswith(".pyc") or f.endswith(".pyo") or f == ".DS_Store":
+                                        continue
+                                    full_p = Path(root, f)
+                                    rel_p = full_p.relative_to(self.delivery_dir)
+                                    ti = tar.gettarinfo(str(full_p), arcname=str(rel_p))
+                                    ti.uid = 0
+                                    ti.gid = 0
+                                    ti.uname = ""
+                                    ti.gname = ""
+                                    ti.mtime = fixed_mtime
+                                    if ti.isreg():
+                                        is_exec = bool(ti.mode & 0o111)
+                                        ti.mode = 0o755 if is_exec else 0o644
+                                        with open(full_p, "rb") as f_in:
+                                            tar.addfile(ti, f_in)
+                                    elif ti.isdir():
+                                        ti.mode = 0o755
+                                        tar.addfile(ti)
+                                    else:
+                                        tar.addfile(ti)
+            else:
+                with tarfile.open(tmp_path, "w:gz") as tar:
+                    for child in sorted(self.delivery_dir.iterdir()):
+                        tar.add(child, arcname=child.name, recursive=True)
+
+            sha = hashlib.sha256(tmp_path.read_bytes()).hexdigest()
+            tmp_path.replace(out_path)
+            return out_path, sha
+        finally:
+            if tmp_path.exists():
+                tmp_path.unlink()

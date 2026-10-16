@@ -126,7 +126,12 @@ class PowerEngine(ABC):
         """Initializes isolated runtime execution context."""
         out_root = resolve_output_root(spec.output_root)
         sanitized_pid = spec.sanitized_project_id()
-        delivery_id = f"delivery-{uuid.uuid4().hex[:8]}"
+        custom = getattr(spec, "custom_parameters", None) or {}
+        delivery_id = (
+            getattr(spec, "delivery_id", None)
+            or custom.get("delivery_id")
+            or f"delivery-{uuid.uuid4().hex[:8]}"
+        )
         delivery_dir = out_root / sanitized_pid / delivery_id
         
         ctx = PowerEngineContext(

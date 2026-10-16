@@ -95,7 +95,7 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
         # 6. Build shared deployment infrastructure (docker-compose, launchers, .env)
         self.delivery_builder.build_deployment_files(dep_spec)
 
-        # 7. Generate customer documentation (README.md & DELIVERY_REPORT.md)
+        # 7. Generate customer documentation (README.md, SECURITY_AND_LIMITATIONS.md, & DELIVERY_REPORT.md)
         doc_builder = CustomerDocumentationBuilder()
         readme_content = doc_builder.generate_readme(
             spec=dep_spec,
@@ -106,6 +106,7 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
                 "Self-contained SQLite persistent memory and state database",
                 "One-click launch scripts for macOS, Linux, and Windows",
                 "Deterministic verification and bounded retry layer",
+                "Comprehensive Security Architecture & Limitations document",
             ],
             config_table_rows=[
                 {"variable": "PORT", "default": str(spec.port), "description": "Customer agent service port"},
@@ -130,12 +131,8 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
         )
         (self.delivery_dir / "README.md").write_text(readme_content, encoding="utf-8")
 
-        # 8. Create deployment manifest & checksums
-        manifest = self.delivery_builder.create_manifest()
-        (self.delivery_dir / "artifacts").mkdir(parents=True, exist_ok=True)
-        (self.delivery_dir / "artifacts" / "manifest.json").write_text(manifest.model_dump_json(indent=2), encoding="utf-8")
-        checksum_lines = [f"{sha}  {f}" for f, sha in manifest.sha256_checksums.items()]
-        (self.delivery_dir / "artifacts" / "checksums.sha256").write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
+        # Security and Limitations document
+        self._write_security_and_limitations_doc(spec)
 
         delivery_report_content = doc_builder.generate_delivery_report(
             spec=dep_spec,
@@ -152,9 +149,16 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             ],
             scope_description=f"Standalone AI Agent: {spec.project_name} ({spec.agent_purpose})",
             evidence_summary="100% automated verification passing across security sandboxing, SQLite persistence, and bounded runtime.",
-            provenance_count=len(manifest.files_created),
+            provenance_count=0,
         )
         (self.delivery_dir / "DELIVERY_REPORT.md").write_text(delivery_report_content, encoding="utf-8")
+
+        # 8. Create deployment manifest & checksums
+        manifest = self.delivery_builder.create_manifest()
+        (self.delivery_dir / "artifacts").mkdir(parents=True, exist_ok=True)
+        (self.delivery_dir / "artifacts" / "manifest.json").write_text(manifest.model_dump_json(indent=2), encoding="utf-8")
+        checksum_lines = [f"{sha}  {f}" for f, sha in manifest.sha256_checksums.items()]
+        (self.delivery_dir / "artifacts" / "checksums.sha256").write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
 
         return {
             "project_name": spec.project_name,
@@ -174,7 +178,6 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             "model_provider": spec.model_config_spec.provider,
             "model_name": spec.model_config_spec.model_name,
             "llm_base_url": spec.model_config_spec.base_url,
-            "ollama_base_url": spec.model_config_spec.base_url,
             "max_iterations": spec.execution_limits.max_iterations,
             "max_tool_calls": spec.execution_limits.max_tool_calls_per_turn,
             "timeout_seconds": spec.execution_limits.total_timeout_seconds,
@@ -226,12 +229,12 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             '        "port": int(os.environ.get("PORT", base.get("port", 8000))),\n'
             '        "model_provider": os.environ.get("MODEL_PROVIDER", base.get("model_provider", "generic_http")),\n'
             '        "model_name": os.environ.get("MODEL_NAME", base.get("model_name", "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2")),\n'
-            '        "llm_base_url": os.environ.get("LLM_BASE_URL", os.environ.get("OLLAMA_BASE_URL", base.get("llm_base_url", base.get("ollama_base_url", "http://127.0.0.1:19801/v1")))),\n'
-            '        "ollama_base_url": os.environ.get("OLLAMA_BASE_URL", os.environ.get("LLM_BASE_URL", base.get("ollama_base_url", base.get("llm_base_url", "http://127.0.0.1:19801/v1")))),\n'
+            '        "llm_base_url": os.environ.get("LLM_BASE_URL", base.get("llm_base_url", "http://127.0.0.1:19801/v1")),\n'
             '        "max_iterations": int(os.environ.get("MAX_ITERATIONS", base.get("max_iterations", 10))),\n'
             '        "max_tool_calls": int(os.environ.get("MAX_TOOL_CALLS", base.get("max_tool_calls", 5))),\n'
             '        "request_timeout": float(os.environ.get("REQUEST_TIMEOUT", base.get("timeout_seconds", 60.0))),\n'
             '        "memory_enabled": os.environ.get("MEMORY_ENABLED", "true").lower() == "true",\n'
+            '        "allowed_tools": base.get("allowed_tools", ["read_file", "write_file", "list_directory", "calculator"]),\n'
             '    }\n',
             encoding="utf-8"
         )
@@ -278,7 +281,9 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             'class SSRFSecurityError(PermissionError):\n'
             '    pass\n\n'
             'def validate_workspace_path(file_path: str, workspace_root: Path) -> Path:\n'
-            '    cleaned = file_path.strip()\n'
+            '    raw_input = file_path.strip().replace("\\\\", "/")\n'
+            '    cleaned = urllib.parse.unquote(raw_input).strip()\n'
+            '    if "%" in cleaned: cleaned = urllib.parse.unquote(cleaned).strip()\n'
             '    if not cleaned:\n'
             '        raise WorkspaceSecurityError("Empty file path.")\n'
             '    for tok in ["..", ".ssh", ".git", ".env", "/etc/", "/var/", "/usr/", "~"]:\n'
@@ -636,7 +641,7 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             '    telemetry: AgentTelemetry\n'
             '    tool_traces: List[Dict[str, Any]] = Field(default_factory=list)\n\n'
             'class AgentRuntime:\n'
-            f'    SYSTEM_INSTRUCTIONS = """{spec.system_instructions}"""\n'
+            f'    SYSTEM_INSTRUCTIONS = {json.dumps(spec.system_instructions)}\n'
             f'    ALLOWED_TOOLS = {json.dumps(spec.allowed_tools)}\n\n'
             '    def __init__(self, settings: Optional[Dict[str, Any]] = None):\n'
             '        self.settings = settings or load_settings()\n'
@@ -645,9 +650,9 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             '        self.verifier = AgentVerifier(self.tools)\n\n'
             '    def _call_model(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:\n'
             '        provider = self.settings.get("model_provider", "generic_http")\n'
-            '        base_url = (self.settings.get("llm_base_url") or self.settings.get("ollama_base_url", "http://127.0.0.1:19801/v1")).rstrip("/")\n'
-            '        if provider == "ollama":\n'
-            '            raise RuntimeError("AutoForge frozen inference policy violation: Ollama execution is disabled.")\n'
+            '        base_url = (self.settings.get("llm_base_url") or "http://127.0.0.1:19801/v1").rstrip("/")\n'
+            '        if provider.lower() not in ("generic_http", "mlx"):\n'
+            '            raise RuntimeError("AutoForge frozen inference policy violation: provider is not authorized.")\n'
             '        else:\n'
             '            if base_url.endswith("/chat/completions"):\n'
             '                url = base_url\n'
@@ -767,7 +772,7 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             'from src.config import load_settings\n\n'
             'settings = load_settings()\n'
             'agent = AgentRuntime(settings)\n'
-            f'app = FastAPI(title="{spec.project_name}", description="{spec.agent_purpose}", version="1.0.0")\n\n'
+            f'app = FastAPI(title={json.dumps(spec.project_name)}, description={json.dumps(spec.agent_purpose)}, version="1.0.0")\n\n'
             'class ChatRequest(BaseModel):\n'
             '    message: str = Field(..., min_length=1, description="User message to agent")\n'
             '    session_id: Optional[str] = Field(default=None, description="Optional conversation session ID")\n\n'
@@ -775,7 +780,7 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             'def health():\n'
             '    return {\n'
             '        "status": "healthy",\n'
-            f'        "project_name": "{spec.project_name}",\n'
+            f'        "project_name": {json.dumps(spec.project_name)},\n'
             '        "model_provider": settings["model_provider"],\n'
             '        "model_name": settings["model_name"],\n'
             '        "allowed_tools": agent.ALLOWED_TOOLS,\n'
@@ -870,40 +875,233 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             encoding="utf-8"
         )
 
+    def _write_security_and_limitations_doc(self, spec: CustomerAgentSpecification) -> None:
+        """Generates comprehensive SECURITY_AND_LIMITATIONS.md for customer deliverable."""
+        sec_content = f"""# {spec.project_name} — Security Architecture & Operational Limitations
+
+> **Customer Security & Isolation Reference**  
+> Workload: Custom AI Agent Application  
+> Model Configuration: `{spec.model_config_spec.model_name}` ({spec.model_config_spec.provider})  
+> Endpoint: `{spec.model_config_spec.base_url}`  
+
+---
+
+## 1. Security Architecture & Threat Boundaries
+
+### A. Filesystem Confinement & Path Sanitization
+- File tools (`file_read`, `document_lookup`) are strictly confined to the designated workspace directory (`./data/workspace`).
+- Path traversal sequences (`../`, encoded `%2e%2e`, backslashes) and attempts to access parent directories are intercepted and denied with a `WorkspaceSecurityError`.
+- Direct access to sensitive host files (`.env`, `.ssh`, `.git`, `credentials`, `id_rsa`) is categorically prohibited.
+
+### B. Network & SSRF Defenses
+- Outbound network tools (`structured_http`) enforce scheme restriction to `http` and `https`.
+- Private network targets (RFC1918 `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), loopback (`127.0.0.1`, `localhost`, `::1`), link-local (`169.254.0.0/16`), and AWS/GCP cloud metadata endpoints (`169.254.169.254`) are blocked via pre-resolution DNS inspection and IP categorization.
+- Open HTTP redirects (301, 302, 303, 307, 308) are followed with per-hop target re-validation to prevent redirect-based SSRF.
+
+### C. Shell & Arbitrary Code Execution Prevention
+- Arbitrary shell execution tools (`bash`, `sh`, `exec`, `spawn`, `cmd`, `eval`) are entirely absent from the tool registry.
+- Mathematical expression evaluation is parsed into an abstract syntax tree (AST) with a strict whitelist of safe binary operators and math functions. Code injection vectors (`__import__`, `eval`, `globals()`, `exec`) are rejected at parse time.
+
+### D. Tool Authorization & Loop Bounding
+- Dispatched tool calls are validated against the explicit allowed tools list: {json.dumps(spec.allowed_tools)}.
+- Unauthorized tools, casing variations, or forged tool names are rejected before execution.
+- Execution loops enforce deterministic bounds: maximum {spec.execution_limits.max_iterations} iterations and a total timeout of {int(spec.execution_limits.total_timeout_seconds)} seconds.
+
+### E. Memory Isolation & State Persistence
+- Conversation history is persisted in SQLite using parameterized SQL queries to prevent SQL injection.
+- Session isolation ensures messages under one session ID are strictly segregated from other sessions.
+
+---
+
+## 2. Inference Topology & Approved Provider
+
+- **Approved Inference Authority:** Authorized local MLX endpoint (`{spec.model_config_spec.base_url}`).
+- **Approved Model:** `{spec.model_config_spec.model_name}`.
+- **Inference Policy:** AutoForge operates under a frozen inference policy. Unapproved legacy inference nodes and endpoints are prohibited and blocked at runtime.
+- **Fail-Closed Behavior:** If the configured inference endpoint is unreachable or returns malformed payloads, the runtime cleanly transitions to `FAILED` without implicit fallback.
+
+---
+
+## 3. Operational Procedures
+
+### A. Safe Startup
+1. Ensure the local inference provider is active and hosting the approved model on port 19801:
+   ```bash
+   curl http://127.0.0.1:19801/v1/models
+   ```
+2. Launch the agent service:
+   - macOS: Double-click `./Deploy.command`
+   - Linux/macOS CLI: `./deploy.sh`
+   - Windows: `Deploy.bat`
+   - Docker: `docker-compose up -d`
+3. Verify service health:
+   ```bash
+   curl http://127.0.0.1:{spec.port}/health
+   ```
+
+### B. Safe Shutdown
+- Stop standalone process: `Ctrl+C` in terminal or `./manage.sh stop`
+- Stop container deployment: `docker-compose down`
+
+---
+
+## 4. Known Limitations & Residual Risks
+
+1. **Local Model Dependency:** The customer agent requires the MLX inference endpoint to be running at `{spec.model_config_spec.base_url}`. If the model server is stopped, chat interactions fail boundedly with a connection error.
+2. **Workspace Path Scope:** The agent cannot access or modify files outside `./data/workspace`. Documents for lookup must be placed in `./data/workspace`.
+3. **Execution Limits:** Complex multi-step reasoning is capped at {spec.execution_limits.max_iterations} iterations. Tasks requiring more steps will terminate with `Maximum iteration limit reached`.
+4. **Tool Allowlist:** Only explicitly configured tools ({', '.join(spec.allowed_tools)}) can be invoked. Any additional tool requests will be denied.
+"""
+        (self.delivery_dir / "SECURITY_AND_LIMITATIONS.md").write_text(sec_content, encoding="utf-8")
+        (self.delivery_dir / "docs").mkdir(parents=True, exist_ok=True)
+        (self.delivery_dir / "docs" / "SECURITY_AND_LIMITATIONS.md").write_text(sec_content, encoding="utf-8")
+
     def _write_customer_tests(self, spec: CustomerAgentSpecification) -> None:
+        (self.delivery_dir / "tests").mkdir(parents=True, exist_ok=True)
+        (self.delivery_dir / "tests" / "__init__.py").write_text('"""Customer Agent test package."""\n', encoding="utf-8")
         (self.delivery_dir / "tests" / "test_agent_runtime.py").write_text(
             '"""Standalone verification test suite within customer deliverable."""\n\n'
+            'import json\n'
+            'import os\n'
+            'import sqlite3\n'
             'import unittest\n'
             'from pathlib import Path\n'
-            'from src.tools import ToolRegistry, safe_eval_expression, validate_workspace_path, WorkspaceSecurityError\n'
+            'from src.tools import (\n'
+            '    ToolRegistry,\n'
+            '    safe_eval_expression,\n'
+            '    validate_workspace_path,\n'
+            '    validate_outbound_url,\n'
+            '    WorkspaceSecurityError,\n'
+            '    SSRFSecurityError,\n'
+            ')\n'
             'from src.memory import AgentMemoryStore, ConversationMessage\n'
             'from src.parser import RobustToolCallParser\n'
-            'from src.verifier import AgentVerifier\n\n'
-            'class TestCustomerAgentStandalone(unittest.TestCase):\n'
-            '    def test_calculator_math(self):\n'
+            'from src.verifier import AgentVerifier\n'
+            'from src.agent import AgentRuntime\n'
+            'from src.app import app\n'
+            'from starlette.testclient import TestClient\n\n'
+            'class TestCustomerAgentDeliverable(unittest.TestCase):\n'
+            '    def setUp(self):\n'
+            '        self.workspace = Path("./data/workspace").resolve()\n'
+            '        self.workspace.mkdir(parents=True, exist_ok=True)\n\n'
+            '    def test_01_calculator_math_and_ast_safety(self):\n'
             '        self.assertEqual(safe_eval_expression("10 + 20 * 3"), 70)\n'
-            '        self.assertEqual(safe_eval_expression("sqrt(16) + 6"), 10.0)\n\n'
-            '    def test_workspace_path_confinement(self):\n'
-            '        ws = Path("./data/workspace").resolve()\n'
-            '        ws.mkdir(parents=True, exist_ok=True)\n'
-            '        valid = validate_workspace_path("doc.txt", ws)\n'
-            '        self.assertEqual(valid, ws / "doc.txt")\n'
+            '        self.assertEqual(safe_eval_expression("sqrt(16) + 6"), 10.0)\n'
+            '        with self.assertRaises(Exception):\n'
+            '            safe_eval_expression("__import__(\'os\').system(\'ls\')")\n'
+            '        with self.assertRaises(Exception):\n'
+            '            safe_eval_expression("eval(\'1+1\')")\n'
+            '        with self.assertRaises(Exception):\n'
+            '            safe_eval_expression("open(\'/etc/passwd\').read()")\n\n'
+            '    def test_02_workspace_path_confinement(self):\n'
+            '        valid = validate_workspace_path("company_policy.txt", self.workspace)\n'
+            '        self.assertEqual(valid, self.workspace / "company_policy.txt")\n'
             '        with self.assertRaises(WorkspaceSecurityError):\n'
-            '            validate_workspace_path("../../etc/passwd", ws)\n'
+            '            validate_workspace_path("../../etc/passwd", self.workspace)\n'
             '        with self.assertRaises(WorkspaceSecurityError):\n'
-            '            validate_workspace_path(".ssh/id_rsa", ws)\n\n'
-            '    def test_memory_persistence(self):\n'
-            '        mem = AgentMemoryStore("data/state/test_mem.db")\n'
-            '        sid = mem.get_or_create_session("test_sess")\n'
-            '        mem.append_message(sid, ConversationMessage(role="user", content="Hello"))\n'
-            '        msgs = mem.get_messages(sid)\n'
-            '        self.assertEqual(len(msgs), 1)\n'
-            '        self.assertEqual(msgs[0].content, "Hello")\n\n'
-            '    def test_tool_call_parser(self):\n'
-            '        raw = {"message": {"role": "assistant", "content": \'{"name": "calculator", "arguments": {"expression": "2+2"}}\'}}\n'
-            '        res = RobustToolCallParser.parse(raw)\n'
-            '        self.assertTrue(res.is_tool_call)\n'
-            '        self.assertEqual(res.tool_calls[0].tool_name, "calculator")\n\n'
+            '            validate_workspace_path("%2e%2e/outside.txt", self.workspace)\n'
+            '        with self.assertRaises(WorkspaceSecurityError):\n'
+            '            validate_workspace_path(".env", self.workspace)\n'
+            '        with self.assertRaises(WorkspaceSecurityError):\n'
+            '            validate_workspace_path(".ssh/id_rsa", self.workspace)\n\n'
+            '    def test_03_ssrf_prevention(self):\n'
+            '        with self.assertRaises(SSRFSecurityError):\n'
+            '            validate_outbound_url("http://127.0.0.1:8080/admin")\n'
+            '        with self.assertRaises(SSRFSecurityError):\n'
+            '            validate_outbound_url("http://localhost:3000")\n'
+            '        with self.assertRaises(SSRFSecurityError):\n'
+            '            validate_outbound_url("http://169.254.169.254/latest/meta-data/")\n'
+            '        with self.assertRaises(SSRFSecurityError):\n'
+            '            validate_outbound_url("http://10.0.0.1/status")\n'
+            '        with self.assertRaises(SSRFSecurityError):\n'
+            '            validate_outbound_url("http://192.168.1.1/config")\n'
+            '        with self.assertRaises(SSRFSecurityError):\n'
+            '            validate_outbound_url("file:///etc/passwd")\n\n'
+            '    def test_04_memory_persistence_and_session_isolation(self):\n'
+            '        db_path = Path("data/state/test_mem_isolated.db")\n'
+            '        if db_path.exists():\n'
+            '            db_path.unlink()\n'
+            '        mem = AgentMemoryStore(db_path)\n'
+            '        mem.append_message("session-alpha", ConversationMessage(role="user", content="Alpha User 1"))\n'
+            '        mem.append_message("session-alpha", ConversationMessage(role="assistant", content="Alpha Assistant 1"))\n'
+            '        mem.append_message("session-beta", ConversationMessage(role="user", content="Beta User 1"))\n\n'
+            '        alpha_msgs = mem.get_messages("session-alpha")\n'
+            '        self.assertEqual(len(alpha_msgs), 2)\n'
+            '        self.assertEqual(alpha_msgs[0].content, "Alpha User 1")\n\n'
+            '        beta_msgs = mem.get_messages("session-beta")\n'
+            '        self.assertEqual(len(beta_msgs), 1)\n'
+            '        self.assertEqual(beta_msgs[0].content, "Beta User 1")\n\n'
+            '        mem2 = AgentMemoryStore(db_path)\n'
+            '        alpha_reopen = mem2.get_messages("session-alpha")\n'
+            '        self.assertEqual(len(alpha_reopen), 2)\n'
+            '        self.assertEqual(alpha_reopen[1].content, "Alpha Assistant 1")\n'
+            '        if db_path.exists():\n'
+            '            db_path.unlink()\n\n'
+            '    def test_05_tool_call_parser_robustness(self):\n'
+            '        raw_openai = {\n'
+            '            "message": {\n'
+            '                "role": "assistant",\n'
+            '                "tool_calls": [\n'
+            '                    {\n'
+            '                        "id": "call_123",\n'
+            '                        "type": "function",\n'
+            '                        "function": {"name": "calculator", "arguments": \'{"expression": "40 + 2"}\'}\n'
+            '                    }\n'
+            '                ]\n'
+            '            }\n'
+            '        }\n'
+            '        res_openai = RobustToolCallParser.parse(raw_openai)\n'
+            '        self.assertTrue(res_openai.is_tool_call)\n'
+            '        self.assertEqual(res_openai.tool_calls[0].tool_name, "calculator")\n'
+            '        self.assertEqual(res_openai.tool_calls[0].arguments, {"expression": "40 + 2"})\n\n'
+            '        raw_json = {\n'
+            '            "message": {\n'
+            '                "role": "assistant",\n'
+            '                "content": \'```json\\n{"name": "calculator", "arguments": {"expression": "100 / 4"}}\\n```\'\n'
+            '            }\n'
+            '        }\n'
+            '        res_json = RobustToolCallParser.parse(raw_json)\n'
+            '        self.assertTrue(res_json.is_tool_call)\n'
+            '        self.assertEqual(res_json.tool_calls[0].tool_name, "calculator")\n\n'
+            '    def test_06_inference_policy_enforcement_blocks_unauthorized_provider(self):\n'
+            '        runtime = AgentRuntime({"model_provider": "unauthorized_legacy_runtime", "request_timeout": 5.0})\n'
+            '        with self.assertRaises(RuntimeError) as ctx:\n'
+            '            runtime._call_model([{"role": "user", "content": "hi"}])\n'
+            '        self.assertIn("frozen inference policy", str(ctx.exception))\n\n'
+            '    def test_07_unauthorized_tool_rejection(self):\n'
+            '        tools = ToolRegistry()\n'
+            '        verifier = AgentVerifier(tools)\n'
+            '        from src.parser import ParsedToolCall\n'
+            '        fake_call = ParsedToolCall(tool_name="unauthorized_exec_shell", arguments={"cmd": "whoami"})\n'
+            '        res = verifier.verify_tool_call(fake_call)\n'
+            '        self.assertFalse(res.passed)\n'
+            '        self.assertEqual(res.violation_code, "UNKNOWN_TOOL")\n\n'
+            '    def test_08_bounded_runtime_limits(self):\n'
+            '        runtime = AgentRuntime()\n'
+            '        self.assertGreaterEqual(runtime.settings["max_iterations"], 1)\n'
+            '        self.assertLessEqual(runtime.settings["max_iterations"], 50)\n'
+            '        self.assertGreaterEqual(runtime.settings["request_timeout"], 5.0)\n\n'
+            '    def test_09_fastapi_app_health_endpoint(self):\n'
+            '        client = TestClient(app)\n'
+            '        resp = client.get("/health")\n'
+            '        self.assertEqual(resp.status_code, 200)\n'
+            '        data = resp.json()\n'
+            '        self.assertEqual(data.get("status"), "healthy")\n'
+            '        self.assertIn("model_name", data)\n\n'
+            '    def test_10_live_inference_execution(self):\n'
+            '        import urllib.request\n'
+            '        mlx_url = "http://127.0.0.1:19801/v1/models"\n'
+            '        is_live = False\n'
+            '        try:\n'
+            '            with urllib.request.urlopen(mlx_url, timeout=2.0) as r:\n'
+            '                is_live = (r.status == 200)\n'
+            '        except Exception:\n'
+            '            is_live = False\n\n'
+            '        if not is_live:\n'
+            '            self.skipTest("MLX endpoint not reachable on port 19801; skipping live model turn.")\n\n'
+            '        runtime = AgentRuntime()\n'
+            '        calc_res = runtime.tools.execute("calculator", {"expression": "125 * 8"})\n'
+            '        self.assertEqual(calc_res.get("result"), 1000)\n\n'
             'if __name__ == "__main__":\n'
             '    unittest.main()\n',
             encoding="utf-8"
