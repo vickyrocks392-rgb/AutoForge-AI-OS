@@ -58,6 +58,11 @@ class CustomAIAgentPowerEngine(PowerEngine):
             raise ValueError("Customer specification missing meaningful agent_purpose.")
         if not agent_spec.system_instructions or len(agent_spec.system_instructions.strip()) < 10:
             raise ValueError("Customer specification missing meaningful system_instructions.")
+        if agent_spec.model_config_spec.provider == "ollama":
+            raise ValueError(
+                "AutoForge frozen inference policy violation: provider 'ollama' is disabled. "
+                "Use 'generic_http' targeting authorized MLX authority (http://127.0.0.1:19801/v1)."
+            )
 
         ctx.telemetry["intake"] = {
             "project_name": agent_spec.project_name,

@@ -105,7 +105,7 @@ class TestAgentInferenceProviderAlignment(unittest.TestCase):
         self.assertEqual(runtime_custom.model_provider.model_name, "custom-hosted-model-v1")
         self.assertEqual(runtime_custom.model_provider.timeout, 45.0)
 
-        # Explicit Ollama opt-in still works for backward compatibility
+        # Explicit Ollama provider is strictly rejected by AutoForge frozen inference policy
         cfg_ollama = AgentModelConfig(
             provider="ollama",
             base_url="http://127.0.0.1:11434",
@@ -113,13 +113,19 @@ class TestAgentInferenceProviderAlignment(unittest.TestCase):
         )
         spec_ollama = CustomerAgentSpecification(
             project_name="Explicit Ollama Agent",
-            agent_purpose="Test explicit ollama provider opt-in.",
+            agent_purpose="Test explicit ollama provider rejection.",
             system_instructions="You are an assistant.",
             model_config_spec=cfg_ollama,
         )
-        runtime_ollama = StandaloneAgentRuntime(spec=spec_ollama)
-        self.assertIsInstance(runtime_ollama.model_provider, OllamaModelProvider)
-        self.assertEqual(runtime_ollama.model_provider.base_url, "http://127.0.0.1:11434")
+        with self.assertRaises(ValueError) as ctx:
+            StandaloneAgentRuntime(spec=spec_ollama)
+        self.assertIn("AutoForge frozen inference policy violation", str(ctx.exception))
+
+        # Direct OllamaModelProvider execution fails closed
+        ollama_p = OllamaModelProvider()
+        with self.assertRaises(RuntimeError) as ctx_rt:
+            ollama_p.generate_turn([{"role": "user", "content": "hi"}])
+        self.assertIn("AutoForge frozen inference policy violation", str(ctx_rt.exception))
 
     # ── 3. No implicit Ollama fallback ─────────────────────────────────────────
     def test_03_no_implicit_ollama_fallback_on_failure(self):

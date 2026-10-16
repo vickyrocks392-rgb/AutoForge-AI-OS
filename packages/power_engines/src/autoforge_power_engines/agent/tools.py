@@ -39,9 +39,11 @@ def validate_workspace_path(file_path: str, workspace_root: Path) -> Path:
     """
     Confines all file operations strictly to the customer workspace directory.
     Rejects directory traversal (../), absolute root escapes, symlink escapes,
-    and sensitive system directories (.ssh, .git, .env, credentials).
+    encoded paths, and sensitive system directories (.ssh, .git, .env, credentials).
     """
-    cleaned_input = file_path.strip()
+    raw_input = file_path.strip().replace("\\", "/")
+    # Normalize URL-encoded characters to prevent encoded traversal escapes
+    cleaned_input = urllib.parse.unquote(raw_input).strip()
     if not cleaned_input:
         raise WorkspaceSecurityError("Empty file path is invalid.")
 

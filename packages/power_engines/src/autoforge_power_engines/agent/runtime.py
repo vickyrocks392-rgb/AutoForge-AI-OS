@@ -59,22 +59,11 @@ class OllamaModelProvider(ModelProvider):
         temperature: float = 0.2,
         max_tokens: int = 2048,
     ) -> Dict[str, Any]:
-        endpoint = f"{self.base_url}/api/chat"
-        payload: Dict[str, Any] = {
-            "model": self.model_name,
-            "messages": messages,
-            "stream": False,
-            "options": {
-                "temperature": temperature,
-                "num_predict": max_tokens,
-            }
-        }
-        if tools:
-            payload["tools"] = tools
-
-        resp = requests.post(endpoint, json=payload, timeout=self.timeout)
-        resp.raise_for_status()
-        return resp.json()
+        # Enforce frozen inference policy prohibiting Ollama
+        raise RuntimeError(
+            "AutoForge frozen inference policy violation: Ollama execution is disabled. "
+            "Use GenericHTTPModelProvider with authorized MLX authority (http://127.0.0.1:19801/v1)."
+        )
 
 
 class GenericHTTPModelProvider(ModelProvider):
@@ -180,10 +169,9 @@ class StandaloneAgentRuntime:
         if model_provider:
             self.model_provider = model_provider
         elif spec.model_config_spec.provider == "ollama":
-            self.model_provider = OllamaModelProvider(
-                base_url=spec.model_config_spec.base_url,
-                model_name=spec.model_config_spec.model_name,
-                timeout=spec.model_config_spec.timeout_seconds,
+            raise ValueError(
+                "AutoForge frozen inference policy violation: provider 'ollama' is disabled. "
+                "Use 'generic_http' targeting authorized MLX authority (http://127.0.0.1:19801/v1)."
             )
         else:
             self.model_provider = GenericHTTPModelProvider(
@@ -375,8 +363,6 @@ class StandaloneAgentRuntime:
                     # emit a tool call for any registered tool and reach real
                     # capabilities (e.g. outbound HTTP) that were never granted.
                     sm.transition_to(AgentExecutionState.EXECUTING_TOOL)
-                    total_tool_calls += 1
-                    sm.telemetry.tool_call_count = total_tool_calls
                     t0 = time.perf_counter()
 
                     tool_result = self.tool_registry.execute_tool(
@@ -393,16 +379,27 @@ class StandaloneAgentRuntime:
                             f"Tool '{tool_call.tool_name}' blocked by guardrail: "
                             f"{tool_result.get('error')}"
                         )
-                        context_messages.append({
+                        obs_content = json.dumps({
+                            "error": tool_result.get("error"),
+                            "status": "error",
+                            "blocked_by": tool_result.get("blocked_by"),
+                        })
+                        obs_dict = {
                             "role": "tool",
                             "name": tool_call.tool_name,
-                            "content": json.dumps({
-                                "error": tool_result.get("error"),
-                                "status": "error",
-                                "blocked_by": tool_result.get("blocked_by"),
-                            }),
-                        })
+                            "content": obs_content,
+                        }
+                        if tool_call.call_id:
+                            obs_dict["tool_call_id"] = tool_call.call_id
+                        context_messages.append(obs_dict)
+                        sm.transition_to(
+                            AgentExecutionState.OBSERVING,
+                            reason=f"Tool '{tool_call.tool_name}' blocked by guardrail",
+                        )
                         continue
+
+                    total_tool_calls += 1
+                    sm.telemetry.tool_call_count = total_tool_calls
 
                     tool_trace = {
                         "tool": tool_call.tool_name,
