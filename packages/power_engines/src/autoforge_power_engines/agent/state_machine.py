@@ -68,12 +68,13 @@ _VALID_TRANSITIONS: Dict[AgentExecutionState, List[AgentExecutionState]] = {
         AgentExecutionState.COMPLETED,
         AgentExecutionState.THINKING,  # On repair retry
         AgentExecutionState.FAILED,
+        AgentExecutionState.CANCELLED,
         AgentExecutionState.TIMEOUT,
     ],
-    AgentExecutionState.COMPLETED: [AgentExecutionState.IDLE],
-    AgentExecutionState.FAILED: [AgentExecutionState.IDLE],
-    AgentExecutionState.CANCELLED: [AgentExecutionState.IDLE],
-    AgentExecutionState.TIMEOUT: [AgentExecutionState.IDLE],
+    AgentExecutionState.COMPLETED: [],
+    AgentExecutionState.FAILED: [],
+    AgentExecutionState.CANCELLED: [],
+    AgentExecutionState.TIMEOUT: [],
 }
 
 
@@ -117,6 +118,10 @@ class AgentStateMachine:
     def transition_to(self, new_state: AgentExecutionState, reason: Optional[str] = None) -> None:
         if self.state == new_state:
             return
+        if self.is_terminal():
+            err = f"Terminal state '{self.state.value}' is final; cannot transition to '{new_state.value}'."
+            self.telemetry.errors.append(err)
+            raise ValueError(err)
         valid_next = _VALID_TRANSITIONS.get(self.state, [])
         if new_state not in valid_next:
             err = f"Illegal state transition from {self.state.value} to {new_state.value}."

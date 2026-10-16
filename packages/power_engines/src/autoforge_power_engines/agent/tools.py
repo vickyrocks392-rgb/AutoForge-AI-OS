@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import concurrent.futures
 import ipaddress
 import json
 import logging
@@ -576,12 +577,25 @@ class ToolRegistry:
                 })
         return schemas
 
+    def is_tool_idempotent(self, name: str) -> bool:
+        """Determines whether a tool is safely idempotent for retries."""
+        tool = self._tools.get(name)
+        if not tool:
+            return False
+        if tool.risk_level in (ToolRiskLevel.WORKSPACE_WRITE, ToolRiskLevel.ELEVATED):
+            return False
+        # Any mutating tool name is non-idempotent
+        if any(term in name.lower() for term in ["write", "delete", "remove", "mutate", "update"]):
+            return False
+        return True
+
     def execute_tool(
         self,
         name: str,
         arguments: Dict[str, Any],
         *,
         allowed_tools: Optional[List[str]] = None,
+        timeout_seconds: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Executes a registered tool within isolated boundaries.
 
@@ -602,10 +616,43 @@ class ToolRegistry:
         except PermissionError as denied:
             return {"error": str(denied), "status": "error", "blocked_by": "tool_authorization"}
 
-        handler = self._handlers[name]
+        handler = self._handlers.get(name)
+        if not handler:
+            return {"error": f"Tool '{name}' is not registered.", "status": "error"}
+
+        tool_cfg = self._tools.get(name)
+        cfg_timeout = tool_cfg.timeout_seconds if tool_cfg else 10.0
+        effective_timeout = timeout_seconds if timeout_seconds is not None else cfg_timeout
+
+        # Execute with wall-clock deadline
+        if effective_timeout is not None and effective_timeout <= 0:
+            side_effect_uncertain = not self.is_tool_idempotent(name)
+            return {
+                "error": f"Tool '{name}' execution deadline expired before execution began.",
+                "status": "timeout",
+                "timed_out": True,
+                "side_effect_uncertain": side_effect_uncertain,
+            }
+
         try:
-            return handler(**arguments)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(handler, **arguments)
+                try:
+                    res = future.result(timeout=effective_timeout)
+                    if isinstance(res, dict):
+                        return res
+                    return {"result": res, "status": "success"}
+                except concurrent.futures.TimeoutError:
+                    side_effect_uncertain = not self.is_tool_idempotent(name)
+                    return {
+                        "error": f"Tool '{name}' timed out after {effective_timeout:.2f}s.",
+                        "status": "timeout",
+                        "timed_out": True,
+                        "side_effect_uncertain": side_effect_uncertain,
+                    }
         except TypeError as te:
             return {"error": f"Invalid arguments for tool '{name}': {te}", "status": "error"}
         except Exception as ex:
-            return {"error": f"Execution failure in tool '{name}': {ex}", "status": "error"}
+            return {"error": f"Execution failure in tool '{name}': {ex}", "status": "error", "exception": type(ex).__name__}
+
+    execute = execute_tool

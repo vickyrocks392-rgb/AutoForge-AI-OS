@@ -236,3 +236,56 @@ class AgentMemoryStore:
                 )
             )
             conn.commit()
+
+    def validate_state_integrity(self, session_id: Optional[str] = None) -> bool:
+        """Validates that persisted state is intact, parseable, and uncorrupted.
+
+        Raises ValueError if corrupted or incomplete state is detected.
+        """
+        try:
+            with self._get_connection() as conn:
+                # 1. Verify schema tables exist
+                tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+                table_names = {r["name"] for r in tables}
+                required_tables = {"sessions", "messages", "persistent_memory", "execution_runs"}
+                if not required_tables.issubset(table_names):
+                    raise ValueError(f"Missing required state tables: {required_tables - table_names}")
+
+                # 2. Verify persistent_memory JSON validity
+                mem_rows = conn.execute("SELECT key, value_json FROM persistent_memory").fetchall()
+                for r in mem_rows:
+                    try:
+                        json.loads(r["value_json"])
+                    except Exception as e:
+                        raise ValueError(f"Corrupted memory entry for key '{r['key']}': {e}") from e
+
+                # 3. Verify messages JSON validity
+                msg_query = "SELECT id, session_id, role, content, tool_calls_json FROM messages"
+                params = ()
+                if session_id:
+                    msg_query += " WHERE session_id = ?"
+                    params = (session_id,)
+                msg_rows = conn.execute(msg_query, params).fetchall()
+                for r in msg_rows:
+                    if not r["role"] or r["content"] is None:
+                        raise ValueError(f"Corrupted message record id={r['id']}: missing role or content")
+                    if r["tool_calls_json"]:
+                        try:
+                            json.loads(r["tool_calls_json"])
+                        except Exception as e:
+                            raise ValueError(f"Corrupted tool calls in message id={r['id']}: {e}") from e
+
+                # 4. Verify execution runs JSON validity
+                exec_rows = conn.execute("SELECT execution_id, telemetry_json FROM execution_runs").fetchall()
+                for r in exec_rows:
+                    if r["telemetry_json"]:
+                        try:
+                            json.loads(r["telemetry_json"])
+                        except Exception as e:
+                            raise ValueError(f"Corrupted telemetry in execution '{r['execution_id']}': {e}") from e
+
+            return True
+        except Exception as ex:
+            if isinstance(ex, ValueError):
+                raise
+            raise ValueError(f"State integrity verification failure: {ex}") from ex

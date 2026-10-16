@@ -1,0 +1,117 @@
+{
+  "gate": "Phase 20-C Gate 3",
+  "title": "Bounded Execution and Recovery Certification",
+  "disposition": "PASS",
+  "timestamp_utc": "2026-10-16T11:36:36.954794+00:00",
+  "git_baseline": {
+    "branch": "main",
+    "commit": "17ffc22921fd823750bd860f134b049a69f64bf6",
+    "clean": false
+  },
+  "live_inference": {
+    "endpoint": "http://127.0.0.1:19801/v1",
+    "approved_model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "status": {
+      "online": true,
+      "status_code": 200,
+      "approved_model_present": true,
+      "models": [
+        "mlx-community/Qwen3.5-9B-MLX-4bit",
+        "mlx-community/KAT-Coder-V2.5-Dev-OptiQ-4bit-REAP-18B",
+        "mlx-community/DeepSeek-Coder-V2-Lite-Instruct-4bit-mlx",
+        "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "/Users/kalachanddash/.autoforge-lab/step13_7/models/qwen3_coder_30b_dwq_v2"
+      ]
+    }
+  },
+  "canonical_ingress": {
+    "execution_id": "exec-int-c6b350a8",
+    "status": "COMPLETED",
+    "duration_s": 16.13
+  },
+  "subgates": {
+    "3A_execution_and_iteration_bounds": true,
+    "3B_wall_clock_deadlines_and_tool_timeouts": true,
+    "3C_retry_and_recovery_policy": true,
+    "3D_cancellation_and_terminal_state_integrity": true,
+    "3E_state_integrity_and_execution_isolation": true,
+    "3F_execution_outcomes_and_delivery_integrity": true
+  },
+  "regression_suites": [
+    {
+      "suite": "Gate 3 Bounded Execution & Recovery",
+      "path": "packages/power_engines/tests/test_agent_bounded_execution_recovery.py",
+      "passed": 24,
+      "failed": 0,
+      "duration_s": 4.6,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 1 Inference Provider Alignment",
+      "path": "packages/power_engines/tests/test_agent_inference_alignment.py",
+      "passed": 8,
+      "failed": 0,
+      "duration_s": 6.24,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 2 Tool Sandboxing & Security",
+      "path": "packages/power_engines/tests/test_agent_security_sandboxing.py",
+      "passed": 17,
+      "failed": 0,
+      "duration_s": 0.25,
+      "exit_code": 0
+    },
+    {
+      "suite": "Agent Core & Lifecycle",
+      "path": "packages/power_engines/tests/test_agent_power_engine.py",
+      "passed": 30,
+      "failed": 0,
+      "duration_s": 7.54,
+      "exit_code": 0
+    },
+    {
+      "suite": "Deliverable Packaging & Manifest",
+      "path": "packages/power_engines/tests/test_agent_deliverable_packaging.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 16.75,
+      "exit_code": 0
+    },
+    {
+      "suite": "Agent Production Deployment",
+      "path": "packages/power_engines/tests/test_agent_production_deployment.py",
+      "passed": 14,
+      "failed": 0,
+      "duration_s": 0.43,
+      "exit_code": 0
+    },
+    {
+      "suite": "Customer Deployment Platform",
+      "path": "packages/power_engines/tests/test_customer_deployment.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 0.78,
+      "exit_code": 0
+    },
+    {
+      "suite": "Shared Delivery Platform",
+      "path": "packages/power_engines/tests/test_shared_delivery_platform.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 0.24,
+      "exit_code": 0
+    },
+    {
+      "suite": "Commercial Capability Routing",
+      "path": "packages/composition/tests/test_capability_routing.py",
+      "passed": 26,
+      "failed": 0,
+      "duration_s": 5.73,
+      "exit_code": 0
+    }
+  ],
+  "total_tests_passed": 146,
+  "total_tests_failed": 0
+}

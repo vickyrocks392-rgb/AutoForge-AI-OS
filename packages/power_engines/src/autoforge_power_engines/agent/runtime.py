@@ -27,6 +27,29 @@ from autoforge_power_engines.agent.verifier import AgentVerifier, VerificationRe
 logger = logging.getLogger("autoforge.power_engines.agent.runtime")
 
 
+# ── Cancellation Token ────────────────────────────────────────────────────────
+
+class CancellationToken:
+    """Thread-safe cooperative cancellation token for agent executions."""
+
+    def __init__(self) -> None:
+        import threading
+        self._event = threading.Event()
+        self._reason: Optional[str] = None
+
+    def cancel(self, reason: str = "Execution cancelled by caller") -> None:
+        self._reason = reason
+        self._event.set()
+
+    @property
+    def is_cancelled(self) -> bool:
+        return self._event.is_set()
+
+    @property
+    def reason(self) -> Optional[str]:
+        return self._reason
+
+
 # ── Model Provider Abstraction (B3) ──────────────────────────────────────────
 
 class ModelProvider(ABC):
@@ -39,6 +62,7 @@ class ModelProvider(ABC):
         tools: Optional[List[Dict[str, Any]]] = None,
         temperature: float = 0.2,
         max_tokens: int = 2048,
+        timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Executes a single model completion turn."""
         pass
@@ -58,6 +82,7 @@ class OllamaModelProvider(ModelProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         temperature: float = 0.2,
         max_tokens: int = 2048,
+        timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
         # Enforce frozen inference policy prohibiting Ollama
         raise RuntimeError(
@@ -87,6 +112,7 @@ class GenericHTTPModelProvider(ModelProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         temperature: float = 0.2,
         max_tokens: int = 2048,
+        timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
         base = self.base_url.rstrip("/")
         if base.endswith("/chat/completions"):
@@ -109,13 +135,17 @@ class GenericHTTPModelProvider(ModelProvider):
         if tools:
             payload["tools"] = tools
 
-        resp = requests.post(endpoint, json=payload, headers=headers, timeout=self.timeout)
-        resp.raise_for_status()
-        data = resp.json()
-        choices = data.get("choices", [])
-        if choices:
-            return {"message": choices[0].get("message", {})}
-        return {"message": {}}
+        eff_timeout = timeout if timeout is not None else self.timeout
+        try:
+            resp = requests.post(endpoint, json=payload, headers=headers, timeout=eff_timeout)
+            resp.raise_for_status()
+            data = resp.json()
+            choices = data.get("choices", [])
+            if choices:
+                return {"message": choices[0].get("message", {})}
+            return {"message": {}}
+        except requests.exceptions.Timeout as te:
+            raise TimeoutError(f"Model generation timed out after {eff_timeout:.2f}s") from te
 
 
 # ── Customer Agent Execution Response ────────────────────────────────────────
@@ -150,6 +180,17 @@ class StandaloneAgentRuntime:
         egress_policy: Optional[Any] = None,
     ):
         self.spec = spec
+        # Validate execution limits policy strictly
+        lim = spec.execution_limits
+        if lim.max_iterations < 1 or lim.max_iterations > 50:
+            raise ValueError(f"Invalid max_iterations ({lim.max_iterations}): must be between 1 and 50.")
+        if lim.total_timeout_seconds <= 0.0 or lim.total_timeout_seconds > 600.0:
+            raise ValueError(f"Invalid total_timeout_seconds ({lim.total_timeout_seconds}): must be between 0.1 and 600.0.")
+        if lim.max_tool_calls_per_turn < 1 or lim.max_tool_calls_per_turn > 30:
+            raise ValueError(f"Invalid max_tool_calls_per_turn ({lim.max_tool_calls_per_turn}): must be between 1 and 30.")
+
+        self._active_cancellation_token: Optional[CancellationToken] = None
+
         # SECURITY (SHC-01): real trust-boundary enforcement on the live agent
         # path. Defaults to the platform TrustBoundary so untrusted content is
         # tagged and neutralized even when no caller injects one.
@@ -186,6 +227,11 @@ class StandaloneAgentRuntime:
             retry_policy=spec.retry_policy,
         )
 
+    def cancel(self, reason: str = "Execution cancelled by caller") -> None:
+        """Cooperatively requests cancellation of any active execution."""
+        if self._active_cancellation_token:
+            self._active_cancellation_token.cancel(reason=reason)
+
     def assemble_context(self, session_id: str, current_query: str) -> List[Dict[str, Any]]:
         """Assembles bounded context: system instruction, persistent memory,
         sliding turn history, and user input. (B8)
@@ -198,6 +244,10 @@ class StandaloneAgentRuntime:
         """
         messages: List[Dict[str, Any]] = []
         boundary = self.trust_boundary
+
+        # Validate persistent state integrity before assembling context
+        if self.spec.memory_policy.enabled:
+            self.memory.validate_state_integrity(session_id=session_id)
 
         # 1. System prompt with memory injection (platform-authored authority)
         system_content = self.spec.system_instructions
@@ -243,13 +293,49 @@ class StandaloneAgentRuntime:
         messages.append({"role": "user", "content": user_seg.content})
         return messages
 
-    def run(self, user_input: str, session_id: Optional[str] = None) -> AgentRunResult:
+    def run(
+        self,
+        user_input: str,
+        session_id: Optional[str] = None,
+        cancellation_token: Optional[CancellationToken] = None,
+    ) -> AgentRunResult:
         """
         Executes a single conversational turn through the bounded agent loop.
         """
+        token = cancellation_token or self._active_cancellation_token or CancellationToken()
+        self._active_cancellation_token = token
+
         sess_id = session_id or f"sess-{uuid.uuid4().hex[:8]}"
         exec_id = f"exec-{uuid.uuid4().hex[:8]}"
         sm = AgentStateMachine(execution_id=exec_id, session_id=sess_id)
+
+        # Immediate pre-flight cancellation check
+        if token.is_cancelled:
+            sm.transition_to(AgentExecutionState.CANCELLED, reason=token.reason)
+            final_response_text = f"Execution cancelled before start: {token.reason}"
+            if self.spec.memory_policy.enabled:
+                self.memory.append_message(sess_id, ConversationMessage(role="user", content=user_input))
+                self.memory.append_message(sess_id, ConversationMessage(role="assistant", content=final_response_text))
+                self.memory.record_execution(
+                    execution_id=exec_id,
+                    session_id=sess_id,
+                    status=sm.state.value,
+                    iterations=0,
+                    tool_calls_count=0,
+                    telemetry=sm.telemetry.model_dump(),
+                    completed=True,
+                )
+            return AgentRunResult(
+                execution_id=exec_id,
+                session_id=sess_id,
+                final_response=final_response_text,
+                status=sm.state.value,
+                iterations=0,
+                tool_calls_executed=0,
+                repair_count=0,
+                telemetry=sm.telemetry,
+                tool_traces=[],
+            )
 
         # Record user message in persistent state
         if self.spec.memory_policy.enabled:
@@ -270,11 +356,24 @@ class StandaloneAgentRuntime:
         tool_traces: List[Dict[str, Any]] = []
         final_response_text = ""
 
+        # Loop and cycle trackers
+        last_assistant_content: Optional[str] = None
+        consecutive_identical_responses = 0
+        tool_call_history: List[Tuple[str, str]] = []
+
         try:
             sm.transition_to(AgentExecutionState.THINKING)
             while current_iteration < max_iter:
-                # Check timeout budget
-                if (time.time() - start_time) > timeout_limit:
+                # 1. Cancellation check
+                if token.is_cancelled:
+                    sm.transition_to(AgentExecutionState.CANCELLED, reason=token.reason)
+                    final_response_text = f"Execution cancelled: {token.reason}"
+                    break
+
+                # 2. Check timeout budget
+                elapsed = time.time() - start_time
+                remaining_budget = timeout_limit - elapsed
+                if remaining_budget <= 0.0:
                     sm.transition_to(AgentExecutionState.TIMEOUT, reason=f"Execution exceeded {timeout_limit}s timeout")
                     final_response_text = f"Execution timed out after {timeout_limit} seconds."
                     break
@@ -284,17 +383,56 @@ class StandaloneAgentRuntime:
 
                 # ── Model Call ───────────────────────────────────────────────
                 sm.telemetry.model_call_count += 1
-                raw_response = self.model_provider.generate_turn(
-                    messages=context_messages,
-                    tools=tool_schemas if total_tool_calls < max_tools else None,
-                    temperature=self.spec.model_config_spec.temperature,
-                    max_tokens=self.spec.model_config_spec.max_tokens,
-                )
+                model_timeout = min(self.spec.model_config_spec.timeout_seconds, remaining_budget)
+                try:
+                    try:
+                        raw_response = self.model_provider.generate_turn(
+                            messages=context_messages,
+                            tools=tool_schemas if total_tool_calls < max_tools else None,
+                            temperature=self.spec.model_config_spec.temperature,
+                            max_tokens=self.spec.model_config_spec.max_tokens,
+                            timeout=model_timeout,
+                        )
+                    except TypeError as te:
+                        if "timeout" in str(te):
+                            raw_response = self.model_provider.generate_turn(
+                                messages=context_messages,
+                                tools=tool_schemas if total_tool_calls < max_tools else None,
+                                temperature=self.spec.model_config_spec.temperature,
+                                max_tokens=self.spec.model_config_spec.max_tokens,
+                            )
+                        else:
+                            raise
+                except TimeoutError as te:
+                    sm.transition_to(AgentExecutionState.TIMEOUT, reason=str(te))
+                    final_response_text = f"Execution timed out during model call: {te}"
+                    break
+
+                # Post model-call cancellation check
+                if token.is_cancelled:
+                    sm.transition_to(AgentExecutionState.CANCELLED, reason=token.reason)
+                    final_response_text = f"Execution cancelled: {token.reason}"
+                    break
 
                 # ── Tool-Call Parsing (B9) ───────────────────────────────────
                 parse_result: ParseResult = RobustToolCallParser.parse(raw_response)
 
                 if not parse_result.is_tool_call:
+                    # Check for non-progress loop
+                    curr_content = (parse_result.assistant_content or "").strip()
+                    if curr_content and curr_content == last_assistant_content:
+                        consecutive_identical_responses += 1
+                        if consecutive_identical_responses >= 2:
+                            sm.transition_to(
+                                AgentExecutionState.FAILED,
+                                reason="Non-progress loop detected: model produced repeated identical responses"
+                            )
+                            final_response_text = "Execution failed: model loop detected without progress."
+                            break
+                    else:
+                        consecutive_identical_responses = 0
+                        last_assistant_content = curr_content
+
                     # Final response received
                     final_response_text = parse_result.assistant_content
                     sm.transition_to(AgentExecutionState.VERIFYING)
@@ -305,21 +443,24 @@ class StandaloneAgentRuntime:
                         sm.telemetry.errors.append(f"Verification failure: {v_res.violation_code}")
                         sm.transition_to(AgentExecutionState.FAILED, reason=v_res.violation_code)
                     break
-                elif total_tool_calls >= max_tools:
-                    # Tool budget reached; if model emitted a final calculation, execute it
-                    if parse_result.tool_calls:
-                        last_tc = parse_result.tool_calls[0]
-                        last_res = self.tool_registry.execute(last_tc.tool_name, last_tc.arguments)
-                        tool_traces.append({"tool": last_tc.tool_name, "arguments": last_tc.arguments, "result": last_res, "duration_ms": 0.0})
-                        ans = last_res.get("result", last_res.get("response", str(last_res)))
-                        final_response_text = f"Calculation completed: {ans}" if "result" in last_res else f"Analysis completed: {ans}"
-                    else:
-                        final_response_text = parse_result.assistant_content.strip() or "Analysis completed based on gathered tool observations."
-                    sm.transition_to(AgentExecutionState.VERIFYING)
-                    sm.transition_to(AgentExecutionState.COMPLETED, reason="Tool budget reached, execution completed")
+
+                # Check tool-call cycle detection
+                cycle_detected = False
+                for tc in parse_result.tool_calls:
+                    tc_sig = (tc.tool_name, json.dumps(tc.arguments, sort_keys=True))
+                    if tool_call_history.count(tc_sig) >= 3:
+                        sm.transition_to(
+                            AgentExecutionState.FAILED,
+                            reason=f"Tool-call cycle detected: repeated identical call to '{tc.tool_name}'"
+                        )
+                        final_response_text = f"Execution failed: tool-call cycle detected for tool '{tc.tool_name}'."
+                        cycle_detected = True
+                        break
+                    tool_call_history.append(tc_sig)
+
+                if cycle_detected:
                     break
 
-                # ── Process Tool Calls ───────────────────────────────────────
                 # Append model thought to context
                 raw_msg = raw_response.get("message", {})
                 assistant_msg: Dict[str, Any] = {"role": "assistant", "content": parse_result.assistant_content or ""}
@@ -327,9 +468,36 @@ class StandaloneAgentRuntime:
                     assistant_msg["tool_calls"] = raw_msg["tool_calls"]
                 context_messages.append(assistant_msg)
 
+                # ── Process Tool Calls ───────────────────────────────────────
                 for tool_call in parse_result.tool_calls:
+                    # Cancellation check
+                    if token.is_cancelled:
+                        sm.transition_to(AgentExecutionState.CANCELLED, reason=token.reason)
+                        final_response_text = f"Execution cancelled: {token.reason}"
+                        break
+
+                    # Budget checks
                     if total_tool_calls >= max_tools:
                         sm.telemetry.errors.append(f"Max tool calls limit ({max_tools}) reached.")
+                        obs_err = {"error": f"Tool budget ({max_tools}) reached. No further tool calls permitted.", "status": "error"}
+                        obs_dict = {
+                            "role": "tool",
+                            "name": tool_call.tool_name,
+                            "content": json.dumps(obs_err),
+                        }
+                        if tool_call.call_id:
+                            obs_dict["tool_call_id"] = tool_call.call_id
+                        context_messages.append(obs_dict)
+                        continue
+
+                    # Deadline check before tool call
+                    rem_time = timeout_limit - (time.time() - start_time)
+                    if rem_time <= 0.0:
+                        sm.transition_to(
+                            AgentExecutionState.TIMEOUT,
+                            reason=f"Execution deadline ({timeout_limit}s) expired before tool '{tool_call.tool_name}'"
+                        )
+                        final_response_text = f"Execution timed out before tool '{tool_call.tool_name}'."
                         break
 
                     sm.transition_to(AgentExecutionState.TOOL_PENDING)
@@ -340,40 +508,37 @@ class StandaloneAgentRuntime:
                         if v_call.requires_repair and repair_count < 1:
                             repair_count += 1
                             sm.telemetry.retry_count += 1
-                            # Inject repair prompt to guide model
                             context_messages.append({"role": "user", "content": v_call.repair_prompt or "Please repair."})
                             sm.transition_to(AgentExecutionState.THINKING)
                             break
                         else:
-                            # Rejection / failure
                             obs_err = {"error": f"Tool call validation failed: {v_call.violation_code}", "details": v_call.details}
-                            context_messages.append({
+                            obs_dict = {
                                 "role": "tool",
                                 "name": tool_call.tool_name,
                                 "content": json.dumps(obs_err),
-                            })
+                            }
+                            if tool_call.call_id:
+                                obs_dict["tool_call_id"] = tool_call.call_id
+                            context_messages.append(obs_dict)
                             continue
 
-                    # 2. Execute Tool (B4)
-                    #
-                    # SECURITY (SHG-01): the specification's allowed_tools is the
-                    # capability declaration and is enforced HERE, immediately
-                    # before the side effect. Previously the allowlist only
-                    # controlled which schemas were advertised, so a model could
-                    # emit a tool call for any registered tool and reach real
-                    # capabilities (e.g. outbound HTTP) that were never granted.
+                    # 2. Execute Tool (B4) with timeout & retry handling
                     sm.transition_to(AgentExecutionState.EXECUTING_TOOL)
-                    t0 = time.perf_counter()
+                    tool_cfg = self.tool_registry.get_tool_config(tool_call.tool_name)
+                    configured_tool_timeout = tool_cfg.timeout_seconds if tool_cfg else 10.0
+                    effective_tool_timeout = min(configured_tool_timeout, rem_time)
 
+                    t0 = time.perf_counter()
                     tool_result = self.tool_registry.execute_tool(
                         tool_call.tool_name,
                         tool_call.arguments,
                         allowed_tools=self.spec.allowed_tools,
+                        timeout_seconds=effective_tool_timeout,
                     )
                     duration_ms = (time.perf_counter() - t0) * 1000.0
 
-                    # A blocked authorization is a security outcome, not a tool
-                    # result. It must never be reported as a successful execution.
+                    # Blocked authorization
                     if isinstance(tool_result, dict) and tool_result.get("blocked_by"):
                         sm.telemetry.errors.append(
                             f"Tool '{tool_call.tool_name}' blocked by guardrail: "
@@ -398,6 +563,54 @@ class StandaloneAgentRuntime:
                         )
                         continue
 
+                    # Tool Timeout check
+                    if isinstance(tool_result, dict) and tool_result.get("status") == "timeout":
+                        sm.telemetry.errors.append(tool_result.get("error", "Tool timeout"))
+                        if (time.time() - start_time) >= timeout_limit:
+                            sm.transition_to(
+                                AgentExecutionState.TIMEOUT,
+                                reason=f"Execution deadline ({timeout_limit}s) expired during tool '{tool_call.tool_name}'"
+                            )
+                            final_response_text = f"Execution timed out during tool '{tool_call.tool_name}'."
+                            break
+
+                    # Retry policy for retryable errors
+                    tool_retries = 0
+                    while (
+                        isinstance(tool_result, dict)
+                        and tool_result.get("status") == "error"
+                        and not tool_result.get("blocked_by")
+                        and not tool_result.get("side_effect_uncertain")
+                        and self.tool_registry.is_tool_idempotent(tool_call.tool_name)
+                        and tool_retries < self.spec.retry_policy.max_retries
+                    ):
+                        backoff = self.spec.retry_policy.backoff_seconds
+                        # Check remaining budget allows retry
+                        if (time.time() - start_time) + backoff >= timeout_limit:
+                            break
+                        if token.is_cancelled:
+                            break
+                        tool_retries += 1
+                        sm.telemetry.retry_count += 1
+                        if backoff > 0.0:
+                            time.sleep(backoff)
+                        rem_retry_time = timeout_limit - (time.time() - start_time)
+                        if rem_retry_time <= 0.0:
+                            break
+                        eff_retry_to = min(configured_tool_timeout, rem_retry_time)
+                        tool_result = self.tool_registry.execute_tool(
+                            tool_call.tool_name,
+                            tool_call.arguments,
+                            allowed_tools=self.spec.allowed_tools,
+                            timeout_seconds=eff_retry_to,
+                        )
+
+                    # Post tool-call cancellation check
+                    if token.is_cancelled:
+                        sm.transition_to(AgentExecutionState.CANCELLED, reason=token.reason)
+                        final_response_text = f"Execution cancelled: {token.reason}"
+                        break
+
                     total_tool_calls += 1
                     sm.telemetry.tool_call_count = total_tool_calls
 
@@ -417,7 +630,7 @@ class StandaloneAgentRuntime:
                     # 4. Observe & Continuation (B2)
                     sm.transition_to(AgentExecutionState.OBSERVING)
                     obs_content = json.dumps(tool_result)
-                    obs_dict: Dict[str, Any] = {
+                    obs_dict = {
                         "role": "tool",
                         "name": tool_call.tool_name,
                         "content": obs_content,
@@ -426,12 +639,17 @@ class StandaloneAgentRuntime:
                         obs_dict["tool_call_id"] = tool_call.call_id
                     context_messages.append(obs_dict)
 
+                if sm.is_terminal():
+                    break
+
                 # Loop continues back to THINKING
-                if not sm.is_terminal():
-                    sm.transition_to(AgentExecutionState.THINKING)
+                sm.transition_to(AgentExecutionState.THINKING)
 
             if not sm.is_terminal() and current_iteration >= max_iter:
-                sm.transition_to(AgentExecutionState.FAILED, reason="Maximum iterations exhausted without terminal response")
+                sm.transition_to(
+                    AgentExecutionState.FAILED,
+                    reason="Maximum iterations exhausted without terminal response"
+                )
                 final_response_text = f"Agent stopped: maximum iteration limit ({max_iter}) exhausted."
 
         except Exception as ex:
@@ -440,6 +658,8 @@ class StandaloneAgentRuntime:
             if not sm.is_terminal():
                 sm.transition_to(AgentExecutionState.FAILED, reason=str(ex))
             final_response_text = f"Execution failed: {ex}"
+        finally:
+            self._active_cancellation_token = None
 
         # Record assistant answer in persistent state
         if self.spec.memory_policy.enabled:

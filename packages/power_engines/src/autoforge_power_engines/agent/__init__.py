@@ -43,6 +43,7 @@ from autoforge_power_engines.agent.runtime import (
     OllamaModelProvider,
     GenericHTTPModelProvider,
     AgentRunResult,
+    CancellationToken,
 )
 from autoforge_power_engines.agent.generator import (
     StandaloneCustomerAgentGenerator,
@@ -82,6 +83,7 @@ __all__ = [
     "OllamaModelProvider",
     "GenericHTTPModelProvider",
     "AgentRunResult",
+    "CancellationToken",
     "StandaloneCustomerAgentGenerator",
     "CustomAIAgentPowerEngine",
 ]
