@@ -89,6 +89,20 @@ class DeploymentBuilder:
                 for so in svc.security_opt:
                     lines.append(f"      - {so}")
 
+            if svc.cap_drop:
+                lines.append("    cap_drop:")
+                for cap in svc.cap_drop:
+                    lines.append(f"      - {cap}")
+
+            if svc.cpu_limit or svc.memory_limit:
+                lines.append("    deploy:")
+                lines.append("      resources:")
+                lines.append("        limits:")
+                if svc.cpu_limit:
+                    lines.append(f"          cpus: '{svc.cpu_limit}'")
+                if svc.memory_limit:
+                    lines.append(f"          memory: {svc.memory_limit}")
+
             if svc.read_only_root:
                 lines.append("    read_only: true")
 
@@ -111,7 +125,7 @@ class DeploymentBuilder:
         entrypoint_cmd: str = "python3 src/app.py",
         expose_port: int = 8000,
     ) -> str:
-        """Generates standard non-root customer Dockerfile."""
+        """Generates standard non-root customer Dockerfile with health checks."""
         cmd_parts = json.dumps(entrypoint_cmd.split())
         return f"""FROM {base_image}
 
@@ -128,11 +142,14 @@ COPY config/ /app/config/
 COPY artifacts/ /app/artifacts/
 
 # Note: Persistent customer runtime data is mounted at runtime via volume, not baked into the image
-RUN mkdir -p /app/data/logs /app/data/config && chown -R appuser:appuser /app
+RUN mkdir -p /app/data/logs /app/data/config /app/data/state /app/data/workspace && chown -R appuser:appuser /app
 
 USER appuser
 
 EXPOSE {expose_port}
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \\
+  CMD python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:{expose_port}/health').read()" || exit 1
 
 CMD {cmd_parts}
 """

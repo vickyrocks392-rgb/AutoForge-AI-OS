@@ -145,6 +145,9 @@ class ServiceDefinition(BaseModel):
     restart_policy: RestartPolicy = Field(default=RestartPolicy.UNLESS_STOPPED, description="Restart policy")
     extra_hosts: List[str] = Field(default_factory=list, description="Extra host-to-IP mappings")
     security_opt: List[str] = Field(default_factory=lambda: ["no-new-privileges:true"], description="Security options")
+    cap_drop: List[str] = Field(default_factory=lambda: ["ALL"], description="Linux capabilities to drop")
+    cpu_limit: Optional[str] = Field(default=None, description="CPU limit (e.g. '2.0')")
+    memory_limit: Optional[str] = Field(default=None, description="Memory limit (e.g. '2048M')")
     read_only_root: bool = Field(default=False, description="Whether root filesystem is read-only")
     health_check: Optional[HealthCheckSpec] = Field(default=None, description="Service-level health check")
 

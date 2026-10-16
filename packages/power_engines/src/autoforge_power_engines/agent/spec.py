@@ -278,6 +278,10 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
                 ],
                 networks=["agent_network"],
                 extra_hosts=["host.docker.internal:host-gateway"],
+                security_opt=["no-new-privileges:true"],
+                cap_drop=["ALL"],
+                cpu_limit="2.0",
+                memory_limit="2048M",
             )
         }
 
@@ -307,7 +311,6 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
             "MODEL_PROVIDER": self.model_config_spec.provider,
             "MODEL_NAME": self.model_config_spec.model_name,
             "LLM_BASE_URL": self.model_config_spec.base_url,
-            "OLLAMA_BASE_URL": self.model_config_spec.base_url,
             "MAX_ITERATIONS": str(self.execution_limits.max_iterations),
             "MAX_TOOL_CALLS": str(self.execution_limits.max_tool_calls_per_turn),
             "REQUEST_TIMEOUT": str(int(self.execution_limits.total_timeout_seconds)),

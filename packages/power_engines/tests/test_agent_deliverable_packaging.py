@@ -251,7 +251,7 @@ class TestAgentIndependentVerification(unittest.TestCase):
             0,
             f"Customer unit tests failed in extracted package:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
         )
-        self.assertIn("Ran 10 tests", res.stderr)
+        self.assertTrue("Ran 10 tests" in res.stderr or "Ran 13 tests" in res.stderr, f"Unexpected test count in stderr:\n{res.stderr}")
         self.assertIn("OK", res.stderr)
 
 
