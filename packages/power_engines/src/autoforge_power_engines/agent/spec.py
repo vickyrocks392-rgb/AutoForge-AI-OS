@@ -22,6 +22,11 @@ from autoforge_power_engines.delivery.spec import (
     RestartPolicy,
     HealthCheckSpec,
 )
+from autoforge_power_engines.agent.archetypes import (
+    AgentArchetype,
+    AgentArchetypeContract,
+    get_archetype_contract,
+)
 
 
 class ToolRiskLevel(str, Enum):
@@ -133,6 +138,8 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
     require_api: bool = Field(default=True, description="Include customer REST API")
     host: str = Field(default="127.0.0.1", description="Localhost binding")
     port: int = Field(default=8000, description="Customer API port")
+    archetype: Optional[AgentArchetype] = Field(default=None, description="Optional agent archetype classification")
+    archetype_contract: Optional[AgentArchetypeContract] = Field(default=None, description="Authoritative archetype contract")
 
     @model_validator(mode="before")
     @classmethod
@@ -143,6 +150,12 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
                 data["project_description"] = f"Customer AI Agent: {purpose}"
             if "desired_assistant_behavior" not in data or not data["desired_assistant_behavior"]:
                 data["desired_assistant_behavior"] = data.get("system_instructions", "Helpful assistant")
+            if "archetype" in data and data["archetype"]:
+                contract = get_archetype_contract(data["archetype"])
+                data["archetype"] = contract.archetype
+                data["archetype_contract"] = contract
+                if "allowed_tools" not in data or data["allowed_tools"] is None:
+                    data["allowed_tools"] = list(contract.authorized_tools)
         return data
 
     @model_validator(mode="after")
@@ -153,7 +166,17 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
         if not self.safety_constraints.deny_arbitrary_python:
             raise ValueError("Security violation: deny_arbitrary_python must be True. Arbitrary code eval is forbidden.")
 
-        # 2. Check that allowed_tools does not contain forbidden dangerous tools
+        # 2. Check archetype tool authorization and privilege confinement
+        if self.archetype_contract:
+            authorized_set = set(self.archetype_contract.authorized_tools)
+            for t in self.allowed_tools:
+                if t not in authorized_set:
+                    raise ValueError(
+                        f"Archetype privilege violation: Tool '{t}' is not authorized for archetype '{self.archetype.value}'. "
+                        f"Authorized tools: {self.archetype_contract.authorized_tools}"
+                    )
+
+        # 3. Check that allowed_tools does not contain forbidden dangerous tools
         forbidden_tools = {"bash", "sh", "shell", "exec", "system", "terminal", "eval"}
         for t in self.allowed_tools:
             if t.lower() in forbidden_tools:
@@ -336,5 +359,7 @@ class CustomerAgentSpecification(CustomerProjectSpecification):
                 "agent_purpose": self.agent_purpose,
                 "model_name": self.model_config_spec.model_name,
                 "allowed_tools": self.allowed_tools,
+                "archetype": self.archetype.value if self.archetype else None,
+                "archetype_contract_version": self.archetype_contract.contract_version if self.archetype_contract else None,
             }
         )

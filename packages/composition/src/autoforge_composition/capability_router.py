@@ -169,6 +169,8 @@ def _base_spec_kwargs(
     """
     custom = dict(config.get("custom_parameters") or {})
     custom.setdefault("project_id", project_id)
+    if "archetype" in config:
+        custom.setdefault("archetype", config["archetype"])
     if request_text:
         custom.setdefault("request_text", request_text)
 

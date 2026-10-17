@@ -184,6 +184,13 @@ class StandaloneCustomerAgentGenerator(PowerEngineDeploymentProvider):
             "memory_enabled": spec.memory_policy.enabled,
             "allowed_tools": spec.allowed_tools,
         }
+        if spec.archetype:
+            settings["archetype"] = spec.archetype.value
+            if spec.archetype_contract:
+                settings["archetype_contract_version"] = spec.archetype_contract.contract_version
+                (self.delivery_dir / "config" / "archetype.json").write_text(
+                    spec.archetype_contract.model_dump_json(indent=2), encoding="utf-8"
+                )
         (self.delivery_dir / "config" / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
 
         # tools.json

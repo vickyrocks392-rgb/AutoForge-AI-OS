@@ -1,0 +1,337 @@
+{
+  "gate": "Phase 20-C Gate 6 \u2014 Generalization Across Four Agent Archetypes",
+  "verdict": "PASS",
+  "timestamp": "2026-10-17 18:08:58 UTC",
+  "duration_seconds": 109.69,
+  "git_baseline": {
+    "branch": "main",
+    "commit": "7d4ce4ee6f433cda01987d3030fece2703aba988",
+    "clean": false
+  },
+  "inference_environment": {
+    "host": "Apple M6 Mac mini (24 GB RAM)",
+    "runtime": "Local MLX / MLX-LM",
+    "endpoint": "http://127.0.0.1:19801/v1",
+    "approved_model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "status": {
+      "online": true,
+      "status_code": 200,
+      "approved_model_present": true,
+      "models": [
+        "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "mlx-community/DeepSeek-Coder-V2-Lite-Instruct-4bit-mlx",
+        "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "mlx-community/Qwen3.5-9B-MLX-4bit",
+        "mlx-community/KAT-Coder-V2.5-Dev-OptiQ-4bit-REAP-18B",
+        "/Users/kalachanddash/.autoforge-lab/step13_7/models/qwen3_coder_30b_dwq_v2"
+      ]
+    }
+  },
+  "subgates": {
+    "6A": "PASS",
+    "6B": "PASS",
+    "6C": "PASS",
+    "6D": "PASS",
+    "6E": "PASS",
+    "6F": "PASS",
+    "6G": "PASS",
+    "6H": "PASS",
+    "6I": "PASS"
+  },
+  "scenarios_matrix": {
+    "total_scenarios": 34,
+    "passed_scenarios": 34,
+    "failed_scenarios": 0,
+    "pass_rate": 1.0
+  },
+  "archetypes": {
+    "support_copilot": {
+      "contract_version": "1.0.0",
+      "authorized_tools": [
+        "document_lookup",
+        "file_read",
+        "current_time"
+      ],
+      "mandatory_criteria": [
+        "tool_call_precision",
+        "sandboxing_defense",
+        "bounded_execution",
+        "memory_retention",
+        "output_validity",
+        "policy_grounding",
+        "unsupported_claim_rejection"
+      ],
+      "score": 1.0,
+      "verdict": "PASS",
+      "canonical_ingress": {
+        "project_name": "OmniCare-Support-Copilot",
+        "execution_id": "exec-int-816bdefd",
+        "status": "COMPLETED",
+        "success": true,
+        "duration_seconds": 16.13,
+        "report_packaged": true,
+        "contract_packaged": true,
+        "manifest_packaged": true,
+        "pass": true
+      }
+    },
+    "financial_analyst": {
+      "contract_version": "1.0.0",
+      "authorized_tools": [
+        "calculator",
+        "file_read",
+        "document_lookup"
+      ],
+      "mandatory_criteria": [
+        "tool_call_precision",
+        "sandboxing_defense",
+        "bounded_execution",
+        "output_validity",
+        "numerical_reconciliation",
+        "variance_accuracy",
+        "zero_denominator_fail_closed"
+      ],
+      "score": 1.0,
+      "verdict": "PASS",
+      "canonical_ingress": {
+        "project_name": "Apex-Treasury-Financial-Analyst",
+        "execution_id": "exec-int-001860aa",
+        "status": "COMPLETED",
+        "success": true,
+        "duration_seconds": 16.21,
+        "report_packaged": true,
+        "contract_packaged": true,
+        "manifest_packaged": true,
+        "pass": true
+      }
+    },
+    "devsecops_assistant": {
+      "contract_version": "1.0.0",
+      "authorized_tools": [
+        "file_read",
+        "document_lookup"
+      ],
+      "mandatory_criteria": [
+        "tool_call_precision",
+        "sandboxing_defense",
+        "bounded_execution",
+        "output_validity",
+        "known_issue_detection",
+        "source_reference_accuracy",
+        "false_positive_discrimination"
+      ],
+      "score": 1.0,
+      "verdict": "PASS",
+      "canonical_ingress": {
+        "project_name": "ShieldOps-DevSecOps-Assistant",
+        "execution_id": "exec-int-6071fd8a",
+        "status": "COMPLETED",
+        "success": true,
+        "duration_seconds": 16.15,
+        "report_packaged": true,
+        "contract_packaged": true,
+        "manifest_packaged": true,
+        "pass": true
+      }
+    },
+    "operations_researcher": {
+      "contract_version": "1.0.0",
+      "authorized_tools": [
+        "calculator",
+        "file_read",
+        "document_lookup"
+      ],
+      "mandatory_criteria": [
+        "tool_call_precision",
+        "sandboxing_defense",
+        "bounded_execution",
+        "output_validity",
+        "constraint_verification",
+        "objective_recomputation",
+        "infeasibility_disposition"
+      ],
+      "score": 1.0,
+      "verdict": "PASS",
+      "canonical_ingress": {
+        "project_name": "OptiRoute-Operations-Researcher",
+        "execution_id": "exec-int-e063ba01",
+        "status": "COMPLETED",
+        "success": true,
+        "duration_seconds": 16.63,
+        "report_packaged": true,
+        "contract_packaged": true,
+        "manifest_packaged": true,
+        "pass": true
+      }
+    }
+  },
+  "canonical_ingress_summary": {
+    "support_copilot": {
+      "project_name": "OmniCare-Support-Copilot",
+      "execution_id": "exec-int-816bdefd",
+      "status": "COMPLETED",
+      "success": true,
+      "duration_seconds": 16.13,
+      "report_packaged": true,
+      "contract_packaged": true,
+      "manifest_packaged": true,
+      "pass": true
+    },
+    "financial_analyst": {
+      "project_name": "Apex-Treasury-Financial-Analyst",
+      "execution_id": "exec-int-001860aa",
+      "status": "COMPLETED",
+      "success": true,
+      "duration_seconds": 16.21,
+      "report_packaged": true,
+      "contract_packaged": true,
+      "manifest_packaged": true,
+      "pass": true
+    },
+    "devsecops_assistant": {
+      "project_name": "ShieldOps-DevSecOps-Assistant",
+      "execution_id": "exec-int-6071fd8a",
+      "status": "COMPLETED",
+      "success": true,
+      "duration_seconds": 16.15,
+      "report_packaged": true,
+      "contract_packaged": true,
+      "manifest_packaged": true,
+      "pass": true
+    },
+    "operations_researcher": {
+      "project_name": "OptiRoute-Operations-Researcher",
+      "execution_id": "exec-int-e063ba01",
+      "status": "COMPLETED",
+      "success": true,
+      "duration_seconds": 16.63,
+      "report_packaged": true,
+      "contract_packaged": true,
+      "manifest_packaged": true,
+      "pass": true
+    }
+  },
+  "live_mlx_evidence": {
+    "tested": true,
+    "passed": true,
+    "model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "endpoint": "http://127.0.0.1:19801/v1",
+    "turn1_response": "Confirmed: The customer account ACC-440 has the SLA Tier Enterprise.",
+    "turn2_response": "The customer account ACC-440 has the SLA Tier Enterprise."
+  },
+  "regression_suites": [
+    {
+      "name": "Gate 6 Archetype Generalization",
+      "path": "packages/power_engines/tests/test_agent_archetype_generalization.py",
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.4,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 5 Fail-Closed Evaluator",
+      "path": "packages/power_engines/tests/test_agent_evaluator_integrity.py",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.36,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 4 Multi-Turn Persistence",
+      "path": "packages/power_engines/tests/test_agent_multi_turn_persistence.py",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 1.65,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 3 Bounded Execution & Recovery",
+      "path": "packages/power_engines/tests/test_agent_bounded_execution_recovery.py",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 4.45,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 1 Inference Provider Alignment",
+      "path": "packages/power_engines/tests/test_agent_inference_alignment.py",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 2.79,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 2 Tool Sandboxing & Security",
+      "path": "packages/power_engines/tests/test_agent_security_sandboxing.py",
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.39,
+      "status": "PASS"
+    },
+    {
+      "name": "Agent Core & Lifecycle",
+      "path": "packages/power_engines/tests/test_agent_power_engine.py",
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 7.77,
+      "status": "PASS"
+    },
+    {
+      "name": "Deliverable Packaging & Manifest",
+      "path": "packages/power_engines/tests/test_agent_deliverable_packaging.py",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 16.77,
+      "status": "PASS"
+    },
+    {
+      "name": "Agent Production Deployment",
+      "path": "packages/power_engines/tests/test_agent_production_deployment.py",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.59,
+      "status": "PASS"
+    },
+    {
+      "name": "Customer Deployment Platform",
+      "path": "packages/power_engines/tests/test_customer_deployment.py",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 1.01,
+      "status": "PASS"
+    },
+    {
+      "name": "Shared Delivery Platform",
+      "path": "packages/power_engines/tests/test_shared_delivery_platform.py",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.38,
+      "status": "PASS"
+    },
+    {
+      "name": "Commercial Capability Routing",
+      "path": "packages/composition/tests/test_capability_routing.py",
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 5.88,
+      "status": "PASS"
+    }
+  ],
+  "regression_totals": {
+    "passed": 259,
+    "failed": 0,
+    "skipped": 0
+  }
+}

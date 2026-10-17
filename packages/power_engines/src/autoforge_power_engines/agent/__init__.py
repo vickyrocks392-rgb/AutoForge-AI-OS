@@ -63,6 +63,15 @@ from autoforge_power_engines.agent.evaluator import (
     DEFAULT_AGENT_CRITERIA,
     StandaloneAgentEvaluator,
 )
+from autoforge_power_engines.agent.archetypes import (
+    AgentArchetype,
+    AgentArchetypeContract,
+    ARCHETYPE_CONTRACT_VERSION,
+    ARCHETYPE_CONTRACTS,
+    get_archetype_contract,
+    get_archetype_criteria,
+    normalize_archetype,
+)
 
 __all__ = [
     "CustomerAgentSpecification",
@@ -108,4 +117,11 @@ __all__ = [
     "AgentEvaluationReport",
     "DEFAULT_AGENT_CRITERIA",
     "StandaloneAgentEvaluator",
+    "AgentArchetype",
+    "AgentArchetypeContract",
+    "ARCHETYPE_CONTRACT_VERSION",
+    "ARCHETYPE_CONTRACTS",
+    "get_archetype_contract",
+    "get_archetype_criteria",
+    "normalize_archetype",
 ]
