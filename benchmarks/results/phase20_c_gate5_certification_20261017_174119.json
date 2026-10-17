@@ -1,0 +1,142 @@
+{
+  "gate": "Phase 20-C Gate 5",
+  "title": "Fail-Closed Agent Evaluator Certification",
+  "disposition": "PASS",
+  "timestamp_utc": "2026-10-17T17:42:26.334441+00:00",
+  "git_baseline": {
+    "branch": "main",
+    "commit": "a1eff29757c2a7f524461d235db874eeb151aaf7",
+    "clean": false
+  },
+  "live_inference": {
+    "endpoint": "http://127.0.0.1:19801/v1",
+    "approved_model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "status": {
+      "online": true,
+      "status_code": 200,
+      "approved_model_present": true,
+      "models": [
+        "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "mlx-community/DeepSeek-Coder-V2-Lite-Instruct-4bit-mlx",
+        "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "mlx-community/Qwen3.5-9B-MLX-4bit",
+        "mlx-community/KAT-Coder-V2.5-Dev-OptiQ-4bit-REAP-18B",
+        "/Users/kalachanddash/.autoforge-lab/step13_7/models/qwen3_coder_30b_dwq_v2"
+      ]
+    },
+    "live_turn_evidence": {
+      "tested": true,
+      "passed": true,
+      "turn1_response": "The transaction batch code is 7890.",
+      "turn2_response": "The transaction batch code is 7890."
+    }
+  },
+  "canonical_ingress": {
+    "execution_id": "exec-int-b1e475e8",
+    "status": "COMPLETED",
+    "duration_s": 16.22,
+    "has_packaged_evaluation_report": true
+  },
+  "subgates": {
+    "5A_canonical_evaluation_contract": true,
+    "5B_missing_and_invalid_evidence": true,
+    "5C_deterministic_correctness_and_threshold_boundaries": true,
+    "5D_adversarial_evaluator_integrity": true,
+    "5E_lifecycle_and_outcome_enforcement": true,
+    "5F_cross_component_and_regression_compatibility": true,
+    "5G_canonical_e2e_certification": true
+  },
+  "adversarial_scenarios_evaluated": 24,
+  "regression_suites": [
+    {
+      "suite": "Gate 5 Fail-Closed Evaluator",
+      "path": "packages/power_engines/tests/test_agent_evaluator_integrity.py",
+      "passed": 24,
+      "failed": 0,
+      "duration_s": 0.36,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 4 Multi-Turn Persistence",
+      "path": "packages/power_engines/tests/test_agent_multi_turn_persistence.py",
+      "passed": 24,
+      "failed": 0,
+      "duration_s": 1.68,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 3 Bounded Execution & Recovery",
+      "path": "packages/power_engines/tests/test_agent_bounded_execution_recovery.py",
+      "passed": 24,
+      "failed": 0,
+      "duration_s": 4.44,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 1 Inference Provider Alignment",
+      "path": "packages/power_engines/tests/test_agent_inference_alignment.py",
+      "passed": 8,
+      "failed": 0,
+      "duration_s": 6.62,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 2 Tool Sandboxing & Security",
+      "path": "packages/power_engines/tests/test_agent_security_sandboxing.py",
+      "passed": 17,
+      "failed": 0,
+      "duration_s": 0.45,
+      "exit_code": 0
+    },
+    {
+      "suite": "Agent Core & Lifecycle",
+      "path": "packages/power_engines/tests/test_agent_power_engine.py",
+      "passed": 30,
+      "failed": 0,
+      "duration_s": 7.95,
+      "exit_code": 0
+    },
+    {
+      "suite": "Deliverable Packaging & Manifest",
+      "path": "packages/power_engines/tests/test_agent_deliverable_packaging.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 16.85,
+      "exit_code": 0
+    },
+    {
+      "suite": "Agent Production Deployment",
+      "path": "packages/power_engines/tests/test_agent_production_deployment.py",
+      "passed": 14,
+      "failed": 0,
+      "duration_s": 0.6,
+      "exit_code": 0
+    },
+    {
+      "suite": "Customer Deployment Platform",
+      "path": "packages/power_engines/tests/test_customer_deployment.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 1.05,
+      "exit_code": 0
+    },
+    {
+      "suite": "Shared Delivery Platform",
+      "path": "packages/power_engines/tests/test_shared_delivery_platform.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 0.39,
+      "exit_code": 0
+    },
+    {
+      "suite": "Commercial Capability Routing",
+      "path": "packages/composition/tests/test_capability_routing.py",
+      "passed": 26,
+      "failed": 0,
+      "duration_s": 5.83,
+      "exit_code": 0
+    }
+  ],
+  "total_passed": 194,
+  "total_failed": 0
+}

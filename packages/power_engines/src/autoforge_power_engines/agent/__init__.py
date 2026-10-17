@@ -52,6 +52,17 @@ from autoforge_power_engines.agent.generator import (
 from autoforge_power_engines.agent.engine import (
     CustomAIAgentPowerEngine,
 )
+from autoforge_power_engines.agent.evaluator import (
+    AgentEvaluationStatus,
+    EvidenceType,
+    EvidenceRecord,
+    CriterionDefinition,
+    CriterionResult,
+    EvaluationInput,
+    AgentEvaluationReport,
+    DEFAULT_AGENT_CRITERIA,
+    StandaloneAgentEvaluator,
+)
 
 __all__ = [
     "CustomerAgentSpecification",
@@ -88,4 +99,13 @@ __all__ = [
     "CancellationToken",
     "StandaloneCustomerAgentGenerator",
     "CustomAIAgentPowerEngine",
+    "AgentEvaluationStatus",
+    "EvidenceType",
+    "EvidenceRecord",
+    "CriterionDefinition",
+    "CriterionResult",
+    "EvaluationInput",
+    "AgentEvaluationReport",
+    "DEFAULT_AGENT_CRITERIA",
+    "StandaloneAgentEvaluator",
 ]

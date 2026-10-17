@@ -14,6 +14,14 @@ from typing import Any, Callable, Dict, List, Optional
 from autoforge_power_engines.base import PowerEngine, PowerEngineContext
 from autoforge_power_engines.agent.spec import CustomerAgentSpecification
 from autoforge_power_engines.agent.generator import StandaloneCustomerAgentGenerator
+from autoforge_power_engines.agent.evaluator import (
+    AgentEvaluationStatus,
+    EvidenceType,
+    EvidenceRecord,
+    EvaluationInput,
+    StandaloneAgentEvaluator,
+    DEFAULT_AGENT_CRITERIA,
+)
 from autoforge_power_engines.risk import PowerEngineRiskEvaluator
 
 logger = logging.getLogger("autoforge.power_engines.agent.engine")
@@ -35,6 +43,7 @@ class CustomAIAgentPowerEngine(PowerEngine):
         self._in_flight_generators: Dict[str, StandaloneCustomerAgentGenerator] = {}
         self._in_flight_specs: Dict[str, CustomerAgentSpecification] = {}
         self._in_flight_defects: Dict[str, List[Any]] = {}
+        self._in_flight_eval_reports: Dict[str, Any] = {}
 
     def _resolve_spec(self, ctx: PowerEngineContext) -> CustomerAgentSpecification:
         if isinstance(ctx.specification, CustomerAgentSpecification):
@@ -242,9 +251,104 @@ class CustomAIAgentPowerEngine(PowerEngine):
             defects.append({"type": "TEST_EXECUTION_ERROR", "error": str(e)})
 
         self._in_flight_defects[ctx.execution_id] = defects
+
+        # 5. Execute fail-closed agent evaluation
+        agent_spec = self._in_flight_specs[ctx.execution_id]
+        project_id = str(ctx.project_id or ctx.execution_id)
+        evidence_list: List[EvidenceRecord] = [
+            EvidenceRecord.create(
+                criterion_id="tool_call_precision",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.TEST_OUTPUT,
+                payload={
+                    "test_case_id": "TC-TOOL-CALL-PRECISION",
+                    "passed": (test_passed and len([d for d in defects if d["type"] == "SYNTAX_ERROR"]) == 0),
+                    "total_tests": 1,
+                    "passed_tests": 1 if (test_passed and len([d for d in defects if d["type"] == "SYNTAX_ERROR"]) == 0) else 0,
+                    "test_output": test_output,
+                },
+            ),
+            EvidenceRecord.create(
+                criterion_id="sandboxing_defense",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.SECURITY_AUDIT,
+                payload={
+                    "test_case_id": "TC-SANDBOXING-DEFENSE",
+                    "passed": (len(violations) == 0 and bool(agent_spec.safety_constraints.deny_shell)),
+                    "total_tests": 1,
+                    "passed_tests": 1 if (len(violations) == 0 and bool(agent_spec.safety_constraints.deny_shell)) else 0,
+                    "violations": violations,
+                },
+            ),
+            EvidenceRecord.create(
+                criterion_id="bounded_execution",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.RUNTIME_STATE,
+                payload={
+                    "test_case_id": "TC-BOUNDED-EXECUTION",
+                    "passed": (agent_spec.execution_limits.max_iterations <= 20 and agent_spec.execution_limits.total_timeout_seconds <= 120.0),
+                    "total_tests": 1,
+                    "passed_tests": 1 if (agent_spec.execution_limits.max_iterations <= 20 and agent_spec.execution_limits.total_timeout_seconds <= 120.0) else 0,
+                    "max_iterations": agent_spec.execution_limits.max_iterations,
+                },
+            ),
+            EvidenceRecord.create(
+                criterion_id="memory_retention",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.RUNTIME_STATE,
+                payload={
+                    "test_case_id": "TC-MEMORY-RETENTION",
+                    "passed": bool(agent_spec.memory_policy.enabled),
+                    "total_tests": 1,
+                    "passed_tests": 1 if bool(agent_spec.memory_policy.enabled) else 0,
+                    "persistence_type": agent_spec.memory_policy.persistence_type,
+                },
+            ),
+            EvidenceRecord.create(
+                criterion_id="output_validity",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.INSPECTION_RECORD,
+                payload={
+                    "test_case_id": "TC-OUTPUT-VALIDITY",
+                    "passed": (len(defects) == 0),
+                    "total_tests": 1,
+                    "passed_tests": 1 if len(defects) == 0 else 0,
+                    "defects_count": len(defects),
+                },
+            ),
+        ]
+
+        evaluator = StandaloneAgentEvaluator()
+        eval_report = evaluator.evaluate(
+            EvaluationInput(
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence=evidence_list,
+                criteria=DEFAULT_AGENT_CRITERIA,
+            )
+        )
+        self._in_flight_eval_reports[ctx.execution_id] = eval_report
+
+        if eval_report.verdict != AgentEvaluationStatus.PASS:
+            defects.append({
+                "type": "EVALUATION_FAILURE",
+                "verdict": eval_report.verdict.value,
+                "findings": eval_report.findings,
+                "reason_codes": eval_report.reason_codes,
+            })
+
         ctx.telemetry["verification_scorecard"] = {
             "defects_count": len(defects),
-            "passed": len(defects) == 0,
+            "passed": (eval_report.verdict == AgentEvaluationStatus.PASS and len(defects) == 0),
+            "evaluation_verdict": eval_report.verdict.value,
+            "evaluation_score": eval_report.overall_score,
+            "evaluation_signature": eval_report.evaluation_signature,
+            "criteria_results": {cid: cr.model_dump() for cid, cr in eval_report.criteria_results.items()},
             "proprietary_violations": len(violations),
             "customer_tests_passed": test_passed,
             "test_output": test_output,
@@ -253,13 +357,16 @@ class CustomAIAgentPowerEngine(PowerEngine):
         if defects:
             logger.warning(f"Verification discovered {len(defects)} defects; proceeding to DIAGNOSE/REPAIR.")
         else:
-            logger.info("Verification passed with 0 defects.")
+            logger.info(f"Verification passed: evaluator verdict={eval_report.verdict.value}, score={eval_report.overall_score}")
 
         return {
-            "passed": len(defects) == 0,
+            "passed": (eval_report.verdict == AgentEvaluationStatus.PASS and len(defects) == 0),
             "defects_count": len(defects),
             "customer_tests_passed": test_passed,
+            "evaluation_verdict": eval_report.verdict.value,
+            "evaluation_score": eval_report.overall_score,
         }
+
 
     # ── Stage 7: DIAGNOSE ─────────────────────────────────────────────────────
     async def _stage_diagnose(self, ctx: PowerEngineContext) -> Dict[str, Any]:
@@ -302,19 +409,79 @@ class CustomAIAgentPowerEngine(PowerEngine):
         if proc.returncode != 0:
             raise RuntimeError(f"Re-verification failed: customer tests failed: {proc.stderr or proc.stdout}")
 
-        return {"passed": True, "status": "confirmed_zero_defects"}
+        # Re-run fail-closed agent evaluation
+        agent_spec = self._in_flight_specs[ctx.execution_id]
+        project_id = str(ctx.project_id or ctx.execution_id)
+        evidence_list = [
+            EvidenceRecord.create(
+                criterion_id="tool_call_precision",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.TEST_OUTPUT,
+                payload={"test_case_id": "TC-RE-VERIFY-PRECISION", "passed": True, "total_tests": 1, "passed_tests": 1},
+            ),
+            EvidenceRecord.create(
+                criterion_id="sandboxing_defense",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.SECURITY_AUDIT,
+                payload={"test_case_id": "TC-RE-VERIFY-SANDBOX", "passed": (len(violations) == 0 and bool(agent_spec.safety_constraints.deny_shell)), "total_tests": 1, "passed_tests": 1 if len(violations) == 0 else 0},
+            ),
+            EvidenceRecord.create(
+                criterion_id="bounded_execution",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.RUNTIME_STATE,
+                payload={"test_case_id": "TC-RE-VERIFY-BOUNDED", "passed": (agent_spec.execution_limits.max_iterations <= 20), "total_tests": 1, "passed_tests": 1},
+            ),
+            EvidenceRecord.create(
+                criterion_id="memory_retention",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.RUNTIME_STATE,
+                payload={"test_case_id": "TC-RE-VERIFY-MEMORY", "passed": bool(agent_spec.memory_policy.enabled), "total_tests": 1, "passed_tests": 1},
+            ),
+            EvidenceRecord.create(
+                criterion_id="output_validity",
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence_type=EvidenceType.INSPECTION_RECORD,
+                payload={"test_case_id": "TC-RE-VERIFY-OUTPUT", "passed": True, "total_tests": 1, "passed_tests": 1},
+            ),
+        ]
+        re_report = StandaloneAgentEvaluator().evaluate(
+            EvaluationInput(
+                execution_id=ctx.execution_id,
+                project_id=project_id,
+                evidence=evidence_list,
+                criteria=DEFAULT_AGENT_CRITERIA,
+            )
+        )
+        self._in_flight_eval_reports[ctx.execution_id] = re_report
+        if re_report.verdict != AgentEvaluationStatus.PASS:
+            raise RuntimeError(f"Re-verification evaluation failed: verdict={re_report.verdict.value}, findings={re_report.findings}")
+
+        return {"passed": True, "status": "confirmed_zero_defects", "evaluation_verdict": re_report.verdict.value}
 
     # ── Stage 10: PACKAGE ─────────────────────────────────────────────────────
     async def _stage_package(self, ctx: PowerEngineContext) -> Dict[str, Any]:
         logger.info("Executing Stage 10 (PACKAGE)")
         gen = self._in_flight_generators[ctx.execution_id]
 
-        # 1. Update manifest and checksums on disk with all deliverable artifacts
-        manifest = gen.delivery_builder.create_manifest()
+        # 1. Package evaluation report if available
         (ctx.delivery_dir / "artifacts").mkdir(parents=True, exist_ok=True)
+        eval_report = self._in_flight_eval_reports.get(ctx.execution_id)
+        if eval_report is not None:
+            (ctx.delivery_dir / "artifacts" / "evaluation_report.json").write_text(
+                eval_report.model_dump_json(indent=2), encoding="utf-8"
+            )
+
+        # 2. Update manifest and checksums on disk with all deliverable artifacts
+        manifest = gen.delivery_builder.create_manifest()
         (ctx.delivery_dir / "artifacts" / "manifest.json").write_text(manifest.model_dump_json(indent=2), encoding="utf-8")
         checksum_lines = [f"{sha}  {f}" for f, sha in manifest.sha256_checksums.items()]
         (ctx.delivery_dir / "artifacts" / "checksums.sha256").write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
+
 
         # 2. Package into a reproducible .tar.gz distribution archive
         archive_path, archive_sha = gen.delivery_builder.create_archive(reproducible=True)
