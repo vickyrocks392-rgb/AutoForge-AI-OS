@@ -21,7 +21,7 @@
 
 - **Gate 5 Disposition:** **`PASS`**
 - **Baseline Git Commit:** `a1eff29757c2a7f524461d235db874eeb151aaf7` (Gate 4 Multi-Turn Persistence certified commit)
-- **Certified Git Commit:** Will be recorded upon commit creation and verification
+- **Certified Git Commit:** `93aeebbf6ada763f13db3667455e107c9e083cdd`
 - **Approved Inference Target:** Apple M6 Mac mini (24 GB RAM), MLX-LM local server on `http://127.0.0.1:19801/v1`, Model `mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2` (**Verified Online and Functioning**).
 - **Fail-Closed Evaluator Status:** Verified across all mathematical boundaries, zero denominators (`score=None`, status `NOT_EVALUABLE`), missing/tampered evidence, and prompt injection attempts. Zero false-pass occurrences observed.
 - **24 Minimum Adversarial Scenarios:** 24 executed, 24 passed (100% pass rate).
