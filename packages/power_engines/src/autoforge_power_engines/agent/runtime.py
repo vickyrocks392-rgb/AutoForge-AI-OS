@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from autoforge_power_engines.agent.spec import CustomerAgentSpecification
 from autoforge_security.ai_guardrails import TrustLevel
 from autoforge_power_engines.agent.tools import ToolRegistry
-from autoforge_power_engines.agent.memory import AgentMemoryStore, ConversationMessage
+from autoforge_power_engines.agent.memory import AgentMemoryStore, ConversationMessage, validate_session_id
 from autoforge_power_engines.agent.state_machine import AgentStateMachine, AgentExecutionState, AgentTelemetry
 from autoforge_power_engines.agent.parser import RobustToolCallParser, ParseResult, ParsedToolCall
 from autoforge_power_engines.agent.verifier import AgentVerifier, VerificationResult
@@ -232,7 +232,7 @@ class StandaloneAgentRuntime:
         if self._active_cancellation_token:
             self._active_cancellation_token.cancel(reason=reason)
 
-    def assemble_context(self, session_id: str, current_query: str) -> List[Dict[str, Any]]:
+    def assemble_context(self, session_id: str, current_query: Optional[str] = None) -> List[Dict[str, Any]]:
         """Assembles bounded context: system instruction, persistent memory,
         sliding turn history, and user input. (B8)
 
@@ -242,12 +242,14 @@ class StandaloneAgentRuntime:
         tool output is neutralized before the model sees it. The system prompt
         remains the only INSTRUCTION segment.
         """
+        session_id = validate_session_id(session_id)
         messages: List[Dict[str, Any]] = []
         boundary = self.trust_boundary
 
-        # Validate persistent state integrity before assembling context
+        # Validate persistent state integrity and sanitize incomplete tool calls before assembling context
         if self.spec.memory_policy.enabled:
             self.memory.validate_state_integrity(session_id=session_id)
+            self.memory.sanitize_incomplete_tool_calls(session_id=session_id)
 
         # 1. System prompt with memory injection (platform-authored authority)
         system_content = self.spec.system_instructions
@@ -265,6 +267,7 @@ class StandaloneAgentRuntime:
         messages.append({"role": "system", "content": sys_seg.content})
 
         # 2. Conversation history (bounded), tagged as untrusted by origin
+        history: List[ConversationMessage] = []
         if self.spec.memory_policy.enabled:
             history = self.memory.get_messages(session_id, limit=self.spec.memory_policy.max_history_turns)
             for msg in history:
@@ -274,23 +277,33 @@ class StandaloneAgentRuntime:
                     trust_level=(
                         TrustLevel.MODEL_OUTPUT
                         if msg.role == "assistant"
-                        else TrustLevel.CUSTOMER_INSTRUCTION
+                        else (TrustLevel.EXTERNAL_TOOL_OUTPUT if msg.role == "tool" else TrustLevel.CUSTOMER_INSTRUCTION)
                     ),
                 )
                 turn_dict: Dict[str, Any] = {"role": msg.role, "content": seg.content}
                 if msg.name:
                     turn_dict["name"] = msg.name
+                if msg.tool_call_id:
+                    turn_dict["tool_call_id"] = msg.tool_call_id
                 if msg.tool_calls:
                     turn_dict["tool_calls"] = msg.tool_calls
                 messages.append(turn_dict)
 
-        # 3. Current user input — untrusted; never rendered as an instruction
-        user_seg = boundary.segment(
-            current_query,
-            source="customer.user_input",
-            trust_level=TrustLevel.CUSTOMER_INSTRUCTION,
-        )
-        messages.append({"role": "user", "content": user_seg.content})
+        # 3. Current user input — append only if provided and not already present at the end of history
+        if current_query:
+            already_recorded = bool(
+                self.spec.memory_policy.enabled
+                and history
+                and history[-1].role == "user"
+                and history[-1].content == current_query
+            )
+            if not already_recorded:
+                user_seg = boundary.segment(
+                    current_query,
+                    source="customer.user_input",
+                    trust_level=TrustLevel.CUSTOMER_INSTRUCTION,
+                )
+                messages.append({"role": "user", "content": user_seg.content})
         return messages
 
     def run(
@@ -305,7 +318,8 @@ class StandaloneAgentRuntime:
         token = cancellation_token or self._active_cancellation_token or CancellationToken()
         self._active_cancellation_token = token
 
-        sess_id = session_id or f"sess-{uuid.uuid4().hex[:8]}"
+        raw_sid = session_id or f"sess-{uuid.uuid4().hex[:8]}"
+        sess_id = validate_session_id(raw_sid)
         exec_id = f"exec-{uuid.uuid4().hex[:8]}"
         sm = AgentStateMachine(execution_id=exec_id, session_id=sess_id)
 
@@ -314,8 +328,8 @@ class StandaloneAgentRuntime:
             sm.transition_to(AgentExecutionState.CANCELLED, reason=token.reason)
             final_response_text = f"Execution cancelled before start: {token.reason}"
             if self.spec.memory_policy.enabled:
-                self.memory.append_message(sess_id, ConversationMessage(role="user", content=user_input))
-                self.memory.append_message(sess_id, ConversationMessage(role="assistant", content=final_response_text))
+                self.memory.append_message(sess_id, ConversationMessage(role="user", content=user_input, execution_id=exec_id))
+                self.memory.append_message(sess_id, ConversationMessage(role="assistant", content=final_response_text, execution_id=exec_id))
                 self.memory.record_execution(
                     execution_id=exec_id,
                     session_id=sess_id,
@@ -337,9 +351,18 @@ class StandaloneAgentRuntime:
                 tool_traces=[],
             )
 
-        # Record user message in persistent state
+        # Record initial execution run and user message in persistent state
         if self.spec.memory_policy.enabled:
-            self.memory.append_message(sess_id, ConversationMessage(role="user", content=user_input))
+            self.memory.record_execution(
+                execution_id=exec_id,
+                session_id=sess_id,
+                status=sm.state.value,
+                iterations=0,
+                tool_calls_count=0,
+                telemetry=sm.telemetry.model_dump(),
+                completed=False,
+            )
+            self.memory.append_message(sess_id, ConversationMessage(role="user", content=user_input, execution_id=exec_id))
 
         sm.transition_to(AgentExecutionState.RECEIVING_INPUT)
         context_messages = self.assemble_context(sess_id, user_input)
@@ -467,6 +490,18 @@ class StandaloneAgentRuntime:
                 if raw_msg.get("tool_calls"):
                     assistant_msg["tool_calls"] = raw_msg["tool_calls"]
                 context_messages.append(assistant_msg)
+
+                # Persist assistant tool-call request to memory store
+                if self.spec.memory_policy.enabled and raw_msg.get("tool_calls"):
+                    self.memory.append_message(
+                        sess_id,
+                        ConversationMessage(
+                            role="assistant",
+                            content=parse_result.assistant_content or "",
+                            tool_calls=raw_msg.get("tool_calls"),
+                            execution_id=exec_id,
+                        )
+                    )
 
                 # ── Process Tool Calls ───────────────────────────────────────
                 for tool_call in parse_result.tool_calls:
@@ -639,6 +674,19 @@ class StandaloneAgentRuntime:
                         obs_dict["tool_call_id"] = tool_call.call_id
                     context_messages.append(obs_dict)
 
+                    # Persist tool observation to memory store
+                    if self.spec.memory_policy.enabled:
+                        self.memory.append_message(
+                            sess_id,
+                            ConversationMessage(
+                                role="tool",
+                                name=tool_call.tool_name,
+                                tool_call_id=tool_call.call_id,
+                                content=obs_content,
+                                execution_id=exec_id,
+                            )
+                        )
+
                 if sm.is_terminal():
                     break
 
@@ -663,19 +711,26 @@ class StandaloneAgentRuntime:
 
         # Record assistant answer in persistent state
         if self.spec.memory_policy.enabled:
-            self.memory.append_message(
-                sess_id,
-                ConversationMessage(role="assistant", content=final_response_text)
-            )
-            self.memory.record_execution(
-                execution_id=exec_id,
-                session_id=sess_id,
-                status=sm.state.value,
-                iterations=current_iteration,
-                tool_calls_count=total_tool_calls,
-                telemetry=sm.telemetry.model_dump(),
-                completed=True,
-            )
+            try:
+                self.memory.append_message(
+                    sess_id,
+                    ConversationMessage(role="assistant", content=final_response_text, execution_id=exec_id)
+                )
+                self.memory.record_execution(
+                    execution_id=exec_id,
+                    session_id=sess_id,
+                    status=sm.state.value,
+                    iterations=current_iteration,
+                    tool_calls_count=total_tool_calls,
+                    telemetry=sm.telemetry.model_dump(),
+                    completed=True,
+                )
+            except Exception as storage_ex:
+                logger.error(f"Persistence write failure in finalization: {storage_ex}", exc_info=True)
+                sm.telemetry.errors.append(f"Persistence error: {storage_ex}")
+                if not sm.is_terminal():
+                    sm.transition_to(AgentExecutionState.FAILED, reason=f"Storage write error: {storage_ex}")
+                raise RuntimeError(f"Storage write error: {storage_ex}") from storage_ex
 
         return AgentRunResult(
             execution_id=exec_id,

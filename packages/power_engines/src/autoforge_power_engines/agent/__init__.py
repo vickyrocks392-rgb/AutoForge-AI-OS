@@ -22,6 +22,7 @@ from autoforge_power_engines.agent.tools import (
 from autoforge_power_engines.agent.memory import (
     AgentMemoryStore,
     ConversationMessage,
+    validate_session_id,
 )
 from autoforge_power_engines.agent.state_machine import (
     AgentStateMachine,
@@ -70,6 +71,7 @@ __all__ = [
     "safe_eval_expression",
     "AgentMemoryStore",
     "ConversationMessage",
+    "validate_session_id",
     "AgentStateMachine",
     "AgentExecutionState",
     "AgentTelemetry",

@@ -1,0 +1,132 @@
+{
+  "gate": "Phase 20-C Gate 4",
+  "title": "Multi-Turn Persistence and Conversation Continuity Certification",
+  "disposition": "PASS",
+  "timestamp_utc": "2026-10-17T16:38:06.448652+00:00",
+  "git_baseline": {
+    "branch": "main",
+    "commit": "3c13725ccf65732df6dd56dfeda2517205a09266",
+    "clean": false
+  },
+  "live_inference": {
+    "endpoint": "http://127.0.0.1:19801/v1",
+    "approved_model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "status": {
+      "online": true,
+      "status_code": 200,
+      "approved_model_present": true,
+      "models": [
+        "mlx-community/Qwen3.5-9B-MLX-4bit",
+        "mlx-community/KAT-Coder-V2.5-Dev-OptiQ-4bit-REAP-18B",
+        "mlx-community/DeepSeek-Coder-V2-Lite-Instruct-4bit-mlx",
+        "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+        "mlx-community/Qwen3.5-4B-MLX-4bit",
+        "/Users/kalachanddash/.autoforge-lab/step13_7/models/qwen3_coder_30b_dwq_v2"
+      ]
+    },
+    "live_turn_evidence": {
+      "tested": true,
+      "passed": true,
+      "turn1_response": "I've noted that code alpha is 420. How can I assist you with this information or any other queries?",
+      "turn2_response": "Based on your previous message, code alpha was 420. Is there anything specific about code alpha you'd like to know or any other questions you have?"
+    }
+  },
+  "canonical_ingress": {
+    "execution_id": "exec-int-f52c02a1",
+    "status": "COMPLETED",
+    "duration_s": 15.97
+  },
+  "subgates": {
+    "4A_conversation_identity_and_isolation": true,
+    "4B_multiturn_message_and_tool_call_continuity": true,
+    "4C_persistence_across_process_restarts": true,
+    "4D_atomicity_ordering_and_corruption_handling": true,
+    "4E_persistence_boundaries_and_safe_resume": true,
+    "4F_concurrency_and_data_integrity": true,
+    "4G_retention_and_compatibility": true
+  },
+  "regression_suites": [
+    {
+      "suite": "Gate 4 Multi-Turn Persistence",
+      "path": "packages/power_engines/tests/test_agent_multi_turn_persistence.py",
+      "passed": 24,
+      "failed": 0,
+      "duration_s": 1.19,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 3 Bounded Execution & Recovery",
+      "path": "packages/power_engines/tests/test_agent_bounded_execution_recovery.py",
+      "passed": 24,
+      "failed": 0,
+      "duration_s": 4.45,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 1 Inference Provider Alignment",
+      "path": "packages/power_engines/tests/test_agent_inference_alignment.py",
+      "passed": 8,
+      "failed": 0,
+      "duration_s": 5.36,
+      "exit_code": 0
+    },
+    {
+      "suite": "Gate 2 Tool Sandboxing & Security",
+      "path": "packages/power_engines/tests/test_agent_security_sandboxing.py",
+      "passed": 17,
+      "failed": 0,
+      "duration_s": 0.25,
+      "exit_code": 0
+    },
+    {
+      "suite": "Agent Core & Lifecycle",
+      "path": "packages/power_engines/tests/test_agent_power_engine.py",
+      "passed": 30,
+      "failed": 0,
+      "duration_s": 7.67,
+      "exit_code": 0
+    },
+    {
+      "suite": "Deliverable Packaging & Manifest",
+      "path": "packages/power_engines/tests/test_agent_deliverable_packaging.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 16.75,
+      "exit_code": 0
+    },
+    {
+      "suite": "Agent Production Deployment",
+      "path": "packages/power_engines/tests/test_agent_production_deployment.py",
+      "passed": 14,
+      "failed": 0,
+      "duration_s": 0.43,
+      "exit_code": 0
+    },
+    {
+      "suite": "Customer Deployment Platform",
+      "path": "packages/power_engines/tests/test_customer_deployment.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 0.78,
+      "exit_code": 0
+    },
+    {
+      "suite": "Shared Delivery Platform",
+      "path": "packages/power_engines/tests/test_shared_delivery_platform.py",
+      "passed": 9,
+      "failed": 0,
+      "duration_s": 0.24,
+      "exit_code": 0
+    },
+    {
+      "suite": "Commercial Capability Routing",
+      "path": "packages/composition/tests/test_capability_routing.py",
+      "passed": 26,
+      "failed": 0,
+      "duration_s": 5.76,
+      "exit_code": 0
+    }
+  ],
+  "total_tests_passed": 170,
+  "total_tests_failed": 0
+}
