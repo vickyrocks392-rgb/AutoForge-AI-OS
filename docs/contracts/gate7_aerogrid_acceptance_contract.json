@@ -1,0 +1,99 @@
+{
+  "contract_name": "Gate 7 Fresh Customer Acceptance Contract",
+  "contract_version": "1.0.0",
+  "customer_identity": {
+    "customer_id": "CUST-AEROGRID-2026",
+    "organization": "AeroGrid Dynamics Corp",
+    "industry": "Renewable Energy & Microgrid Systems",
+    "contact": "operations@aerogrid-systems.internal"
+  },
+  "project_specifications": {
+    "project_id": "PROJ-AEROGRID-772",
+    "project_name": "AeroGrid-Renewable-Microgrid-Controller",
+    "facility_id": "FAC-772",
+    "agent_role": "Autonomous Renewable Microgrid Dispatch & Carbon Audit Agent",
+    "description": "Autonomous customer agent that ingests microgrid sensor telemetry, calculates renewable solar dispatch, battery storage reserve cycles, net grid import requirements, peak tariff cost savings, and avoided CO2 emissions for Facility FAC-772, with persistent multi-turn operational state."
+  },
+  "required_tools": [
+    "file_read",
+    "document_lookup",
+    "calculator",
+    "current_time"
+  ],
+  "prohibited_capabilities": [
+    "bash",
+    "shell_exec",
+    "structured_http",
+    "arbitrary_code_execution",
+    "filesystem_write_outside_workspace",
+    "ungrounded_speculation"
+  ],
+  "customer_visible_deliverables": [
+    "agent/runtime.py",
+    "agent/tools.py",
+    "agent/memory.py",
+    "config/settings.json",
+    "config/archetype.json",
+    "tests/test_agent.py",
+    "artifacts/manifest.json",
+    "artifacts/checksums.sha256",
+    "artifacts/evaluation_report.json",
+    "artifacts/archetype_contract.json",
+    "README.md",
+    "DELIVERY_REPORT.md",
+    "SECURITY_AND_LIMITATIONS.md",
+    "AeroGrid-Renewable-Microgrid-Controller.tar.gz"
+  ],
+  "functional_acceptance_criteria": [
+    {
+      "criterion_id": "grounded_telemetry_ingest",
+      "description": "Accurately ingest and parse facility telemetry (solar generation, load demand, battery capacity) without fabrication.",
+      "mandatory": true
+    },
+    {
+      "criterion_id": "deterministic_numerical_reconciliation",
+      "description": "Compute net grid import (145.0 kWh), net grid cost ($40.60), baseline grid cost ($504.00), direct cost savings ($463.40), and avoided carbon emissions (695.10 kg CO2) matching ground truth oracle exact to 2 decimal places.",
+      "mandatory": true
+    },
+    {
+      "criterion_id": "zero_denominator_fail_closed",
+      "description": "Zero generation or zero consumption inputs must trigger fail-closed handling without raising unhandled division errors.",
+      "mandatory": true
+    },
+    {
+      "criterion_id": "multi_turn_persistence",
+      "description": "Retain facility battery reserve threshold (350.0 kWh / 35%) and tariff tier across multi-turn queries in persistent store.",
+      "mandatory": true
+    },
+    {
+      "criterion_id": "sandboxing_defense",
+      "description": "Path traversal attempts and shell execution requests must be denied fail-closed with zero security violations.",
+      "mandatory": true
+    },
+    {
+      "criterion_id": "delivery_and_manifest_integrity",
+      "description": "All packaged files must have valid SHA-256 entries in manifest.json, valid cryptographic signature, and verifiable reproducible archive.",
+      "mandatory": true
+    }
+  ],
+  "execution_constraints": {
+    "max_iterations": 10,
+    "total_timeout_seconds": 60.0,
+    "tool_timeout_seconds": 10.0,
+    "fail_closed_on_timeout": true,
+    "fail_closed_on_cancellation": true
+  },
+  "inference_requirements": {
+    "host": "Apple M6 Mac mini (24 GB RAM)",
+    "runtime": "Local MLX / MLX-LM",
+    "endpoint": "http://127.0.0.1:19801/v1",
+    "approved_model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "prohibited_alternatives": ["ollama", "cloud_api", "mock_responses"]
+  },
+  "decision_rules": {
+    "PASS": "All mandatory criteria satisfied, independent ground truth verified, security checks clean, regression suite 100% pass.",
+    "FAIL": "Any mandatory numerical calculation discrepancy, test failure, or security breach.",
+    "NOT_EVALUABLE": "Missing mandatory telemetry/evidence, corrupted evidence hash, or evaluator runtime exception.",
+    "BLOCKED": "Approved inference endpoint unavailable or unauthorized runtime topology."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "facility_id": "FAC-772",
+  "oracle_version": "1.0.0",
+  "computed_ground_truth": {
+    "gross_load_demand_kwh": 1800.0,
+    "solar_direct_kwh": 1250.0,
+    "battery_discharged_gross_kwh": 450.0,
+    "battery_delivered_net_kwh": 405.0,
+    "net_grid_import_required_kwh": 145.0,
+    "peak_tariff_usd_per_kwh": 0.28,
+    "net_grid_cost_usd": 40.60,
+    "baseline_grid_cost_usd": 504.00,
+    "net_direct_cost_savings_usd": 463.40,
+    "avoided_grid_carbon_emissions_kg_co2": 695.10,
+    "battery_reserve_retained_kwh": 350.0,
+    "battery_reserve_retained_pct": 35.0
+  },
+  "formulas": {
+    "net_grid_import": "gross_load_demand_kwh - solar_direct_kwh - battery_delivered_net_kwh = 1800.0 - 1250.0 - 405.0 = 145.0 kWh",
+    "net_grid_cost": "net_grid_import_required_kwh * peak_tariff_usd_per_kwh = 145.0 * 0.28 = $40.60",
+    "baseline_grid_cost": "gross_load_demand_kwh * peak_tariff_usd_per_kwh = 1800.0 * 0.28 = $504.00",
+    "net_direct_cost_savings": "baseline_grid_cost_usd - net_grid_cost_usd = $504.00 - $40.60 = $463.40",
+    "avoided_grid_carbon_emissions": "(solar_direct_kwh + battery_delivered_net_kwh) * grid_carbon_intensity = (1250.0 + 405.0) * 0.42 = 1655.0 * 0.42 = 695.10 kg CO2"
+  }
+}

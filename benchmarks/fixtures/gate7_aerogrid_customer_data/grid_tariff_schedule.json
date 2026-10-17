@@ -1,0 +1,16 @@
+{
+  "tariff_provider": "Pacific Grid & Power Authority",
+  "schedule_code": "TOU-IND-2026A",
+  "facility_tier": "Industrial Microgrid Tier 1",
+  "rates": {
+    "peak_grid_import_rate_usd_per_kwh": 0.28,
+    "offpeak_grid_import_rate_usd_per_kwh": 0.14,
+    "grid_carbon_intensity_kg_co2_per_kwh": 0.42,
+    "diesel_backup_cost_usd_per_kwh": 0.55
+  },
+  "rules": {
+    "peak_billing_window_start": "12:00",
+    "peak_billing_window_end": "18:00",
+    "demand_charge_multiplier": 1.0
+  }
+}

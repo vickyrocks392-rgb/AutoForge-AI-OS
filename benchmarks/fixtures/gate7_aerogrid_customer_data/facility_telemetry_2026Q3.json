@@ -1,0 +1,22 @@
+{
+  "facility_id": "FAC-772",
+  "facility_name": "AeroGrid Dynamics Clean Energy Campus #7",
+  "reporting_period": "2026-Q3",
+  "operating_hours": "08:00 - 18:00 (Peak Window)",
+  "metrics": {
+    "solar_generation_kwh": 1250.0,
+    "gross_load_demand_kwh": 1800.0,
+    "battery_total_capacity_kwh": 1000.0,
+    "battery_initial_charge_kwh": 800.0,
+    "battery_minimum_reserve_threshold_pct": 35.0,
+    "battery_minimum_reserve_kwh": 350.0,
+    "battery_discharged_gross_kwh": 450.0,
+    "battery_roundtrip_efficiency": 0.90,
+    "battery_delivered_net_kwh": 405.0
+  },
+  "constraints": {
+    "zero_export_to_grid": true,
+    "diesel_generator_emergency_only": true,
+    "minimum_soc_reserve_enforced": true
+  }
+}

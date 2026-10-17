@@ -1,0 +1,208 @@
+{
+  "gate": "Phase 20-C Gate 7 \u2014 Fresh End-to-End Customer Certification",
+  "verdict": "PASS",
+  "timestamp": "2026-10-17 19:39:47 UTC",
+  "duration_seconds": 63.06,
+  "git_baseline": {
+    "branch": "main",
+    "head_commit": "e832b04c65a4c0b553200e595a8faa9351497c2f",
+    "gate6_commit": "e832b04c65a4c0b553200e595a8faa9351497c2f",
+    "status_clean": false
+  },
+  "inference_environment": {
+    "host": "Apple M6 Mac mini (24 GB RAM)",
+    "runtime": "Local MLX / MLX-LM",
+    "endpoint": "http://127.0.0.1:19801/v1",
+    "approved_model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "status": "ONLINE_APPROVED_MODEL_VERIFIED"
+  },
+  "subgates": {
+    "7A_acceptance_contract": "PASS",
+    "7B_fresh_customer_workload": "PASS",
+    "7C_canonical_production_ingress": "PASS",
+    "7D_functional_correctness": "PASS",
+    "7E_persistence_and_integrity": "PASS",
+    "7F_negative_and_fail_closed": "PASS",
+    "7G_regression_certification": "PASS",
+    "7H_release_decision": "PASS"
+  },
+  "acceptance_contract": {
+    "path": "docs/contracts/gate7_aerogrid_acceptance_contract.json",
+    "sha256": "9ec5e364cf7a533a4337cbda9d267d51d4314fb738de98a1df841797f04aee15",
+    "version": "1.0.0"
+  },
+  "customer_workload": {
+    "customer_id": "CUST-AEROGRID-2026",
+    "organization": "AeroGrid Dynamics Corp",
+    "project_id": "PROJ-AEROGRID-772",
+    "project_name": "AeroGrid-Renewable-Microgrid-Controller",
+    "facility_id": "FAC-772",
+    "archetype": "operations_researcher",
+    "oracle_ground_truth": {
+      "gross_load_demand_kwh": 1800.0,
+      "solar_direct_kwh": 1250.0,
+      "battery_discharged_gross_kwh": 450.0,
+      "battery_delivered_net_kwh": 405.0,
+      "net_grid_import_required_kwh": 145.0,
+      "net_grid_cost_usd": 40.6,
+      "baseline_grid_cost_usd": 504.0,
+      "net_direct_cost_savings_usd": 463.4,
+      "avoided_grid_carbon_emissions_kg_co2": 695.1
+    },
+    "fixtures_verified": true
+  },
+  "canonical_ingress": {
+    "route": "AutoForgeApiService.execute_intent_pipeline -> Kernel.submit_request -> DefaultOrchestrationEngine -> CommercialCapabilityRouter -> CustomAIAgentPowerEngine -> ExecutionEngine -> ExecutionOutcome",
+    "execution_id": "exec-int-7ba37bbf",
+    "project_id": "eb392edc-5fe9-41a0-b9a9-4e8ad25d8f73",
+    "status": "COMPLETED",
+    "duration_seconds": 16.14,
+    "deliverable_root": "benchmarks/workspace/gate7_aerogrid_20261017_193947/deliveries/AeroGrid-Renewable-Microgrid-Controller"
+  },
+  "delivery_package_audit": {
+    "manifest_file": "benchmarks/workspace/gate7_aerogrid_20261017_193947/deliveries/AeroGrid-Renewable-Microgrid-Controller/aerogrid-renewable-microgrid-controller/delivery-d5b04839/artifacts/manifest.json",
+    "archive_file": "benchmarks/workspace/gate7_aerogrid_20261017_193947/deliveries/AeroGrid-Renewable-Microgrid-Controller/aerogrid-renewable-microgrid-controller/delivery-d5b04839.tar.gz",
+    "archive_sha256": "8a9c2cb4cd5a60d12c5c4162e49030db7626a873b9cf4c8c578a58088f9f19c5",
+    "manifest_verified": true,
+    "deliverable_tests_passed": true
+  },
+  "live_mlx_multi_turn": {
+    "endpoint": "http://127.0.0.1:19801/v1",
+    "model": "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2",
+    "turn1_duration_seconds": 1.81,
+    "turn2_duration_seconds": 1.15,
+    "turn1_response_sample": "I have recorded the operational parameters for AeroGrid FAC-772:\n\n**Battery Reserve Threshold:** 350.0 kWh (35%)\n**Peak ",
+    "turn2_response_sample": "Based on my recorded operational parameters for AeroGrid FAC-772:\n\n**Battery Reserve Threshold:** 350.0 kWh (35%)\n**Peak",
+    "retention_verified": true,
+    "persistence_db": "/Users/kalachanddash/Developer/AutoForge-AI-OS/benchmarks/workspace/gate7_aerogrid_20261017_193947/aerogrid_memory.db"
+  },
+  "scenario_matrix": {
+    "total_scenarios": 20,
+    "passed_scenarios": 20,
+    "failed_scenarios": 0
+  },
+  "regression_suites": [
+    {
+      "name": "Gate 7 Customer Acceptance Certification",
+      "path": "packages/power_engines/tests/test_agent_customer_acceptance_certification.py",
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.73,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 6 Archetype Generalization",
+      "path": "packages/power_engines/tests/test_agent_archetype_generalization.py",
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.41,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 5 Fail-Closed Evaluator",
+      "path": "packages/power_engines/tests/test_agent_evaluator_integrity.py",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.37,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 4 Multi-Turn Persistence",
+      "path": "packages/power_engines/tests/test_agent_multi_turn_persistence.py",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 1.69,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 3 Bounded Execution & Recovery",
+      "path": "packages/power_engines/tests/test_agent_bounded_execution_recovery.py",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 4.47,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 1 Inference Provider Alignment",
+      "path": "packages/power_engines/tests/test_agent_inference_alignment.py",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 2.15,
+      "status": "PASS"
+    },
+    {
+      "name": "Gate 2 Tool Sandboxing & Security",
+      "path": "packages/power_engines/tests/test_agent_security_sandboxing.py",
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.39,
+      "status": "PASS"
+    },
+    {
+      "name": "Agent Core & Lifecycle",
+      "path": "packages/power_engines/tests/test_agent_power_engine.py",
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 8.07,
+      "status": "PASS"
+    },
+    {
+      "name": "Deliverable Packaging & Manifest",
+      "path": "packages/power_engines/tests/test_agent_deliverable_packaging.py",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 16.74,
+      "status": "PASS"
+    },
+    {
+      "name": "Agent Production Deployment",
+      "path": "packages/power_engines/tests/test_agent_production_deployment.py",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.57,
+      "status": "PASS"
+    },
+    {
+      "name": "Customer Deployment Platform",
+      "path": "packages/power_engines/tests/test_customer_deployment.py",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 1.02,
+      "status": "PASS"
+    },
+    {
+      "name": "Shared Delivery Platform",
+      "path": "packages/power_engines/tests/test_shared_delivery_platform.py",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 0.38,
+      "status": "PASS"
+    },
+    {
+      "name": "Commercial Capability Routing",
+      "path": "packages/composition/tests/test_capability_routing.py",
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 5.85,
+      "status": "PASS"
+    }
+  ],
+  "regression_totals": {
+    "passed": 279,
+    "failed": 0,
+    "skipped": 0
+  }
+}
