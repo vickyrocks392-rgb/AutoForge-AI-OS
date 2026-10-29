@@ -1,0 +1,22 @@
+[
+  {
+    "payment_id": "PAY-1001",
+    "po_number": "PO-8801",
+    "invoice_number": "INV-9901",
+    "payment_date": "2026-09-06",
+    "amount_paid_usd": 160000.00,
+    "payment_method": "ACH_TRANSFER",
+    "status": "COMPLETED"
+  },
+  {
+    "payment_id": "PAY-1002",
+    "po_number": "PO-8803",
+    "invoice_number": "INV-9904",
+    "payment_date": "2026-09-15",
+    "amount_paid_usd": 10000.00,
+    "payment_method": "WIRE_TRANSFER",
+    "status": "PARTIAL_PAYMENT",
+    "notes": "First milestone paid; balance pending inspection."
+  }
+]
+

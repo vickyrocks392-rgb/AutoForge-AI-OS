@@ -1,0 +1,54 @@
+{
+  "rubric_name": "Apex B2B Lead Scoring Rubric 2026",
+  "scoring_weights": {
+    "company_size": {
+      "enterprise": {"min_employees": 500, "points": 30},
+      "mid_market": {"min_employees": 100, "max_employees": 499, "points": 20},
+      "smb": {"min_employees": 20, "max_employees": 99, "points": 10},
+      "micro": {"max_employees": 19, "points": 0, "disqualify": true}
+    },
+    "annual_cloud_budget_usd": {
+      "tier_high": {"min_budget": 250000, "points": 30},
+      "tier_medium": {"min_budget": 100000, "max_budget": 249999, "points": 20},
+      "tier_low": {"min_budget": 50000, "max_budget": 99999, "points": 10},
+      "unqualified": {"max_budget": 49999, "points": 0, "disqualify": true}
+    },
+    "timeline_urgency": {
+      "immediate": {"window": "< 1 month", "points": 25},
+      "near_term": {"window": "1-3 months", "points": 15},
+      "medium_term": {"window": "3-6 months", "points": 5},
+      "exploratory": {"window": "> 6 months", "points": 0}
+    },
+    "decision_authority": {
+      "economic_buyer": {"roles": ["CTO", "CIO", "CEO", "CFO"], "points": 15},
+      "technical_decision_maker": {"roles": ["VP", "Director"], "points": 10},
+      "evaluator": {"roles": ["Manager", "Engineer", "Consultant"], "points": 0}
+    }
+  },
+  "qualification_tiers": {
+    "tier_1_high_priority": {
+      "min_score": 80,
+      "max_score": 100,
+      "sla_hours": 2,
+      "assigned_role": "Senior Enterprise Architect"
+    },
+    "tier_2_medium_priority": {
+      "min_score": 50,
+      "max_score": 79,
+      "sla_hours": 24,
+      "assigned_role": "Senior Account Executive"
+    },
+    "tier_3_nurture": {
+      "min_score": 30,
+      "max_score": 49,
+      "sla_hours": 72,
+      "assigned_role": "Marketing Nurture Pipeline"
+    },
+    "disqualified": {
+      "max_score": 29,
+      "sla_hours": null,
+      "assigned_role": "None"
+    }
+  }
+}
+

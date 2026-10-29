@@ -1,0 +1,24 @@
+{
+  "company": "Apex Cloud Solutions",
+  "services": [
+    {
+      "service_id": "SVC-CLOUD-MOD",
+      "name": "Cloud Native Architecture Modernization",
+      "target_needs": ["legacy migration", "microservices", "kubernetes", "scalability"],
+      "typical_engagement_usd": 150000
+    },
+    {
+      "service_id": "SVC-DATA-AI",
+      "name": "Enterprise Data Platform & Agentic AI Infrastructure",
+      "target_needs": ["data lakehouse", "real-time analytics", "llm deployment", "rag"],
+      "typical_engagement_usd": 200000
+    },
+    {
+      "service_id": "SVC-FINOPS-SEC",
+      "name": "Cloud FinOps & Security Compliance",
+      "target_needs": ["cost reduction", "soc2 compliance", "zero trust architecture"],
+      "typical_engagement_usd": 85000
+    }
+  ]
+}
+

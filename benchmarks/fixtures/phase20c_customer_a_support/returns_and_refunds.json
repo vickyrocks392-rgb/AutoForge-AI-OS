@@ -1,0 +1,28 @@
+{
+  "policy_version": "2026.3",
+  "effective_date": "2026-01-01",
+  "company": "NovaCommerce Inc.",
+  "return_window_days": 30,
+  "eligibility_conditions": [
+    "Item must be unused, in original packaging with all tags attached",
+    "Proof of purchase (order number or email receipt) required"
+  ],
+  "restocking_fees": {
+    "standard_goods": 0.0,
+    "opened_consumer_electronics": 0.15
+  },
+  "non_returnable_items": [
+    "Perishable goods (food, botanicals)",
+    "Items explicitly marked as 'FINAL SALE'",
+    "Opened personal hygiene products and intimate apparel"
+  ],
+  "refund_timeline": "5-7 business days after receipt and warehouse inspection",
+  "return_shipping_deduction_usd": 6.99,
+  "defective_item_return_shipping": "Free prepaid label provided by NovaCommerce",
+  "human_escalation_rules": [
+    "Package damaged in transit with claim value exceeding $200.00",
+    "Suspected fraudulent activity or unauthorized payment claims",
+    "Customer requesting exceptions outside the 30-day window"
+  ]
+}
+

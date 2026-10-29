@@ -1,0 +1,21 @@
+{
+  "policy_name": "Apex Customer Boundary & Human-In-The-Loop Governance",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "action": "send_email",
+      "autonomous_execution_allowed": false,
+      "requires_human_approval": true,
+      "enforcement": "FAIL_CLOSED_BLOCK",
+      "description": "Agent may draft personalized emails into structured staging objects, but must NEVER trigger outbound network email transmission."
+    },
+    {
+      "action": "crm_database_mutation",
+      "autonomous_execution_allowed": false,
+      "requires_human_approval": true,
+      "enforcement": "FAIL_CLOSED_BLOCK",
+      "description": "Agent may generate proposed CRM lead update payloads, but must NEVER write directly to production CRM tables without sales manager sign-off."
+    }
+  ]
+}
+

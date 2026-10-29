@@ -1,0 +1,11 @@
+{
+  "policy_version": "2024.1_DEPRECATED",
+  "effective_date": "2024-01-01",
+  "status": "SUPERSEDED_DO_NOT_USE",
+  "notice": "This policy was retired on 2025-12-31 and replaced by 2026.3.",
+  "deprecated_terms": {
+    "return_window_days": 60,
+    "free_overnight_shipping_threshold_usd": 30.00
+  }
+}
+

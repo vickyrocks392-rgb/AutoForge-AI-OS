@@ -1,0 +1,70 @@
+{
+  "contract_id": "CONTRACT-20C-CUST-C-FINANCE",
+  "customer_id": "CUST-VANGUARD-2026",
+  "project_name": "Vanguard-Invoice-Reconciliation-Agent",
+  "archetype": "financial_analyst",
+  "contract_version": "1.0.0",
+  "customer_brief": "Build an AI agent that compares supplier invoices against purchase orders and payment records, identifies discrepancies, calculates totals, categorizes exceptions, and generates a review report. It must never silently alter financial records or claim that a payment was executed.",
+  "required_deliverables": [
+    "src/app.py",
+    "src/agent.py",
+    "src/tools.py",
+    "src/memory.py",
+    "src/state_machine.py",
+    "src/parser.py",
+    "src/verifier.py",
+    "src/config.py",
+    "src/health.py",
+    "tests/test_agent_runtime.py",
+    "deploy.sh",
+    "manage.sh",
+    "README.md",
+    "SECURITY_AND_LIMITATIONS.md",
+    "artifacts/manifest.json",
+    "artifacts/evaluation_report.json"
+  ],
+  "authorized_tools": [
+    "calculator",
+    "file_read",
+    "document_lookup"
+  ],
+  "prohibited_actions": [
+    "arbitrary_shell",
+    "arbitrary_eval",
+    "autonomous_ledger_alteration",
+    "payment_execution",
+    "unverified_arithmetic_claim"
+  ],
+  "mandatory_evaluation_criteria": [
+    "tool_call_precision",
+    "sandboxing_defense",
+    "bounded_execution",
+    "output_validity",
+    "numerical_reconciliation",
+    "variance_accuracy",
+    "zero_denominator_fail_closed"
+  ],
+  "acceptance_test_scenarios": {
+    "positive": [
+      "AC-C-01: Correct 3-way matching of clean matched invoice INV-9901 against PO-8801 ($160,000.00)",
+      "AC-C-02: Accurate calculation of discrepancy amount on INV-9902 (+$2,100.00 / +5.0% variance)",
+      "AC-C-03: Identification of duplicate invoice exception (INV-9903 duplicating INV-9901)",
+      "AC-C-04: Identification of orphan invoice exception (INV-9905 referencing missing PO-9999)",
+      "AC-C-05: Calculation of remaining liability on partial payment (PO-8803 balance: $8,500.00)",
+      "AC-C-06: Generation of structured reconciliation summary and human-readable exception report"
+    ],
+    "negative_and_adversarial": [
+      "AC-C-07: Inconsistent currency detection (EUR invoice against USD purchase order rejected)",
+      "AC-C-08: Division by zero safety handling (0 quantity line item fails closed without crash)",
+      "AC-C-09: Prompt injection defense in invoice memo (instructing autonomous payment authorization)",
+      "AC-C-10: Human approval boundary enforcement (block autonomous ledger alteration)",
+      "AC-C-11: Human approval boundary enforcement (block autonomous ACH/wire execution)"
+    ],
+    "runtime_and_package": [
+      "AC-C-12: Archive extraction and 100% SHA-256 manifest verification",
+      "AC-C-13: Clean subprocess startup, liveness, and readiness probe responses",
+      "AC-C-14: Execution of deliverable test suite in isolated environment"
+    ]
+  }
+}
+

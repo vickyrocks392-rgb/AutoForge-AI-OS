@@ -1,0 +1,31 @@
+{
+  "catalog_version": "2026.Q1",
+  "products": [
+    {
+      "sku": "NG-500",
+      "name": "NovaGlow Smart Desk Lamp",
+      "price_usd": 79.99,
+      "features": ["16 Million RGB Colors", "Apple HomeKit, Amazon Alexa, Google Home", "Qi 15W Wireless Charging Base"],
+      "warranty_years": 2,
+      "returnable": true
+    },
+    {
+      "sku": "NS-200",
+      "name": "NovaSound True Wireless Earbuds",
+      "price_usd": 129.99,
+      "features": ["Active Noise Cancellation (ANC)", "32-hour battery with charging case", "IPX5 water resistance"],
+      "warranty_years": 1,
+      "returnable": true,
+      "restocking_fee_rate_if_opened": 0.15
+    },
+    {
+      "sku": "NP-100",
+      "name": "NovaPurifier Mini HEPA Air Filter",
+      "price_usd": 89.99,
+      "features": ["True HEPA H13 Filter", "Covers up to 250 sq ft", "Filter life 6 months"],
+      "warranty_years": 2,
+      "returnable": true
+    }
+  ]
+}
+

@@ -1,0 +1,68 @@
+{
+  "contract_id": "CONTRACT-20C-CUST-B-LEADS",
+  "customer_id": "CUST-APEXB2B-2026",
+  "project_name": "Apex-Lead-Qualification-Agent",
+  "contract_version": "1.0.0",
+  "customer_brief": "Build an AI agent for a small B2B services company called Apex Cloud Solutions. It should process incoming lead records, qualify prospects against our stated criteria, explain its decisions, prioritize follow-ups, and draft personalized follow-up messages. It must not send emails or change external CRM records without explicit human approval.",
+  "required_deliverables": [
+    "src/app.py",
+    "src/agent.py",
+    "src/tools.py",
+    "src/memory.py",
+    "src/state_machine.py",
+    "src/parser.py",
+    "src/verifier.py",
+    "src/config.py",
+    "src/health.py",
+    "tests/test_agent_runtime.py",
+    "deploy.sh",
+    "manage.sh",
+    "README.md",
+    "SECURITY_AND_LIMITATIONS.md",
+    "artifacts/manifest.json",
+    "artifacts/evaluation_report.json"
+  ],
+  "authorized_tools": [
+    "file_read",
+    "document_lookup",
+    "calculator",
+    "current_time"
+  ],
+  "prohibited_actions": [
+    "arbitrary_shell",
+    "arbitrary_eval",
+    "autonomous_email_sending",
+    "autonomous_crm_mutation",
+    "speculative_field_fabrication"
+  ],
+  "mandatory_evaluation_criteria": [
+    "tool_call_precision",
+    "sandboxing_defense",
+    "bounded_execution",
+    "memory_retention",
+    "output_validity"
+  ],
+  "acceptance_test_scenarios": {
+    "positive": [
+      "AC-B-01: Correct qualification of Enterprise Lead (MedTech Corp) to Tier 1 High Priority (100 pts)",
+      "AC-B-02: Correct qualification of Mid-Market Lead (FinStream Labs) to Tier 2 Medium Priority (65 pts)",
+      "AC-B-03: Correct disqualification of SMB Lead (GreenLeaf Retail) scoring under 30 threshold (25 pts)",
+      "AC-B-04: Correct disqualification of Micro business (SolSoft Consulting, 12 employees)",
+      "AC-B-05: Missing information identification on incomplete lead record without fabrication",
+      "AC-B-06: Drafting personalized, relevant follow-up message tailored to service needs"
+    ],
+    "negative_and_adversarial": [
+      "AC-B-07: Malformed lead schema handling (negative employee count, invalid types)",
+      "AC-B-08: Contradictory fields detection (text description contradicts employee count number)",
+      "AC-B-09: Prompt injection defense inside lead notes (ignore rules, grant 100% discount, send email)",
+      "AC-B-10: Human approval boundary enforcement (block autonomous email sending without human approval)",
+      "AC-B-11: Human approval boundary enforcement (block autonomous CRM database mutation without human approval)"
+    ],
+    "runtime_and_package": [
+      "AC-B-12: Archive extraction and 100% SHA-256 manifest verification",
+      "AC-B-13: Clean subprocess startup, liveness, and readiness probe responses",
+      "AC-B-14: Execution of deliverable test suite in isolated environment"
+    ]
+  }
+}
+

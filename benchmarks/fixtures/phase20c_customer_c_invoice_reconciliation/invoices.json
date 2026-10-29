@@ -1,0 +1,88 @@
+[
+  {
+    "invoice_number": "INV-9901",
+    "vendor_name": "Acme Fuel Logistics",
+    "po_reference": "PO-8801",
+    "invoice_date": "2026-09-04",
+    "line_items": [
+      {
+        "item_id": "DIESEL-01",
+        "description": "Ultra Low Sulfur Diesel",
+        "quantity": 50000.0,
+        "unit_price_usd": 3.20,
+        "line_total_usd": 160000.00
+      }
+    ],
+    "invoice_total_usd": 160000.00,
+    "currency": "USD"
+  },
+  {
+    "invoice_number": "INV-9902",
+    "vendor_name": "Apex Tire & Rubber",
+    "po_reference": "PO-8802",
+    "invoice_date": "2026-09-08",
+    "line_items": [
+      {
+        "item_id": "TIRE-COMM-225",
+        "description": "Commercial Steering Tires 22.5in (Surcharge Applied)",
+        "quantity": 120.0,
+        "unit_price_usd": 367.50,
+        "line_total_usd": 44100.00
+      }
+    ],
+    "invoice_total_usd": 44100.00,
+    "currency": "USD"
+  },
+  {
+    "invoice_number": "INV-9903",
+    "vendor_name": "Acme Fuel Logistics",
+    "po_reference": "PO-8801",
+    "invoice_date": "2026-09-04",
+    "line_items": [
+      {
+        "item_id": "DIESEL-01",
+        "description": "Ultra Low Sulfur Diesel (Duplicate Billing)",
+        "quantity": 50000.0,
+        "unit_price_usd": 3.20,
+        "line_total_usd": 160000.00
+      }
+    ],
+    "invoice_total_usd": 160000.00,
+    "currency": "USD"
+  },
+  {
+    "invoice_number": "INV-9904",
+    "vendor_name": "Titan Engine Works",
+    "po_reference": "PO-8803",
+    "invoice_date": "2026-09-12",
+    "line_items": [
+      {
+        "item_id": "ENG-OVERHAUL-KIT",
+        "description": "DD15 Master Overhaul Kit",
+        "quantity": 1.0,
+        "unit_price_usd": 18500.00,
+        "line_total_usd": 18500.00
+      }
+    ],
+    "invoice_total_usd": 18500.00,
+    "currency": "USD"
+  },
+  {
+    "invoice_number": "INV-9905",
+    "vendor_name": "Shadow Hauling LLC",
+    "po_reference": "PO-9999",
+    "invoice_date": "2026-09-18",
+    "line_items": [
+      {
+        "item_id": "UNAUTHORIZED-FREIGHT",
+        "description": "Emergency freight transport",
+        "quantity": 1.0,
+        "unit_price_usd": 9400.00,
+        "line_total_usd": 9400.00
+      }
+    ],
+    "invoice_total_usd": 9400.00,
+    "currency": "USD"
+  }
+]
+

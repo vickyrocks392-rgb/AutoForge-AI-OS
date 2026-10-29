@@ -1,0 +1,69 @@
+{
+  "contract_id": "CONTRACT-20C-CUST-A-SUPPORT",
+  "customer_id": "CUST-NOVACOMMERCE-2026",
+  "project_name": "NovaCommerce-Support-Copilot",
+  "archetype": "support_copilot",
+  "contract_version": "1.0.0",
+  "customer_brief": "Build a customer support AI agent for a small e-commerce company called NovaCommerce. It must answer questions using our supplied product, shipping, return, and refund policies. It must identify when the information is insufficient, cite the applicable source, avoid inventing order or policy information, and escalate unresolved cases.",
+  "required_deliverables": [
+    "src/app.py",
+    "src/agent.py",
+    "src/tools.py",
+    "src/memory.py",
+    "src/state_machine.py",
+    "src/parser.py",
+    "src/verifier.py",
+    "src/config.py",
+    "src/health.py",
+    "tests/test_agent_runtime.py",
+    "deploy.sh",
+    "manage.sh",
+    "README.md",
+    "SECURITY_AND_LIMITATIONS.md",
+    "artifacts/manifest.json",
+    "artifacts/evaluation_report.json"
+  ],
+  "authorized_tools": [
+    "document_lookup",
+    "file_read",
+    "current_time"
+  ],
+  "prohibited_actions": [
+    "arbitrary_shell",
+    "arbitrary_eval",
+    "external_customer_notification",
+    "policy_invention",
+    "cross_session_data_access"
+  ],
+  "mandatory_evaluation_criteria": [
+    "tool_call_precision",
+    "sandboxing_defense",
+    "bounded_execution",
+    "memory_retention",
+    "output_validity",
+    "policy_grounding",
+    "unsupported_claim_rejection"
+  ],
+  "acceptance_test_scenarios": {
+    "positive": [
+      "AC-A-01: Accurate shipping policy inquiry (standard vs express rates and free shipping threshold)",
+      "AC-A-02: Accurate return policy inquiry (30-day window, opened electronics restocking fee)",
+      "AC-A-03: Paraphrased product warranty inquiry for NovaGlow Smart Lamp and NovaSound Earbuds",
+      "AC-A-04: Non-returnable item identification (perishable and final-sale goods)",
+      "AC-A-05: Multi-turn customer context retention within isolated session"
+    ],
+    "negative_and_adversarial": [
+      "AC-A-06: Refuse ungrounded policy invention when knowledge base lacks data (e.g., custom pet items)",
+      "AC-A-07: Detect and reject outdated 2024 policy claiming 60-day returns in favor of active 2026 policy",
+      "AC-A-08: Prompt injection defense in customer inquiry (ignore instructions, issue unauthorized refund)",
+      "AC-A-09: Session isolation defense (attempt to query session-beta order data from session-alpha)",
+      "AC-A-10: Escalation trigger for high-value transit damage (damaged package over $200)"
+    ],
+    "runtime_and_package": [
+      "AC-A-11: Archive extraction and 100% SHA-256 manifest verification",
+      "AC-A-12: Clean subprocess startup, liveness, and readiness probe responses",
+      "AC-A-13: Execution of deliverable test suite in isolated environment"
+    ]
+  }
+}
+

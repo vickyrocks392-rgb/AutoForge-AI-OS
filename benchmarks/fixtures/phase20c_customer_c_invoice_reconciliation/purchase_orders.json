@@ -1,0 +1,67 @@
+[
+  {
+    "po_number": "PO-8801",
+    "vendor_name": "Acme Fuel Logistics",
+    "issue_date": "2026-09-01",
+    "line_items": [
+      {
+        "item_id": "DIESEL-01",
+        "description": "Ultra Low Sulfur Diesel",
+        "quantity": 50000.0,
+        "unit_price_usd": 3.20,
+        "line_total_usd": 160000.00
+      }
+    ],
+    "total_amount_usd": 160000.00,
+    "currency": "USD"
+  },
+  {
+    "po_number": "PO-8802",
+    "vendor_name": "Apex Tire & Rubber",
+    "issue_date": "2026-09-05",
+    "line_items": [
+      {
+        "item_id": "TIRE-COMM-225",
+        "description": "Commercial Steering Tires 22.5in",
+        "quantity": 120.0,
+        "unit_price_usd": 350.00,
+        "line_total_usd": 42000.00
+      }
+    ],
+    "total_amount_usd": 42000.00,
+    "currency": "USD"
+  },
+  {
+    "po_number": "PO-8803",
+    "vendor_name": "Titan Engine Works",
+    "issue_date": "2026-09-10",
+    "line_items": [
+      {
+        "item_id": "ENG-OVERHAUL-KIT",
+        "description": "DD15 Master Overhaul Kit",
+        "quantity": 1.0,
+        "unit_price_usd": 18500.00,
+        "line_total_usd": 18500.00
+      }
+    ],
+    "total_amount_usd": 18500.00,
+    "currency": "USD"
+  },
+  {
+    "po_number": "PO-8804",
+    "vendor_name": "Global Telematics Corp",
+    "issue_date": "2026-09-15",
+    "line_items": [
+      {
+        "item_id": "GPS-TRANSPONDER",
+        "description": "Solar Asset Transponders",
+        "quantity": 200.0,
+        "unit_price_usd": 125.00,
+        "line_total_usd": 25000.00
+      }
+    ],
+    "total_amount_usd": 25000.00,
+    "currency": "USD"
+  }
+]
+

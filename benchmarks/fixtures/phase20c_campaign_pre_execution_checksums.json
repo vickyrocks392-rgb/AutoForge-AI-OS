@@ -1,0 +1,23 @@
+{
+  "docs/contracts/phase20c_customer_a_support_contract.json": "de40c5d5d55045f4ac4b161df7d6c0ad0ac0f3bc3b0d69bb9e0aea4192056d5a",
+  "docs/contracts/phase20c_customer_b_lead_qualification_contract.json": "7a21c5e070e5f354235a187bd30c6dd5ccd7b8baff357105a4dea2c41eb654bd",
+  "docs/contracts/phase20c_customer_c_invoice_reconciliation_contract.json": "c17c5a1a7c8cd9462c10dd83fba3f5ffddb0ac0bacd1077af165689b4b2a143d",
+  "benchmarks/fixtures/phase20c_customer_a_support/shipping_policy.json": "66ca0f67a3e5c6ad5384456e26eefd4aec8ecd1b803f4d376e2785abfbe3a237",
+  "benchmarks/fixtures/phase20c_customer_a_support/returns_and_refunds.json": "fb8b3a3b5cfde1544cd22d899576269bc649291ed6ecf2814afb48da9530117e",
+  "benchmarks/fixtures/phase20c_customer_a_support/product_catalog_faq.json": "742a382a77824c27a9238b13be37c3d2253909219f064939495dbcf749d1c783",
+  "benchmarks/fixtures/phase20c_customer_a_support/outdated_2024_policy.json": "602095ce38c71b8318e50af2e4a4b3de3bc4f55fa86685f6d04de051e2f94c49",
+  "benchmarks/fixtures/phase20c_customer_a_support/adversarial_injection.txt": "8977a47f0eea9e5585016bc58306bc7ff26b161bd34bbe66147de50cad5e533c",
+  "benchmarks/fixtures/phase20c_customer_a_support/expected_ground_truth.json": "60785a187d9ecff4a007ab3aff33f17a91b0bcb5ac72aa65e9628b737f2036d4",
+  "benchmarks/fixtures/phase20c_customer_b_lead_qualification/qualification_rubric.json": "2cef6e1baa867c54c545545bce72403c2072cdfc72aa20247ad40a31c4bef516",
+  "benchmarks/fixtures/phase20c_customer_b_lead_qualification/services_catalog.json": "c9fdd8fe2f8b61518b89ec88c3f5b80dca93d4fcf44985076f577205e22da344",
+  "benchmarks/fixtures/phase20c_customer_b_lead_qualification/leads_dataset.json": "413244170b3ea8c52f49aaafb99ff7f217b26bc50effa5cf36d028209c06e601",
+  "benchmarks/fixtures/phase20c_customer_b_lead_qualification/adversarial_leads.json": "d4dbde492e004c16ce71d2529e25aa8be5be609eb04b07ec45d3820da8a35dc8",
+  "benchmarks/fixtures/phase20c_customer_b_lead_qualification/crm_and_communication_policy.json": "5f3382bc57e578491b2054e99efd604cbbdda367b971e21b084427569c27a045",
+  "benchmarks/fixtures/phase20c_customer_b_lead_qualification/expected_ground_truth.json": "66a964c0774d85a39c6393833ece3002360a9e68e63f0d9971ce0e636ebd1a5b",
+  "benchmarks/fixtures/phase20c_customer_c_invoice_reconciliation/purchase_orders.json": "3560500ed97c41ec75a30e5f592ec587074468a64f5fdfe37a62439168b9e3c3",
+  "benchmarks/fixtures/phase20c_customer_c_invoice_reconciliation/invoices.json": "47ca3ea49ae29e255822ac0880be9e76ad49929a283dea118f3e400b299f3551",
+  "benchmarks/fixtures/phase20c_customer_c_invoice_reconciliation/payment_records.json": "c25268907e2704231d9595b4727b653d736e1457cf58ebce34df583f90d4950f",
+  "benchmarks/fixtures/phase20c_customer_c_invoice_reconciliation/adversarial_invoices.json": "9f4fa7bade1dd4bda81508d1a7ae94dab74aa25052445bf2ec1b0cd05392f678",
+  "benchmarks/fixtures/phase20c_customer_c_invoice_reconciliation/financial_controls_policy.json": "a904629585a1364c4608cd552c153236332bbf975d1bac9629aa71628064b2e4",
+  "benchmarks/fixtures/phase20c_customer_c_invoice_reconciliation/expected_ground_truth.json": "8d631c7990e917a3a97cf2707f594d7471ab45d8e587be156dcca1d4bef5b000"
+}

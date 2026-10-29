@@ -1,0 +1,58 @@
+[
+  {
+    "lead_id": "LEAD-101",
+    "company_name": "MedTech Health Systems",
+    "contact_name": "Dr. Sarah Chen",
+    "contact_title": "CTO",
+    "employee_count": 1200,
+    "annual_cloud_budget_usd": 400000,
+    "timeline": "< 1 month",
+    "primary_need": "We need to migrate our legacy monolithic patient analytics to an enterprise Kubernetes microservice platform with real-time AI inference.",
+    "notes": "Fast growing healthcare group with allocated budget."
+  },
+  {
+    "lead_id": "LEAD-102",
+    "company_name": "FinStream Analytics",
+    "contact_name": "Marcus Vance",
+    "contact_title": "VP of Engineering",
+    "employee_count": 250,
+    "annual_cloud_budget_usd": 150000,
+    "timeline": "1-3 months",
+    "primary_need": "Evaluating automated FinOps governance and SOC2 compliance automation for AWS multi-account deployment.",
+    "notes": "Evaluating 2 competing vendors."
+  },
+  {
+    "lead_id": "LEAD-103",
+    "company_name": "GreenLeaf Retail LLC",
+    "contact_name": "Chloe Adams",
+    "contact_title": "IT Manager",
+    "employee_count": 45,
+    "annual_cloud_budget_usd": 60000,
+    "timeline": "3-6 months",
+    "primary_need": "Looking for advice on containerizing our e-commerce store.",
+    "notes": "Early exploration, no immediate budget committed."
+  },
+  {
+    "lead_id": "LEAD-104",
+    "company_name": "SolSoft Consulting",
+    "contact_name": "David Miller",
+    "contact_title": "CEO",
+    "employee_count": 12,
+    "annual_cloud_budget_usd": 80000,
+    "timeline": "< 1 month",
+    "primary_need": "Seeking bespoke architecture design for client portal.",
+    "notes": "Small boutique shop."
+  },
+  {
+    "lead_id": "LEAD-105",
+    "company_name": "VenturePeak Capital",
+    "contact_name": "Elena Rostova",
+    "contact_title": "Managing Director",
+    "employee_count": 85,
+    "annual_cloud_budget_usd": null,
+    "timeline": null,
+    "primary_need": "Inquiring about potential technical due diligence services.",
+    "notes": "Missing budget and timeline in intake form."
+  }
+]
+

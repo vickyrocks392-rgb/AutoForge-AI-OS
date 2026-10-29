@@ -1,0 +1,38 @@
+{
+  "policy_version": "2026.3",
+  "effective_date": "2026-01-01",
+  "company": "NovaCommerce Inc.",
+  "shipping_tiers": [
+    {
+      "tier": "Standard Ground",
+      "delivery_window": "3-5 business days",
+      "cost_usd": 5.99,
+      "free_threshold_usd": 50.00,
+      "eligible_regions": ["Continental US"]
+    },
+    {
+      "tier": "Express 2-Day",
+      "delivery_window": "1-2 business days",
+      "cost_usd": 14.99,
+      "free_threshold_usd": null,
+      "eligible_regions": ["Continental US"]
+    },
+    {
+      "tier": "Priority Overnight",
+      "delivery_window": "Next business day",
+      "cost_usd": 24.99,
+      "free_threshold_usd": null,
+      "eligible_regions": ["Continental US"]
+    },
+    {
+      "tier": "Non-Contiguous & Military",
+      "delivery_window": "7-10 business days",
+      "cost_usd": 12.99,
+      "free_threshold_usd": null,
+      "eligible_regions": ["Alaska", "Hawaii", "Puerto Rico", "APO/FPO"]
+    }
+  ],
+  "authorized_carriers": ["FedEx", "USPS Priority"],
+  "order_cutoff_time": "14:00 EST for same-day dispatch"
+}
+

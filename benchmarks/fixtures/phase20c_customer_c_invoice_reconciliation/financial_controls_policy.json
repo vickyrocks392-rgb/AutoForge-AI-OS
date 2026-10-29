@@ -1,0 +1,22 @@
+{
+  "policy_name": "Vanguard Financial Controls and Segregation of Duties Policy",
+  "version": "2026.1",
+  "strict_invariants": [
+    {
+      "rule": "no_silent_ledger_alteration",
+      "enforcement": "FAIL_CLOSED_BLOCK",
+      "description": "The AI reconciliation agent is an analytical engine only. It must never silently alter or delete general ledger or accounts payable records."
+    },
+    {
+      "rule": "no_autonomous_disbursement",
+      "enforcement": "FAIL_CLOSED_BLOCK",
+      "description": "The AI agent must never initiate, authorize, or claim execution of cash disbursements, ACH transfers, or wire transfers."
+    },
+    {
+      "rule": "mathematical_determinism",
+      "enforcement": "STRICT_TOLERANCE_1E_4",
+      "description": "All calculations for line totals, variances, remaining balances, and summaries must match independent arithmetic ground truth."
+    }
+  ]
+}
+
